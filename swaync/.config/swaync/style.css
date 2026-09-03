@@ -1,0 +1,127 @@
+/* Paleta generada por matugen (../../matugen/.config/matugen/templates/swaync.css) */
+@import url("colors.css");
+
+* {
+    font-family: "JetBrainsMono Nerd Font";
+    font-size: 13px;
+}
+
+.control-center {
+    background-color: @mantle;
+    border: 1px solid @surface0;
+    border-radius: 16px;
+}
+
+.notification-row .notification-background {
+    background-color: @base;
+    border-radius: 14px;
+    margin: 6px 10px;
+    padding: 6px;
+    border: 1px solid @surface0;
+}
+
+.notification-content {
+    color: @text;
+}
+
+.notification-default-action,
+.notification-action {
+    background-color: @surface0;
+    color: @text;
+    border-radius: 8px;
+    transition: background-color 150ms ease, color 150ms ease;
+}
+
+.notification-default-action:hover,
+.notification-action:hover {
+    background-color: @mauve;
+    color: @base;
+}
+
+.close-button {
+    background-color: @red;
+    color: @base;
+    border-radius: 999px;
+}
+
+.widget-title {
+    color: @mauve;
+    font-weight: bold;
+    padding: 10px;
+}
+
+.widget-title > button {
+    background-color: @surface0;
+    color: @text;
+    border-radius: 8px;
+    transition: background-color 150ms ease;
+}
+
+.widget-dnd {
+    padding: 8px 10px;
+}
+
+.widget-dnd > switch {
+    border-radius: 999px;
+    background-color: @surface0;
+    transition: background-color 150ms ease;
+}
+
+.widget-dnd > switch:checked {
+    background-color: @mauve;
+}
+
+.widget-mpris {
+    background-color: @base;
+    border-radius: 14px;
+    margin: 6px 10px;
+    padding: 8px;
+}
+
+/* Botones rapidos (wifi, bluetooth, night light, lock) */
+.widget-buttons {
+    padding: 4px 10px;
+}
+.widget-buttons > flowbox > flowboxchild > button {
+    background-color: @surface0;
+    color: @text;
+    border-radius: 12px;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 16px;
+    transition: background-color 150ms ease, color 150ms ease;
+}
+.widget-buttons > flowbox > flowboxchild > button.active {
+    background-color: @mauve;
+    color: @base;
+}
+
+/* Sliders de volumen y brillo -- GTK necesita min-height/min-width
+ * explicitos en trough/slider o el widget renderiza practicamente invisible */
+.widget-volume,
+.widget-backlight {
+    background-color: @base;
+    border-radius: 14px;
+    margin: 4px 10px;
+    padding: 10px;
+    border: 1px solid @surface0;
+}
+.widget-volume trough,
+.widget-backlight trough {
+    min-height: 10px;
+    border-radius: 999px;
+    background-color: @surface0;
+}
+.widget-volume highlight,
+.widget-backlight highlight {
+    border-radius: 999px;
+    background-color: @mauve;
+}
+.widget-volume slider,
+.widget-backlight slider {
+    min-width: 14px;
+    min-height: 14px;
+    border-radius: 999px;
+    background-color: @text;
+    transition: background-color 150ms ease;
+}

@@ -1,0 +1,5 @@
+# La paleta vive en flavors/matugen.yazi/flavor.toml (generado por matugen,
+# ver ../../matugen/.config/matugen/templates/yazi-flavor.toml).
+[flavor]
+dark = "matugen"
+light = "matugen"

@@ -1,0 +1,11 @@
+/* Generado por matugen -- no editar a mano, editar templates/rofi.rasi */
+* {
+    base:      {{colors.surface.default.hex}}ee;
+    mantle:    {{colors.surface_container_low.default.hex}}f0;
+    surface0:  {{colors.surface_container.default.hex}};
+    text:      {{colors.on_surface.default.hex}};
+    subtext:   {{colors.on_surface_variant.default.hex}};
+    mauve:     {{colors.primary.default.hex}};
+    blue:      {{colors.secondary.default.hex}};
+    red:       {{colors.error.default.hex}};
+}

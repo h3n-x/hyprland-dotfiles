@@ -1,0 +1,14 @@
+configuration {
+    modi: "drun,window,run,filebrowser";
+    show-icons: true;
+    icon-theme: "Papirus-Dark";
+    display-drun: "  Apps";
+    display-window: "  Ventanas";
+    display-run: "  Ejecutar";
+    display-filebrowser: "  Archivos";
+    drun-display-format: "{icon} {name}";
+    font: "JetBrainsMono Nerd Font 11";
+    sidebar-mode: false;
+}
+
+@theme "theme"

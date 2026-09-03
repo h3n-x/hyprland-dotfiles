@@ -1,0 +1,19 @@
+# Generado por matugen -- no editar a mano, editar templates/satty.toml
+# El chrome (toolbar/headerbar) de satty es GTK, ya hereda el tema de
+# ../../../gtk-4.0/.config/gtk-4.0/gtk.css -- esto es solo la paleta rapida
+# de colores para dibujar (flechas, resaltados, texto).
+
+[general]
+early-exit = true
+actions-on-enter = ["save-to-clipboard"]
+actions-on-escape = ["exit"]
+no-window-decoration = true
+
+[color-palette]
+palette = [
+    "{{colors.primary.default.hex}}ff",
+    "{{colors.secondary.default.hex}}ff",
+    "{{colors.tertiary.default.hex}}ff",
+    "{{colors.error.default.hex}}ff",
+    "{{colors.on_surface.default.hex}}ff",
+]

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+<action>
+	<icon>utilities-terminal</icon>
+	<name>Abrir terminal aqui</name>
+	<submenu></submenu>
+	<unique-id>1788452934561279-1</unique-id>
+	<command>kitty --directory %f</command>
+	<description>Abre kitty en esta carpeta</description>
+	<range></range>
+	<patterns>*</patterns>
+	<startup-notify/>
+	<directories/>
+</action>
+<action>
+	<icon>nvim</icon>
+	<name>Editar con Neovim</name>
+	<submenu></submenu>
+	<unique-id>1788452934561279-2</unique-id>
+	<command>kitty --hold -e nvim %F</command>
+	<description>Abre el archivo en Neovim dentro de kitty</description>
+	<range></range>
+	<patterns>*</patterns>
+	<startup-notify/>
+	<other-files/>
+	<text-files/>
+</action>
+<action>
+	<icon>yazi</icon>
+	<name>Abrir con Yazi</name>
+	<submenu></submenu>
+	<unique-id>1788452934561279-3</unique-id>
+	<command>kitty --directory %f -e yazi</command>
+	<description>Explorador yazi en esta carpeta</description>
+	<range></range>
+	<patterns>*</patterns>
+	<startup-notify/>
+	<directories/>
+</action>
+</actions>

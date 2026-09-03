@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Corre un comando en la dGPU NVIDIA RTX 3050 via PRIME render offload,
+# dejando la iGPU AMD 760M como GPU principal para todo lo demas.
+#
+# Uso:
+#   ~/.config/hypr/scripts/nvidia-offload steam
+#   ~/.config/hypr/scripts/nvidia-offload glxgears
+#   ~/.config/hypr/scripts/nvidia-offload %command%   (en las opciones de lanzamiento de Steam)
+set -euo pipefail
+
+export __NV_PRIME_RENDER_OFFLOAD=1
+export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
+export __GLX_VENDOR_LIBRARY_NAME=nvidia
+export __VK_LAYER_NV_optimus=NVIDIA_only
+export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json
+export LIBVA_DRIVER_NAME=nvidia
+
+exec "$@"

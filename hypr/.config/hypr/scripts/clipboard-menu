@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Historial de portapapeles vía cliphist + rofi
+set -euo pipefail
+
+selected=$(cliphist list | rofi -dmenu -p "Portapapeles" -theme-str 'window {width: 40%;}')
+[[ -z "$selected" ]] && exit 0
+echo "$selected" | cliphist decode | wl-copy

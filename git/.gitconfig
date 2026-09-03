@@ -1,0 +1,41 @@
+[user]
+	name = h3n
+	email = 206126422+h3n-x@users.noreply.github.com
+
+[init]
+	defaultBranch = main
+
+[core]
+	editor = nvim
+	pager = less -FRX
+
+[color]
+	ui = auto
+
+[diff]
+	colorMoved = default
+
+[pull]
+	rebase = false
+
+[push]
+	autoSetupRemote = true
+
+[fetch]
+	prune = true
+
+[merge]
+	conflictstyle = zdiff3
+
+[rerere]
+	enabled = true
+
+[alias]
+	st = status -sb
+	co = checkout
+	br = branch
+	ci = commit
+	last = log -1 HEAD
+	lg = log --graph --oneline --decorate --all
+	unstage = restore --staged
+	amend = commit --amend --no-edit

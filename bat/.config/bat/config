@@ -1,0 +1,11 @@
+# ============================================================================
+# bat -- usa el tema "ansi": delega el coloreado de sintaxis a los 16 colores
+# ANSI del terminal en vez de un tema propio (.tmTheme). Como kitty ya los
+# genera con matugen (../../matugen/.config/matugen/templates/kitty.conf),
+# bat combina con la paleta automaticamente sin necesitar su propio template.
+# ============================================================================
+
+--theme="ansi"
+--style="numbers,changes,header-filename"
+--italic-text=always
+--paging=auto

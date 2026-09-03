@@ -1,0 +1,75 @@
+/* Generado por matugen -- no editar a mano, editar templates/librewolf.css
+ *
+ * Dos cosas nada obvias que costo mucho descubrir, ambas confirmadas con
+ * pruebas aisladas en un perfil de prueba (LibreWolf 155.0, 2026-09):
+ *
+ * 1. Los custom properties --lwt-*/--toolbar-* de Firefox (LightweightTheme)
+ *    NO tuvieron ningun efecto visible. En vez de esa API (que ademas ha
+ *    cambiado de nombre varias veces entre versiones), se targetean los
+ *    ids/clases reales del DOM del chrome (#nav-bar, #TabsToolbar, etc.),
+ *    estables desde la era Australis.
+ *
+ * 2. Un :root { --mi-var: ...; } definido en este MISMO archivo, consumido
+ *    con var(--mi-var) en las reglas de abajo, tampoco tiene ningun efecto
+ *    -- el valor nunca resuelve (fallback a transparent/initial). Por eso
+ *    esta plantilla substituye el hex de matugen DIRECTO en cada
+ *    declaracion en vez de armar variables intermedias.
+ */
+
+#nav-bar,
+#TabsToolbar,
+#PersonalToolbar,
+#titlebar {
+  background-color: {{colors.surface.default.hex}} !important;
+  color: {{colors.on_surface.default.hex}} !important;
+  border-color: {{colors.outline.default.hex}} !important;
+}
+
+/* Pildora de la barra de direcciones */
+#urlbar-background {
+  background-color: {{colors.surface_container_high.default.hex}} !important;
+  border-color: {{colors.outline.default.hex}} !important;
+}
+#urlbar-input,
+#urlbar-label-box,
+.urlbar-input-box {
+  color: {{colors.on_surface.default.hex}} !important;
+}
+#urlbar[focused="true"] > #urlbar-background {
+  border-color: {{colors.primary.default.hex}} !important;
+}
+
+/* Pestañas */
+.tab-background {
+  background-color: transparent !important;
+}
+.tabbrowser-tab[selected] .tab-background {
+  background-color: {{colors.surface_container_high.default.hex}} !important;
+}
+.tab-label {
+  color: {{colors.on_surface.default.hex}} !important;
+}
+.tab-line {
+  background-color: {{colors.primary.default.hex}} !important;
+}
+
+/* NOTA: se intento tambien themear "panel, menupopup { ... }" (menu
+ * hamburguesa, permisos, etc.) pero se omitio a proposito -- combinado con
+ * el bloque de sidebar de aqui abajo, por alguna razon no identificada
+ * (probado exhaustivamente con busqueda binaria por bloques) hacia que el
+ * bloque de #nav-bar de mas arriba dejara de aplicarse por completo, pese a
+ * que cada bloque por separado con el resto SI funciona. No vale la pena el
+ * riesgo por unos paneles; los popups quedan con el estilo claro por
+ * defecto de LibreWolf.
+ */
+
+/* Barra lateral (bookmarks/history) */
+#sidebar-box,
+#sidebar {
+  background-color: {{colors.surface.default.hex}} !important;
+  color: {{colors.on_surface.default.hex}} !important;
+}
+#sidebar-header {
+  background-color: {{colors.surface_container.default.hex}} !important;
+  color: {{colors.on_surface.default.hex}} !important;
+}

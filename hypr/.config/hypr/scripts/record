@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Grabacion de pantalla con wf-recorder: toggle on/off con la region elegida.
+# Uso: record toggle
+set -euo pipefail
+
+DIR="$HOME/Videos/Recordings"
+mkdir -p "$DIR"
+PIDFILE="/tmp/wf-recorder-$USER.pid"
+
+if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+    kill -INT "$(cat "$PIDFILE")"
+    rm -f "$PIDFILE"
+    notify-send -a Recording "Grabacion detenida" "Guardada en $DIR"
+else
+    GEOM=$(slurp -d) || exit 0
+    FILE="$DIR/$(date +%Y-%m-%d_%H-%M-%S).mp4"
+    wf-recorder -g "$GEOM" -f "$FILE" &
+    echo $! > "$PIDFILE"
+    notify-send -a Recording "Grabando..." "SUPER+ALT+R para detener"
+fi

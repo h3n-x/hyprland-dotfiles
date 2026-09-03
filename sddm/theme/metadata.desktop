@@ -1,0 +1,12 @@
+[SddmGreeterTheme]
+Name=Dotfiles Matugen
+Description=Tema basado en catppuccin/sddm, recoloreado por matugen segun el wallpaper
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+TranslationsDirectory=translations
+Theme-Id=DotfilesMatugen
+Theme-API=2.0
+License=MIT
+QtVersion=6

@@ -1,0 +1,88 @@
+# Generado por matugen -- no editar a mano, editar templates/yazi-flavor.toml
+# Flavor de yazi (https://yazi-rs.github.io/docs/flavors/overview/), basado
+# en el theme-dark.toml por defecto de yazi -- solo se sobreescriben los
+# colores de "chrome" (bordes, tabs, marcadores, permisos); iconos por
+# tipo de archivo quedan con los defaults de upstream.
+
+#:schema https://yazi-rs.github.io/schemas/theme.json
+
+[mgr]
+cwd = { fg = "#{{colors.primary.default.hex_stripped}}" }
+
+find_keyword  = { fg = "#{{colors.tertiary_container.default.hex_stripped}}", bold = true, italic = true, underline = true }
+find_position = { fg = "#{{colors.secondary.default.hex_stripped}}", bg = "reset", bold = true, italic = true }
+
+symlink_target = { italic = true }
+
+marker_copied   = { fg = "#{{colors.tertiary.default.hex_stripped}}", bg = "#{{colors.tertiary.default.hex_stripped}}" }
+marker_cut      = { fg = "#{{colors.error.default.hex_stripped}}", bg = "#{{colors.error.default.hex_stripped}}" }
+marker_marked   = { fg = "#{{colors.secondary.default.hex_stripped}}", bg = "#{{colors.secondary.default.hex_stripped}}" }
+marker_selected = { fg = "#{{colors.primary.default.hex_stripped}}", bg = "#{{colors.primary.default.hex_stripped}}" }
+
+count_copied   = { fg = "#{{colors.on_tertiary.default.hex_stripped}}", bg = "#{{colors.tertiary.default.hex_stripped}}" }
+count_cut      = { fg = "#{{colors.on_error.default.hex_stripped}}", bg = "#{{colors.error.default.hex_stripped}}" }
+count_selected = { fg = "#{{colors.on_primary.default.hex_stripped}}", bg = "#{{colors.primary.default.hex_stripped}}" }
+
+border_style = { fg = "#{{colors.outline.default.hex_stripped}}" }
+
+[tabs]
+active   = { fg = "#{{colors.on_primary.default.hex_stripped}}", bg = "#{{colors.primary.default.hex_stripped}}", bold = true }
+inactive = { fg = "#{{colors.on_surface_variant.default.hex_stripped}}", bg = "#{{colors.surface_container.default.hex_stripped}}" }
+
+[mode]
+normal_main = { bg = "#{{colors.primary.default.hex_stripped}}", fg = "#{{colors.on_primary.default.hex_stripped}}", bold = true }
+normal_alt  = { fg = "#{{colors.primary.default.hex_stripped}}", bg = "#{{colors.surface_container.default.hex_stripped}}" }
+
+select_main = { bg = "#{{colors.secondary.default.hex_stripped}}", fg = "#{{colors.on_secondary.default.hex_stripped}}", bold = true }
+select_alt  = { fg = "#{{colors.secondary.default.hex_stripped}}", bg = "#{{colors.surface_container.default.hex_stripped}}" }
+
+unset_main = { bg = "#{{colors.error.default.hex_stripped}}", fg = "#{{colors.on_error.default.hex_stripped}}", bold = true }
+unset_alt  = { fg = "#{{colors.error.default.hex_stripped}}", bg = "#{{colors.surface_container.default.hex_stripped}}" }
+
+[status]
+perm_type  = { fg = "#{{colors.tertiary.default.hex_stripped}}" }
+perm_read  = { fg = "#{{colors.tertiary_container.default.hex_stripped}}" }
+perm_write = { fg = "#{{colors.error.default.hex_stripped}}" }
+perm_exec  = { fg = "#{{colors.secondary.default.hex_stripped}}" }
+perm_sep   = { fg = "#{{colors.outline.default.hex_stripped}}" }
+
+progress_normal = { fg = "#{{colors.primary.default.hex_stripped}}", bg = "#{{colors.surface.default.hex_stripped}}" }
+progress_error  = { fg = "#{{colors.on_error.default.hex_stripped}}", bg = "#{{colors.error.default.hex_stripped}}" }
+
+[which]
+border          = { fg = "#{{colors.primary.default.hex_stripped}}" }
+cand            = { fg = "#{{colors.secondary.default.hex_stripped}}" }
+desc            = { fg = "#{{colors.tertiary.default.hex_stripped}}" }
+separator_style = { fg = "#{{colors.outline.default.hex_stripped}}" }
+
+[confirm]
+border  = { fg = "#{{colors.primary.default.hex_stripped}}" }
+title   = { fg = "#{{colors.primary.default.hex_stripped}}" }
+btn_yes = { fg = "#{{colors.on_primary.default.hex_stripped}}", bg = "#{{colors.primary.default.hex_stripped}}" }
+
+[spot]
+border = { fg = "#{{colors.primary.default.hex_stripped}}" }
+title  = { fg = "#{{colors.primary.default.hex_stripped}}" }
+
+[notify]
+title_info  = { fg = "#{{colors.tertiary.default.hex_stripped}}" }
+title_warn  = { fg = "#{{colors.tertiary_container.default.hex_stripped}}" }
+title_error = { fg = "#{{colors.error.default.hex_stripped}}" }
+
+[pick]
+border = { fg = "#{{colors.primary.default.hex_stripped}}" }
+active = { fg = "#{{colors.primary.default.hex_stripped}}", bold = true }
+
+[input]
+border = { fg = "#{{colors.primary.default.hex_stripped}}" }
+
+[cmp]
+border = { fg = "#{{colors.primary.default.hex_stripped}}" }
+
+[tasks]
+border  = { fg = "#{{colors.primary.default.hex_stripped}}" }
+hovered = { fg = "#{{colors.primary.default.hex_stripped}}", bold = true }
+
+[help]
+border  = { fg = "#{{colors.primary.default.hex_stripped}}" }
+chord   = { fg = "#{{colors.secondary.default.hex_stripped}}" }

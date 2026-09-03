@@ -1,0 +1,145 @@
+# ============================================================================
+# matugen -- genera paletas Material You a partir de un wallpaper y las
+# vuelca en cada app via templates. Se corre con `matugen image <wallpaper>`
+# (lo hace hypr/.config/hypr/scripts/wallpaper-selector.sh en cada cambio de
+# fondo). Ver README.md para el setup inicial.
+# ============================================================================
+
+[config]
+# No usamos el `set_wallpaper` de matugen: el wallpaper lo aplica
+# wallpaper-selector.sh via IPC de hyprpaper antes de llamar a matugen.
+
+[templates.btop]
+input_path = "~/.config/matugen/templates/btop.theme"
+output_path = "~/.config/btop/themes/matugen.theme"
+
+[templates.satty]
+input_path = "~/.config/matugen/templates/satty.toml"
+output_path = "~/.config/satty/config.toml"
+
+[templates.librewolf]
+input_path = "~/.config/matugen/templates/librewolf.css"
+output_path = "~/.cache/matugen/librewolf-userChrome.css"
+# Salida completa de userChrome.css (no un partial importado): un
+# userChrome.css symlinkeado con un @import a un archivo file:// fuera de
+# su propio directorio no se aplica -- el CSP del documento del chrome de
+# Firefox bloquea el import en silencio (probado en LibreWolf 155.0,
+# 2026-09; ver el comentario del template). link-profile.sh symlinkea este
+# archivo generado directo como userChrome.css del perfil.
+
+[templates.librewolf-content]
+input_path = "~/.config/matugen/templates/librewolf-content.css"
+output_path = "~/.cache/matugen/librewolf-userContent.css"
+
+[templates.kitty]
+input_path = "~/.config/matugen/templates/kitty.conf"
+output_path = "~/.config/kitty/colors.conf"
+# Solo recolorea ventanas kitty ya abiertas si el hook corre dentro de una
+# (KITTY_LISTEN_ON en el entorno); si no, simplemente no hace nada -- las
+# ventanas nuevas ya toman colors.conf actualizado.
+post_hook = "kitten @ set-colors -a -c ~/.config/kitty/colors.conf 2>/dev/null || true"
+
+[templates.rofi]
+input_path = "~/.config/matugen/templates/rofi.rasi"
+output_path = "~/.config/rofi/colors.rasi"
+
+[templates.swaync]
+input_path = "~/.config/matugen/templates/swaync.css"
+output_path = "~/.config/swaync/colors.css"
+post_hook = "swaync-client --reload-css"
+
+[templates.hyprlock]
+input_path = "~/.config/matugen/templates/hyprlock.conf"
+output_path = "~/.config/hypr/colors.conf"
+
+[templates.hyprland]
+input_path = "~/.config/matugen/templates/hyprland-colors.lua"
+output_path = "~/.config/hypr/modules/colors.lua"
+post_hook = "hyprctl reload"
+
+[templates.gtk3]
+input_path = "~/.config/matugen/templates/gtk.css"
+output_path = "~/.config/gtk-3.0/gtk.css"
+
+[templates.gtk4]
+input_path = "~/.config/matugen/templates/gtk.css"
+output_path = "~/.config/gtk-4.0/gtk.css"
+
+[templates.shell]
+input_path = "~/.config/matugen/templates/shell.sh"
+output_path = "~/.cache/matugen/colors.sh"
+
+[templates.qt5ct]
+input_path = "~/.config/matugen/templates/qt-colors.conf"
+output_path = "~/.config/qt5ct/colors/matugen.conf"
+
+[templates.qt6ct]
+input_path = "~/.config/matugen/templates/qt-colors.conf"
+output_path = "~/.config/qt6ct/colors/matugen.conf"
+
+[templates.starship]
+input_path = "~/.config/matugen/templates/starship.toml"
+output_path = "~/.config/starship.toml"
+
+[templates.fzf]
+input_path = "~/.config/matugen/templates/fzf.sh"
+output_path = "~/.cache/matugen/fzf-opts.sh"
+
+[templates.nvim]
+input_path = "~/.config/matugen/templates/nvim-colors.lua"
+output_path = "~/.config/nvim/lua/matugen_colors.lua"
+
+[templates.yazi]
+input_path = "~/.config/matugen/templates/yazi-flavor.toml"
+output_path = "~/.config/yazi/flavors/matugen.yazi/flavor.toml"
+
+[templates.sddm-main]
+input_path = "~/.config/matugen/templates/sddm/Main.qml"
+output_path = "~/.cache/matugen/sddm-theme/Main.qml"
+
+[templates.sddm-clock]
+input_path = "~/.config/matugen/templates/sddm/Components/Clock.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/Clock.qml"
+
+[templates.sddm-loginpanel]
+input_path = "~/.config/matugen/templates/sddm/Components/LoginPanel.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/LoginPanel.qml"
+
+[templates.sddm-sessionpanel]
+input_path = "~/.config/matugen/templates/sddm/Components/SessionPanel.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/SessionPanel.qml"
+
+[templates.sddm-passwordfield]
+input_path = "~/.config/matugen/templates/sddm/Components/PasswordField.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/PasswordField.qml"
+
+[templates.sddm-userfield]
+input_path = "~/.config/matugen/templates/sddm/Components/UserField.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/UserField.qml"
+
+[templates.sddm-powerbutton]
+input_path = "~/.config/matugen/templates/sddm/Components/PowerButton.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/PowerButton.qml"
+
+[templates.sddm-rebootbutton]
+input_path = "~/.config/matugen/templates/sddm/Components/RebootButton.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/RebootButton.qml"
+
+[templates.sddm-sleepbutton]
+input_path = "~/.config/matugen/templates/sddm/Components/SleepButton.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/SleepButton.qml"
+# Unico post_hook del grupo sddm-*: copia el staging (~/.cache/matugen/sddm-theme/)
+# a /usr/share/sddm/themes/ via sudo sin password. Apunta a una copia root-owned
+# del script en /usr/local/bin (no al de este repo, que el usuario puede editar
+# -- si el sudoers apuntara ahi, NOPASSWD equivaldria a sudo sin restricciones).
+# Ver hypr/.config/hypr/scripts/sync-sddm-theme.sh (fuente) y README (setup).
+post_hook = "sudo -n /usr/local/bin/sync-sddm-theme >/dev/null 2>&1 || true"
+
+[templates.icons]
+# papirus-folders solo acepta nombres de color fijos, no hex -- el mapeo al
+# mas cercano lo hace scripts/recolor-icons.sh. Necesita copias locales de
+# Papirus y Papirus-Dark en ~/.local/share/icons/ para no pedir sudo (Papirus-
+# Dark es simlinks relativos al tema base -- ver README).
+input_path = "~/.config/matugen/templates/icon-color.txt"
+output_path = "~/.cache/matugen/icon-color"
+post_hook = "~/.config/hypr/scripts/recolor-icons.sh {{colors.primary.default.hex_stripped}}"
