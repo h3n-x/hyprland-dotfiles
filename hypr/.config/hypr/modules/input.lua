@@ -25,7 +25,12 @@ hl.config({
             tap_to_click             = true,
             tap_and_drag              = true,
             drag_lock                 = 1,
-            clickfinger_behavior       = true, -- click con 2 dedos = click derecho
+            -- false = click por ZONA del touchpad (esquina inf. derecha =
+            -- click derecho, como en Windows/la mayoria de laptops). true
+            -- lo cambia a click por CANTIDAD de dedos (2 dedos = click
+            -- derecho sin importar donde presiones) -- eso hacia que
+            -- presionar la esquina no diera click derecho.
+            clickfinger_behavior       = false,
             disable_while_typing        = true,
             scroll_factor                = 1.0,
         },
