@@ -1,9 +1,0 @@
-/* Generado por matugen -- no editar a mano, editar templates/librewolf-content.css
- * Contenido inline (sin @import) por la misma razon que userChrome.css: un
- * import a un archivo fuera del propio directorio del symlink no se aplica.
- */
-@-moz-document url-prefix("about:") {
-  :root {
-    scrollbar-color: {{colors.outline.default.hex}} transparent;
-  }
-}

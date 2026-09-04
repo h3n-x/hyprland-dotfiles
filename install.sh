@@ -36,7 +36,8 @@ sudo pacman -S --needed --noconfirm waybar rofi swaync satty cliphist wl-clip-pe
   gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
   matugen bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono \
-  yazi tdf fd imagemagick 7zip resvg \
+  yazi tdf fd imagemagick 7zip resvg cava fastfetch \
+  dust duf procs tealdeer glow xh zellij \
   neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
 
 if command -v yay >/dev/null 2>&1; then
@@ -71,7 +72,7 @@ fi
 # la identidad (nombre/email) de quien armo este repo -- stowearlo sin
 # preguntar le pisaria la identidad de git a cualquier otra persona que
 # clone esto. Editalo primero, despues `stow git` a mano.
-stow hypr waybar rofi swaync kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify
+stow hypr waybar rofi swaync kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch
 ok "Stow aplicado (excepto 'git', ver nota al final)."
 
 # -----------------------------------------------------------------------
@@ -92,6 +93,14 @@ fi
 
 matugen image "$seed" --prefer saturation
 ok "Paleta generada a partir de $(basename "$seed"). Cambiala cuando quieras con SUPER+SHIFT+W."
+
+# ~/.face: imagen "de usuario" que dibuja hyprlock (ver hyprlock.conf).
+# Recorte cuadrado centrado del wallpaper semilla -- wallpaper-selector.sh
+# la regenera igual en cada cambio de fondo, ver README.
+if command -v magick >/dev/null 2>&1; then
+  magick "$seed" -gravity center -resize 512x512^ -extent 512x512 ~/.face
+  ok "~/.face generado a partir de $(basename "$seed")."
+fi
 
 # -----------------------------------------------------------------------
 # 4. LibreWolf
@@ -129,7 +138,15 @@ else
 fi
 
 # -----------------------------------------------------------------------
-# 6. Shell por defecto
+# 6. tealdeer (necesita bajar el cache de paginas la primera vez)
+# -----------------------------------------------------------------------
+if command -v tldr >/dev/null 2>&1; then
+  tldr --update >/dev/null 2>&1 && ok "Cache de tealdeer (tldr) actualizado." \
+    || warn "No se pudo actualizar el cache de tldr -- corre 'tldr --update' a mano."
+fi
+
+# -----------------------------------------------------------------------
+# 7. Shell por defecto
 # -----------------------------------------------------------------------
 if [ "$(getent passwd "$USER" | cut -d: -f7)" != "$(command -v zsh)" ]; then
   info "Cambiando la shell por defecto a zsh (te va a pedir tu contraseña)..."

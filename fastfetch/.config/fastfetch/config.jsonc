@@ -1,0 +1,114 @@
+// Inspired by Catnap
+//
+// Los colores (los {#NN} en cada "key") NO se generan con matugen ni con el
+// alias de ~/.cache/matugen/fastfetch-opts.sh -- son codigos ANSI SGR crudos
+// (30-37/90-97, estandar de 16 colores), y esos codigos ya resuelven contra
+// la paleta color0-15 que matugen le genera a kitty
+// (matugen/.config/matugen/templates/kitty.conf): {#31}=color1 (error),
+// {#34}=color4 (secondary), {#35}=color5 (primary), {#36}=color6
+// (secondary_container), {#32}=color2 (tertiary). Mismo mecanismo de
+// delegacion que ya usa `bat` (tema `ansi`, ver README) -- cambia el
+// wallpaper, cambia kitty, y este archivo sigue sin tocarlo ni regenerar
+// nada. El alias de matugen sigue activo pero, con el logo desactivado
+// ("type": "none"), solo le pone color al texto de valor (columna derecha)
+// via --color-output.
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {
+        "type": "none",
+        "source": "",
+        "padding": {
+            "top": 0,
+            "right": 2,
+        },
+        "width": 30, // Ajusta el ancho de la imagen
+        "height": 10, // Ajusta la altura de la imagen
+    },
+    "display": {
+        "separator": " ",
+        "key": {
+            "width": 16,
+        },
+    },
+    "modules": [
+        {
+            "key": "╭───────────╮",
+            "type": "custom",
+        },
+        {
+            // draw borders first to make colors of left and right border consistant
+            "key": "│           │\u001b[11D{#31} user",
+            "type": "title",
+            "format": "{1}",
+        },
+        {
+            "key": "├───────────┤",
+            "type": "custom",
+        },
+        // {
+        //     "key": "│           │\u001b[11D{#32}󰇅 hname",
+        //     "type": "title",
+        //     "format": "{2}"
+        // },
+        // {
+        //     "key": "│           │\u001b[11D{#33}󰅐 uptime",
+        //     "type": "uptime"
+        // },
+        {
+            "key": "│           │\u001b[11D{#34} distro",
+            "type": "os",
+        },
+        {
+            "key": "│           │\u001b[11D{#35} kernel",
+            "type": "kernel",
+        },
+        {
+            "key": "│           │\u001b[11D{#36}󰇄 desktop",
+            "type": "de",
+        },
+        {
+            "key": "│           │\u001b[11D{#31} term",
+            "type": "terminal",
+        },
+        {
+            "key": "│           │\u001b[11D{#31} wm",
+            "type": "wm",
+        },
+        {
+            "key": "│           │\u001b[11D{#32} shell",
+            "type": "shell",
+        },
+        // {
+        //     "key": "│           │\u001b[11D{#33}󰍛 cpu",
+        //     "type": "cpu",
+        //     "showPeCoreCount": true
+        // },
+        {
+            "key": "│           │\u001b[11D{#34}󰉉 disk",
+            "type": "disk",
+            "folders": "/",
+        },
+        {
+            "key": "│           │\u001b[11D{#35}  memory",
+            "type": "memory",
+        },
+        // {
+        //     "key": "│           │\u001b[11D{#36}󰩟 network",
+        //     "type": "localip",
+        //     "format": "{1} ({4})"
+        // },
+        // {
+        //     "key": "├───────────┤",
+        //     "type": "custom"
+        // },
+        // {
+        //     "key": "│           │\u001b[11D{#39} colors",
+        //     "type": "colors",
+        //     "symbol": "circle"
+        // },
+        {
+            "key": "╰───────────╯",
+            "type": "custom",
+        },
+    ],
+}

@@ -50,6 +50,15 @@ if command -v bat >/dev/null 2>&1; then
   alias cat='bat --paging=never'
 fi
 
+command -v dust >/dev/null 2>&1 && alias du='dust'
+command -v duf >/dev/null 2>&1 && alias df='duf'
+command -v procs >/dev/null 2>&1 && alias ps='procs'
+command -v xh >/dev/null 2>&1 && alias http='xh'
+
+# glow: glow.yml no soporta un "style" que funcione, GLOW_STYLE si -- ver
+# matugen/.config/matugen/templates/glow-style.json.
+[ -f ~/.cache/matugen/glow-style.json ] && export GLOW_STYLE=~/.cache/matugen/glow-style.json
+
 alias grep='grep --color=auto'
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -57,6 +66,10 @@ command -v zoxide >/dev/null 2>&1 && alias cd='z'
 
 alias dotfiles='cd ~/Dotfiles'
 alias reload-waybar='killall -SIGUSR2 waybar'
+
+# fastfetch: alias con los colores del wallpaper actual, generado por
+# matugen (ver matugen/.config/matugen/templates/fastfetch-opts.sh).
+[ -f ~/.cache/matugen/fastfetch-opts.sh ] && source ~/.cache/matugen/fastfetch-opts.sh
 
 # ---- yazi: "y" en vez de "yazi" para que al salir te deje en el
 # directorio donde navegaste (integracion oficial recomendada por yazi) ----
@@ -77,3 +90,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # ---- ver imagenes sueltas en la terminal (kitten icat, ya incluido) ----
 command -v kitty >/dev/null 2>&1 && alias icat='kitten icat'
+
+# ---- fastfetch al abrir una terminal nueva (usa el alias con colores de
+# matugen definido mas arriba, no el binario pelado) ----
+command -v fastfetch >/dev/null 2>&1 && fastfetch

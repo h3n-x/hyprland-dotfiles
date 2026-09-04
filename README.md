@@ -39,6 +39,13 @@ ir de a uno o algo falla.
 | Color picker | hyprpicker |
 | Selector de emoji | rofimoji (`SUPER + .`) |
 | Spotify | spicetify + spicetify-marketplace (ver `spicetify/`) |
+| Visualizador de audio | cava (colores dinamicos, ver seccion cava abajo) |
+| System info / fetch | fastfetch (ver `fastfetch/`) |
+| Multiplexor de terminal | zellij (colores dinamicos, ver seccion zellij abajo) |
+| Markdown en terminal | glow (colores dinamicos, ver seccion glow abajo) |
+| `du`/`df`/`ps` modernos | dust / duf / procs (heredan el ANSI de kitty, sin theming propio) |
+| Cliente HTTP | xh (alias `http`) |
+| Ejemplos de uso rapido | tealdeer (`tldr`) |
 | Paleta de colores dinamica | matugen (Material You a partir del wallpaper) |
 
 | Terminal | kitty |
@@ -53,7 +60,8 @@ sudo pacman -S --needed waybar rofi swaync satty cliphist wl-clip-persist \
   gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
   matugen bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono \
-  yazi tdf fd imagemagick 7zip resvg \
+  yazi tdf fd imagemagick 7zip resvg cava fastfetch \
+  dust duf procs tealdeer glow xh zellij \
   neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
 
 yay -S --needed bibata-cursor-theme-bin papirus-folders spicetify-bin
@@ -120,7 +128,7 @@ El modulo `custom/gpu` de Waybar muestra si hay algo corriendo en la NVIDIA ahor
 ```bash
 cd ~/Dotfiles
 mv ~/.config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua.bak  # backup del autogenerado
-stow hypr waybar rofi swaync kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify git
+stow hypr waybar rofi swaync kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch git
 ```
 
 Waybar, swaync, rofi, kitty (incluida la tab bar), hyprlock, GTK, Qt
@@ -128,7 +136,11 @@ Waybar, swaync, rofi, kitty (incluida la tab bar), hyprlock, GTK, Qt
 `yazi/.config/yazi/theme.toml`), Neovim (colorscheme base16 propio, ver
 `nvim/.config/nvim/lua/plugins/colorscheme.lua`), btop (theme `matugen`),
 satty (100% generado, `~/.config/satty/config.toml`, no trackeado en el
-repo -- igual que starship), SDDM, los iconos de carpeta de Papirus-Dark y los bordes de Hyprland
+repo -- igual que starship), cava (100% generado, `~/.config/cava/config`,
+tampoco trackeado -- ver seccion `### cava` abajo), fastfetch (via ANSI de
+kitty + alias generado, ver `### fastfetch` abajo), zellij (100% generado,
+ver `### zellij` abajo), glow (via `GLOW_STYLE`, ver `### glow` abajo), SDDM,
+los iconos de carpeta de Papirus-Dark y los bordes de Hyprland
 toman su paleta de un
 wallpaper via matugen (`matugen/.config/matugen/`) en vez de tener los
 colores hardcodeados. `bat` no necesita template propio: usa el tema
@@ -145,7 +157,14 @@ matugen image ~/Pictures/Wallpapers/imagen_161.png
 
 Para cambiar de wallpaper (y recolorear todo junto) usa `SUPER+SHIFT+W`
 (`hypr/.config/hypr/scripts/wallpaper-selector.sh`), que aplica el fondo con
-hyprpaper y corre `matugen image` con el wallpaper elegido.
+hyprpaper, corre `matugen image` con el wallpaper elegido y regenera
+`~/.face` -- la imagen "de usuario" que dibuja hyprlock arriba del reloj de
+palabras (`image { path = ~/.face }` en `hyprlock.conf`) -- como un recorte
+cuadrado centrado (512x512, via `magick`) del mismo wallpaper. No hace falta
+poner una foto real: el avatar del lockscreen cambia solo junto con el resto
+del theming. Si preferis una foto tuya en vez del recorte del wallpaper,
+sobreescribi `~/.face` a mano despues de cambiar de fondo (el selector la
+va a volver a pisar en el proximo cambio).
 
 Shell: zsh (con [zinit](https://github.com/zdharma-continuum/zinit) para
 plugins -- se clona solo la primera vez que abris una terminal, no hace
@@ -169,6 +188,70 @@ solos via mason -- `bashls`/`pyright`/`jsonls`/`yamlls` necesitan
 fijado a la branch `main` (`master` esta congelada y no soporta Neovim
 0.12+) y necesita `tree-sitter-cli` para compilar parsers -- tambien ya
 esta en la lista.
+
+### cava
+
+`~/.config/cava/config` es 100% generado por matugen (no esta trackeado en
+el repo, solo el template en `matugen/.config/matugen/templates/cava.conf`)
+-- cava no soporta `include`/import para separar colores del resto de la
+config. `background`/`foreground` quedan en `'default'` para que se vea el
+fondo con blur de la terminal detras (mismo mecanismo que
+`background_opacity` en `kitty.conf`) en vez de un fondo solido, y el
+gradiente reutiliza el mismo esquema "semaforo" verde -> amarillo -> rojo
+que ya usa `btop.theme` (grave -> agudo en vez de bajo -> alto uso). Si
+cava ya esta corriendo, el `post_hook` del template le manda `SIGUSR2` para
+recargar solo los colores (sin reiniciar el analisis de audio) en cada
+cambio de wallpaper.
+
+### fastfetch
+
+A diferencia de cava, `~/.config/fastfetch/config.jsonc` (paquete stow
+propio, `fastfetch/`) es un archivo real y estatico -- se edita a mano sin
+tocar matugen. El diseño actual (estilo "Catnap", caja dibujada a mano con
+`key` custom por modulo) colorea cada linea con codigos ANSI crudos
+(`{#31}`, `{#34}`, `{#35}`...) que resuelven contra la paleta `color0-15`
+que matugen le genera a kitty (`kitty/colors.conf`) -- mismo mecanismo de
+delegacion que ya usa `bat` con su tema `ansi`, cambia el wallpaper y
+cambian los colores sin regenerar nada. Tambien existe un
+`alias fastfetch=...` generado por matugen en
+`~/.cache/matugen/fastfetch-opts.sh` (sourceado desde `.zshrc`, mismo patron
+que `fzf-opts.sh`) con flags `--logo-color-N`/`--color-*`; con el logo
+desactivado (`"type": "none"`) solo le pone color al texto de valor
+(columna derecha) via `--color-output`. Se abre solo al abrir una terminal
+nueva (ultima linea de `.zshrc`).
+
+### zellij
+
+`~/.config/zellij/config.kdl` es 100% generado por matugen (no esta
+trackeado en el repo, no hay paquete stow `zellij/` -- solo el template en
+`matugen/.config/matugen/templates/zellij-config.kdl`). zellij soporta
+`theme_dir` para cargar temas desde archivos sueltos (como el flavor.toml de
+yazi), pero esa directiva no expande `~`/`$HOME` (probado: tira `IoError` si
+no es una ruta absoluta literal) -- como este repo tiene que servir para
+cualquier `$HOME`, el theme va embebido directo en el config completo en vez
+de un archivo separado. Los colores van en RGB decimal (`fg 227 225 233`),
+no hex -- formato real de zellij 0.45, verificado con
+`zellij setup --dump-config`. zellij corre un servidor por sesion: una
+sesion ya abierta no recoge un cambio de wallpaper hasta reiniciarla
+(`zellij kill-all-sessions -y`); las sesiones nuevas si toman los colores
+actualizados.
+
+### glow
+
+El estilo de glow (`glow-style.json`, formato de
+[glamour](https://github.com/charmbracelet/glamour)) tambien es 100%
+generado por matugen, basado en el `dark.json` oficial de glamour con los
+campos de color reemplazados. La clave `style` de `~/.config/glow/glow.yml`
+resulta no funcionar (probado, glow la ignora en silencio) -- la variable de
+entorno `GLOW_STYLE` si, asi que `.zshrc` la exporta apuntando siempre a
+`~/.cache/matugen/glow-style.json`. Un detalle no obvio del propio template:
+glamour usa `{{.text}}` como placeholder interno en el campo `format` de
+`image_text`, que choca con la sintaxis `{{ }}` de matugen (rompe el parseo
+de TODO el archivo, no solo esa linea) -- esta escapado en el template como
+`\u007b\u007b.text\u007d\u007d` (unicode escape de JSON -- sin llaves
+literales en el template, matugen ni se entera -- que se decodifica de
+vuelta a llaves reales cuando glow parsea el JSON generado) para que
+matugen no intente interpretarlo como una variable propia.
 
 ### Spotify (spicetify + Marketplace)
 

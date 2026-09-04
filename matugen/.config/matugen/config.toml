@@ -13,23 +13,35 @@
 input_path = "~/.config/matugen/templates/btop.theme"
 output_path = "~/.config/btop/themes/matugen.theme"
 
+[templates.glow]
+input_path = "~/.config/matugen/templates/glow-style.json"
+output_path = "~/.cache/matugen/glow-style.json"
+# glow.yml no tiene una clave "style" que funcione (probado: la ignora
+# silenciosamente) -- glow SI respeta la variable de entorno GLOW_STYLE,
+# exportada desde .zshrc apuntando siempre a esta ruta fija.
+
+[templates.zellij]
+input_path = "~/.config/matugen/templates/zellij-config.kdl"
+output_path = "~/.config/zellij/config.kdl"
+# Archivo completo (no solo el theme): `theme_dir` de zellij no expande
+# `~`/$HOME, asi que no se puede apuntar de forma portable a un archivo de
+# theme separado -- ver el comentario del template.
+
+[templates.cava]
+input_path = "~/.config/matugen/templates/cava.conf"
+output_path = "~/.config/cava/config"
+# Recarga solo los colores si cava ya esta corriendo (SIGUSR2), sin
+# reiniciar el analisis de audio. pkill devuelve 1 (y sin esto abortaria el
+# post_hook) si cava no esta abierto -- de ahi el `|| true`.
+post_hook = "pkill -USR2 cava >/dev/null 2>&1 || true"
+
+[templates.fastfetch]
+input_path = "~/.config/matugen/templates/fastfetch-opts.sh"
+output_path = "~/.cache/matugen/fastfetch-opts.sh"
+
 [templates.satty]
 input_path = "~/.config/matugen/templates/satty.toml"
 output_path = "~/.config/satty/config.toml"
-
-[templates.librewolf]
-input_path = "~/.config/matugen/templates/librewolf.css"
-output_path = "~/.cache/matugen/librewolf-userChrome.css"
-# Salida completa de userChrome.css (no un partial importado): un
-# userChrome.css symlinkeado con un @import a un archivo file:// fuera de
-# su propio directorio no se aplica -- el CSP del documento del chrome de
-# Firefox bloquea el import en silencio (probado en LibreWolf 155.0,
-# 2026-09; ver el comentario del template). link-profile.sh symlinkea este
-# archivo generado directo como userChrome.css del perfil.
-
-[templates.librewolf-content]
-input_path = "~/.config/matugen/templates/librewolf-content.css"
-output_path = "~/.cache/matugen/librewolf-userContent.css"
 
 [templates.spicetify]
 input_path = "~/.config/matugen/templates/spicetify-color.ini"

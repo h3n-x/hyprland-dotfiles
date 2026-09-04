@@ -47,4 +47,13 @@ if command -v matugen >/dev/null 2>&1; then
   matugen image "$wallpaper" --prefer saturation >/dev/null 2>&1 &
 fi
 
+# ~/.face es la imagen "de usuario" que hyprlock.conf dibuja arriba del
+# reloj de palabras (widget `image`, ver hypr/.config/hypr/hyprlock.conf).
+# En vez de pedir una foto real, se genera un recorte cuadrado centrado del
+# wallpaper elegido -- asi el "avatar" del lockscreen cambia junto con el
+# resto del theming. Pisa cualquier ~/.face anterior a proposito.
+if command -v magick >/dev/null 2>&1; then
+  magick "$wallpaper" -gravity center -resize 512x512^ -extent 512x512 ~/.face >/dev/null 2>&1 &
+fi
+
 notify "Aplicando: $selected"
