@@ -46,9 +46,15 @@ hl.config({
         rounding       = 10,
         rounding_power = 2,
 
-        active_opacity     = 1.0,
-        inactive_opacity   = 0.94,
-        fullscreen_opacity = 1.0,
+        -- active_opacity en 1.0 hacia que solo kitty se viera blureado (tiene
+        -- su propia transparencia interna, background_opacity en kitty.conf,
+        -- independiente de esto) -- el resto de las apps quedaban 100%
+        -- opacas mientras estaban enfocadas, sin nada que blurear detras. En
+        -- 0.92 (mismo valor que kitty) el blur ya activado en decoration.blur
+        -- se aplica parejo a todas las apps, enfocadas o no.
+        active_opacity     = 0.92,
+        inactive_opacity   = 0.85,
+        fullscreen_opacity = 1.0, -- juegos/video no deben ser translucidos
 
         dim_inactive = false,
         dim_strength = 0.5,

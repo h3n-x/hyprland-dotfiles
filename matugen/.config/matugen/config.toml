@@ -31,6 +31,16 @@ output_path = "~/.cache/matugen/librewolf-userChrome.css"
 input_path = "~/.config/matugen/templates/librewolf-content.css"
 output_path = "~/.cache/matugen/librewolf-userContent.css"
 
+[templates.spicetify]
+input_path = "~/.config/matugen/templates/spicetify-color.ini"
+output_path = "~/.config/spicetify/Themes/matugen/color.ini"
+# spicetify no lee color.ini en vivo -- lo "hornea" dentro de los archivos
+# ya parcheados de Spotify recien en `spicetify apply`. Este post_hook deja
+# los archivos parcheados al dia en cada cambio de wallpaper, pero Spotify
+# (si esta abierto) no se reinicia solo -- hay que cerrarlo y abrirlo de
+# nuevo para ver los colores nuevos, igual que LibreWolf.
+post_hook = "spicetify apply >/dev/null 2>&1 || true"
+
 [templates.kitty]
 input_path = "~/.config/matugen/templates/kitty.conf"
 output_path = "~/.config/kitty/colors.conf"

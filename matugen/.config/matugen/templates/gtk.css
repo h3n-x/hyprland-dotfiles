@@ -11,3 +11,16 @@
 
 @define-color headerbar_bg_color {{colors.surface_container.default.hex}};
 @define-color headerbar_fg_color {{colors.on_surface.default.hex}};
+
+/* Blur detras de apps GTK (thunar, nwg-look, pavucontrol, etc.): GTK pinta
+ * su fondo 100% opaco por defecto y le avisa a Wayland "esta region es
+ * opaca, no hace falta blurear/componer nada detras" (opaque region, una
+ * optimizacion de rendering) -- Hyprland respeta ese aviso, asi que aunque
+ * decoration.active_opacity este en <1 globalmente, nunca se ve blur en
+ * ventanas GTK sin esto. Con alpha() real en el background, GTK dibuja con
+ * transparencia genuina y deja de marcar la region como opaca -- mismo
+ * mecanismo por el que kitty (background_opacity en kitty.conf) si bluerea.
+ */
+window {
+  background-color: alpha(@window_bg_color, 0.92);
+}

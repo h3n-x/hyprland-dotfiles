@@ -37,6 +37,8 @@ ir de a uno o algo falla.
 | Grabacion | wf-recorder |
 | Portapapeles | cliphist + wl-clip-persist |
 | Color picker | hyprpicker |
+| Selector de emoji | rofimoji (`SUPER + .`) |
+| Spotify | spicetify + spicetify-marketplace (ver `spicetify/`) |
 | Paleta de colores dinamica | matugen (Material You a partir del wallpaper) |
 
 | Terminal | kitty |
@@ -47,14 +49,14 @@ ir de a uno o algo falla.
 ```bash
 sudo pacman -S --needed waybar rofi swaync satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
-  qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd \
+  qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd rofimoji wtype \
   gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
   matugen bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono \
   yazi tdf fd imagemagick 7zip resvg \
-  neovim nodejs npm ripgrep tree-sitter-cli
+  neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
 
-yay -S --needed bibata-cursor-theme-bin papirus-folders
+yay -S --needed bibata-cursor-theme-bin papirus-folders spicetify-bin
 
 # papirus-folders necesita una copia LOCAL del tema para no pedir sudo en
 # cada cambio de wallpaper (matugen lo llama automaticamente, sin terminal).
@@ -118,7 +120,7 @@ El modulo `custom/gpu` de Waybar muestra si hay algo corriendo en la NVIDIA ahor
 ```bash
 cd ~/Dotfiles
 mv ~/.config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua.bak  # backup del autogenerado
-stow hypr waybar rofi swaync kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen git
+stow hypr waybar rofi swaync kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify git
 ```
 
 Waybar, swaync, rofi, kitty (incluida la tab bar), hyprlock, GTK, Qt
@@ -198,6 +200,57 @@ al arrancar). No hace falta volver a correr el script en cada wallpaper --
 los symlinks son estables, solo el contenido en `~/.cache/matugen/` se
 regenera solo.
 
+### Spotify (spicetify + Marketplace)
+
+`user.css` parte de [catppuccin/spicetify](https://github.com/catppuccin/spicetify)
+(MIT, ver `spicetify/.config/spicetify/Themes/matugen/LICENSE-catppuccin`) --
+la base de catppuccin queda sin cambios, solo consume las variables
+`--spice-*` que spicetify genera a partir de `color.ini`. Ese `color.ini`
+es 100% generado por matugen (un unico esquema `[matugen]`, no los 4
+sabores fijos de catppuccin). No se porto `theme.js` (selector manual de
+color de acento): dependia de 14 GIFs de ecualizador pre-generados por
+acento fijo, que no encaja con un esquema dinamico de un solo acento -- el
+unico efecto es que el icono animado de "reproduciendo ahora" no anima, el
+resto del tema no se ve afectado.
+
+Encima de esa base, personalizacion propia (seccion final de `user.css`,
+por separado de lo heredado de catppuccin):
+- Fuente JetBrainsMono Nerd Font Propo en toda la UI (`--encore-*-font-stack`,
+  variables reales confirmadas grep-eando el CSS ya parcheado de Spotify --
+  no estan documentadas por spicetify).
+- Barra de reproduccion con `backdrop-filter: blur()` (esto es CSS normal
+  que Chromium/Electron si puede hacer sobre su propio contenido -- no
+  tiene nada que ver con que Hyprland no pueda blurear detras de la
+  ventana de Spotify, son dos cosas distintas).
+- Portadas de album con el mismo `border-radius` que las ventanas de
+  Hyprland (`decoration.rounding`, `lookandfeel.lua`).
+- Barra de progreso y boton de play con el color de acento en vez del gris
+  por defecto.
+
+A diferencia del resto, spicetify no lee `color.ini` en vivo: lo "hornea"
+dentro de los archivos ya parcheados de Spotify recien al correr
+`spicetify apply` (lo hace solo el `post_hook` del template en cada cambio
+de wallpaper). Si Spotify ya estaba abierto, hay que cerrarlo y volver a
+abrirlo para ver los colores nuevos -- igual que LibreWolf.
+
+Setup inicial (una sola vez, despues del primer `matugen image`):
+
+```bash
+spicetify config current_theme matugen color_scheme matugen
+spicetify apply
+```
+
+Marketplace (para instalar temas/extensiones community desde la propia UI
+de Spotify) via el instalador oficial -- solo toca `~/.config/spicetify/`,
+sin sudo:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/spicetify/spicetify-marketplace/main/resources/install.sh | sh
+```
+
+(el instalador respeta el `current_theme` que ya configuraste arriba --
+solo pisa el tema si no hay ninguno seteado).
+
 ### SDDM (pantalla de login)
 
 Tema propio (`sddm/theme/`, adaptado de
@@ -269,6 +322,7 @@ efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
 | `SUPER + SHIFT + M` | Salida forzada de Hyprland (sin confirmar) |
 | `SUPER + N` / `SHIFT+N` | Panel de notificaciones / limpiar todo |
 | `SUPER + SHIFT + C` | Color picker |
+| `SUPER + .` | Selector de emoji (rofimoji) |
 | `SUPER + SHIFT + V` | Historial de portapapeles |
 | `SUPER + SHIFT + W` | Selector de wallpaper (recolorea todo con matugen) |
 | `Print` / `SUPER+Print` / `SUPER+SHIFT+Print` | Captura completa / region / ventana |

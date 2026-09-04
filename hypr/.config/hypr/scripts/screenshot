@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Capturas de pantalla: full | region | window
-# Requiere: grim, slurp, satty, wl-clipboard, libnotify
+# Las 3 copian directo al portapapeles (wl-copy), sin pasar por un editor --
+# si queres anotar (flechas/blur/texto) antes de copiar, satty sigue
+# instalado y configurado (ver matugen/.config/matugen/templates/satty.toml):
+# corre `satty --filename <captura> --output-filename <captura> --copy-to-clipboard`
+# a mano sobre el archivo ya guardado en ~/Pictures/Screenshots.
+# Requiere: grim, slurp, wl-clipboard, libnotify
 set -euo pipefail
 
 DIR="$HOME/Pictures/Screenshots"
@@ -19,11 +24,13 @@ case "$MODE" in
   window)
     ACTIVE_BOX=$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
     grim -g "$ACTIVE_BOX" "$FILE"
-    satty --filename "$FILE" --output-filename "$FILE" --copy-to-clipboard
+    wl-copy < "$FILE"
+    notify "Captura de ventana" "Guardada y copiada al portapapeles"
     ;;
   region|*)
     GEOM=$(slurp -d) || exit 0 # cancelado por el usuario
     grim -g "$GEOM" "$FILE"
-    satty --filename "$FILE" --output-filename "$FILE" --copy-to-clipboard
+    wl-copy < "$FILE"
+    notify "Captura de region" "Guardada y copiada al portapapeles"
     ;;
 esac

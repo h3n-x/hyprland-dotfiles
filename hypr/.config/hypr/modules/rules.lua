@@ -67,8 +67,13 @@ hl.window_rule({
 -- ---- Layer rules (blur para barra, launcher, notificaciones) ----
 hl.layer_rule({ match = { namespace = "waybar" },         blur = true })
 hl.layer_rule({ match = { namespace = "rofi" },            blur = true, ignore_alpha = 0.3 })
-hl.layer_rule({ match = { namespace = "swaync-control-center" }, blur = true })
-hl.layer_rule({ match = { namespace = "swaync-notification-window" }, blur = true })
+hl.layer_rule({ match = { namespace = "swaync-control-center" }, blur = true, ignore_alpha = 0.3 })
+-- ignore_alpha: la superficie de swaync-notification-window reserva toda
+-- la columna derecha de la pantalla (para poder apilar varias
+-- notificaciones), casi toda transparente salvo el bubble en si -- sin
+-- esto, Hyprland bluerea el rectangulo entero de la superficie en vez de
+-- solo donde hay contenido visible (mismo patron que el layer_rule de rofi).
+hl.layer_rule({ match = { namespace = "swaync-notification-window" }, blur = true, ignore_alpha = 0.3 })
 hl.layer_rule({ match = { namespace = "hyprpicker" },        no_anim = true })
 
 -- Widgets/relojes que deben verse incluso arriba de hyprlock (ninguno por ahora)

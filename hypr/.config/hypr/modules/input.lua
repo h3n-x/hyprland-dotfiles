@@ -5,36 +5,36 @@
 -- ============================================================================
 
 hl.config({
-    input = {
-        kb_layout  = "us",
-        kb_variant = "",
-        kb_model   = "",
-        kb_options = "", -- ej: "caps:escape" para Caps Lock -> Escape
-        kb_rules   = "",
+	input = {
+		kb_layout = "us",
+		kb_variant = "",
+		kb_model = "",
+		kb_options = "", -- ej: "caps:escape" para Caps Lock -> Escape
+		kb_rules = "",
 
-        follow_mouse = 1,
-        sensitivity  = 0.0,
-        accel_profile = "adaptive",
+		follow_mouse = 1,
+		sensitivity = 0.0,
+		accel_profile = "adaptive",
 
-        numlock_by_default = true,
-        repeat_rate  = 40,
-        repeat_delay = 300,
+		numlock_by_default = true,
+		repeat_rate = 40,
+		repeat_delay = 300,
 
-        touchpad = {
-            natural_scroll         = false, -- true = estilo "trackpad de Mac"
-            tap_to_click             = true,
-            tap_and_drag              = true,
-            drag_lock                 = 1,
-            -- false = click por ZONA del touchpad (esquina inf. derecha =
-            -- click derecho, como en Windows/la mayoria de laptops). true
-            -- lo cambia a click por CANTIDAD de dedos (2 dedos = click
-            -- derecho sin importar donde presiones) -- eso hacia que
-            -- presionar la esquina no diera click derecho.
-            clickfinger_behavior       = false,
-            disable_while_typing        = true,
-            scroll_factor                = 1.0,
-        },
-    },
+		touchpad = {
+			natural_scroll = false, -- true = estilo "trackpad de Mac"
+			tap_to_click = false,
+			tap_and_drag = true,
+			drag_lock = 1,
+			-- false = click por ZONA del touchpad (esquina inf. derecha =
+			-- click derecho, como en Windows/la mayoria de laptops). true
+			-- lo cambia a click por CANTIDAD de dedos (2 dedos = click
+			-- derecho sin importar donde presiones) -- eso hacia que
+			-- presionar la esquina no diera click derecho.
+			clickfinger_behavior = false,
+			disable_while_typing = true,
+			scroll_factor = 1.0,
+		},
+	},
 })
 
 -- ---- Gestos tactiles del touchpad ----

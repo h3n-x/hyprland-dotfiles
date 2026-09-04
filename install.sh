@@ -3,7 +3,8 @@
 #
 # Que SI automatiza: paquetes (pacman/yay), copia de iconos Papirus-Dark,
 # stow de toda la config, primer `matugen image` (con un wallpaper semilla
-# si todavia no elegiste ninguno), perfil de LibreWolf, shell por defecto.
+# si todavia no elegiste ninguno), perfil de LibreWolf, spicetify + Marketplace
+# para Spotify, shell por defecto.
 #
 # Que NO automatiza (se imprime como instrucciones al final, ver README):
 # SDDM y la GPU hibrida AMD+NVIDIA. Ambos necesitan sudo con pasos que
@@ -31,16 +32,16 @@ command -v pacman >/dev/null 2>&1 || {
 info "Instalando paquetes (pacman)..."
 sudo pacman -S --needed --noconfirm waybar rofi swaync satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
-  qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd \
+  qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd rofimoji wtype \
   gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
   matugen bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono \
   yazi tdf fd imagemagick 7zip resvg \
-  neovim nodejs npm ripgrep tree-sitter-cli
+  neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
 
 if command -v yay >/dev/null 2>&1; then
   info "Instalando paquetes AUR (yay)..."
-  yay -S --needed --noconfirm bibata-cursor-theme-bin papirus-folders
+  yay -S --needed --noconfirm bibata-cursor-theme-bin papirus-folders spicetify-bin
 else
   warn "yay no esta instalado -- omitiendo bibata-cursor-theme-bin y papirus-folders."
   warn "Instalalos a mano despues (necesitas un AUR helper): yay -S bibata-cursor-theme-bin papirus-folders"
@@ -70,7 +71,7 @@ fi
 # la identidad (nombre/email) de quien armo este repo -- stowearlo sin
 # preguntar le pisaria la identidad de git a cualquier otra persona que
 # clone esto. Editalo primero, despues `stow git` a mano.
-stow hypr waybar rofi swaync kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen
+stow hypr waybar rofi swaync kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify
 ok "Stow aplicado (excepto 'git', ver nota al final)."
 
 # -----------------------------------------------------------------------
@@ -109,7 +110,26 @@ else
 fi
 
 # -----------------------------------------------------------------------
-# 5. Shell por defecto
+# 5. Spotify (spicetify + Marketplace)
+# -----------------------------------------------------------------------
+if command -v spicetify >/dev/null 2>&1; then
+  info "Configurando spicetify (tema matugen)..."
+  spicetify config current_theme matugen color_scheme matugen >/dev/null
+  spicetify apply >/dev/null 2>&1 || warn "spicetify apply fallo -- corre 'spicetify apply' a mano para ver el error."
+
+  if [ ! -d "$HOME/.config/spicetify/CustomApps/marketplace" ]; then
+    info "Instalando spicetify-marketplace..."
+    curl -fsSL https://raw.githubusercontent.com/spicetify/spicetify-marketplace/main/resources/install.sh | sh >/dev/null 2>&1 \
+      || warn "Fallo la instalacion de Marketplace -- corre el instalador a mano (ver README)."
+  fi
+  ok "spicetify configurado. Si Spotify ya estaba abierto, cerralo y volve a abrirlo para ver los colores."
+else
+  warn "spicetify no esta instalado (es AUR: spicetify-bin) -- omitiendo. Instalalo y corre:"
+  warn "  spicetify config current_theme matugen color_scheme matugen && spicetify apply"
+fi
+
+# -----------------------------------------------------------------------
+# 6. Shell por defecto
 # -----------------------------------------------------------------------
 if [ "$(getent passwd "$USER" | cut -d: -f7)" != "$(command -v zsh)" ]; then
   info "Cambiando la shell por defecto a zsh (te va a pedir tu contraseña)..."
