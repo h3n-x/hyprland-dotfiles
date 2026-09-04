@@ -1,4 +1,4 @@
-# Dotfiles -- Hyprland (HP Victus 15 fb2xxx)
+# Dotfiles -- Hyprland
 
 Config completa de Hyprland 0.56+ (API Lua `hl.*`) + stack de escritorio,
 gestionada con [GNU Stow](https://www.gnu.org/software/stow/).
