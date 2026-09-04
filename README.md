@@ -12,8 +12,8 @@ git clone <este-repo> ~/Dotfiles && cd ~/Dotfiles
 ./install.sh
 ```
 
-Automatiza paquetes, stow, la primera paleta de matugen, el perfil de
-LibreWolf y la shell por defecto. Al final imprime 3 pasos manuales que no
+Automatiza paquetes, stow, la primera paleta de matugen y la shell por
+defecto. Al final imprime 3 pasos manuales que no
 se pueden automatizar a ciegas: tu identidad de git, la GPU hibrida
 (bus PCI distinto por equipo) y SDDM (sudoers puntual con tu usuario). Los
 pasos de abajo son la version detallada/manual de lo mismo, por si preferis
@@ -128,7 +128,7 @@ Waybar, swaync, rofi, kitty (incluida la tab bar), hyprlock, GTK, Qt
 `yazi/.config/yazi/theme.toml`), Neovim (colorscheme base16 propio, ver
 `nvim/.config/nvim/lua/plugins/colorscheme.lua`), btop (theme `matugen`),
 satty (100% generado, `~/.config/satty/config.toml`, no trackeado en el
-repo -- igual que starship), SDDM, LibreWolf (ver `librewolf/`), los iconos de carpeta de Papirus-Dark y los bordes de Hyprland
+repo -- igual que starship), SDDM, los iconos de carpeta de Papirus-Dark y los bordes de Hyprland
 toman su paleta de un
 wallpaper via matugen (`matugen/.config/matugen/`) en vez de tener los
 colores hardcodeados. `bat` no necesita template propio: usa el tema
@@ -170,36 +170,6 @@ fijado a la branch `main` (`master` esta congelada y no soporta Neovim
 0.12+) y necesita `tree-sitter-cli` para compilar parsers -- tambien ya
 esta en la lista.
 
-### LibreWolf
-
-`user.js` (UX/Wayland, no toca privacidad -- LibreWolf ya viene endurecido)
-mas `userChrome.css`/`userContent.css`, generados enteros por matugen
-(paleta aplicada directo a los ids/clases del DOM del chrome -- `#nav-bar`,
-`#TabsToolbar`, `#urlbar-background`, pestañas, sidebar) y symlinkeados
-desde `~/.cache/matugen/librewolf-userChrome.css` / `-userContent.css`.
-
-Dos cosas nada obvias detras de esto (LibreWolf 155.0, 2026-09, ver
-comentarios en `matugen/.config/matugen/templates/librewolf.css`):
-variables `--lwt-*`/`--toolbar-*` de Firefox no tuvieron ningun efecto, y un
-`userChrome.css` symlinkeado que hace `@import` a un `file://` fuera de su
-propio directorio no se aplica (CSP del chrome document) -- por eso matugen
-genera el archivo completo (sin `@import`, sin variables CSS intermedias)
-en vez de un partial importado.
-
-El nombre de carpeta del perfil de LibreWolf lleva un salt random por
-instalacion (ej. `h86gkyyd.default-default`), asi que no se puede stowear
-con una ruta fija. En cambio, corre esto una vez (detecta el perfil activo
-solo, via `profiles.ini`):
-
-```bash
-librewolf/link-profile.sh
-```
-
-Reiniciar LibreWolf para que aplique (userChrome.css y user.js solo se leen
-al arrancar). No hace falta volver a correr el script en cada wallpaper --
-los symlinks son estables, solo el contenido en `~/.cache/matugen/` se
-regenera solo.
-
 ### Spotify (spicetify + Marketplace)
 
 `user.css` parte de [catppuccin/spicetify](https://github.com/catppuccin/spicetify)
@@ -231,7 +201,7 @@ A diferencia del resto, spicetify no lee `color.ini` en vivo: lo "hornea"
 dentro de los archivos ya parcheados de Spotify recien al correr
 `spicetify apply` (lo hace solo el `post_hook` del template en cada cambio
 de wallpaper). Si Spotify ya estaba abierto, hay que cerrarlo y volver a
-abrirlo para ver los colores nuevos -- igual que LibreWolf.
+abrirlo para ver los colores nuevos.
 
 Setup inicial (una sola vez, despues del primer `matugen image`):
 
