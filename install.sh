@@ -7,9 +7,10 @@
 # para Spotify, shell por defecto.
 #
 # Que NO automatiza (se imprime como instrucciones al final, ver README):
-# SDDM y la GPU hibrida AMD+NVIDIA. Ambos necesitan sudo con pasos que
-# varian por equipo (bus PCI de cada GPU, usuario NOPASSWD puntual) -- no
-# es sensato meterlos en un script que alguien mas va a correr a ciegas.
+# SDDM, Plymouth, GRUB y la GPU hibrida AMD+NVIDIA. Necesitan sudo con
+# pasos que varian por equipo (bus PCI de cada GPU, usuario NOPASSWD
+# puntual, HOOKS/bootloader/particionado de cada quien) -- no es sensato
+# meterlos en un script que alguien mas va a correr a ciegas.
 #
 # Idempotente: correrlo de nuevo no rompe nada ya instalado.
 set -euo pipefail
@@ -37,7 +38,7 @@ sudo pacman -S --needed --noconfirm waybar rofi swaync satty cliphist wl-clip-pe
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
   matugen bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono \
   yazi tdf fd imagemagick 7zip resvg cava fastfetch \
-  dust duf procs tealdeer glow xh zellij \
+  dust duf procs tealdeer glow xh zellij plymouth \
   neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
 
 if command -v yay >/dev/null 2>&1; then
@@ -161,7 +162,7 @@ fi
 cat <<EOF
 
 ────────────────────────────────────────────────────────────────────────
-✓ Instalacion base completa. Faltan 3 cosas manuales:
+✓ Instalacion base completa. Faltan 5 cosas manuales:
 
 1. git/.gitconfig -- tiene MI identidad (nombre/email), no la tuya:
      nvim $REPO_DIR/git/.gitconfig   # cambia [user] name/email
@@ -175,6 +176,18 @@ cat <<EOF
    TU usuario ($USER), no se puede automatizar sin pedirte la contraseña
    a ciegas. Ver seccion "SDDM (pantalla de login)" del README -- son 4
    comandos, copiar/pegar.
+
+4. Plymouth (splash de arranque) -- opcional. Necesita otra regla de
+   sudoers puntual, editar HOOKS de mkinitcpio.conf y agregar "splash" al
+   cmdline del kernel (el archivo exacto depende de si tu equipo usa UKI o
+   el esquema clasico -- ver seccion "Plymouth" del README) -- pasos con
+   sudo que varian segun tu bootloader, por eso tampoco se automatizan.
+
+5. GRUB (menu de arranque, opcional) -- theme propio con matugen, mas
+   otra regla de sudoers puntual y (si GRUB no esta bien instalado en tu
+   equipo) un `grub-install`/`grub-mkconfig`. Muy especifico de cada
+   maquina (bootloader, ESP, particionado) -- ver seccion "GRUB" del
+   README, con cuidado.
 
 Despues de eso: cerra sesion y volve a entrar para que las variables de
 entorno (cursor, Qt, GPU) se apliquen desde cero.

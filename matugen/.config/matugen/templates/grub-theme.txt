@@ -1,0 +1,74 @@
+# Generado por matugen -- no editar a mano, editar templates/grub-theme.txt.
+# Formato "GRUB theme" (gfxmenu), ver
+# https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html
+# El fondo, avatar (~/.face en circulo), tick y el "pill" de seleccion los
+# genera hypr/.config/hypr/scripts/generate-grub-assets.sh (post_hook de
+# este mismo template, ver matugen/.config/matugen/config.toml) con
+# ImageMagick. Las fuentes (font.pf2/font-bold.pf2, JetBrains Mono Nerd
+# Font -- misma tipografia que el resto del rice) son estaticas, viven en
+# grub/theme/ (no dependen de colores, no las genera matugen) y
+# grub-mkconfig las carga solo por estar en la carpeta del theme, con el
+# nombre que se les dio al generarlas con grub-mkfont (ver
+# grub/theme/README si existe, o el comentario de sync-grub-theme.sh).
+
+desktop-image: "background.png"
+desktop-image-scale-method: "stretch"
+desktop-color: "{{colors.surface.default.hex}}"
+terminal-font: "DotfilesMono Regular 16"
+
+# Titulo arriba, fuente grande en negrita
++ label {
+    top = 8%
+    left = 0
+    width = 100%
+    align = "center"
+    text = "Arch Linux"
+    font = "DotfilesMonoBold Bold 28"
+    color = "{{colors.primary.default.hex}}"
+}
+
+# Anillo de progreso atado al countdown real de GRUB_TIMEOUT: centro =
+# avatar (~/.face, mismo recorte que Plymouth), los "ticks" son puntos
+# tenidos con primary que van desapareciendo a medida que se acaba el
+# tiempo. circular_progress de GRUB funciona por ticks discretos (no
+# rotacion continua como el spinner de Plymouth) -- ver
+# generate-grub-assets.sh.
++ circular_progress {
+    id = "__timeout__"
+    left = 50%-70
+    top = 24%
+    width = 140
+    height = 140
+    num_ticks = 24
+    ticks_disappear = "true"
+    start_angle = 0
+    center_bitmap = "avatar.png"
+    tick_bitmap = "tick.png"
+}
+
++ boot_menu {
+    left = 50%-240
+    top = 55%
+    width = 480
+    height = 22%
+    item_font = "DotfilesMono Regular 16"
+    selected_item_font = "DotfilesMono Regular 16"
+    item_color = "{{colors.on_surface.default.hex}}"
+    selected_item_color = "{{colors.on_primary.default.hex}}"
+    item_height = 36
+    item_padding = 8
+    item_spacing = 10
+    selected_item_pixmap_style = "select_*.png"
+}
+
+# Cuenta regresiva abajo del todo
++ label {
+    id = "__timeout__"
+    top = 88%
+    left = 0
+    width = 100%
+    align = "center"
+    text = "Arrancando en %d segundos -- ESC para el menu de firmware"
+    font = "DotfilesMono Regular 16"
+    color = "{{colors.on_surface_variant.default.hex}}"
+}

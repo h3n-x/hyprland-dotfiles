@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=dotfiles-matugen
+Description=Theme generado por matugen (ver ~/Dotfiles)
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/dotfiles-matugen
+ScriptFile=/usr/share/plymouth/themes/dotfiles-matugen/dotfiles-matugen.script

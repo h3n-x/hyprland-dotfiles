@@ -1,0 +1,125 @@
+# Generado por matugen -- no editar a mano, editar templates/plymouth.script.
+# Lenguaje "Plymouth Script" (ver /usr/share/plymouth/themes/script/script.script
+# para el ejemplo oficial en el que se basa esto, incluidas las funciones de
+# progreso/mensajes). El fondo y los frameN.png del spinner NO los genera
+# matugen -- los genera hypr/.config/hypr/scripts/generate-plymouth-assets.sh
+# (post_hook de este mismo template, ver matugen/.config/matugen/config.toml)
+# con ImageMagick: el fondo es el wallpaper activo con blur+vignette
+# horneados (Plymouth Script no tiene filtro de blur), los frames son un arco
+# rotando tenido con el color primary.
+#
+# Plymouth Script no distingue int/float (todo es numero, division con "/"
+# da float aunque los dos operandos sean enteros -- confirmado en el script
+# oficial: "(2 * 3.14) / 50"). Por eso alcanza con dividir /255 aca mismo
+# en vez de necesitar que matugen entregue ya el 0-1 (matugen tampoco
+# soporta aritmetica dentro de sus expresiones de sustitucion, probado).
+
+# Solido de respaldo por si algo falla al cargar el fondo -- gasto minimo,
+# se tapa apenas carga la imagen de abajo.
+Window.SetBackgroundTopColor({{colors.surface.default.red}} / 255, {{colors.surface.default.green}} / 255, {{colors.surface.default.blue}} / 255);
+Window.SetBackgroundBottomColor({{colors.surface_container.default.red}} / 255, {{colors.surface_container.default.green}} / 255, {{colors.surface_container.default.blue}} / 255);
+
+# --- Fondo: wallpaper con blur + vignette, generado en 1920x1080 fijo -- se
+# escala una sola vez (no por frame) al tamano real de la pantalla.
+bg.image = Image("background.png");
+bg.sprite = Sprite(bg.image);
+if (bg.image.GetWidth() != Window.GetWidth() || bg.image.GetHeight() != Window.GetHeight()) {
+    bg.image = bg.image.Scale(Window.GetWidth(), Window.GetHeight());
+    bg.sprite.SetImage(bg.image);
+}
+bg.sprite.SetPosition(Window.GetX(), Window.GetY(), -100);
+
+# --- Avatar (~/.face recortado en circulo, ver generate-plymouth-assets.sh)
+# centrado en el mismo punto que el spinner, debajo del anillo (z mas bajo)
+# -- el anillo tiene el centro transparente a proposito para que se vea.
+avatar.image = Image("avatar.png");
+avatar.sprite = Sprite(avatar.image);
+avatar.sprite.SetPosition(Window.GetX() + Window.GetWidth() / 2 - avatar.image.GetWidth() / 2,
+                           Window.GetY() + Window.GetHeight() / 2 - avatar.image.GetHeight() / 2 - 30,
+                           90);
+
+# --- Spinner: 24 frames, un poco arriba del centro para dejar lugar al label ---
+spinner.frame_count = 24;
+
+for (spinner.i = 0; spinner.i < spinner.frame_count; spinner.i++) {
+    spinner.images[spinner.i] = Image("frame" + spinner.i + ".png");
+}
+
+spinner.sprite = Sprite();
+spinner.sprite.SetPosition(Window.GetX() + Window.GetWidth() / 2 - spinner.images[0].GetWidth() / 2,
+                            Window.GetY() + Window.GetHeight() / 2 - spinner.images[0].GetHeight() / 2 - 30,
+                            100);
+spinner.sprite.SetImage(spinner.images[0]);
+
+spinner.current_frame = 0;
+
+# --- Label chico abajo al centro ---
+label.image = Image.Text("Arch Linux", {{colors.on_surface.default.red}} / 255, {{colors.on_surface.default.green}} / 255, {{colors.on_surface.default.blue}} / 255);
+label.sprite = Sprite(label.image);
+label.sprite.SetPosition(Window.GetX() + Window.GetWidth() / 2 - label.image.GetWidth() / 2,
+                          Window.GetY() + Window.GetHeight() - label.image.GetHeight() - 48,
+                          100);
+
+# --- Fade-in: opacidad 0 -> 1 en los primeros frames, asi no aparece todo de
+# golpe al arrancar el splash. Sin fade-out simetrico al salir: Plymouth
+# quita el splash casi instantaneo (boot rapido en este equipo, <1s entre
+# start y quit visto en journalctl) y el plugin "script" no da una forma
+# confiable de retrasar el quit para animarlo -- no vale el riesgo de un
+# quit_callback mal soportado.
+global.fade_frame = 0;
+global.fade_total = 20;
+
+fun apply_fade() {
+    opacity = fade_frame / fade_total;
+    if (opacity > 1) {
+        opacity = 1;
+    }
+    bg.sprite.SetOpacity(opacity);
+    avatar.sprite.SetOpacity(opacity);
+    spinner.sprite.SetOpacity(opacity);
+    label.sprite.SetOpacity(opacity);
+}
+
+fun refresh_callback() {
+    if (fade_frame <= fade_total) {
+        global.fade_frame++;
+        apply_fade();
+    }
+
+    spinner.current_frame++;
+    if (spinner.current_frame >= spinner.frame_count) {
+        spinner.current_frame = 0;
+    }
+    spinner.sprite.SetImage(spinner.images[spinner.current_frame]);
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+
+# --- Porcentaje de progreso de arranque, esquina inferior izquierda ---
+progress.sprite = Sprite();
+progress.sprite.SetPosition(24, Window.GetY() + Window.GetHeight() - 40, 100);
+
+fun progress_callback(duration, progress_value) {
+    percent = Math.Int(progress_value * 100);
+    progress.image = Image.Text(percent + "%", {{colors.primary.default.red}} / 255, {{colors.primary.default.green}} / 255, {{colors.primary.default.blue}} / 255);
+    progress.sprite.SetImage(progress.image);
+}
+
+Plymouth.SetBootProgressFunction(progress_callback);
+
+# --- Mensajes del sistema (fsck, pedido de password, errores) ---
+message_sprite = Sprite();
+message_sprite.SetPosition(24, 24, 10000);
+
+fun display_message_callback(text) {
+    my_image = Image.Text(text, {{colors.on_surface.default.red}} / 255, {{colors.on_surface.default.green}} / 255, {{colors.on_surface.default.blue}} / 255);
+    message_sprite.SetImage(my_image);
+}
+
+fun hide_message_callback(text) {
+    message_sprite = Sprite();
+    message_sprite.SetPosition(24, 24, 10000);
+}
+
+Plymouth.SetDisplayMessageFunction(display_message_callback);
+Plymouth.SetHideMessageFunction(hide_message_callback);

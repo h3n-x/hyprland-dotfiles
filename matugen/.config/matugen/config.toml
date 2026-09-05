@@ -157,6 +157,27 @@ output_path = "~/.cache/matugen/sddm-theme/Components/SleepButton.qml"
 # Ver hypr/.config/hypr/scripts/sync-sddm-theme.sh (fuente) y README (setup).
 post_hook = "sudo -n /usr/local/bin/sync-sddm-theme >/dev/null 2>&1 || true"
 
+[templates.plymouth]
+input_path = "~/.config/matugen/templates/plymouth.script"
+output_path = "~/.cache/matugen/plymouth-theme/dotfiles-matugen.script"
+# Genera el fondo (blur+vignette del wallpaper) y los frames del spinner (sin
+# sudo, cache del usuario) y despues sincroniza+reconstruye el initramfs
+# (root, script puntual via sudoers, igual que sync-sddm-theme -- ver README
+# seccion Plymouth). {{image}} = path absoluto del wallpaper que esta
+# procesando esta corrida de matugen. El rebuild de initramfs corre en
+# background: unos segundos de disco, no bloquea el cambio de wallpaper.
+post_hook = "~/.config/hypr/scripts/generate-plymouth-assets.sh {{colors.primary.default.hex_stripped}} {{image}} && (sudo -n /usr/local/bin/sync-plymouth-theme >/dev/null 2>&1 &) || true"
+
+[templates.grub]
+input_path = "~/.config/matugen/templates/grub-theme.txt"
+output_path = "~/.cache/matugen/grub-theme/theme.txt"
+# Genera fondo+avatar+tick (sin sudo, cache del usuario) y despues
+# sincroniza+regenera grub.cfg (root, script puntual via sudoers, igual
+# patron que sync-sddm/plymouth-theme -- ver README seccion GRUB). Mucho
+# mas liviano que el post_hook de Plymouth: sin UKI de por medio, no hace
+# falta backgroundearlo.
+post_hook = "~/.config/hypr/scripts/generate-grub-assets.sh {{colors.primary.default.hex_stripped}} {{image}} && sudo -n /usr/local/bin/sync-grub-theme >/dev/null 2>&1 || true"
+
 [templates.icons]
 # papirus-folders solo acepta nombres de color fijos, no hex -- el mapeo al
 # mas cercano lo hace scripts/recolor-icons.sh. Necesita copias locales de

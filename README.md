@@ -13,11 +13,12 @@ git clone <este-repo> ~/Dotfiles && cd ~/Dotfiles
 ```
 
 Automatiza paquetes, stow, la primera paleta de matugen y la shell por
-defecto. Al final imprime 3 pasos manuales que no
-se pueden automatizar a ciegas: tu identidad de git, la GPU hibrida
-(bus PCI distinto por equipo) y SDDM (sudoers puntual con tu usuario). Los
-pasos de abajo son la version detallada/manual de lo mismo, por si preferis
-ir de a uno o algo falla.
+defecto. Al final imprime los pasos manuales que no se pueden automatizar
+a ciegas: tu identidad de git, la GPU hibrida (bus PCI distinto por
+equipo), y SDDM/Plymouth/GRUB (cada uno necesita su propio sudoers
+puntual con tu usuario, y GRUB ademas depende del bootloader/particionado
+especifico de tu equipo). Los pasos de abajo son la version
+detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 
 ## Stack
 
@@ -29,6 +30,8 @@ ir de a uno o algo falla.
 | Notificaciones | SwayNC |
 | Lockscreen | Hyprlock |
 | Login manager | SDDM (tema propio, ver `sddm/`) |
+| Splash de arranque | Plymouth (colores dinamicos, ver seccion Plymouth abajo) |
+| Menu de arranque | GRUB (theme propio con matugen, ver seccion GRUB abajo) |
 | Idle | Hypridle |
 | Wallpaper | hyprpaper |
 | Filtro de luz azul | hyprsunset |
@@ -61,7 +64,7 @@ sudo pacman -S --needed waybar rofi swaync satty cliphist wl-clip-persist \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
   matugen bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono \
   yazi tdf fd imagemagick 7zip resvg cava fastfetch \
-  dust duf procs tealdeer glow xh zellij \
+  dust duf procs tealdeer glow xh zellij plymouth \
   neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
 
 yay -S --needed bibata-cursor-theme-bin papirus-folders spicetify-bin
@@ -338,6 +341,211 @@ printf '[Theme]\nCurrent=dotfiles-matugen\n' | sudo tee /etc/sddm.conf.d/theme.c
 Si editas `sync-sddm-theme.sh`, hay que repetir el primer `install` para
 que el cambio aplique (la copia en `/usr/local/bin` es la que realmente
 corre, no la del repo).
+
+### Plymouth (splash de arranque)
+
+Theme "Script" propio (`plymouth/theme/dotfiles-matugen.plymouth`, la
+unica parte estatica -- no lleva colores). Todo lo visual lo genera
+`matugen/.config/matugen/templates/plymouth.script` +
+`hypr/.config/hypr/scripts/generate-plymouth-assets.sh` (ImageMagick, sin
+sudo, corre como `post_hook` en cada cambio de wallpaper):
+
+- **Fondo**: el wallpaper activo con blur fuerte + oscurecido + vignette
+  radial (mismo criterio que el blur de `hyprlock.conf`, pero horneado en
+  la imagen porque Plymouth Script no tiene filtro de blur propio).
+- **Avatar**: `~/.face` (el mismo recorte cuadrado que usa hyprlock, ver
+  `wallpaper-selector.sh`) recortado en circulo, centrado en el hueco
+  transparente que deja el anillo del spinner.
+- **Spinner**: un anillo de 270 grados (24 frames rotando) tenido con
+  `primary`, alrededor del avatar.
+- **Label + progreso**: "Arch Linux" fijo abajo al centro y el porcentaje
+  de boot en la esquina inferior izquierda, ambos con `on_surface`/`primary`.
+- Fade-in de todo el conjunto en los primeros frames (sin fade-out
+  simetrico al salir -- el plugin "script" no da una forma confiable de
+  retrasar el quit para animarlo, y el boot de este equipo ya es
+  demasiado rapido como para que valga el riesgo).
+
+Mismo motivo y patron que SDDM: Plymouth corre dentro del **initramfs**
+(antes de montar el disco de verdad), no puede leer `~/.config` en vivo,
+asi que necesita: 1) un paso de setup con sudo (una vez), y 2) que cada
+cambio de wallpaper reconstruya el initramfs (`mkinitcpio -P`, lo hace
+`plymouth-set-default-theme -R`) en vez de solo copiar un CSS. El
+`post_hook` del template `plymouth` en `config.toml` ya dispara todo eso
+solo, en background, via el mismo mecanismo `sudo -n` a un script puntual
+que SDDM (no sudo sin restricciones -- ver el comentario ahi mismo):
+
+```bash
+# Copia root-owned del script (mismo motivo que sync-sddm-theme: el
+# sudoers NO apunta al de este repo, que vos podes editar)
+sudo install -m 755 -o root -g root \
+  hypr/.config/hypr/scripts/sync-plymouth-theme.sh /usr/local/bin/sync-plymouth-theme
+
+# Regla de sudoers, acotada a ESE script puntual -- validar con visudo antes
+# de instalar cualquier cambio de sudoers, un error ahi rompe sudo entero:
+echo 'h3n ALL=(root) NOPASSWD: /usr/local/bin/sync-plymouth-theme' > /tmp/matugen-plymouth-sudoers
+visudo -c -f /tmp/matugen-plymouth-sudoers && \
+  sudo install -m 440 -o root -g root /tmp/matugen-plymouth-sudoers /etc/sudoers.d/matugen-plymouth
+rm /tmp/matugen-plymouth-sudoers
+
+# Genera el theme por primera vez, lo copia a /usr/share y lo fija como
+# default (plymouth-set-default-theme -R reconstruye el initramfs solo,
+# pero todavia no hace nada visible sin el paso de mkinitcpio de abajo)
+sudo /usr/local/bin/sync-plymouth-theme
+
+# Hook de mkinitcpio: "plymouth" va justo despues de "udev", antes de
+# "autodetect" (formato busybox/HOOKS clasico, no systemd) -- editar
+# /etc/mkinitcpio.conf a mano:
+#   HOOKS=(base udev plymouth autodetect microcode modconf kms keyboard keymap consolefont block filesystems fsck)
+
+# IMPORTANTE: este equipo arranca con una UKI (Unified Kernel Image,
+# /boot/EFI/Linux/arch-linux-zen.efi, ver preset en
+# /etc/mkinitcpio.d/linux-zen.preset) generada directo por mkinitcpio, NO
+# con el esquema separado vmlinuz+initramfs+GRUB_CMDLINE_LINUX_DEFAULT.
+# `bootctl status` confirma que el cmdline realmente usado en cada arranque
+# sale de /etc/kernel/cmdline (NO de /etc/default/grub -- grub.cfg en este
+# equipo ni siquiera tiene una entrada real para arrancar linux-zen). Para
+# "splash" el archivo correcto a editar es ese:
+#   sudoedit /etc/kernel/cmdline
+#   # agregar " quiet splash" al final de la linea existente
+
+sudo mkinitcpio -P
+```
+
+Si tu equipo SI arranca por el esquema clasico GRUB (revisa con `bootctl
+status`: si el cmdline mostrado en "Default Boot Loader Entry" no coincide
+con `/etc/kernel/cmdline`, es tu caso), el paso de cmdline es en
+`/etc/default/grub` (`GRUB_CMDLINE_LINUX_DEFAULT`) seguido de `sudo
+grub-mkconfig -o /boot/grub/grub.cfg`, y la red de seguridad es la
+clasica: en el menu de GRUB presionar `e` sobre la entrada y editar el
+cmdline en caliente.
+
+Si editas `sync-plymouth-theme.sh` o `generate-plymouth-assets.sh`, hay
+que repetir el primer `install` (mismo motivo que SDDM).
+
+#### Arranque real de este equipo: fallback UEFI en vez de GRUB
+
+En esta maquina puntual, las entradas NVRAM de GRUB y Limine quedaron
+apuntando a archivos `.efi` que ya no existen (`efibootmgr -v` las lista,
+pero `/boot/EFI/GRUB/` y `/boot/EFI/limine/` no estan) -- el firmware
+prueba cada una en `BootOrder`, todas fallan, y termina cayendo al path de
+fallback generico que exige la spec UEFI cuando una entrada no tiene
+archivo explicito: `/boot/EFI/BOOT/BOOTX64.EFI`. Eso resulto ser un
+binario standalone de GRUB con su config **embebida y congelada** desde
+que se genero -- nunca ve los cambios que hacemos en `/etc/kernel/cmdline`
+o `mkinitcpio.conf`. Se confirma con:
+
+```bash
+efibootmgr -v   # BootCurrent: <n> -- si esa entrada no tiene un \path\archivo.efi
+                # explicito, tu firmware tambien esta cayendo al fallback
+```
+
+La solucion que se aplico ahi fue sacar a GRUB de la ecuacion: una UKI es
+un ejecutable EFI valido por si sola, asi que `BOOTX64.EFI` es
+directamente una copia de `arch-linux-zen.efi`. `sync-plymouth-theme.sh`
+mantiene esa copia al dia solo (via un `cp` a un temporal + `mv` atomico,
+asi que si algo falla a mitad de camino -- por ejemplo la ESP sin espacio
+-- `BOOTX64.EFI` queda intacto en vez de corrupto), **si el archivo ya
+existe** (guard pensado para no tocar equipos que arrancan por una entrada
+NVRAM normal, donde este path no se usa).
+
+**Ojo con el tamano de la ESP**: en este equipo es de apenas 1GB, y cada
+UKI pesa ~280MB. Con `arch-linux-zen.efi` + `BOOTX64.EFI` ya se usan
+~560MB -- evita guardar backups manuales de la UKI completa ahi (nos paso:
+`cp` se quedo sin espacio a mitad de copia y truncamos `BOOTX64.EFI`, hubo
+que recuperarlo). Como red de emergencia liviana alcanza con guardar el
+GRUB standalone original (160KB, bootea a Arch sin Plymouth pero bootea):
+
+```bash
+sudo cp /boot/EFI/BOOT/BOOTX64.EFI /boot/EFI/BOOT/BOOTX64.EFI.grub-backup
+```
+
+Si algo sale mal despues de eso, la mayoria de los firmwares UEFI dejan
+arrancar un `.efi` especifico desde su propio menu de boot (F9/F11/Esc al
+encender, "Boot from file"), sin necesitar un USB live.
+
+### GRUB (menu de arranque)
+
+Theme propio (fondo con blur+vignette del wallpaper, avatar `~/.face` en
+circulo, anillo de progreso atado al countdown real de `GRUB_TIMEOUT`,
+highlight de seleccion tipo "pill" redondeada, tipografia JetBrains Mono
+Nerd Font -- misma que el resto del rice) generado por matugen, mismo
+patron que SDDM/Plymouth: `matugen/.config/matugen/templates/grub-theme.txt`
+(template) + `hypr/.config/hypr/scripts/generate-grub-assets.sh`
+(ImageMagick, sin sudo) + `hypr/.config/hypr/scripts/sync-grub-theme.sh`
+(root, copia a `/boot/grub/themes/` y corre `grub-mkconfig`). Las fuentes
+(`grub/theme/font.pf2` y `font-bold.pf2`) son estaticas -- generadas UNA
+VEZ con `grub-mkfont` a partir de JetBrains Mono Nerd Font, con nombre
+propio (`--name`) para no depender de que fuente trae GRUB instalada de
+fabrica:
+
+```bash
+grub-mkfont -o grub/theme/font.pf2 -s 16 --name "DotfilesMono" \
+  /usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf
+grub-mkfont -o grub/theme/font-bold.pf2 -s 28 --name "DotfilesMonoBold" \
+  /usr/share/fonts/TTF/JetBrainsMonoNerdFont-Bold.ttf
+```
+
+(`grub-mkconfig` detecta y carga solo los `.pf2` que encuentra en la
+carpeta del theme -- no hace falta un `loadfont` a mano.)
+
+**Arranque real de este equipo (importante, groundeado con la Wiki):**
+GRUB estaba instalado (`/boot/grub/x86_64-efi/` completo) pero sin
+entrada NVRAM viva ni `grub.cfg` real -- alguien la borro en una migracion
+de bootloader anterior (ver seccion "Arranque real de este equipo" de
+Plymouth arriba, mismo hallazgo). Restaurado con:
+
+```bash
+sudo grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+```
+
+La entrada de arranque real es un `chainloader` directo a la UKI (NO los
+comandos `linux`/`initrd`, que reconstruirian el cmdline con
+`GRUB_CMDLINE_LINUX_DEFAULT` y perderian el `quiet splash` embebido) --
+mismo patron que la Wiki documenta para chainloadear `bootmgfw.efi` de
+Windows. En `/etc/grub.d/40_custom`:
+
+```
+menuentry "Arch Linux" --class arch --class gnu-linux --class gnu --class os {
+    insmod part_gpt
+    insmod fat
+    insmod chain
+    search --no-floppy --fs-uuid --set=root <UUID-de-tu-ESP-en-fstab>
+    chainloader /EFI/Linux/<tu-uki>.efi
+}
+```
+
+`GRUB_DEFAULT="Arch Linux"` en `/etc/default/grub` (por nombre, no por
+indice `0` -- la entrada "UEFI Firmware Settings" que agrega
+`grub-mkconfig` puede quedar antes en el archivo). `os-prober` no esta
+instalado a proposito (sin dual-boot en este equipo).
+
+Setup del theme (mismo patron sudoers que SDDM/Plymouth):
+
+```bash
+sudo install -m 755 -o root -g root \
+  hypr/.config/hypr/scripts/sync-grub-theme.sh /usr/local/bin/sync-grub-theme
+
+echo 'h3n ALL=(root) NOPASSWD: /usr/local/bin/sync-grub-theme' > /tmp/matugen-grub-sudoers
+visudo -c -f /tmp/matugen-grub-sudoers && \
+  sudo install -m 440 -o root -g root /tmp/matugen-grub-sudoers /etc/sudoers.d/matugen-grub
+rm /tmp/matugen-grub-sudoers
+
+sudo /usr/local/bin/sync-grub-theme
+```
+
+**Probar sin comprometer el arranque normal**: `efibootmgr --bootnext <numero-de-entrada>`
+arranca por esa entrada UNA sola vez (no toca `BootOrder`), ideal para
+probar un `grub-install`/theme nuevo antes de hacerlo permanente:
+
+```bash
+efibootmgr -v                       # anota el numero de tu entrada GRUB
+sudo efibootmgr --bootnext <numero>
+# reiniciar, confirmar que anda bien, RECIEN AHI:
+sudo efibootmgr --bootorder <numero>,<resto-del-orden-que-ya-tenias>
+```
+
+Si editas `sync-grub-theme.sh` o `generate-grub-assets.sh`, hay que
+repetir el primer `install` (mismo motivo que SDDM/Plymouth).
 
 ## 4. Relogueate
 
