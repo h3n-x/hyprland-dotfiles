@@ -41,7 +41,7 @@ chmod -R a+rX "$DEST"
 
 # -R fija este theme como default Y reconstruye el initramfs (necesario:
 # Plymouth lee su theme desde dentro del initramfs, no en vivo desde disco
-# como SDDM/waybar/etc).
+# como SDDM/Quickshell/etc).
 plymouth-set-default-theme -R dotfiles-matugen
 
 # Este equipo especifico no arranca por una entrada NVRAM con archivo

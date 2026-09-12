@@ -7,9 +7,7 @@
 local mainMod = "SUPER"
 
 local terminal = "kitty"
-local launcher = "rofi -show drun -show-icons"
 local windowSwitch = "rofi -show window -show-icons"
-local altLauncher = "hyprlauncher"
 local fileManager = "thunar"
 local browser = "zen-browser"
 
@@ -19,8 +17,7 @@ local scripts = os.getenv("HOME") .. "/.config/hypr/scripts"
 -- Programas y utilidades
 -- ---------------------------------------------------------------------------
 hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal))
-hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(launcher))
-hl.bind(mainMod .. " + SHIFT + D", hl.dsp.exec_cmd(altLauncher))
+hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs -c dotshell ipc call launcher toggle")) -- reemplaza a rofi -show drun
 hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd(windowSwitch))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
@@ -29,10 +26,10 @@ hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(scripts .. "/lock.sh"))
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(scripts .. "/power-menu.sh")) -- bloquear/suspender/cerrar sesion/reiniciar/apagar
 hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exit()) -- salida forzada de Hyprland, sin confirmar
 
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"))
-hl.bind(mainMod .. " + SHIFT + N", hl.dsp.exec_cmd("swaync-client -C"))
-hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd("killall -SIGUSR1 waybar")) -- mostrar/ocultar
-hl.bind(mainMod .. " + SHIFT + CTRL + B", hl.dsp.exec_cmd("killall -SIGUSR2 waybar")) -- recargar config + estilo
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("qs -c dotshell ipc call controlcenter toggle")) -- mostrar/ocultar
+hl.bind(mainMod .. " + SHIFT + N", hl.dsp.exec_cmd("qs -c dotshell ipc call controlcenter clearAll")) -- limpiar notificaciones
+hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd("qs -c dotshell ipc call bar toggle")) -- mostrar/ocultar
+hl.bind(mainMod .. " + SHIFT + CTRL + B", hl.dsp.exec_cmd("qs -c dotshell ipc call shell reload")) -- reload duro (recrea ventanas)
 
 hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"))
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(scripts .. "/clipboard-menu"))

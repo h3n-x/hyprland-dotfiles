@@ -25,9 +25,9 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 | Categoria | Herramienta |
 |---|---|
 | Compositor | Hyprland (config Lua modular) |
-| Barra | Waybar |
-| Launcher | Rofi (+ hyprlauncher como alternativa, `SUPER+SHIFT+D`) |
-| Notificaciones | SwayNC |
+| Barra | Quickshell (QML, ver seccion Quickshell abajo) |
+| Launcher | Quickshell (`SUPER+D`, ver seccion Quickshell abajo) + Rofi para window-switch (`SUPER+TAB`) |
+| Notificaciones + control center | Quickshell (ver seccion Quickshell abajo) |
 | Lockscreen | Hyprlock |
 | Login manager | SDDM (tema propio, ver `sddm/`) |
 | Splash de arranque | Plymouth (colores dinamicos, ver seccion Plymouth abajo) |
@@ -57,13 +57,13 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 ## 1. Instalar paquetes
 
 ```bash
-sudo pacman -S --needed waybar rofi swaync satty cliphist wl-clip-persist \
+sudo pacman -S --needed rofi satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
   qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd rofimoji wtype \
-  gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl \
+  gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl brightnessctl \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
-  matugen bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono \
-  yazi tdf fd imagemagick 7zip resvg cava fastfetch \
+  matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono \
+  yazi tdf fd imagemagick 7zip resvg cava fastfetch pacman-contrib \
   dust duf procs tealdeer glow xh zellij plymouth \
   neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
 
@@ -124,27 +124,28 @@ Para correr algo puntual en la NVIDIA (juegos, Blender, etc.):
 # o en Steam: opciones de lanzamiento -> ~/.config/hypr/scripts/nvidia-offload %command%
 ```
 
-El modulo `custom/gpu` de Waybar muestra si hay algo corriendo en la NVIDIA ahora mismo.
+Para ver si hay algo corriendo en la NVIDIA ahora mismo: `nvidia-smi --query-compute-apps=pid,process_name --format=csv,noheader`.
 
 ## 3. Aplicar la config con Stow
 
 ```bash
 cd ~/Dotfiles
 mv ~/.config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua.bak  # backup del autogenerado
-stow hypr waybar rofi swaync kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch git
+stow hypr quickshell rofi kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch git
 ```
 
-Waybar, swaync, rofi, kitty (incluida la tab bar), hyprlock, GTK, Qt
-(qt5ct/qt6ct), starship, yazi (flavor `matugen`, ver
-`yazi/.config/yazi/theme.toml`), Neovim (colorscheme base16 propio, ver
-`nvim/.config/nvim/lua/plugins/colorscheme.lua`), btop (theme `matugen`),
-satty (100% generado, `~/.config/satty/config.toml`, no trackeado en el
-repo -- igual que starship), cava (100% generado, `~/.config/cava/config`,
-tampoco trackeado -- ver seccion `### cava` abajo), fastfetch (via ANSI de
-kitty + alias generado, ver `### fastfetch` abajo), zellij (100% generado,
-ver `### zellij` abajo), glow (via `GLOW_STYLE`, ver `### glow` abajo), SDDM,
-los iconos de carpeta de Papirus-Dark y los bordes de Hyprland
-toman su paleta de un
+Quickshell (ver seccion Quickshell abajo -- barra, notificaciones Y
+control center), rofi, kitty (incluida la tab bar), hyprlock, GTK, Qt
+(qt5ct/qt6ct), starship, yazi (flavor
+`matugen`, ver `yazi/.config/yazi/theme.toml`), Neovim (colorscheme
+base16 propio, ver `nvim/.config/nvim/lua/plugins/colorscheme.lua`), btop
+(theme `matugen`), satty (100% generado, `~/.config/satty/config.toml`,
+no trackeado en el repo -- igual que starship), cava (100% generado,
+`~/.config/cava/config`, tampoco trackeado -- ver seccion `### cava`
+abajo), fastfetch (via ANSI de kitty + alias generado, ver `### fastfetch`
+abajo), zellij (100% generado, ver `### zellij` abajo), glow (via
+`GLOW_STYLE`, ver `### glow` abajo), SDDM, los iconos de carpeta de
+Papirus-Dark y los bordes de Hyprland toman su paleta de un
 wallpaper via matugen (`matugen/.config/matugen/`) en vez de tener los
 colores hardcodeados. `bat` no necesita template propio: usa el tema
 `ansi`, que delega el color a los 16 colores ANSI que ya define kitty.
@@ -255,6 +256,85 @@ de TODO el archivo, no solo esa linea) -- esta escapado en el template como
 literales en el template, matugen ni se entera -- que se decodifica de
 vuelta a llaves reales cuando glow parsea el JSON generado) para que
 matugen no intente interpretarlo como una variable propia.
+
+### Quickshell
+
+La barra (`quickshell/.config/quickshell/dotshell/`) esta escrita en QML
+sobre [Quickshell](https://quickshell.org) en vez de Waybar -- se lanza
+con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo.
+
+- **Colores**: `matugen/.config/matugen/templates/quickshell-colors.qml`
+  genera `Colors.qml` (`pragma Singleton`) en cada cambio de wallpaper,
+  mismo mapeo de roles Material You que usa el resto del rice. `pragma
+  Singleton` no dispara el auto-reload de Quickshell cuando el archivo lo
+  reescribe un proceso externo (probado en vivo) -- el `post_hook` del
+  template llama a `qs -c dotshell ipc call colors reload`, que si
+  recarga al instante (un `IpcHandler` en `shell.qml`).
+- **Estructura**: `shell.qml` (entry point + los `IpcHandler` de abajo),
+  `modules/Bar.qml` (`PanelWindow`, una instancia por pantalla via
+  `Variants` sobre `Quickshell.screens`), `modules/Pill.qml` (contenedor
+  redondeado reutilizable) y un archivo por modulo (`Workspaces`, `Mpris`,
+  `Clock`, `Update`, `Network`, `Bluetooth`, `Tray`, `Microphone`,
+  `Battery`, `IdleToggle`, `Power`). `Volume`/`Backlight` no tienen icono
+  en la barra (a pedido del usuario, ver OSD abajo) -- se instancian
+  igual, sin pantalla, directo en `shell.qml`, porque siguen siendo los
+  que miran Pipewire/sysfs y disparan el OSD.
+- **Dropdowns de red/bluetooth** (`modules/NetworkDropdown.qml` +
+  `BluetoothDropdown.qml`): paneles propios en QML en vez de mandar a un
+  menu fzf en una terminal -- lista de redes/dispositivos reales, click
+  para conectar (red con campo de contraseña inline si hace falta via
+  `WifiNetwork.connectWithPsk()`), toggle de wifi/bluetooth. `Tray.qml`
+  filtra los ids `"nm-applet"`/`"blueman"` para no duplicar el icono.
+- **Control center + notificaciones** (`modules/ControlCenter.qml` +
+  `NotificationToast.qml` + `NotificationState.qml`): reemplaza a swaync
+  del todo. `NotificationState.qml` envuelve un `NotificationServer`
+  (servicio DBus `org.freedesktop.Notifications` -- por eso reemplaza a
+  swaync en vez de convivir con el, solo un proceso puede ser el dueño a
+  la vez) y expone el historial + una cola de toasts + "no molestar"
+  (con DND activo, la notificación queda en el historial pero no
+  aparece como toast). `ControlCenter.qml` reproduce lo que daba
+  `swaync/config.json`: historial con "limpiar todo", grid de accesos
+  rápidos (wifi/bluetooth/hyprsunset -- este último sin servicio nativo,
+  se chequea con `pgrep` al abrir el panel/lock), y el widget de mpris
+  (reusa `Mpris.qml` tal cual). `SUPER+N`/`SUPER+SHIFT+N` (ver
+  `binds.lua`) reemplazan a `swaync-client -t -sw`/`-C`.
+- **OSD** (`modules/Osd.qml` + `OsdState.qml`): popup temporal
+  (icono + barra de nivel) para volumen/mic/brillo, reemplaza a los
+  `notify-send` que se usaban antes para esto. Reactivo a cualquier
+  origen del cambio (scroll, teclas de volumen/brillo del teclado,
+  pavucontrol, etc.), no solo a un click en la barra -- justamente por
+  eso `Volume`/`Backlight` necesitan seguir corriendo aunque no tengan
+  icono. La bateria sigue con `notify-send` real para sus umbrales de
+  warning/critical/full (esas SI tienen que persistir, no autoocultarse).
+- **Reactividad real** (sin polling) via los servicios nativos de
+  Quickshell: `Quickshell.Hyprland` (workspaces/eventos por el socket de
+  Hyprland), `Quickshell.Services.Pipewire` (audio),
+  `Quickshell.Services.UPower` (bateria), `Quickshell.Services.SystemTray`
+  (bandeja -- StatusNotifierItem, muestra nm-applet/blueman-applet),
+  `Quickshell.Services.Mpris` y `Quickshell.Wayland.IdleInhibitor`. CPU,
+  memoria y temperatura no tienen servicio nativo (se leen de `/proc` y
+  `sysfs` con `FileView`) asi que se sacaron de la barra por decision
+  propia, no por limitacion tecnica de Quickshell.
+- **Scripts reusados**: `hypr/.config/hypr/scripts/update.sh` (movido ahi
+  al sacar Waybar -- antes vivia en `waybar/.config/waybar/scripts/`) y
+  `power-menu.sh` (ya existia, rofi, con confirmacion antes de
+  reiniciar/apagar -- mismo que `SUPER+M`, ver `binds.lua`).
+- **Launcher** (`modules/Launcher.qml` + `LauncherState.qml`): reemplaza
+  a `rofi -show drun` en `SUPER+D` -- campo de búsqueda con fuzzy match
+  propio (subsecuencia, sin librería externa) sobre nombre/`genericName`/
+  `keywords` de `Quickshell.DesktopEntries`, orden alfabético sin
+  búsqueda, resaltado de lo que matchea, tamaño de ventana dinámico según
+  cantidad de resultados. El window-switcher (`SUPER+Tab`), rofimoji, el
+  menú de power, el portapapeles y el selector de wallpaper siguen en
+  rofi tal cual (fuera de alcance a propósito).
+- **Binds** (`binds.lua`): `SUPER+SHIFT+B` muestra/oculta la barra
+  (`qs -c dotshell ipc call bar toggle`, afecta a todas las pantallas a la
+  vez via el singleton `BarVisibility.qml`) y
+  `SUPER+SHIFT+CTRL+B` fuerza un reload duro
+  (`qs -c dotshell ipc call shell reload`, recrea las ventanas) --
+  equivalentes a las señales `SIGUSR1`/`SIGUSR2` que aceptaba Waybar.
+- Para depurar en vivo: `qs -c dotshell log -f` (logs) y
+  `qs -c dotshell ipc show` (lista los `IpcHandler` disponibles).
 
 ### Spotify (spicetify + Marketplace)
 
@@ -563,9 +643,8 @@ efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
 | Atajo | Accion |
 |---|---|
 | `SUPER + Return` | Terminal (kitty) |
-| `SUPER + D` | Launcher (rofi) |
-| `SUPER + SHIFT + D` | Launcher alterno (hyprlauncher) |
-| `SUPER + Tab` | Selector de ventanas |
+| `SUPER + D` | Launcher (Quickshell) |
+| `SUPER + Tab` | Selector de ventanas (rofi) |
 | `SUPER + E` | Explorador de archivos (thunar) |
 | `SUPER + Q` / `SHIFT+Q` | Cerrar / forzar cierre de ventana |
 | `SUPER + V` | Flotar ventana |

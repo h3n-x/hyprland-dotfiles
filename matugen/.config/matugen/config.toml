@@ -50,7 +50,7 @@ output_path = "~/.config/spicetify/Themes/matugen/color.ini"
 # ya parcheados de Spotify recien en `spicetify apply`. Este post_hook deja
 # los archivos parcheados al dia en cada cambio de wallpaper, pero Spotify
 # (si esta abierto) no se reinicia solo -- hay que cerrarlo y abrirlo de
-# nuevo para ver los colores nuevos, igual que LibreWolf.
+# nuevo para ver los colores nuevos.
 post_hook = "spicetify apply >/dev/null 2>&1 || true"
 
 [templates.kitty]
@@ -64,11 +64,6 @@ post_hook = "kitten @ set-colors -a -c ~/.config/kitty/colors.conf 2>/dev/null |
 [templates.rofi]
 input_path = "~/.config/matugen/templates/rofi.rasi"
 output_path = "~/.config/rofi/colors.rasi"
-
-[templates.swaync]
-input_path = "~/.config/matugen/templates/swaync.css"
-output_path = "~/.config/swaync/colors.css"
-post_hook = "swaync-client --reload-css"
 
 [templates.hyprlock]
 input_path = "~/.config/matugen/templates/hyprlock.conf"
@@ -102,10 +97,6 @@ output_path = "~/.config/qt6ct/colors/matugen.conf"
 [templates.starship]
 input_path = "~/.config/matugen/templates/starship.toml"
 output_path = "~/.config/starship.toml"
-
-[templates.fzf]
-input_path = "~/.config/matugen/templates/fzf.sh"
-output_path = "~/.cache/matugen/fzf-opts.sh"
 
 [templates.nvim]
 input_path = "~/.config/matugen/templates/nvim-colors.lua"
@@ -176,7 +167,14 @@ output_path = "~/.cache/matugen/grub-theme/theme.txt"
 # patron que sync-sddm/plymouth-theme -- ver README seccion GRUB). Mucho
 # mas liviano que el post_hook de Plymouth: sin UKI de por medio, no hace
 # falta backgroundearlo.
-post_hook = "~/.config/hypr/scripts/generate-grub-assets.sh {{colors.primary.default.hex_stripped}} {{image}} && sudo -n /usr/local/bin/sync-grub-theme >/dev/null 2>&1 || true"
+post_hook = "~/.config/hypr/scripts/generate-grub-assets.sh {{colors.primary.default.hex_stripped}} {{colors.tertiary.default.hex_stripped}} {{colors.on_primary.default.hex_stripped}} {{colors.surface_container.default.hex_stripped}} {{colors.outline_variant.default.hex_stripped}} {{image}} && sudo -n /usr/local/bin/sync-grub-theme >/dev/null 2>&1 || true"
+
+[templates.quickshell]
+# Ver quickshell/.config/quickshell/dotshell/ -- barra en QML (reemplazo
+# de Waybar, ver README seccion Quickshell).
+input_path = "~/.config/matugen/templates/quickshell-colors.qml"
+output_path = "~/.config/quickshell/dotshell/Colors.qml"
+post_hook = "qs -c dotshell ipc call colors reload >/dev/null 2>&1 || true"
 
 [templates.icons]
 # papirus-folders solo acepta nombres de color fijos, no hex -- el mapeo al

@@ -51,29 +51,21 @@ hl.window_rule({
     no_shadow = true,
 })
 
--- hyprlauncher: ventana flotante centrada, sin decoracion extra
-hl.window_rule({
-    name  = "float-hyprlauncher",
-    match = { class = "hyprlauncher" },
-    float  = true,
-    center = true,
-})
 
 -- Ejemplos de asignacion de apps a workspaces (ajustar segun tus apps reales)
 -- hl.window_rule({ name = "ws-browser", match = { class = "firefox" },        workspace = "2" })
 -- hl.window_rule({ name = "ws-chat",    match = { class = "[Vv]esktop" },     workspace = "5" })
 -- hl.window_rule({ name = "ws-steam",   match = { class = "steam" },          workspace = "9" })
 
--- ---- Layer rules (blur para barra, launcher, notificaciones) ----
-hl.layer_rule({ match = { namespace = "waybar" },         blur = true })
+-- ---- Layer rules (blur para launcher, notificaciones) ----
+-- La barra (namespace "quickshell") no lleva blur: cada Pill ya tiene su
+-- propio fondo solido (ver Pill.qml), asi que el unico efecto visible del
+-- blur era detras de los huecos transparentes entre pills -- a pedido del
+-- usuario, sin blur ahi.
 hl.layer_rule({ match = { namespace = "rofi" },            blur = true, ignore_alpha = 0.3 })
-hl.layer_rule({ match = { namespace = "swaync-control-center" }, blur = true, ignore_alpha = 0.3 })
--- ignore_alpha: la superficie de swaync-notification-window reserva toda
--- la columna derecha de la pantalla (para poder apilar varias
--- notificaciones), casi toda transparente salvo el bubble en si -- sin
--- esto, Hyprland bluerea el rectangulo entero de la superficie en vez de
--- solo donde hay contenido visible (mismo patron que el layer_rule de rofi).
-hl.layer_rule({ match = { namespace = "swaync-notification-window" }, blur = true, ignore_alpha = 0.3 })
+-- El Control Center y los toasts de notificaciones (quickshell/
+-- ControlCenter.qml, NotificationToast.qml) reemplazan a swaync -- mismo
+-- namespace "quickshell" que la barra, sin blur (ver nota arriba).
 hl.layer_rule({ match = { namespace = "hyprpicker" },        no_anim = true })
 
 -- Widgets/relojes que deben verse incluso arriba de hyprlock (ninguno por ahora)

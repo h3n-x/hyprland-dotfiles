@@ -65,7 +65,7 @@ alias ...='cd ../..'
 command -v zoxide >/dev/null 2>&1 && alias cd='z'
 
 alias dotfiles='cd ~/Dotfiles'
-alias reload-waybar='killall -SIGUSR2 waybar'
+alias reload-bar='qs -c dotshell ipc call shell reload'
 
 # fastfetch: alias con los colores del wallpaper actual, generado por
 # matugen (ver matugen/.config/matugen/templates/fastfetch-opts.sh).

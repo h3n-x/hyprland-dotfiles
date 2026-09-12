@@ -1,13 +1,12 @@
 
 # Archivos de color generados por matugen (regenerables con
 # `matugen image <wallpaper>`, ver matugen/.config/matugen/) -- no se commitean.
-waybar/.config/waybar/themes/matugen.css
+quickshell/.config/quickshell/dotshell/Colors.qml
 btop/.config/btop/themes/matugen.theme
 yazi/.config/yazi/flavors/matugen.yazi/flavor.toml
 nvim/.config/nvim/lua/matugen_colors.lua
 kitty/.config/kitty/colors.conf
 rofi/.config/rofi/colors.rasi
-swaync/.config/swaync/colors.css
 hypr/.config/hypr/colors.conf
 hypr/.config/hypr/current-wallpaper.conf
 hypr/.config/hypr/modules/colors.lua

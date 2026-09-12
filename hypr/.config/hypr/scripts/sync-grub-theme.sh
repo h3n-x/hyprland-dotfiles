@@ -32,15 +32,19 @@ mkdir -p "$DEST"
 cp "$REPO_THEME/font.pf2" "$DEST/"
 cp "$REPO_THEME/font-bold.pf2" "$DEST/"
 
-# theme.txt (matugen) + fondo/avatar/tick/pill de seleccion (ImageMagick,
-# generate-grub-assets.sh)
+# theme.txt (matugen, ya con __HOSTNAME__ resuelto por
+# generate-grub-assets.sh) + todos los assets generados con ImageMagick:
+# fondo, tarjeta de 9 slices del menu y pill de seleccion.
 cp "$STAGING/theme.txt" "$DEST/"
 cp "$STAGING/background.png" "$DEST/"
-cp "$STAGING/avatar.png" "$DEST/"
-cp "$STAGING/tick.png" "$DEST/"
-cp "$STAGING/select_w.png" "$DEST/"
-cp "$STAGING/select_c.png" "$DEST/"
-cp "$STAGING/select_e.png" "$DEST/"
+cp "$STAGING"/corner_*.png "$DEST/"
+cp "$STAGING"/menu_*.png "$DEST/"
+cp "$STAGING"/select_*.png "$DEST/"
+
+# Limpieza de assets viejos del avatar/anillo/glow (se sacaron del theme --
+# ver generate-grub-assets.sh) que puedan haber quedado de una sync
+# anterior. No falla si ya no existen.
+rm -f "$DEST/avatar.png" "$DEST/tick.png" "$DEST/ring_backdrop.png" "$DEST/empty.png" "$DEST"/item_*.png
 
 chown -R root:root "$DEST"
 chmod -R a+rX "$DEST"

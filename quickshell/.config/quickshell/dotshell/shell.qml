@@ -1,0 +1,111 @@
+// Entry point de la barra. Quickshell.screens es reactivo (Variants la crea
+// o destruye sola si conectas/desconectas un monitor, ver doc "Reusable
+// components"). Gestionado con GNU Stow desde
+// /home/h3n/Dotfiles/quickshell -> ~/.config/quickshell. Se lanza con
+// `qs -c dotshell` (ver hypr/.config/hypr/modules/autostart.lua).
+import Quickshell
+import Quickshell.Io
+import "modules"
+
+ShellRoot {
+    // Recarga forzada de Colors.qml -- ver el comentario en
+    // matugen/.config/matugen/templates/quickshell-colors.qml sobre por que
+    // hace falta (pragma Singleton no dispara el watchFiles automatico de
+    // Quickshell cuando el archivo lo reescribe un proceso externo).
+    IpcHandler {
+        target: "colors"
+        function reload(): void {
+            Quickshell.reload(false);
+        }
+    }
+
+    // SUPER+SHIFT+B (ver binds.lua) -- reemplaza a "killall -SIGUSR1 waybar".
+    IpcHandler {
+        target: "bar"
+        function toggle(): void {
+            BarVisibility.hidden = !BarVisibility.hidden;
+        }
+    }
+
+    // SUPER+SHIFT+CTRL+B -- reemplaza a "killall -SIGUSR2 waybar". Reload
+    // "duro" (recrea ventanas, a diferencia del soft reload de "colors").
+    IpcHandler {
+        target: "shell"
+        function reload(): void {
+            Quickshell.reload(true);
+        }
+    }
+
+    // SUPER+N / SUPER+SHIFT+N (ver binds.lua) -- reemplazan a
+    // "swaync-client -t -sw" / "-C".
+    IpcHandler {
+        target: "controlcenter"
+        function toggle(): void {
+            ControlCenterState.visible = !ControlCenterState.visible;
+        }
+        function clearAll(): void {
+            NotificationState.clearAll();
+        }
+    }
+
+    // SUPER+D (ver binds.lua) -- reemplaza a "rofi -show drun".
+    IpcHandler {
+        target: "launcher"
+        function toggle(): void {
+            LauncherState.visible = !LauncherState.visible;
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        Bar {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        Osd {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    // Sin icono propio en la barra (a pedido del usuario, ya esta el OSD)
+    // pero tienen que seguir instanciados en algun lado para que su logica
+    // (Pipewire/FileView + OsdState.show()) siga corriendo. Al no ser
+    // PanelWindow (son Item comunes) no necesitan pantalla ni se dibujan
+    // en ningun lado por si solos.
+    Volume {}
+    Backlight {}
+
+    Variants {
+        model: Quickshell.screens
+
+        ControlCenter {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        NotificationToast {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        Launcher {
+            required property var modelData
+            screen: modelData
+        }
+    }
+}

@@ -11,7 +11,7 @@
  * animado de "reproduciendo ahora" (--spice-equalizer) no anima, el resto
  * del tema no se ve afectado.
  *
- * Fuente: JetBrains Mono Nerd Font (la misma que kitty/waybar/rofi/etc en
+ * Fuente: JetBrains Mono Nerd Font (la misma que kitty/quickshell/rofi/etc en
  * este repo), variante "Propo" (ancho proporcional) para texto de UI --
  * la variante "Mono" normal fuerza cada glyph a una celda de ancho fijo,
  * ilegible para parrafos/nombres de canciones. Variables confirmadas

@@ -1,4 +1,4 @@
-/* Tema rofi a tono con waybar/hyprlock. */
+/* Tema rofi a tono con quickshell/hyprlock. */
 /* Paleta generada por matugen (../../matugen/.config/matugen/templates/rofi.rasi) */
 @import "colors.rasi"
 

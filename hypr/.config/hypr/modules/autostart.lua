@@ -7,9 +7,13 @@ hl.on("hyprland.start", function()
     -- Agente de autenticacion (polkit) -- reemplaza a polkit-kde-agent
     hl.exec_cmd("sh -c 'systemctl --user start hyprpolkitagent.service 2>/dev/null || /usr/lib/hyprpolkitagent'")
 
-    -- Barra, notificaciones, wallpaper, idle/lock, filtro de luz azul
-    hl.exec_cmd("waybar")
-    hl.exec_cmd("swaync")
+    -- Barra + notificaciones + control center, wallpaper, idle/lock,
+    -- filtro de luz azul. Todo Quickshell (QML), ver quickshell/.config/
+    -- quickshell/dotshell/ y README seccion Quickshell -- reemplazo de
+    -- Waybar Y de swaync (NotificationServer propio, ver
+    -- NotificationState.qml -- no pueden convivir dos dueños del mismo
+    -- servicio DBus org.freedesktop.Notifications).
+    hl.exec_cmd("qs -c dotshell")
     hl.exec_cmd("hyprpaper")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("hyprsunset")
@@ -22,6 +26,7 @@ hl.on("hyprland.start", function()
     -- Applet de red y bluetooth (si estan instalados)
     hl.exec_cmd("sh -c 'command -v nm-applet >/dev/null && nm-applet --indicator &'")
     hl.exec_cmd("sh -c 'command -v blueman-applet >/dev/null && blueman-applet &'")
+
 
     -- Gestor de energia (power-profiles-daemon ya esta como servicio de systemd,
     -- pero el applet grafico si aplica se puede sumar aca)

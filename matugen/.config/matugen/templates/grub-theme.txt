@@ -1,24 +1,48 @@
 # Generado por matugen -- no editar a mano, editar templates/grub-theme.txt.
 # Formato "GRUB theme" (gfxmenu), ver
 # https://www.gnu.org/software/grub/manual/grub/html_node/Theme-file-format.html
-# El fondo, avatar (~/.face en circulo), tick y el "pill" de seleccion los
-# genera hypr/.config/hypr/scripts/generate-grub-assets.sh (post_hook de
-# este mismo template, ver matugen/.config/matugen/config.toml) con
-# ImageMagick. Las fuentes (font.pf2/font-bold.pf2, JetBrains Mono Nerd
-# Font -- misma tipografia que el resto del rice) son estaticas, viven en
-# grub/theme/ (no dependen de colores, no las genera matugen) y
-# grub-mkconfig las carga solo por estar en la carpeta del theme, con el
-# nombre que se les dio al generarlas con grub-mkfont (ver
-# grub/theme/README si existe, o el comentario de sync-grub-theme.sh).
+# (tambien local: `info grub`, nodo "Theme file format" -- fuente de
+# verdad usada para groundear cada propiedad de este archivo). Cada
+# construccion nueva ademas quedo verificada contra un ejemplo REAL que
+# ya funciona en esta misma maquina antes de usarla aca: menu_pixmap_style
+# y @KEYMAP_MIDDLE@ -> /usr/share/grub/themes/starfield/theme.txt (theme
+# stock que trae el paquete grub); +image con left/top/file y el label de
+# countdown con id="__timeout__" -> temas de GRUB publicados que lo usan.
+# "item_pixmap_style" (divisor por fila no seleccionada) SE SACO a
+# proposito: es la unica propiedad que no aparecio en ningun ejemplo real
+# de los consultados, y es la sospechosa mas probable de haber roto el
+# parseo completo del theme (GRUB no tira ningun error visible si
+# theme.txt no carga -- simplemente cae al menu de texto plano, que fue
+# justo lo que paso al probarlo).
+#
+# El fondo, avatar (~/.face en circulo), glow del avatar, tarjeta de 9
+# slices del menu y "pill" de seleccion los genera
+# hypr/.config/hypr/scripts/generate-grub-assets.sh (post_hook de este
+# mismo template, ver matugen/.config/matugen/config.toml) con
+# ImageMagick. __HOSTNAME__ lo resuelve ese mismo script al final (sed),
+# matugen no tiene esa variable. Las fuentes (font.pf2/font-bold.pf2,
+# JetBrains Mono Nerd Font -- misma tipografia que el resto del rice) son
+# estaticas, viven en grub/theme/ (no dependen de colores, no las genera
+# matugen) y grub-mkconfig las carga solo por estar en la carpeta del
+# theme, con el nombre que se les dio al generarlas con grub-mkfont.
 
 desktop-image: "background.png"
 desktop-image-scale-method: "stretch"
 desktop-color: "{{colors.surface.default.hex}}"
 terminal-font: "DotfilesMono Regular 16"
 
-# Titulo arriba, fuente grande en negrita
+# Esquinas decorativas (marca en "L", ver generate-grub-assets.sh) --
+# encuadre sutil tipo HUD, no compite con el contenido.
++ image { left = 3% top = 3% width = 48 height = 48 file = "corner_tl.png" }
++ image { left = 97%-48 top = 3% width = 48 height = 48 file = "corner_tr.png" }
++ image { left = 3% top = 97%-48 width = 48 height = 48 file = "corner_bl.png" }
++ image { left = 97%-48 top = 97%-48 width = 48 height = 48 file = "corner_br.png" }
+
+# Titulo arriba, fuente grande en negrita, + subtitulo chico con el
+# hostname real de la maquina (lectura "tecnica", igual criterio que
+# fastfetch/starship en el resto del rice).
 + label {
-    top = 8%
+    top = 6%
     left = 0
     width = 100%
     align = "center"
@@ -26,49 +50,80 @@ terminal-font: "DotfilesMono Regular 16"
     font = "DotfilesMonoBold Bold 28"
     color = "{{colors.primary.default.hex}}"
 }
-
-# Anillo de progreso atado al countdown real de GRUB_TIMEOUT: centro =
-# avatar (~/.face, mismo recorte que Plymouth), los "ticks" son puntos
-# tenidos con primary que van desapareciendo a medida que se acaba el
-# tiempo. circular_progress de GRUB funciona por ticks discretos (no
-# rotacion continua como el spinner de Plymouth) -- ver
-# generate-grub-assets.sh.
-+ circular_progress {
-    id = "__timeout__"
-    left = 50%-70
-    top = 24%
-    width = 140
-    height = 140
-    num_ticks = 24
-    ticks_disappear = "true"
-    start_angle = 0
-    center_bitmap = "avatar.png"
-    tick_bitmap = "tick.png"
++ label {
+    top = 6%+38
+    left = 0
+    width = 100%
+    align = "center"
+    text = "__HOSTNAME__"
+    font = "DotfilesMono Regular 16"
+    color = "{{colors.on_surface_variant.default.hex}}"
 }
 
+# NOTA: hubo un avatar circular (~/.face) con anillo de ticks y glow
+# detras, en esta misma zona (top ~24%, centrado). Se saco del todo --
+# probado en vivo de varias formas (center_bitmap de circular_progress,
+# +image comun, con/sin alfa, 8/16-bit) y el lector de PNG de GRUB nunca
+# mostraba el contenido real del archivo (cuadrado solido), algo especifico
+# de decodificar PNG con canal alfa + foto compleja a la vez que no valia
+# la pena seguir persiguiendo. Si en el futuro se quiere reintentar: los
+# scripts que generaban esos assets (avatar.png circular, ring_backdrop.png,
+# tick.png, empty.png) y el codigo fuente de GRUB consultado para
+# diagnosticar esto quedan documentados en el historial de git.
+
+# Menu: menu_pixmap_style dibuja una tarjeta de 9 slices detras de toda
+# la lista (redondeada, tenida con surface_container + borde
+# outline_variant -- mismo lenguaje "card" que quickshell/rofi en el resto
+# del rice, propiedad confirmada contra
+# /usr/share/grub/themes/starfield/theme.txt). selected_item_pixmap_style
+# es el highlight solido con franja de acento -- contraste de FORMA
+# (relleno solido vs. texto suelto), no solo de color.
 + boot_menu {
     left = 50%-240
-    top = 55%
+    top = 57%
     width = 480
-    height = 22%
+    height = 17%
     item_font = "DotfilesMono Regular 16"
     selected_item_font = "DotfilesMono Regular 16"
     item_color = "{{colors.on_surface.default.hex}}"
     selected_item_color = "{{colors.on_primary.default.hex}}"
-    item_height = 36
-    item_padding = 8
-    item_spacing = 10
+    item_height = 42
+    item_padding = 14
+    item_spacing = 6
+    menu_pixmap_style = "menu_*.png"
     selected_item_pixmap_style = "select_*.png"
 }
 
-# Cuenta regresiva abajo del todo
+# Pie: atajos reales (GRUB los rellena solo via @KEYMAP_MIDDLE@, no hace
+# falta -- ni conviene -- hardcodearlos a mano), texto estatico chico y
+# el countdown grande en negrita, todos atados al mismo id="__timeout__"
+# (GRUB actualiza TODOS los componentes con ese id en cada tick, se puede
+# repetir con distinto font/color/posicion).
 + label {
-    id = "__timeout__"
+    top = 80%
+    left = 0
+    width = 100%
+    align = "center"
+    text = "@KEYMAP_MIDDLE@"
+    font = "DotfilesMono Regular 16"
+    color = "{{colors.on_surface_variant.default.hex}}"
+}
++ label {
     top = 88%
     left = 0
     width = 100%
     align = "center"
-    text = "Arrancando en %d segundos -- ESC para el menu de firmware"
+    text = "Arranque automatico en"
     font = "DotfilesMono Regular 16"
     color = "{{colors.on_surface_variant.default.hex}}"
+}
++ label {
+    id = "__timeout__"
+    top = 88%+24
+    left = 0
+    width = 100%
+    align = "center"
+    text = "%d s"
+    font = "DotfilesMonoBold Bold 26"
+    color = "{{colors.primary.default.hex}}"
 }

@@ -1,4 +1,0 @@
-# Generado por matugen -- no editar a mano, editar templates/fzf.sh
-# Sourceado por los scripts que usan fzf (power, network,
-# bluetooth) para que los menus en kitty combinen con el resto de la paleta.
-export FZF_DEFAULT_OPTS="--color=fg:#{{colors.on_surface.default.hex_stripped}},bg:#{{colors.surface.default.hex_stripped}},hl:#{{colors.primary.default.hex_stripped}},fg+:#{{colors.on_surface.default.hex_stripped}},bg+:#{{colors.surface_container_high.default.hex_stripped}},hl+:#{{colors.primary.default.hex_stripped}},border:#{{colors.outline.default.hex_stripped}},label:#{{colors.primary.default.hex_stripped}},prompt:#{{colors.primary.default.hex_stripped}},pointer:#{{colors.primary.default.hex_stripped}},marker:#{{colors.secondary.default.hex_stripped}},spinner:#{{colors.primary.default.hex_stripped}},header:#{{colors.on_surface_variant.default.hex_stripped}},info:#{{colors.on_surface_variant.default.hex_stripped}},gutter:#{{colors.surface.default.hex_stripped}}"

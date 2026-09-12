@@ -3,8 +3,8 @@
 #
 # Que SI automatiza: paquetes (pacman/yay), copia de iconos Papirus-Dark,
 # stow de toda la config, primer `matugen image` (con un wallpaper semilla
-# si todavia no elegiste ninguno), perfil de LibreWolf, spicetify + Marketplace
-# para Spotify, shell por defecto.
+# si todavia no elegiste ninguno), spicetify + Marketplace para Spotify,
+# shell por defecto.
 #
 # Que NO automatiza (se imprime como instrucciones al final, ver README):
 # SDDM, Plymouth, GRUB y la GPU hibrida AMD+NVIDIA. Necesitan sudo con
@@ -31,13 +31,13 @@ command -v pacman >/dev/null 2>&1 || {
 # 1. Paquetes
 # -----------------------------------------------------------------------
 info "Instalando paquetes (pacman)..."
-sudo pacman -S --needed --noconfirm waybar rofi swaync satty cliphist wl-clip-persist \
+sudo pacman -S --needed --noconfirm rofi satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
   qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd rofimoji wtype \
-  gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl \
+  gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl brightnessctl \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
-  matugen bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono \
-  yazi tdf fd imagemagick 7zip resvg cava fastfetch \
+  matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono \
+  yazi tdf fd imagemagick 7zip resvg cava fastfetch pacman-contrib \
   dust duf procs tealdeer glow xh zellij plymouth \
   neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
 
@@ -73,7 +73,7 @@ fi
 # la identidad (nombre/email) de quien armo este repo -- stowearlo sin
 # preguntar le pisaria la identidad de git a cualquier otra persona que
 # clone esto. Editalo primero, despues `stow git` a mano.
-stow hypr waybar rofi swaync kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch
+stow hypr quickshell rofi kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch
 ok "Stow aplicado (excepto 'git', ver nota al final)."
 
 # -----------------------------------------------------------------------
@@ -104,23 +104,7 @@ if command -v magick >/dev/null 2>&1; then
 fi
 
 # -----------------------------------------------------------------------
-# 4. LibreWolf
-# -----------------------------------------------------------------------
-if command -v librewolf >/dev/null 2>&1; then
-  if [ -f "$HOME/.config/librewolf/librewolf/profiles.ini" ]; then
-    info "Vinculando perfil de LibreWolf..."
-    "$REPO_DIR/librewolf/link-profile.sh"
-  else
-    warn "LibreWolf esta instalado pero nunca corrio -- abrilo una vez y despues corre:"
-    warn "  $REPO_DIR/librewolf/link-profile.sh"
-  fi
-else
-  warn "LibreWolf no esta instalado -- omitiendo. Instalalo (fuera de los repos oficiales de Arch) y corre:"
-  warn "  $REPO_DIR/librewolf/link-profile.sh"
-fi
-
-# -----------------------------------------------------------------------
-# 5. Spotify (spicetify + Marketplace)
+# 4. Spotify (spicetify + Marketplace)
 # -----------------------------------------------------------------------
 if command -v spicetify >/dev/null 2>&1; then
   info "Configurando spicetify (tema matugen)..."
@@ -139,7 +123,7 @@ else
 fi
 
 # -----------------------------------------------------------------------
-# 6. tealdeer (necesita bajar el cache de paginas la primera vez)
+# 5. tealdeer (necesita bajar el cache de paginas la primera vez)
 # -----------------------------------------------------------------------
 if command -v tldr >/dev/null 2>&1; then
   tldr --update >/dev/null 2>&1 && ok "Cache de tealdeer (tldr) actualizado." \
@@ -147,7 +131,7 @@ if command -v tldr >/dev/null 2>&1; then
 fi
 
 # -----------------------------------------------------------------------
-# 7. Shell por defecto
+# 6. Shell por defecto
 # -----------------------------------------------------------------------
 if [ "$(getent passwd "$USER" | cut -d: -f7)" != "$(command -v zsh)" ]; then
   info "Cambiando la shell por defecto a zsh (te va a pedir tu contraseña)..."
