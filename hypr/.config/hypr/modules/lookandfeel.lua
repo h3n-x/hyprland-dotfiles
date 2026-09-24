@@ -19,7 +19,7 @@ end
 
 hl.config({
     general = {
-        gaps_in  = 5,
+        gaps_in  = 4,  -- 8px entre ventanas = space.sm (D3/S4); borde de pantalla = gaps_out
         gaps_out = 12,
 
         border_size = 2,
