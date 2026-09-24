@@ -69,7 +69,10 @@ magick "$OUT_DIR/corner_tl.png" -flip -flop "$OUT_DIR/corner_br.png"
 # hace falta generarlo al tamano real.
 MENU_SCRATCH=200
 MENU_CAP=28
-MENU_RADIUS=20
+# radius.lg x 1.5 (design system D4/Q4a): GRUB dibuja en px fisicos sin el
+# escalado del escritorio. lg (panel) y no xl: con 36px el radio no entra en
+# la pieza de MENU_CAP y agrandarla corre las entradas del menu hacia adentro.
+MENU_RADIUS=24
 magick -size "${MENU_SCRATCH}x${MENU_SCRATCH}" xc:none \
   -fill "#${SURFACE_CONTAINER_HEX}E3" \
   -draw "roundrectangle 0,0,$((MENU_SCRATCH - 1)),$((MENU_SCRATCH - 1)),${MENU_RADIUS},${MENU_RADIUS}" \
