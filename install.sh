@@ -44,9 +44,12 @@ sudo pacman -S --needed --noconfirm rofi satty cliphist wl-clip-persist \
 if command -v yay >/dev/null 2>&1; then
   info "Instalando paquetes AUR (yay)..."
   yay -S --needed --noconfirm bibata-cursor-theme-bin papirus-folders spicetify-bin
+  # Fuentes del design system (D1): interfaz y codigo/terminal.
+  yay -S --needed --noconfirm ttf-plus-jakarta-sans maplemono-nf
 else
   warn "yay no esta instalado -- omitiendo bibata-cursor-theme-bin y papirus-folders."
   warn "Instalalos a mano despues (necesitas un AUR helper): yay -S bibata-cursor-theme-bin papirus-folders"
+  warn "Fuentes del design system (tambien AUR): yay -S ttf-plus-jakarta-sans maplemono-nf"
 fi
 
 # papirus-folders necesita una copia LOCAL del tema para no pedir sudo en
@@ -120,6 +123,16 @@ if command -v spicetify >/dev/null 2>&1; then
 else
   warn "spicetify no esta instalado (es AUR: spicetify-bin) -- omitiendo. Instalalo y corre:"
   warn "  spicetify config current_theme matugen color_scheme matugen && spicetify apply"
+fi
+
+# GTK3/GTK4/libadwaita en Wayland leen la fuente de gsettings (via el portal
+# de settings), no de gtk-*/settings.ini -- sin esto quedan en Adwaita Sans.
+# Mismas fuentes que settings.ini y qt*ct.conf (design system, decision D1).
+if command -v gsettings >/dev/null 2>&1; then
+  gsettings set org.gnome.desktop.interface font-name 'Plus Jakarta Sans 10'
+  gsettings set org.gnome.desktop.interface document-font-name 'Plus Jakarta Sans 11'
+  gsettings set org.gnome.desktop.interface monospace-font-name 'Maple Mono NF 11'
+  ok "Fuentes de GTK (gsettings) configuradas."
 fi
 
 # -----------------------------------------------------------------------

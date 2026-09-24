@@ -68,6 +68,9 @@ sudo pacman -S --needed rofi satty cliphist wl-clip-persist \
   neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
 
 yay -S --needed bibata-cursor-theme-bin papirus-folders spicetify-bin
+# Fuentes del design system: Plus Jakarta Sans (interfaz) y Maple Mono NF
+# (codigo/terminal, con glyphs Nerd Font)
+yay -S --needed ttf-plus-jakarta-sans maplemono-nf
 
 # papirus-folders necesita una copia LOCAL del tema para no pedir sudo en
 # cada cambio de wallpaper (matugen lo llama automaticamente, sin terminal).
@@ -351,7 +354,8 @@ resto del tema no se ve afectado.
 
 Encima de esa base, personalizacion propia (seccion final de `user.css`,
 por separado de lo heredado de catppuccin):
-- Fuente JetBrainsMono Nerd Font Propo en toda la UI (`--encore-*-font-stack`,
+- Plus Jakarta Sans en toda la UI y Maple Mono NF en lo monoespaciado
+  (`--encore-*-font-stack`, mismas fuentes que el resto del rice,
   variables reales confirmadas grep-eando el CSS ya parcheado de Spotify --
   no estan documentadas por spicetify).
 - Barra de reproduccion con `backdrop-filter: blur()` (esto es CSS normal
@@ -547,22 +551,22 @@ encender, "Boot from file"), sin necesitar un USB live.
 
 Theme propio (fondo con blur+vignette del wallpaper, avatar `~/.face` en
 circulo, anillo de progreso atado al countdown real de `GRUB_TIMEOUT`,
-highlight de seleccion tipo "pill" redondeada, tipografia JetBrains Mono
-Nerd Font -- misma que el resto del rice) generado por matugen, mismo
+highlight de seleccion tipo "pill" redondeada, tipografia Plus Jakarta
+Sans -- la fuente de interfaz del rice) generado por matugen, mismo
 patron que SDDM/Plymouth: `matugen/.config/matugen/templates/grub-theme.txt`
 (template) + `hypr/.config/hypr/scripts/generate-grub-assets.sh`
 (ImageMagick, sin sudo) + `hypr/.config/hypr/scripts/sync-grub-theme.sh`
 (root, copia a `/boot/grub/themes/` y corre `grub-mkconfig`). Las fuentes
 (`grub/theme/font.pf2` y `font-bold.pf2`) son estaticas -- generadas UNA
-VEZ con `grub-mkfont` a partir de JetBrains Mono Nerd Font, con nombre
+VEZ con `grub-mkfont` a partir de Plus Jakarta Sans, con nombre
 propio (`--name`) para no depender de que fuente trae GRUB instalada de
 fabrica:
 
 ```bash
-grub-mkfont -o grub/theme/font.pf2 -s 16 --name "DotfilesMono" \
-  /usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf
-grub-mkfont -o grub/theme/font-bold.pf2 -s 28 --name "DotfilesMonoBold" \
-  /usr/share/fonts/TTF/JetBrainsMonoNerdFont-Bold.ttf
+grub-mkfont -o grub/theme/font.pf2 -s 16 --name "DotfilesSans" \
+  /usr/share/fonts/TTF/PlusJakartaSans-Regular.ttf
+grub-mkfont -o grub/theme/font-bold.pf2 -s 28 --name "DotfilesSansSemiBold" \
+  /usr/share/fonts/TTF/PlusJakartaSans-SemiBold.ttf
 ```
 
 (`grub-mkconfig` detecta y carga solo los `.pf2` que encuentra en la
