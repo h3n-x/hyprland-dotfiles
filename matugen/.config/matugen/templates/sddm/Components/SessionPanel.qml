@@ -45,7 +45,10 @@ Item {
       transitions: Transition {
         PropertyAnimation {
           property: "color"
-          duration: 300
+
+          duration: 100 // dur.fast + ease.standard (D7/M2)
+          easing.type: Easing.BezierSpline
+          easing.bezierCurve: [0.33, 1, 0.68, 1, 1, 1]
         }
       }
       MouseArea {
@@ -102,7 +105,10 @@ Item {
     transitions: Transition {
       PropertyAnimation {
         properties: "color"
-        duration: 150
+
+        duration: 100 // dur.fast + ease.standard (D7/M2)
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: [0.33, 1, 0.68, 1, 1, 1]
       }
     }
     onClicked: {
@@ -134,15 +140,17 @@ Item {
           property: "opacity"
           from: 0
           to: 1
-          duration: 400
-          easing.type: Easing.OutExpo
+          duration: 300 // dur.medium + ease.enter (D7/M2)
+          easing.type: Easing.BezierSpline
+          easing.bezierCurve: [0.23, 1, 0.32, 1, 1, 1]
         }
         NumberAnimation {
           property: "x"
           from: sessionPopup.x + (inputWidth * 0.1)
           to: sessionPopup.x
-          duration: 500
-          easing.type: Easing.OutExpo
+          duration: 300 // dur.medium + ease.enter (D7/M2)
+          easing.type: Easing.BezierSpline
+          easing.bezierCurve: [0.23, 1, 0.32, 1, 1, 1]
         }
       }
     }
@@ -151,8 +159,9 @@ Item {
         property: "opacity"
         from: 1
         to: 0
-        duration: 300
-        easing.type: Easing.OutExpo
+        duration: 180 // exitFor(300) + ease.exit (D7/M2)
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: [0.5, 0.5, 0.75, 1, 1, 1]
       }
     }
   }

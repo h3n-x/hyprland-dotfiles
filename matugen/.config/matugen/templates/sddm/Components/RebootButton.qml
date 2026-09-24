@@ -34,7 +34,10 @@ Item {
     transitions: Transition {
       PropertyAnimation {
         properties: "color"
-        duration: 300
+
+        duration: 100 // dur.fast + ease.standard (D7/M2)
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: [0.33, 1, 0.68, 1, 1, 1]
       }
     }
     onClicked: sddm.reboot()
