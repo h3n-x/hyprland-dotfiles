@@ -19,7 +19,7 @@ Item {
     background: Rectangle {
       id: sleepButtonBg
       color: "{{colors.error.default.hex}}"
-      radius: 3
+      radius: 8
     }
     states: [
       State {

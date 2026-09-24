@@ -18,7 +18,7 @@ Item {
     }
     height: inputHeight * ( config.UserIcon == "true" ? 11.2 : 5.3 )
     width: inputWidth * 1.2
-    radius: 5
+    radius: 16
     visible: config.LoginBackground == "true" ? true : false
     color: "{{colors.surface_container_low.default.hex}}"
   }
@@ -120,7 +120,7 @@ Item {
       background: Rectangle {
         id: buttonBackground
         color: "{{colors.primary.default.hex}}"
-        radius: 3
+        radius: 8
       }
       states: [
         State {

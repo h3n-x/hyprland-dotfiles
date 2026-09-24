@@ -18,7 +18,7 @@ Item {
     }
     background: Rectangle {
       id: rebootButtonBackground
-      radius: 3
+      radius: 8
       color: "{{colors.error.default.hex}}"
     }
     states: [

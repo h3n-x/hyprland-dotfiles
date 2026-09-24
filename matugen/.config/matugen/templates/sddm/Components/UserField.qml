@@ -22,7 +22,7 @@ TextField {
   background: Rectangle {
     id: userFieldBackground
     color: "{{colors.surface_container.default.hex}}"
-    radius: 3
+    radius: 8
   }
   states: [
     State {

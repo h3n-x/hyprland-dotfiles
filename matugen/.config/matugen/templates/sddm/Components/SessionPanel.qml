@@ -30,7 +30,7 @@ Item {
       background: Rectangle {
         id: sessionEntryBackground
         color: "{{colors.surface_container_high.default.hex}}"
-        radius: 3
+        radius: 8
       }
       states: [
         State {
@@ -71,7 +71,7 @@ Item {
     background: Rectangle {
       id: sessionButtonBackground
       color: "{{colors.surface_container.default.hex}}"
-      radius: 3
+      radius: 8
     }
     states: [
       State {
@@ -117,7 +117,7 @@ Item {
     y: -(contentHeight + padding * 2) + sessionButton.height
     padding: inputHeight / 10
     background: Rectangle {
-      radius: 5.4
+      radius: 12
       color: "{{colors.surface_container.default.hex}}"
     }
     contentItem: ListView {

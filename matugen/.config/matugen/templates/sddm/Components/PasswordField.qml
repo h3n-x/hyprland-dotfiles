@@ -21,7 +21,7 @@ TextField {
   horizontalAlignment: TextInput.AlignHCenter
   background: Rectangle {
     id: passFieldBackground
-    radius: 3
+    radius: 8
     color: "{{colors.surface_container.default.hex}}"
   }
   states: [

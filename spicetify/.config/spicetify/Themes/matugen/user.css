@@ -260,7 +260,7 @@
 :root .os-scrollbar-handle,
 :root ::-webkit-scrollbar-thumb {
   background-color: var(--spice-text) !important;
-  border-radius: 6px;
+  border-radius: 999px; /* radius.full (D4) */
 }
 :root .GenericModal .main-duplicateTrackModal-container {
   background-color: var(--spice-card);
@@ -300,14 +300,14 @@
 }
 
 /* Portadas de album con las mismas esquinas redondeadas que las ventanas
- * de Hyprland (decoration.rounding = 10 en lookandfeel.lua) */
+ * de Hyprland (decoration.rounding = 12 en lookandfeel.lua, radius.md) */
 :root .main-image-image,
 :root .cover-art-image,
 :root .main-coverSlotCollapsed-container img {
-  border-radius: 10px !important;
+  border-radius: 12px !important;
 }
 :root .main-nowPlayingWidget-nowPlaying .main-image-image {
-  border-radius: 6px !important; /* mas chica en la barra, se ve apretada con 10px */
+  border-radius: 8px !important; /* radius.sm: mas chica en la barra, se ve apretada con 12px */
 }
 
 /* Barra de progreso: el "recorrido" usa el acento en vez del gris por
