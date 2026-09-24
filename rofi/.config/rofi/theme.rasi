@@ -12,7 +12,7 @@ window {
     background-color: @mantle;
     border: 2px;
     border-color: @mauve;
-    border-radius: 20px;
+    border-radius: 24px; /* radius.xl (D4) */
     padding: 18px;
 }
 
@@ -53,7 +53,7 @@ listview {
 
 element {
     padding: 8px 10px;
-    border-radius: 12px;
+    border-radius: 8px; /* radius.sm: mismo rol que las filas de la barra (D4/Q2) */
     spacing: 10px;
 }
 

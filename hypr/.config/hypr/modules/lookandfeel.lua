@@ -43,7 +43,7 @@ hl.config({
     },
 
     decoration = {
-        rounding       = 10,
+        rounding       = 12, -- radius.md del design system (D4, P1.4)
         rounding_power = 2,
 
         -- active_opacity en 1.0 hacia que solo kitty se viera blureado (tiene
