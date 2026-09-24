@@ -160,10 +160,19 @@ QtObject {
     // Mismas curvas que hl.curve() en lookandfeel.lua, asi la shell se mueve
     // como Hyprland. Las curvas van a easing.bezierCurve con
     // easing.type: Easing.BezierSpline.
+    // mass/stiffness/damping: valores fuente del spring "easy" de Hyprland
+    // (referencia). qmlSpring/qmlDamping: los mismos, traducidos a los
+    // parametros de SpringAnimation -- calibrados empiricamente contra la
+    // curva de Hyprland (60 corridas, error medio 1.1%, asienta en 254 vs
+    // 241 ms; decision M1).
+    // Uso: SpringAnimation { spring: Tokens.motion.spring.qmlSpring;
+    //                        damping: Tokens.motion.spring.qmlDamping }
     component SpringSpec: QtObject {
         readonly property real mass: 1
         readonly property real stiffness: 238.1191
         readonly property real damping: 24.21279333
+        readonly property real qmlSpring: 2.6
+        readonly property real qmlDamping: 0.31
     }
     component MotionTokens: QtObject {
         // Reducir movimiento (D9): 1 = normal, 0 = sin animaciones. Unico
