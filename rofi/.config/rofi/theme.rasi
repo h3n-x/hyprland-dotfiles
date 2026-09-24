@@ -34,7 +34,7 @@ prompt {
     text-color: @base;
     border-radius: 999px;
     padding: 8px 12px;
-    font: "JetBrainsMono Nerd Font Bold 11";
+    font: "Plus Jakarta Sans SemiBold 11"; /* peso 600, escala D2 */
 }
 
 entry {

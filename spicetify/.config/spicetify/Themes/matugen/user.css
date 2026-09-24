@@ -11,19 +11,18 @@
  * animado de "reproduciendo ahora" (--spice-equalizer) no anima, el resto
  * del tema no se ve afectado.
  *
- * Fuente: JetBrains Mono Nerd Font (la misma que kitty/quickshell/rofi/etc en
- * este repo), variante "Propo" (ancho proporcional) para texto de UI --
- * la variante "Mono" normal fuerza cada glyph a una celda de ancho fijo,
- * ilegible para parrafos/nombres de canciones. Variables confirmadas
+ * Fuente: Plus Jakarta Sans para texto de UI y Maple Mono NF para lo
+ * monoespaciado -- las mismas del design system del repo (decision D1,
+ * P1.3: interfaz vs codigo). Variables confirmadas
  * grep-eando el CSS ya parcheado de Spotify en
  * ~/.local/share/spotify-launcher/install/usr/share/spotify/Apps/*.css
  * (no documentadas por spicetify, pueden cambiar con updates de Spotify).
  */
 :root {
-  --encore-body-font-stack: "JetBrainsMono Nerd Font Propo", var(--fallback-fonts, sans-serif);
-  --encore-variable-font-stack: "JetBrainsMono Nerd Font Propo", var(--fallback-fonts, sans-serif);
-  --encore-title-font-stack: "JetBrainsMono Nerd Font Propo", var(--fallback-fonts, sans-serif);
-  --encore-bodyMono-font-stack: "JetBrainsMono Nerd Font Mono", var(--fallback-fonts, monospace);
+  --encore-body-font-stack: "Plus Jakarta Sans", var(--fallback-fonts, sans-serif);
+  --encore-variable-font-stack: "Plus Jakarta Sans", var(--fallback-fonts, sans-serif);
+  --encore-title-font-stack: "Plus Jakarta Sans", var(--fallback-fonts, sans-serif);
+  --encore-bodyMono-font-stack: "Maple Mono NF", var(--fallback-fonts, monospace);
 }
 
 :root .Root__main-view .UyzJidwrGk3awngSGIwv {
