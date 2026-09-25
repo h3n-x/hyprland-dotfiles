@@ -26,6 +26,15 @@ selected=$(find "$WALLPAPERS_DIR" -maxdepth 1 -type f \( -iname "*.png" -o -inam
 wallpaper="$WALLPAPERS_DIR/$selected"
 [ -f "$wallpaper" ] || { notify "No se encontro $selected" "dialog-error"; exit 1; }
 
+# Fase 3: la aplicacion vive en theme-apply.sh (una sola a la vez, historial,
+# ~/.face antes de matugen). Si falta o no es ejecutable (chmod -x como vuelta
+# atras rapida), se usa la aplicacion en linea de abajo, la de siempre.
+SCRIPTS_DIR="$(dirname "$(readlink -f "$0")")"
+if [ -x "$SCRIPTS_DIR/theme-apply.sh" ]; then
+  notify "Aplicando: $selected"
+  exec "$SCRIPTS_DIR/theme-apply.sh" "$wallpaper" --source rofi
+fi
+
 # hyprpaper 0.8.x solo expone "wallpaper" y "listactive" por IPC -- ya no hay
 # "preload"/"unload"/"listloaded" (devuelven "invalid hyprpaper request").
 hyprctl hyprpaper wallpaper ",$wallpaper" >/dev/null
