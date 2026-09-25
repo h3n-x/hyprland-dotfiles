@@ -3,7 +3,7 @@
 // todo el tiempo). SystemClock evita el Process+Timer de "date" cada 1s.
 import QtQuick
 import Quickshell
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 Item {
     id: root
@@ -19,9 +19,13 @@ Item {
 
     Text {
         id: label
-        color: Colors.fg
-        font.pixelSize: 13
-        font.weight: root.showDate ? Font.Normal : Font.DemiBold
+        color: Colors.m3onSurface
+        font.family: Tokens.font.ui
+        // type.title (D2): el reloj recupera el enfasis con tamano, no con un
+        // Bold accidental (antes Noto Sans no tenia SemiBold y caia a Bold).
+        font.pixelSize: Tokens.type.title
+        font.weight: root.showDate ? Tokens.weight.regular : Tokens.weight.semibold
+        font.features: Tokens.tabularNumbers
         text: root.showDate
             ? Qt.formatDate(clock.date, "ddd d MMM")
             : Qt.formatTime(clock.date, "hh:mm")
@@ -29,6 +33,7 @@ Item {
 
     MouseArea {
         anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
         onClicked: root.showDate = !root.showDate
     }
 }

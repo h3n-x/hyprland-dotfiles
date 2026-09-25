@@ -33,21 +33,21 @@ Item {
     }
 
     readonly property string icon: {
-        if (root.wiredDevice && root.wiredDevice.connected) return "󰈀";
-        if (!Networking.wifiEnabled) return "󰤮";
-        if (!root.activeWifiNetwork) return "󰤯";
+        if (root.wiredDevice && root.wiredDevice.connected) return "lan";
+        if (!Networking.wifiEnabled) return "wifi_off";
+        if (!root.activeWifiNetwork) return "signal_wifi_0_bar";
         const s = root.activeWifiNetwork.signalStrength;
-        if (s > 0.75) return "󰤨";
-        if (s > 0.5) return "󰤥";
-        if (s > 0.25) return "󰤢";
-        return "󰤟";
+        if (s > 0.75) return "signal_wifi_4_bar";
+        if (s > 0.5) return "network_wifi_3_bar";
+        if (s > 0.25) return "network_wifi_2_bar";
+        return "network_wifi_1_bar";
     }
 
-    Text {
+    Icon {
         id: label
-        text: root.icon
-        color: Colors.fg
-        font.pixelSize: 15
+        name: root.icon
+        // Relleno = conectado (regla on/off de D10).
+        filled: !!root.activeWifiNetwork || !!(root.wiredDevice && root.wiredDevice.connected)
     }
 
     NetworkDropdown {
@@ -60,6 +60,7 @@ Item {
 
     MouseArea {
         anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
         onClicked: dropdown.toggle()
     }
 }

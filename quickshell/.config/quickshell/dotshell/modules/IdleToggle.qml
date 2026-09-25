@@ -20,15 +20,16 @@ Item {
         enabled: root.active
     }
 
-    Text {
+    Icon {
         id: label
-        color: root.active ? Colors.accent : Colors.fg
-        font.pixelSize: 13
-        text: root.active ? "󰈈" : "󰈉"
+        name: root.active ? "visibility" : "visibility_off"
+        filled: root.active
+        color: root.active ? Colors.m3primary : Colors.m3onSurface
     }
 
     MouseArea {
         anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
         onClicked: root.active = !root.active
     }
 }

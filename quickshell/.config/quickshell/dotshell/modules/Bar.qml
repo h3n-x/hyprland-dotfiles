@@ -12,7 +12,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 PanelWindow {
     id: bar
@@ -22,11 +22,14 @@ PanelWindow {
         left: true
         right: true
     }
-    implicitHeight: 38
+    // Geometria del design system (D14): 40 de alto, 8 arriba y 12 a los
+    // costados -- el mismo gaps_out de Hyprland, asi los bordes de la barra
+    // quedan alineados con los de las ventanas.
+    implicitHeight: Tokens.bar.height
     margins {
-        top: 6
-        left: 10
-        right: 10
+        top: Tokens.bar.marginTop
+        left: Tokens.bar.marginSide
+        right: Tokens.bar.marginSide
     }
     color: "transparent"
     // SUPER+SHIFT+B (ver binds.lua + shell.qml) -- toggle global, afecta a
@@ -35,7 +38,7 @@ PanelWindow {
 
     RowLayout {
         anchors.fill: parent
-        spacing: 8
+        spacing: Tokens.space.sm
 
         Pill {
             Layout.alignment: Qt.AlignVCenter
@@ -68,7 +71,7 @@ PanelWindow {
 
         Pill {
             Layout.alignment: Qt.AlignVCenter
-            spacing: 14
+            spacing: Tokens.space.md
             Update { Layout.alignment: Qt.AlignVCenter }
             Network { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
             Bluetooth { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
@@ -78,7 +81,7 @@ PanelWindow {
 
         Pill {
             Layout.alignment: Qt.AlignVCenter
-            spacing: 14
+            spacing: Tokens.space.md
             Battery { Layout.alignment: Qt.AlignVCenter }
             IdleToggle { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
             Ports { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }

@@ -5,25 +5,22 @@
 // rofi/swaync/el menu de GRUB.
 import QtQuick
 import QtQuick.Layouts
-import ".." // Colors.qml (pragma Singleton) vive en el directorio padre
+import ".." // Colors.qml y Tokens.qml (pragma Singleton) viven en el directorio padre
 
 Rectangle {
     id: root
 
     default property alias content: row.data
-    property real horizontalPadding: 14
-    property real verticalPadding: 6
-    property real spacing: 10
-    // Alto fijo (no derivado del contenido): si cada Pill midiera su alto
-    // segun su propio contenido, el de Workspaces (puntos de 10px) queda
-    // mas bajo que los que tienen texto (~13-16px) -- results en pills de
-    // distinta altura una al lado de la otra, se nota mucho.
-    property real minContentHeight: 20
+    property real horizontalPadding: Tokens.pad.pillH
+    property real spacing: Tokens.gap.inline
 
+    // Alto fijo (Tokens.pill.height, D14), no derivado del contenido: si cada
+    // Pill midiera su alto segun lo que tiene adentro, los de iconos y los de
+    // texto quedan de alturas distintas uno al lado del otro.
     implicitWidth: row.implicitWidth + horizontalPadding * 2
-    implicitHeight: Math.max(row.implicitHeight, minContentHeight) + verticalPadding * 2
-    radius: height / 2
-    color: Colors.bg1
+    implicitHeight: Tokens.pill.height
+    radius: Tokens.radius.pill(height)
+    color: Colors.m3surfaceContainerLow
 
     // RowLayout (no Row) a proposito: con Row, cada hijo se posiciona con
     // y=0 (top-align), asi que un modulo con font.pixelSize mas chico (ej.

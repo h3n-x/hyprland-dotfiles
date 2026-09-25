@@ -8,12 +8,12 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Services.Mpris
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 Row {
     id: root
     required property var panelWindow
-    spacing: 10
+    spacing: Tokens.space.sm
     // Sin esto, con la bandeja vacia (hoy: nm-applet/blueman filtrados,
     // nada mas registrado) el RowLayout del Pill que lo contiene igual le
     // reserva el "spacing" de los dos lados a este Row de ancho 0 -- se ve
@@ -63,8 +63,10 @@ Row {
         Item {
             id: trayItem
             required property var modelData
-            width: 18
-            height: 18
+            // Iconos de app (tema de iconos, sin padding interno): 16 px igualan
+            // opticamente a los Material Symbols de 20 (decision I2).
+            width: Tokens.icon.sm
+            height: Tokens.icon.sm
 
             Image {
                 anchors.fill: parent

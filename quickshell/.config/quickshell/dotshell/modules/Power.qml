@@ -8,27 +8,34 @@
 // hace falta abrir una terminal como con el script viejo.
 import QtQuick
 import Quickshell
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 Rectangle {
     id: root
-    implicitWidth: label.implicitWidth + 20
-    implicitHeight: label.implicitHeight + 10
-    radius: height / 2
-    color: mouseArea.containsMouse ? Colors.hoverBg : Colors.bg1
+    // Mismo alto que los Pill (D14), circular.
+    implicitWidth: Tokens.pill.height
+    implicitHeight: Tokens.pill.height
+    radius: Tokens.radius.pill(height)
+    color: Colors.m3surfaceContainerLow
 
-    Text {
+    StateLayer {
+        hovered: mouseArea.containsMouse
+        pressed: mouseArea.pressed
+        contentColor: Colors.m3primary
+    }
+
+    Icon {
         id: label
         anchors.centerIn: parent
-        text: "󰤄"
-        color: Colors.accent
-        font.pixelSize: 16
+        name: "power_settings_new"
+        color: Colors.m3primary
     }
 
     MouseArea {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
         onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/power-menu.sh"])
     }
 }

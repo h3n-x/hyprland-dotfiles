@@ -2,8 +2,7 @@
 // expone los workspaces por el socket de eventos de Hyprland (reactivo, sin
 // polling). El scroll usa la misma sintaxis de dispatcher Lua que ya usaba
 // el on-scroll-up/down de waybar ("hl.dsp.focus(...)"). Los iconos son los
-// mismos 4 glyphs de format-icons en ese mismo archivo (active/default/
-// empty/urgent).
+// Material Symbols (circulos, decision I1 del design system).
 //
 // "persistent-workspaces": {"*": 5} de waybar fuerza que se vean siempre
 // 5 slots aunque esten vacios -- Hyprland.workspaces de Quickshell solo
@@ -14,11 +13,11 @@
 // dispatch (Hyprland lo crea solo al enfocarlo).
 import QtQuick
 import Quickshell.Hyprland
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 Row {
     id: root
-    spacing: 12
+    spacing: Tokens.space.md
 
     readonly property int minWorkspaces: 5
     readonly property var slots: {
@@ -35,7 +34,7 @@ Row {
     Repeater {
         model: root.slots
 
-        Text {
+        Icon {
             id: label
             required property var modelData
             readonly property bool isPlaceholder: !!modelData.placeholder
@@ -43,21 +42,25 @@ Row {
             readonly property bool isEmpty: label.isPlaceholder || modelData.toplevels.values.length === 0
             readonly property bool isUrgent: !label.isPlaceholder && modelData.urgent
 
-            font.pixelSize: 16
-            text: {
-                if (label.isUrgent) return "";
-                if (label.isFocused) return "󰮯";
-                if (label.isEmpty) return "󱙝";
-                return "󰊠";
-            }
-            color: {
-                if (label.isUrgent) return Colors.critical;
-                if (label.isFocused) return Colors.accent;
-                return Colors.br;
-            }
+            // Circulos de Material Symbols (decision I1): enfocado = anillo con
+            // punto en el acento, ocupado = circulo lleno chico, vacio = anillo.
+            // Urgente antes devolvia "" (el glyph se habia perdido): ahora
+            // "error" en el rol de error.
+            name: label.isUrgent ? "error"
+                : label.isFocused ? "radio_button_checked"
+                : label.isEmpty ? "radio_button_unchecked"
+                : "circle"
+            filled: !label.isEmpty || label.isFocused
+            size: label.isEmpty || label.isFocused || label.isUrgent ? Tokens.icon.md : Tokens.icon.sm
+            width: Tokens.icon.md
+            height: Tokens.icon.md
+            color: label.isUrgent ? Colors.m3error
+                : label.isFocused ? Colors.m3primary
+                : Colors.m3onSurfaceVariant
 
             MouseArea {
                 anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     if (label.isPlaceholder) {
                         Hyprland.dispatch("hl.dsp.focus({ workspace = " + label.modelData.id + " })");

@@ -88,12 +88,14 @@ main() {
 			read -rn 1 -p "Press any key to exit..."
 			;;
 		data)
+			# "icon" es un nombre de Material Symbols (ligadura) que renderiza
+			# quickshell/.../Update.qml -- ya no un glyph Nerd (P1.10, decision I5).
 			detect_helper
 
 			local updates icon tooltip
 
 			if ! updates=$(detect_updates); then
-				icon="󰒑"
+				icon="sync_problem"
 				tooltip="Failed to detect updates"
 				tooltip+="\nRight-click to retry"
 			else
@@ -103,7 +105,7 @@ main() {
 				if ((repo_updates + aur_updates > 0)); then
 					local count
 					printf -v count "%3d" "$repo_updates"
-					icon="󰄠"
+					icon="download"
 					tooltip="Repo: $count"
 
 					if [[ -n $AUR_HELPER ]]; then
@@ -111,13 +113,13 @@ main() {
 						tooltip+="\n AUR: $count"
 					fi
 				else
-					icon="󰸟"
+					icon="check"
 					tooltip="No updates available"
 				fi
 			fi
 
 			cat <<-EOF
-				{ "text": "$icon", "tooltip": "$tooltip" }
+				{ "icon": "$icon", "tooltip": "$tooltip" }
 			EOF
 			;;
 		*)

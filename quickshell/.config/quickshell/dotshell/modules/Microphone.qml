@@ -28,11 +28,10 @@ Item {
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight
 
-    Text {
+    Icon {
         id: label
-        color: Colors.fg
-        font.pixelSize: 13
-        text: root.muted ? "󰍭" : "󰍬"
+        name: root.muted ? "mic_off" : "mic"
+        filled: !root.muted
     }
 
     required property var panelWindow

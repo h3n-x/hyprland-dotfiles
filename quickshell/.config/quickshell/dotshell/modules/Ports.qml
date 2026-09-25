@@ -5,7 +5,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 Item {
     id: root
@@ -60,22 +60,24 @@ Item {
 
     RowLayout {
         id: layout
-        spacing: 4
+        spacing: Tokens.space.xs
         anchors.centerIn: parent
 
-        Text {
-            text: "󰛳"
-            color: root.portCount > 0 ? Colors.accent : Colors.fg
-            font.pixelSize: 13
+        Icon {
+            name: "cable"
+            filled: root.portCount > 0
+            color: root.portCount > 0 ? Colors.m3primary : Colors.m3onSurface
             Layout.alignment: Qt.AlignVCenter
         }
 
         Text {
             visible: root.portCount > 0
             text: root.portCount.toString()
-            color: Colors.fg
-            font.pixelSize: 11
-            font.bold: true
+            color: Colors.m3onSurface
+            font.family: Tokens.font.ui
+            font.pixelSize: Tokens.type.caption
+            font.weight: Tokens.weight.semibold
+            font.features: Tokens.tabularNumbers
             Layout.alignment: Qt.AlignVCenter
         }
     }

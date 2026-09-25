@@ -4,7 +4,8 @@
 import QtQuick
 import Quickshell
 import Quickshell.Services.UPower
-import ".." // Colors.qml, ControlCenterState.qml
+import QtQuick.Layouts
+import ".." // Colors.qml, Tokens.qml, ControlCenterState.qml
 
 Item {
     id: root
@@ -19,13 +20,20 @@ Item {
     readonly property bool isWarning: !root.charging && root.pct > 0.10 && root.pct <= 0.20
     readonly property bool isFull: root.charging && root.pct >= 0.999
 
-    readonly property var icons: ["󰂎", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
-    readonly property string icon: root.charging ? "󰉁" : root.icons[Math.min(root.icons.length - 1, Math.floor(root.pct * 10))]
+    // Material Symbols (D10): 7 niveles de barras + lleno, alerta en critico.
+    readonly property string icon: {
+        if (root.charging) return "battery_charging_full";
+        if (root.isCritical) return "battery_alert";
+        if (root.pct >= 0.95) return "battery_full";
+        return "battery_" + Math.max(0, Math.min(6, Math.round(root.pct * 6))) + "_bar";
+    }
     readonly property color fg: {
-        if (root.isCritical) return Colors.critical;
-        if (root.isWarning) return Colors.warning;
-        if (root.charging) return Colors.charging;
-        return Colors.fg;
+        // Critico = error, aviso = tertiary, cargando = acento (decision P3:
+        // antes cargando y aviso compartian tertiary).
+        if (root.isCritical) return Colors.m3error;
+        if (root.isWarning) return Colors.m3tertiary;
+        if (root.charging) return Colors.m3primary;
+        return Colors.m3onSurface;
     }
 
     function notify(summary, urgency, icon) {
@@ -37,11 +45,24 @@ Item {
     onIsWarningChanged: if (root.isWarning) root.notify("Battery Low (20%)", "critical", "battery-020")
     onIsFullChanged: if (root.isFull) root.notify("Battery Full (100%)", "normal", "battery-100-charged")
 
-    Text {
+    RowLayout {
         id: label
-        color: root.fg
-        font.pixelSize: 13
-        text: root.icon + " " + Math.round(root.pct * 100) + "%"
+        spacing: Tokens.space.xs
+        Icon {
+            Layout.alignment: Qt.AlignVCenter
+            name: root.icon
+            filled: true
+            color: root.fg
+        }
+        Text {
+            Layout.alignment: Qt.AlignVCenter
+            text: Math.round(root.pct * 100) + "%"
+            color: root.fg
+            font.family: Tokens.font.ui
+            font.pixelSize: Tokens.type.body
+            font.weight: Tokens.weight.medium
+            font.features: Tokens.tabularNumbers
+        }
     }
 
     MouseArea {

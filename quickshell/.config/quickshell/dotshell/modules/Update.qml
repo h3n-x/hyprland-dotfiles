@@ -6,11 +6,13 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 Item {
     id: root
-    property string text: "󰒲"
+    // Nombre de icono de Material Symbols que emite update.sh ("data"):
+    // download / check / sync_problem. "schedule" hasta el primer chequeo.
+    property string icon: "schedule"
 
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight
@@ -24,9 +26,9 @@ Item {
             onStreamFinished: {
                 try {
                     const data = JSON.parse(this.text);
-                    root.text = data.text || "󰒑";
+                    root.icon = data.icon || "sync_problem";
                 } catch (e) {
-                    root.text = "󰒑";
+                    root.icon = "sync_problem";
                 }
             }
         }
@@ -40,16 +42,16 @@ Item {
         onTriggered: proc.running = true
     }
 
-    Text {
+    Icon {
         id: label
-        color: Colors.fg
-        font.pixelSize: 14
-        text: root.text
+        name: root.icon
+        filled: root.icon === "download"
     }
 
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton
+        cursorShape: Qt.PointingHandCursor
         onClicked: (mouse) => {
             if (mouse.button === Qt.RightButton) {
                 proc.running = true;

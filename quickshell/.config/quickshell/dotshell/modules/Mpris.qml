@@ -7,7 +7,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 import Quickshell.Services.Mpris
 
 Item {
@@ -24,25 +24,27 @@ Item {
     // encontro y se corrigio en Volume.qml.
     RowLayout {
         id: row
-        spacing: 6
+        spacing: Tokens.gap.inline
 
         IconImage {
             Layout.alignment: Qt.AlignVCenter
-            implicitSize: 16
+            implicitSize: Tokens.icon.sm
             source: root.player ? Quickshell.iconPath(root.player.desktopEntry, "multimedia-player") : ""
         }
 
-        Text {
+        Icon {
             Layout.alignment: Qt.AlignVCenter
-            color: Colors.fg
-            font.pixelSize: 13
-            text: root.player && root.player.isPlaying ? "󰐊" : "󰏤"
+            name: root.player && root.player.isPlaying ? "play_arrow" : "pause"
+            filled: true
+            size: Tokens.icon.sm
         }
 
         Text {
             Layout.alignment: Qt.AlignVCenter
-            color: Colors.fg
-            font.pixelSize: 13
+            color: Colors.m3onSurface
+            font.family: Tokens.font.ui
+            font.pixelSize: Tokens.type.body
+            font.weight: Tokens.weight.medium
             // Solo el titulo -- sin artista, a pedido del usuario.
             text: root.player ? (root.player.trackTitle || "Unknown Title") : ""
         }
@@ -50,6 +52,7 @@ Item {
 
     MouseArea {
         anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
         onClicked: if (root.player && root.player.canTogglePlaying) root.player.togglePlaying()
     }
 }

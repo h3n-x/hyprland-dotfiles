@@ -17,16 +17,15 @@ Item {
     readonly property bool anyConnected: Bluetooth.devices.values.some(d => d.connected)
 
     readonly property string icon: {
-        if (!root.adapter || !root.adapter.enabled) return "󰂲";
-        if (root.anyConnected) return "󰂱";
-        return "󰂯";
+        if (!root.adapter || !root.adapter.enabled) return "bluetooth_disabled";
+        if (root.anyConnected) return "bluetooth_connected";
+        return "bluetooth";
     }
 
-    Text {
+    Icon {
         id: label
-        text: root.icon
-        color: Colors.fg
-        font.pixelSize: 15
+        name: root.icon
+        filled: root.anyConnected
     }
 
     BluetoothDropdown {
@@ -37,6 +36,7 @@ Item {
 
     MouseArea {
         anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
         onClicked: dropdown.toggle()
     }
 }
