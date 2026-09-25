@@ -23,4 +23,8 @@ Text {
     font.variableAxes: Tokens.icon.axes(filled, weight, size)
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
+    // Rasterizado con FreeType (KI-C23): el render por defecto de Qt Quick
+    // (distance fields) resuelve mal los contornos superpuestos de la fuente
+    // variable con FILL 1 y deja arcos oscuros dentro de los iconos rellenos.
+    renderType: Text.NativeRendering
 }
