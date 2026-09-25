@@ -11,13 +11,19 @@
 // tienen workspace real todavia (N = 5 o el id mas alto que exista, lo
 // que sea mayor). Clickear un placeholder crea+enfoca ese workspace via
 // dispatch (Hyprland lo crea solo al enfocarlo).
+//
+// Indicador de foco (P2.8, decision Q3 = A): un unico radio_button_checked
+// que se desliza entre los slots con el spring calibrado. Los circulos de
+// I1 no cambian; cada slot se desvanece segun lo cerca que pasa el
+// indicador, asi no se superponen a mitad de camino.
 import QtQuick
 import Quickshell.Hyprland
 import ".." // Colors.qml, Tokens.qml
 
-Row {
+Item {
     id: root
-    spacing: Tokens.space.md
+    implicitWidth: row.implicitWidth
+    implicitHeight: row.implicitHeight
 
     readonly property int minWorkspaces: 5
     readonly property var slots: {
@@ -31,48 +37,83 @@ Row {
         return result;
     }
 
-    Repeater {
-        model: root.slots
+    readonly property int pitch: Tokens.icon.md + Tokens.space.md
+    readonly property int focusedIndex: root.slots.findIndex(w => !w.placeholder && Hyprland.focusedWorkspace === w)
 
-        Icon {
-            id: label
-            required property var modelData
-            readonly property bool isPlaceholder: !!modelData.placeholder
-            readonly property bool isFocused: !label.isPlaceholder && Hyprland.focusedWorkspace === modelData
-            readonly property bool isEmpty: label.isPlaceholder || modelData.toplevels.values.length === 0
-            readonly property bool isUrgent: !label.isPlaceholder && modelData.urgent
+    // La primera posicion (los workspaces llegan por el socket un instante
+    // despues del arranque) no se anima: el spring se habilita despues.
+    property bool settled: false
+    Timer { interval: 500; running: true; onTriggered: root.settled = true }
 
-            // Circulos de Material Symbols (decision I1): enfocado = anillo con
-            // punto en el acento, ocupado = circulo lleno chico, vacio = anillo.
-            // Urgente antes devolvia "" (el glyph se habia perdido): ahora
-            // "error" en el rol de error.
-            name: label.isUrgent ? "error"
-                : label.isFocused ? "radio_button_checked"
-                : label.isEmpty ? "radio_button_unchecked"
-                : "circle"
-            filled: !label.isEmpty || label.isFocused
-            size: label.isEmpty || label.isFocused || label.isUrgent ? Tokens.icon.md : Tokens.icon.sm
-            width: Tokens.icon.md
-            height: Tokens.icon.md
-            color: label.isUrgent ? Colors.m3error
-                : label.isFocused ? Colors.m3primary
-                : Colors.m3onSurfaceVariant
+    Row {
+        id: row
+        spacing: Tokens.space.md
 
-            // Cada workspace es un boton propio (Q2 = A).
-            HoverHalo { hovered: slotMouse.containsMouse; pressed: slotMouse.pressed }
+        Repeater {
+            model: root.slots
 
-            MouseArea {
-                id: slotMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (label.isPlaceholder) {
-                        Hyprland.dispatch("hl.dsp.focus({ workspace = " + label.modelData.id + " })");
-                    } else {
-                        label.modelData.activate();
+            Icon {
+                id: label
+                required property var modelData
+                readonly property bool isPlaceholder: !!modelData.placeholder
+                readonly property bool isFocused: !label.isPlaceholder && Hyprland.focusedWorkspace === modelData
+                readonly property bool isEmpty: label.isPlaceholder || modelData.toplevels.values.length === 0
+                readonly property bool isUrgent: !label.isPlaceholder && modelData.urgent
+
+                // Circulos de Material Symbols (decision I1): ocupado = circulo
+                // lleno chico, vacio = anillo, urgente = "error" en el rol de
+                // error. El enfocado (anillo con punto en el acento) lo dibuja el
+                // indicador deslizante de abajo: cada slot se oculta en proporcion
+                // a lo cerca que esta el indicador (0 justo debajo, 1 a un icono
+                // de distancia) para no verse a traves del anillo ni mezclarse con
+                // el mientras pasa.
+                name: label.isUrgent ? "error"
+                    : label.isEmpty ? "radio_button_unchecked"
+                    : "circle"
+                opacity: label.isUrgent || !indicator.visible ? 1
+                    : Math.min(1, Math.abs(indicator.x - label.x) / Tokens.icon.md)
+                filled: !label.isEmpty
+                size: label.isEmpty || label.isUrgent ? Tokens.icon.md : Tokens.icon.sm
+                width: Tokens.icon.md
+                height: Tokens.icon.md
+                color: label.isUrgent ? Colors.m3error
+                    : Colors.m3onSurfaceVariant
+
+                // Cada workspace es un boton propio (Q2 = A).
+                HoverHalo { hovered: slotMouse.containsMouse; pressed: slotMouse.pressed }
+
+                MouseArea {
+                    id: slotMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (label.isPlaceholder) {
+                            Hyprland.dispatch("hl.dsp.focus({ workspace = " + label.modelData.id + " })");
+                        } else {
+                            label.modelData.activate();
+                        }
                     }
                 }
+            }
+        }
+    }
+
+    // Indicador de foco: se desliza con el spring calibrado (guia 3.6.1).
+    Icon {
+        id: indicator
+        visible: root.focusedIndex >= 0
+        name: "radio_button_checked"
+        filled: true
+        color: Colors.m3primary
+        width: Tokens.icon.md
+        height: Tokens.icon.md
+        x: Math.max(0, root.focusedIndex) * root.pitch
+        Behavior on x {
+            enabled: root.settled && Tokens.motion.scale > 0
+            SpringAnimation {
+                spring: Tokens.motion.spring.qmlSpring
+                damping: Tokens.motion.spring.qmlDamping
             }
         }
     }
