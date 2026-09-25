@@ -77,6 +77,10 @@ hl.layer_rule({ match = { namespace = "quickshell-panel" }, blur = true, ignore_
 -- difumina a ellos sin tocar la barra.
 hl.layer_rule({ match = { namespace = "quickshell" },       blur_popups = true, ignore_alpha = 0.85 })
 hl.layer_rule({ match = { namespace = "hyprpicker" },        no_anim = true })
+-- Wallpaper dibujado por Quickshell (Fase 3 B6): sin el fade de capas de
+-- Hyprland, que al recrear la ventana (recarga dura de la shell) dejaba ver
+-- el color de fondo ~0.3 s. El cambio de wallpaper ya es un fundido en QML.
+hl.layer_rule({ match = { namespace = "quickshell-wallpaper" }, no_anim = true })
 
 -- Widgets/relojes que deben verse incluso arriba de hyprlock (ninguno por ahora)
 -- hl.layer_rule({ match = { namespace = "some-widget" }, above_lock = 1 })

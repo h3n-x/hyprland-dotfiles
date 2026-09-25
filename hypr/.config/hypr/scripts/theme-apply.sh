@@ -9,6 +9,7 @@
 #   theme-apply.sh --favorite <wallpaper> on|off|toggle   (galeria, Fase 3 B3)
 #   theme-apply.sh --tag <wallpaper> add|remove <etiqueta>  (galeria, Fase 3 B4)
 #   theme-apply.sh --undo [--no-notify] [--dry-run]   (tema anterior del historial, B5)
+#   theme-apply.sh --backend quickshell|hyprpaper|status   (quien dibuja el wallpaper, B6)
 #
 # Una sola aplicacion a la vez: cada llamada deja su pedido en un archivo (el
 # ultimo pisa al anterior) y solo un proceso "worker", protegido con flock,
@@ -25,6 +26,12 @@
 # regenera una sola vez, 60 s despues del ultimo cambio. Cada cambio nuevo
 # reemplaza el pendiente. Si la sesion termina antes, autostart.lua corre
 # --flush-system al iniciar la siguiente.
+#
+# Wallpaper (Fase 3 B6): por defecto lo dibuja Quickshell (modules/Wallpaper.qml,
+# con fundido) leyendo la imagen del JSON de colores, asi que aca no hay nada
+# que hacer. Vuelta atras: --backend hyprpaper arranca hyprpaper y oculta la
+# capa de Quickshell; la eleccion queda en prefs.wallpaper_backend.
+# current-wallpaper.conf se escribe siempre: hyprpaper arranca con el correcto.
 #
 # --dry-run no ejecuta hyprctl, magick ni matugen: solo registra lo que haria
 # (para pruebas; usar THEME_STATE_DIR/THEME_LOG_DIR para no tocar el estado
@@ -68,7 +75,7 @@ die() {
 }
 
 usage() {
-  sed -n '6,11p' "$0" | sed 's/^# \{0,3\}//' >&2
+  sed -n '6,12p' "$0" | sed 's/^# \{0,3\}//' >&2
   exit 2
 }
 
@@ -121,6 +128,13 @@ _record_apply() { # wallpaper scheme contrast source
     && mv "$STATE.tmp" "$STATE"
 }
 
+# Backend del wallpaper: "quickshell" (defecto, tambien sin estado) o "hyprpaper".
+wallpaper_backend() {
+  local b
+  b="$(jq -r '.prefs.wallpaper_backend // "quickshell"' "$STATE" 2>/dev/null)"
+  [ "$b" = hyprpaper ] && echo hyprpaper || echo quickshell
+}
+
 # ---- Aplicacion -----------------------------------------------------------
 
 run() { # comando... (en --dry-run solo se registra)
@@ -136,8 +150,12 @@ apply() { # wallpaper scheme contrast source no_system
   t0=$(date +%s%N)
   log "aplicar: $wp (esquema=${scheme:-defecto} contraste=${contrast:-defecto} origen=$source)$([ "$DRY" = true ] && echo " [dry-run]")"
 
-  # 1. Wallpaper (hyprpaper 0.8.x solo expone "wallpaper" y "listactive" por IPC).
-  run hyprctl hyprpaper wallpaper ",$wp" >/dev/null
+  # 1. Wallpaper. Con Quickshell lo cambia la shell al leer el JSON de colores
+  #    (paso 4), junto con la paleta. Con hyprpaper, por IPC (0.8.x solo
+  #    expone "wallpaper" y "listactive").
+  if [ "$(wallpaper_backend)" = hyprpaper ]; then
+    run hyprctl hyprpaper wallpaper ",$wp" >/dev/null
+  fi
 
   # 2. Persistir para el proximo arranque (hyprpaper.conf hace source de esto).
   if [ "$DRY" = true ]; then
@@ -356,6 +374,53 @@ if [ "${1:-}" = "--undo" ]; then
   [ "$notify_undo" = true ] && command -v notify-send >/dev/null 2>&1 \
     && notify-send "Tema" "Deshecho: $(basename "$twp")" -i edit-undo -t 2500
   setsid -f "$SCRIPTS_DIR/$(basename "$0")" --worker < /dev/null > /dev/null 2>&1
+  exit 0
+fi
+if [ "${1:-}" = "--backend" ]; then
+  [ $# -eq 2 ] || usage
+  case "$2" in quickshell|hyprpaper|status) ;; *) die "backend: usar quickshell|hyprpaper|status" ;; esac
+  init_state
+  if [ "$2" = status ]; then
+    wallpaper_backend
+    exit 0
+  fi
+  # Espera (max ~3 s) a que una capa con ese namespace este (1) o no (0) mapeada.
+  wait_layer() { # namespace 1|0
+    local i
+    for i in $(seq 30); do
+      if hyprctl layers -j 2>/dev/null | jq -e --arg ns "$1" \
+           '[.. | objects | select(.namespace? == $ns)] | length > 0' >/dev/null; then
+        [ "$2" = 1 ] && return 0
+      else
+        [ "$2" = 0 ] && return 0
+      fi
+      sleep 0.1
+    done
+    return 1
+  }
+  _set_backend() {
+    jq --arg b "$1" '.prefs = ((.prefs // {}) + {wallpaper_backend: $b})' "$STATE" > "$STATE.tmp" \
+      && mv "$STATE.tmp" "$STATE"
+  }
+  # El orden evita ver el fondo liso en el cambio: el que entra se dibuja
+  # antes de que se vaya el otro.
+  if [ "$2" = hyprpaper ]; then
+    if ! pgrep -x hyprpaper >/dev/null; then
+      setsid -f hyprpaper < /dev/null > /dev/null 2>&1
+      wait_layer hyprpaper 1 || log "backend: hyprpaper no mapeo su capa a tiempo"
+      sleep 1.5 # que dibuje y termine la animacion de entrada de su capa
+    fi
+    with_state_lock _set_backend hyprpaper
+  else
+    with_state_lock _set_backend quickshell
+    if pgrep -x hyprpaper >/dev/null; then
+      wait_layer quickshell-wallpaper 1 || log "backend: la capa de Quickshell no aparecio a tiempo"
+      sleep 1.5 # decodificar la imagen (hasta ~1 s) y dibujarla
+      pkill -x hyprpaper
+      for _ in $(seq 20); do pgrep -x hyprpaper >/dev/null || break; sleep 0.1; done
+    fi
+  fi
+  log "backend: $2"
   exit 0
 fi
 if [ "${1:-}" = "--tag" ]; then

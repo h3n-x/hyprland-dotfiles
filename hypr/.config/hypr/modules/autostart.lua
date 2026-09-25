@@ -14,7 +14,9 @@ hl.on("hyprland.start", function()
     -- NotificationState.qml -- no pueden convivir dos dueños del mismo
     -- servicio DBus org.freedesktop.Notifications).
     hl.exec_cmd("qs -c dotshell")
-    hl.exec_cmd("hyprpaper")
+    -- El wallpaper lo dibuja Quickshell (Fase 3 B6); hyprpaper solo si se
+    -- eligio como vuelta atras con `theme-apply.sh --backend hyprpaper`.
+    hl.exec_cmd("sh -c '[ \"$(~/.config/hypr/scripts/theme-apply.sh --backend status)\" = hyprpaper ] && exec hyprpaper'")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("hyprsunset")
 

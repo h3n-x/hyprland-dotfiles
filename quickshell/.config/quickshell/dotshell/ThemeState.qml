@@ -25,11 +25,19 @@ Item {
     // true tras la primera lectura correcta (la carga es asincrona: al primer
     // uso los valores son los por defecto durante ~150 ms).
     property bool loaded: false
+    // true en cuanto se sabe algo del archivo: leido, o que no existe (primer
+    // arranque). Wallpaper.qml espera esto para no dibujar sobre hyprpaper.
+    property bool settled: false
 
     // Rutas absolutas, igual que las guarda theme-apply.sh.
     function isFavorite(path: string): bool {
         return (root.favorites || []).indexOf(path) >= 0;
     }
+
+    // Quien dibuja el wallpaper (Fase 3 B6): "quickshell" (defecto, capa de
+    // Wallpaper.qml con transicion) o "hyprpaper" (vuelta atras). Lo cambia
+    // theme-apply.sh --backend.
+    readonly property string wallpaperBackend: (root.prefs && root.prefs.wallpaper_backend) || "quickshell"
 
     // ---- Historial (Fase 3 B5) ----
     // Wallpapers del historial sin repetir, del mas reciente al mas viejo:
@@ -79,7 +87,8 @@ Item {
         path: root.path
         watchChanges: true
         onFileChanged: reload()
-        onLoaded: root.loaded = true
+        onLoaded: { root.loaded = true; root.settled = true; }
+        onLoadFailed: root.settled = true
         // Sin archivo todavia (nunca se aplico un tema con theme-apply.sh).
         printErrors: false
 

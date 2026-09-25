@@ -102,6 +102,17 @@ ShellRoot {
         }
     }
 
+    // Wallpaper (Fase 3 B6): capa de fondo con fundido; se oculta si el
+    // backend elegido es hyprpaper (theme-apply.sh --backend).
+    Variants {
+        model: Quickshell.screens
+
+        Wallpaper {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
     Variants {
         model: Quickshell.screens
 

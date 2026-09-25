@@ -72,9 +72,14 @@ Item {
             property string inverse_surface: "#dee4e0"
             property string inverse_on_surface: "#2b322f"
             property string shadow: "#000000"
+            // Wallpaper de esta paleta (el que matugen acaba de usar). Lo lee
+            // Wallpaper.qml (Fase 3 B6): wallpaper y colores cambian juntos.
+            property string image: ""
             property string scrim: "#000000"
         }
     }
+
+    readonly property string image: json.image
 
     // Cambio de paleta animado (guia de transiciones 3.6.1: dur.theme, ease.standard);
     // instantaneo con movimiento reducido y en la primera carga.
