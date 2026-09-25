@@ -1,7 +1,6 @@
 
 # Archivos de color generados por matugen (regenerables con
 # `matugen image <wallpaper>`, ver matugen/.config/matugen/) -- no se commitean.
-quickshell/.config/quickshell/dotshell/Colors.qml
 btop/.config/btop/themes/matugen.theme
 yazi/.config/yazi/flavors/matugen.yazi/flavor.toml
 nvim/.config/nvim/lua/matugen_colors.lua

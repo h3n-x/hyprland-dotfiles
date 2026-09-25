@@ -9,14 +9,13 @@ import Quickshell.Io
 import "modules"
 
 ShellRoot {
-    // Recarga forzada de Colors.qml -- ver el comentario en
-    // matugen/.config/matugen/templates/quickshell-colors.qml sobre por que
-    // hace falta (pragma Singleton no dispara el watchFiles automatico de
-    // Quickshell cuando el archivo lo reescribe un proceso externo).
+    // Relee la paleta (~/.cache/matugen/quickshell-colors.json) sin recargar
+    // la shell. Colors.qml ya la relee sola al cambiar; esto queda para
+    // forzarlo a mano o para llamadas viejas (Fase 3 B1, KI-L8).
     IpcHandler {
         target: "colors"
         function reload(): void {
-            Quickshell.reload(false);
+            Colors.reload();
         }
     }
 

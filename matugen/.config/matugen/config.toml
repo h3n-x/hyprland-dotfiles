@@ -175,10 +175,10 @@ post_hook = "~/.config/hypr/scripts/generate-grub-assets.sh {{colors.primary.def
 
 [templates.quickshell]
 # Ver quickshell/.config/quickshell/dotshell/ -- barra en QML (reemplazo
-# de Waybar, ver README seccion Quickshell).
-input_path = "~/.config/matugen/templates/quickshell-colors.qml"
-output_path = "~/.config/quickshell/dotshell/Colors.qml"
-post_hook = "qs -c dotshell ipc call colors reload >/dev/null 2>&1 || true"
+# de Waybar, ver README seccion Quickshell). Colors.qml (fuente, no
+# generado) lee este JSON y anima el cambio sin recargar la shell (Fase 3 B1).
+input_path = "~/.config/matugen/templates/quickshell-colors.json"
+output_path = "~/.cache/matugen/quickshell-colors.json"
 
 [templates.icons]
 # papirus-folders solo acepta nombres de color fijos, no hex -- el mapeo al
