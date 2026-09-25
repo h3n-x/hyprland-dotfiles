@@ -94,6 +94,25 @@ ShellRoot {
 
     // SUPER+SHIFT+W (ver binds.lua) -- galeria de wallpapers (Fase 3 B3);
     // el selector de rofi queda en SUPER+ALT+W mientras la galeria madura.
+    // Menu de energia y sesion (Fase 4 B1): SUPER+M abre, SUPER+SHIFT+M va
+    // directo a la confirmacion de cerrar sesion.
+    IpcHandler {
+        target: "power"
+        function open(): void {
+            PowerState.open();
+        }
+        function close(): void {
+            PowerState.close();
+        }
+        function toggle(): void {
+            PowerState.toggle();
+        }
+        function confirm(action: string): void {
+            if (["logout", "reboot", "poweroff"].indexOf(action) >= 0)
+                PowerState.openConfirm(action);
+        }
+    }
+
     IpcHandler {
         target: "gallery"
         function toggle(): void {
@@ -169,6 +188,15 @@ ShellRoot {
         model: Quickshell.screens
 
         Launcher {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        PowerMenu {
             required property var modelData
             screen: modelData
         }

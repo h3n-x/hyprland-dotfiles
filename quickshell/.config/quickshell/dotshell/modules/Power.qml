@@ -1,11 +1,8 @@
 // Circulo accent independiente (no dentro de un Pill): se destaca solo,
 // separado del resto de los modulos.
 //
-// Reusa hypr/scripts/power-menu.sh (rofi, ya bindeado a SUPER+M en
-// binds.lua, con confirmacion antes de reiniciar/apagar) en vez del script
-// propio de waybar (fzf, sin confirmacion) -- se saco al cortar con
-// Waybar del todo, ver Fase 4 del plan. rofi dibuja su propia ventana, no
-// hace falta abrir una terminal como con el script viejo.
+// Abre el menu de energia y sesion de la shell (PowerMenu.qml, Fase 4 B1),
+// el mismo de SUPER+M.
 import QtQuick
 import Quickshell
 import ".." // Colors.qml, Tokens.qml
@@ -36,6 +33,6 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/power-menu.sh"])
+        onClicked: PowerState.open()
     }
 }

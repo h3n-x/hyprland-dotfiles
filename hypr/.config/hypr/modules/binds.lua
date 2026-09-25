@@ -23,8 +23,13 @@ hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(scripts .. "/lock.sh"))
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(scripts .. "/power-menu.sh")) -- bloquear/suspender/cerrar sesion/reiniciar/apagar
-hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exit()) -- salida forzada de Hyprland, sin confirmar
+-- Menu de energia y sesion (Quickshell, Fase 4 B1). SUPER+SHIFT+M abre la
+-- confirmacion de cerrar sesion (antes salia al instante).
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("qs -c dotshell ipc call power toggle"))
+hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd("qs -c dotshell ipc call power confirm logout"))
+-- Salida de emergencia de Hyprland, sin confirmar y sin depender de Quickshell
+-- (por si la shell no responde).
+hl.bind(mainMod .. " + CTRL + SHIFT + M", hl.dsp.exit())
 
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("qs -c dotshell ipc call controlcenter toggle")) -- mostrar/ocultar
 hl.bind(mainMod .. " + SHIFT + N", hl.dsp.exec_cmd("qs -c dotshell ipc call controlcenter clearAll")) -- limpiar notificaciones

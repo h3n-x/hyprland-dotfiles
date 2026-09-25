@@ -327,17 +327,19 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   `sysfs` con `FileView`) asi que se sacaron de la barra por decision
   propia, no por limitacion tecnica de Quickshell.
 - **Scripts reusados**: `hypr/.config/hypr/scripts/update.sh` (movido ahi
-  al sacar Waybar -- antes vivia en `waybar/.config/waybar/scripts/`) y
-  `power-menu.sh` (ya existia, rofi, con confirmacion antes de
-  reiniciar/apagar -- mismo que `SUPER+M`, ver `binds.lua`).
+  al sacar Waybar -- antes vivia en `waybar/.config/waybar/scripts/`).
+- **Menu de energia y sesion** (`modules/PowerMenu.qml`, `SUPER+M` y el
+  boton de la barra): bloquear, suspender, cerrar sesion, reiniciar y apagar;
+  las tres ultimas piden confirmacion y cierran las aplicaciones antes (via
+  `hyprshutdown`). Reemplaza al menu de rofi (`power-menu.sh`, retirado).
 - **Launcher** (`modules/Launcher.qml` + `LauncherState.qml`): reemplaza
   a `rofi -show drun` en `SUPER+D` -- campo de búsqueda con fuzzy match
   propio (subsecuencia, sin librería externa) sobre nombre/`genericName`/
   `keywords` de `Quickshell.DesktopEntries`, orden alfabético sin
   búsqueda, resaltado de lo que matchea, tamaño de ventana dinámico según
-  cantidad de resultados. El window-switcher (`SUPER+Tab`), rofimoji, el
-  menú de power, el portapapeles y el selector de wallpaper siguen en
-  rofi tal cual (fuera de alcance a propósito).
+  cantidad de resultados. El window-switcher (`SUPER+Tab`), rofimoji y el
+  portapapeles siguen en rofi por ahora (se migran a Quickshell en la
+  Fase 4); el menu de energia y el selector de wallpaper ya se migraron.
 - **Binds** (`binds.lua`): `SUPER+SHIFT+B` muestra/oculta la barra
   (`qs -c dotshell ipc call bar toggle`, afecta a todas las pantallas a la
   vez via el singleton `BarVisibility.qml`) y
@@ -670,13 +672,15 @@ efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
 | `SUPER + S` / `SHIFT+S` | Scratchpad (workspace especial) |
 | `SUPER + ALT + L` | Ciclar layout dwindle/master/scrolling |
 | `SUPER + L` | Bloquear pantalla |
-| `SUPER + M` | Menu de energia (bloquear/suspender/cerrar sesion/reiniciar/apagar) |
-| `SUPER + SHIFT + M` | Salida forzada de Hyprland (sin confirmar) |
+| `SUPER + M` | Menu de energia y sesion (bloquear/suspender/cerrar sesion/reiniciar/apagar; confirma las tres ultimas) |
+| `SUPER + SHIFT + M` | Cerrar sesion (pide confirmacion) |
+| `SUPER + CTRL + SHIFT + M` | Salida de emergencia de Hyprland (sin confirmar, no depende de Quickshell) |
 | `SUPER + N` / `SHIFT+N` | Panel de notificaciones / limpiar todo |
 | `SUPER + SHIFT + C` | Color picker |
 | `SUPER + .` | Selector de emoji (rofimoji) |
 | `SUPER + SHIFT + V` | Historial de portapapeles |
-| `SUPER + SHIFT + W` | Selector de wallpaper (recolorea todo con matugen) |
+| `SUPER + SHIFT + W` | Galeria de wallpapers (vista previa, opciones de color; recolorea todo con matugen) |
+| `SUPER + SHIFT + Z` | Deshacer el ultimo cambio de tema |
 | `Print` / `SUPER+Print` / `SUPER+SHIFT+Print` | Captura completa / region / ventana |
 | `SUPER + ALT + R` | Grabar pantalla (toggle) |
 
