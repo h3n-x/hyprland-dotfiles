@@ -37,6 +37,9 @@ hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(scripts .. "/clipboard-menu")
 -- SUPER+ALT+W mientras la galeria madura (se retira en B9).
 hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("qs -c dotshell ipc call gallery toggle"))
 hl.bind(mainMod .. " + ALT + W", hl.dsp.exec_cmd(scripts .. "/wallpaper-selector.sh"))
+-- Deshacer el ultimo cambio de tema (Fase 3 B5): vuelve al anterior del
+-- historial con su esquema y contraste; notifica a que tema volvio.
+hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd(scripts .. "/theme-apply.sh --undo"))
 hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("rofimoji --action type copy")) -- selector de emoji (rofimoji, usa el tema de rofi)
 
 -- Capturas y grabacion (ver scripts/screenshot y scripts/record)

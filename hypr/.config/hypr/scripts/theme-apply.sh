@@ -8,6 +8,7 @@
 #   theme-apply.sh --flush-system   (corre ya el trabajo de sistema pendiente)
 #   theme-apply.sh --favorite <wallpaper> on|off|toggle   (galeria, Fase 3 B3)
 #   theme-apply.sh --tag <wallpaper> add|remove <etiqueta>  (galeria, Fase 3 B4)
+#   theme-apply.sh --undo [--no-notify] [--dry-run]   (tema anterior del historial, B5)
 #
 # Una sola aplicacion a la vez: cada llamada deja su pedido en un archivo (el
 # ultimo pisa al anterior) y solo un proceso "worker", protegido con flock,
@@ -67,7 +68,7 @@ die() {
 }
 
 usage() {
-  sed -n '6,10p' "$0" | sed 's/^# \{0,3\}//' >&2
+  sed -n '6,11p' "$0" | sed 's/^# \{0,3\}//' >&2
   exit 2
 }
 
@@ -96,6 +97,10 @@ _init_state() {
 }
 
 record_apply() { with_state_lock _record_apply "$@"; }
+# Historial (Fase 3 B5): si el tope ya es este mismo tema (wallpaper, esquema
+# y contraste) solo se refresca su fecha en vez de agregar una entrada
+# (decision B5d). Cubre tambien el deshacer: --undo ya saco la entrada
+# deshecha, asi que el tema restaurado es el tope. Si no, se agrega arriba.
 _record_apply() { # wallpaper scheme contrast source
   jq --arg wp "$1" --arg scheme "$2" --arg contrast "$3" --arg source "$4" \
      --arg now "$(date -Iseconds)" --argjson max "$HISTORY_MAX" '
@@ -103,8 +108,16 @@ _record_apply() { # wallpaper scheme contrast source
      scheme: (if $scheme == "" then null else $scheme end),
      contrast: (if $contrast == "" then null else ($contrast | tonumber) end),
      mode: "dark", applied_at: $now, source: $source} as $e
-    | .current = $e
-    | .history = ([$e] + (.history // []))[:$max]' "$STATE" > "$STATE.tmp" \
+    | (.history // []) as $h
+    | def same($a; $b): $a != null and $b != null and $a.wallpaper == $b.wallpaper
+                        and $a.scheme == $b.scheme and $a.contrast == $b.contrast;
+    if ($h | length) > 0 and same($h[0]; $e) then
+      .history = ([$h[0] + {applied_at: $now}] + $h[1:])
+      | .current = .history[0]
+    else
+      .current = $e
+      | .history = ([$e] + $h)[:$max]
+    end' "$STATE" > "$STATE.tmp" \
     && mv "$STATE.tmp" "$STATE"
 }
 
@@ -163,8 +176,10 @@ EOF
     rc=127
   fi
 
-  # 5. Estado e historial.
-  record_apply "$wp" "$scheme" "$contrast" "$source"
+  # El estado e historial se escriben al PEDIR, no aca (Fase 3 B5): si no, un
+  # deshacer pedido mientras se aplicaba un tema operaba sobre un historial
+  # viejo, y un destino intermedio de varios deshacer seguidos volvia a
+  # entrar arriba al terminar de aplicarse.
   log "listo: matugen rc=$rc en $(( ($(date +%s%N) - t0) / 1000000 )) ms"
 
   # 6. Temas de arranque/login, diferidos.
@@ -296,6 +311,53 @@ if [ "${1:-}" = "--favorite" ]; then
   log "favorito: $3 $fav"
   exit 0
 fi
+if [ "${1:-}" = "--undo" ]; then
+  notify_undo=true undo_dry=false
+  for a in "${@:2}"; do
+    case "$a" in
+      --no-notify) notify_undo=false ;;
+      --dry-run) undo_dry=true ;;
+      *) die "opcion desconocida para --undo: $a" ;;
+    esac
+  done
+  init_state
+  # Saca la entrada actual del historial y salta las que apuntan a archivos
+  # que ya no existen; el nuevo tope es el tema a restaurar. Todo bajo el lock
+  # del estado, al momento del pedido: varios deshacer seguidos retroceden un
+  # paso cada uno y la cola aplica solo el ultimo destino.
+  _pop_history() {
+    local hist n k wp
+    hist="$(jq -c '.history // []' "$STATE")"
+    n="$(jq 'length' <<< "$hist")"
+    k=1
+    while [ "$k" -lt "$n" ]; do
+      wp="$(jq -r ".[$k].wallpaper" <<< "$hist")"
+      [ -f "$wp" ] && break
+      log "deshacer: se salta $wp (no existe)"
+      k=$((k + 1))
+    done
+    [ "$k" -lt "$n" ] || return 1
+    jq --argjson k "$k" '.history = .history[$k:] | .current = .history[0]' "$STATE" > "$STATE.tmp" \
+      && mv "$STATE.tmp" "$STATE"
+  }
+  if ! with_state_lock _pop_history; then
+    log "deshacer: nada que deshacer"
+    [ "$notify_undo" = true ] && command -v notify-send >/dev/null 2>&1 \
+      && notify-send "Tema" "No hay nada que deshacer" -i edit-undo -t 2500
+    exit 0
+  fi
+  target="$(jq -c '.history[0]' "$STATE")"
+  twp="$(jq -r .wallpaper <<< "$target")"
+  jq -n --argjson e "$target" \
+    '{wallpaper: $e.wallpaper, scheme: $e.scheme, contrast: ($e.contrast | if . == null then null else tostring end),
+      source: "undo", dry: $dry, no_system: false}' --argjson dry "$undo_dry" \
+    > "$REQUEST.$$" && mv "$REQUEST.$$" "$REQUEST"
+  log "deshacer: pedido de $twp"
+  [ "$notify_undo" = true ] && command -v notify-send >/dev/null 2>&1 \
+    && notify-send "Tema" "Deshecho: $(basename "$twp")" -i edit-undo -t 2500
+  setsid -f "$SCRIPTS_DIR/$(basename "$0")" --worker < /dev/null > /dev/null 2>&1
+  exit 0
+fi
 if [ "${1:-}" = "--tag" ]; then
   [ $# -eq 4 ] || usage
   twp="$(readlink -f -- "$2")"
@@ -350,6 +412,11 @@ if [ -n "$contrast" ]; then
     || die "contraste fuera de rango (-1..1): $contrast"
 fi
 case "$source" in rofi|gallery|undo|ipc) ;; *) die "origen desconocido: $source" ;; esac
+
+# Historial al pedir (bajo el lock del estado): refleja la intencion aunque la
+# aplicacion todavia este en cola; "Actual" se ve al instante en la galeria.
+init_state
+record_apply "$wallpaper" "$scheme" "$contrast" "$source"
 
 # Pedido atomico: el ultimo en escribirse gana.
 jq -n --arg wp "$wallpaper" --arg scheme "$scheme" --arg contrast "$contrast" \

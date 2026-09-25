@@ -19,6 +19,12 @@
 // Etiquetas (Fase 3 B4): la busqueda encuentra por nombre o por etiqueta
 // (texto normal, decision B4a); la fila de chips filtra por una etiqueta a la
 // vez (B4b).
+//
+// Historial (Fase 3 B5): el chip Recientes muestra los wallpapers aplicados
+// en orden cronologico real (el mas reciente primero). Todos, Favoritos y
+// Recientes son interruptores independientes que se combinan entre si y con
+// la busqueda y la etiqueta (Todos los apaga). Deshacer vuelve al tema
+// anterior (theme-apply.sh --undo) y cierra la galeria, igual que Aplicar.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -80,13 +86,20 @@ PanelWindow {
 
     property string query: ""
     property bool onlyFavorites: false
+    property bool onlyRecent: false
     property string activeTag: ""
+
+    // Wallpapers del historial en orden cronologico (solo los que estan en la cache).
+    readonly property var recentNames: (ThemeState.recent || [])
+        .map(e => e.wallpaper.split("/").pop())
+        .filter(n => window.index[n] !== undefined)
 
     readonly property var filtered: {
         const q = window.query.trim().toLowerCase();
         const favs = ThemeState.favorites || [];
         const tags = ThemeState.tags || {};
-        return window.names.filter(n => {
+        const base = window.onlyRecent ? window.recentNames : window.names;
+        return base.filter(n => {
             const t = tags[window.pathOf(n)] || [];
             if (q && n.toLowerCase().indexOf(q) < 0 && !t.some(x => x.indexOf(q) >= 0)) return false;
             if (window.onlyFavorites && favs.indexOf(window.pathOf(n)) < 0) return false;
@@ -114,6 +127,31 @@ PanelWindow {
         if (!window.selectedName) return;
         Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--favorite", window.pathOf(window.selectedName), "toggle"]);
     }
+    function undo(): void {
+        if (!ThemeState.canUndo) return;
+        Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--undo", "--no-notify"]);
+        GalleryState.visible = false;
+    }
+
+    // "Aplicado hace ..." (B5c). now se refresca cada 30 s con la galeria abierta.
+    property real now: Date.now()
+    Timer {
+        interval: 30000
+        repeat: true
+        running: window.visible
+        triggeredOnStart: true
+        onTriggered: window.now = Date.now()
+    }
+    function ago(iso: string): string {
+        if (!iso) return "";
+        const s = Math.max(0, (window.now - Date.parse(iso)) / 1000);
+        if (s < 60) return "hace unos segundos";
+        if (s < 3600) return "hace " + Math.floor(s / 60) + " min";
+        if (s < 86400) return "hace " + Math.floor(s / 3600) + " h";
+        const d = Math.floor(s / 86400);
+        return d === 1 ? "hace 1 dia" : "hace " + d + " dias";
+    }
+
     function setTag(op: string, tag: string): void {
         if (!window.selectedName) return;
         Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--tag", window.pathOf(window.selectedName), op, tag]);
@@ -143,6 +181,7 @@ PanelWindow {
         window.query = "";
         searchField.text = "";
         window.onlyFavorites = false;
+        window.onlyRecent = false;
         window.activeTag = "";
         window.jumpPending = true;
         window.jumpToCurrent();
@@ -250,14 +289,15 @@ PanelWindow {
                         }
                     }
 
-                    // Filtros (botones segmentados, mismo lenguaje que los perfiles del
-                    // centro de control).
+                    // Filtros: Favoritos y Recientes son interruptores independientes
+                    // (se combinan); Todos los apaga a ambos.
                     Repeater {
-                        model: [["Todos", false], ["Favoritos", true]]
+                        model: [["Todos", "all", ""], ["Favoritos", "fav", "favorite"], ["Recientes", "recent", "history"]]
                         Rectangle {
                             id: chip
                             required property var modelData
-                            readonly property bool selected: window.onlyFavorites === chip.modelData[1]
+                            readonly property bool selected: chip.modelData[1] === "all" ? (!window.onlyFavorites && !window.onlyRecent)
+                                : chip.modelData[1] === "fav" ? window.onlyFavorites : window.onlyRecent
                             implicitHeight: Tokens.row.height
                             implicitWidth: chipRow.implicitWidth + Tokens.pad.pillH * 2
                             radius: Tokens.radius.sm
@@ -274,8 +314,8 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 spacing: Tokens.space.xs
                                 Icon {
-                                    visible: chip.modelData[1]
-                                    name: "favorite"
+                                    visible: chip.modelData[2] !== ""
+                                    name: chip.modelData[2]
                                     filled: chip.selected
                                     size: Tokens.icon.sm
                                     color: chip.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
@@ -296,7 +336,14 @@ PanelWindow {
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
                                     window.jumpPending = false;
-                                    window.onlyFavorites = chip.modelData[1];
+                                    if (chip.modelData[1] === "all") {
+                                        window.onlyFavorites = false;
+                                        window.onlyRecent = false;
+                                    } else if (chip.modelData[1] === "fav") {
+                                        window.onlyFavorites = !window.onlyFavorites;
+                                    } else {
+                                        window.onlyRecent = !window.onlyRecent;
+                                    }
                                     grid.currentIndex = 0;
                                     grid.forceActiveFocus();
                                 }
@@ -476,7 +523,9 @@ PanelWindow {
                     Text {
                         visible: window.filtered.length === 0
                         anchors.centerIn: parent
-                        text: window.onlyFavorites && !window.query && !window.activeTag ? "Todavia no hay favoritos (F para marcar)" : "Sin resultados"
+                        text: window.query || window.activeTag ? "Sin resultados"
+                            : window.onlyRecent && window.recentNames.length === 0 ? "Todavia no hay historial"
+                            : window.onlyFavorites ? "Todavia no hay favoritos (F para marcar)" : "Sin resultados"
                         color: Colors.m3onSurfaceVariant
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
@@ -510,6 +559,10 @@ PanelWindow {
                 onTagAdded: (tag) => window.setTag("add", tag)
                 onTagRemoved: (tag) => window.setTag("remove", tag)
                 onTagInputDone: grid.forceActiveFocus()
+                appliedAgo: window.selectedName ? window.ago(ThemeState.lastAppliedOf(window.pathOf(window.selectedName))) : ""
+                canUndo: ThemeState.canUndo
+                undoTarget: ThemeState.previous ? ThemeState.previous.wallpaper.split("/").pop() : ""
+                onUndoRequested: window.undo()
             }
         }
     }

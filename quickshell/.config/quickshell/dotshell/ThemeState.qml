@@ -31,6 +31,31 @@ Item {
         return (root.favorites || []).indexOf(path) >= 0;
     }
 
+    // ---- Historial (Fase 3 B5) ----
+    // Wallpapers del historial sin repetir, del mas reciente al mas viejo:
+    // [{wallpaper, applied_at}, ...]. El historial ya viene ordenado (el mas
+    // nuevo primero), asi que se queda la primera aparicion de cada uno.
+    readonly property var recent: {
+        const seen = {};
+        const out = [];
+        for (const e of (root.history || [])) {
+            if (!e || !e.wallpaper || seen[e.wallpaper]) continue;
+            seen[e.wallpaper] = true;
+            out.push({ wallpaper: e.wallpaper, applied_at: e.applied_at });
+        }
+        return out;
+    }
+    // Destino de "deshacer": la entrada debajo de la actual.
+    readonly property var previous: (root.history && root.history.length > 1) ? root.history[1] : null
+    readonly property bool canUndo: root.previous !== null
+
+    // Ultima vez que se aplico un wallpaper (ISO-8601) o "" si no esta en el historial.
+    function lastAppliedOf(path: string): string {
+        for (const e of (root.history || []))
+            if (e && e.wallpaper === path) return e.applied_at || "";
+        return "";
+    }
+
     // Etiquetas de un wallpaper (Fase 3 B4).
     function tagsOf(path: string): var {
         return (root.tags && root.tags[path]) || [];

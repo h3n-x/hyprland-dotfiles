@@ -93,6 +93,15 @@ ShellRoot {
         }
     }
 
+    // Tema (Fase 3 B5): volver al tema anterior del historial. Tambien en
+    // SUPER+SHIFT+Z (binds.lua, llama al script directo).
+    IpcHandler {
+        target: "theme"
+        function undo(): void {
+            Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/theme-apply.sh", "--undo"]);
+        }
+    }
+
     Variants {
         model: Quickshell.screens
 

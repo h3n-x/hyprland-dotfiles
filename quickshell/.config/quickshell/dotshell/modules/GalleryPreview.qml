@@ -19,6 +19,10 @@ ColumnLayout {
     property bool isCurrent: false
     property bool isFavorite: false
     property var tags: []
+    // Historial (Fase 3 B5).
+    property string appliedAgo: ""
+    property bool canUndo: false
+    property string undoTarget: ""
 
     signal applyRequested()
     signal favoriteToggled()
@@ -26,6 +30,7 @@ ColumnLayout {
     signal tagRemoved(string tag)
     // El campo de etiqueta termino (Enter vacio o Esc): volver a la grilla.
     signal tagInputDone()
+    signal undoRequested()
 
     function focusTagInput(): void {
         tagField.forceActiveFocus();
@@ -74,6 +79,16 @@ ColumnLayout {
                 }
             }
         }
+    }
+
+    // Ultima vez que se aplico (solo si esta en el historial).
+    Text {
+        visible: root.appliedAgo !== ""
+        Layout.topMargin: -Tokens.space.sm
+        text: "Aplicado " + root.appliedAgo
+        color: Colors.m3onSurfaceVariant
+        font.family: Tokens.font.ui
+        font.pixelSize: Tokens.type.caption
     }
 
     // Vista previa 16:9 con el mini escritorio encima.
@@ -328,6 +343,42 @@ ColumnLayout {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.favoriteToggled()
+            }
+        }
+
+        // Deshacer: vuelve al tema anterior del historial (su nombre en el boton).
+        Rectangle {
+            id: undoBtn
+            // Ancho para "imagen_NNN" sin cortar; Aplicar se queda con el resto.
+            Layout.preferredWidth: Tokens.panel.widthLg * 0.42
+            implicitHeight: Tokens.row.height
+            radius: Tokens.radius.pill(height)
+            color: "transparent"
+            border.color: Colors.m3outlineVariant
+            opacity: root.canUndo ? 1 : Tokens.opacity.disabled
+            StateLayer { visible: root.canUndo; hovered: undoMouse.containsMouse; pressed: undoMouse.pressed }
+            Row {
+                anchors.centerIn: parent
+                spacing: Tokens.space.xs
+                width: Math.min(implicitWidth, undoBtn.width - Tokens.space.md * 2)
+                Icon { id: undoIcon; name: "undo"; color: Colors.m3onSurfaceVariant }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: Math.min(implicitWidth, undoBtn.width - Tokens.space.md * 2 - undoIcon.width - Tokens.space.xs)
+                    elide: Text.ElideMiddle
+                    text: root.canUndo ? root.undoTarget.replace(/\.[^.]+$/, "") : "Deshacer"
+                    color: Colors.m3onSurfaceVariant
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.label
+                }
+            }
+            MouseArea {
+                id: undoMouse
+                anchors.fill: parent
+                enabled: root.canUndo
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.undoRequested()
             }
         }
 
