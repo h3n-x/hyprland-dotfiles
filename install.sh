@@ -36,7 +36,7 @@ sudo pacman -S --needed --noconfirm rofi satty cliphist wl-clip-persist \
   qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd rofimoji wtype \
   gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl brightnessctl \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
-  matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono \
+  matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono ttf-material-symbols-variable \
   yazi tdf fd imagemagick 7zip resvg cava fastfetch pacman-contrib \
   dust duf procs tealdeer glow xh zellij plymouth \
   neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
