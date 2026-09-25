@@ -4,7 +4,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Services.UPower
-import ".." // Colors.qml
+import ".." // Colors.qml, ControlCenterState.qml
 
 Item {
     id: root
@@ -42,5 +42,18 @@ Item {
         color: root.fg
         font.pixelSize: 13
         text: root.icon + " " + Math.round(root.pct * 100) + "%"
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+        onClicked: (mouse) => {
+            if (mouse.button === Qt.MiddleButton) {
+                Quickshell.execDetached(["sh", "-c", "cur=$(powerprofilesctl get 2>/dev/null || echo balanced); case \"$cur\" in power-saver) next=balanced ;; balanced) next=performance ;; *) next=power-saver ;; esac; powerprofilesctl set \"$next\"; notify-send -a 'Energía' 'Perfil cambiado' \"$next\" -i power-profile-$next -t 2000"]);
+            } else {
+                ControlCenterState.visible = !ControlCenterState.visible;
+            }
+        }
     }
 }

@@ -73,7 +73,7 @@ PanelWindow {
             Network { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
             Bluetooth { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
             Tray { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
-            Microphone { Layout.alignment: Qt.AlignVCenter }
+            Microphone { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
         }
 
         Pill {
@@ -81,6 +81,7 @@ PanelWindow {
             spacing: 14
             Battery { Layout.alignment: Qt.AlignVCenter }
             IdleToggle { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
+            Ports { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
         }
 
         Power {

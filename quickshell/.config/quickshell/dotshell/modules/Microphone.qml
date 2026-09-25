@@ -35,10 +35,24 @@ Item {
         text: root.muted ? "󰍭" : "󰍬"
     }
 
+    required property var panelWindow
+
+    AudioDropdown {
+        id: audioDropdown
+        anchorItem: root
+        panelWindow: root.panelWindow
+    }
+
     MouseArea {
         anchors.fill: parent
-        onClicked: {
-            if (root.source && root.source.audio) root.source.audio.muted = !root.source.audio.muted;
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        cursorShape: Qt.PointingHandCursor
+        onClicked: (mouse) => {
+            if (mouse.button === Qt.RightButton) {
+                audioDropdown.toggle();
+            } else {
+                if (root.source && root.source.audio) root.source.audio.muted = !root.source.audio.muted;
+            }
         }
     }
 }

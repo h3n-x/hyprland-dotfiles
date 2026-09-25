@@ -41,6 +41,7 @@ hl.bind("Print", hl.dsp.exec_cmd(scripts .. "/screenshot full"))
 hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd(scripts .. "/screenshot region"))
 hl.bind(mainMod .. " + SHIFT + Print", hl.dsp.exec_cmd(scripts .. "/screenshot window"))
 hl.bind(mainMod .. " + ALT + R", hl.dsp.exec_cmd(scripts .. "/record toggle"))
+hl.bind(mainMod .. " + ALT + G", hl.dsp.exec_cmd(scripts .. "/game-mode.sh toggle"))
 
 -- ---------------------------------------------------------------------------
 -- Gestion de ventanas

@@ -50,6 +50,13 @@ Row {
 
     readonly property var filteredItems: SystemTray.items.values.filter(item => !root.isHidden(item))
 
+    readonly property string stopScript: Quickshell.env("HOME") + "/.config/hypr/scripts/tray-stop.sh"
+
+    TrayDropdown {
+        id: trayDropdown
+        panelWindow: root.panelWindow
+    }
+
     Repeater {
         model: root.filteredItems
 
@@ -77,9 +84,9 @@ Row {
                 acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                 onClicked: (mouse) => {
                     if (mouse.button === Qt.RightButton) {
-                        if (trayItem.modelData.hasMenu) menuAnchor.open();
+                        trayDropdown.openFor(trayItem, trayItem.modelData, menuAnchor);
                     } else if (mouse.button === Qt.MiddleButton) {
-                        trayItem.modelData.secondaryActivate();
+                        Quickshell.execDetached([root.stopScript, trayItem.modelData.id, trayItem.modelData.title || trayItem.modelData.id]);
                     } else {
                         trayItem.modelData.activate();
                     }
