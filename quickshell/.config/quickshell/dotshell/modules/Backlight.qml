@@ -18,7 +18,8 @@ Item {
     readonly property int max: parseInt(maxFile.text()) || 1
     readonly property real pct: root.current / root.max
 
-    readonly property var icons: ["", "", "", "", "", "", "", "", ""]
+    // Nombres de ligadura de Material Symbols (los dibuja Osd.qml).
+    readonly property var icons: ["brightness_low", "brightness_medium", "brightness_high"]
     readonly property string icon: root.icons[Math.min(root.icons.length - 1, Math.floor(root.pct * root.icons.length))]
 
     property bool armed: false

@@ -18,9 +18,10 @@ Item {
     readonly property var sink: Pipewire.defaultAudioSink
     readonly property bool muted: !!(root.sink && root.sink.audio && root.sink.audio.muted)
     readonly property real volume: (root.sink && root.sink.audio) ? root.sink.audio.volume : 0
+    // Nombre de ligadura de Material Symbols (lo dibuja Osd.qml).
     readonly property string icon: {
-        if (root.muted) return "󰝟";
-        return root.volume > 0.66 ? "󰕾" : root.volume > 0.33 ? "󰖀" : "󰕿";
+        if (root.muted) return "volume_off";
+        return root.volume > 0.66 ? "volume_up" : root.volume > 0.33 ? "volume_down" : "volume_mute";
     }
 
     // Evita el OSD fantasma al arrancar Quickshell (la primera evaluacion

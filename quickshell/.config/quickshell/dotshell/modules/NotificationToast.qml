@@ -9,7 +9,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Services.Notifications
-import ".." // Colors.qml, NotificationState.qml
+import ".." // Colors.qml, Tokens.qml, NotificationState.qml
 
 PanelWindow {
     id: toastWindow
@@ -18,12 +18,13 @@ PanelWindow {
         top: true
         right: true
     }
-    // top: 60, no 10 -- ver el mismo comentario en ControlCenter.qml.
+    // Debajo de la barra y alineado con su borde derecho, igual que
+    // ControlCenter.qml (mismo ancho: los toasts quedan encolumnados con el panel).
     margins {
-        top: 60
-        right: 10
+        top: Tokens.popupTop
+        right: Tokens.screenEdge
     }
-    implicitWidth: 340
+    implicitWidth: Tokens.panel.widthLg
     implicitHeight: column.implicitHeight
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
@@ -32,23 +33,26 @@ PanelWindow {
     ColumnLayout {
         id: column
         width: parent.width
-        spacing: 8
+        spacing: Tokens.space.sm
 
         Repeater {
             model: NotificationState.activeToasts
 
+            // Nivel de elevacion 3 (surface_container_high); critica con
+            // borde en error.
             Rectangle {
                 id: toast
                 required property var modelData
+                readonly property bool critical: toast.modelData.urgency === NotificationUrgency.Critical
                 Layout.fillWidth: true
-                implicitHeight: content.implicitHeight + 20
-                radius: 14
-                color: Colors.bg1
-                border.color: toast.modelData.urgency === NotificationUrgency.Critical ? Colors.critical : Colors.br
+                implicitHeight: content.implicitHeight + Tokens.space.md * 2
+                radius: Tokens.radius.lg
+                color: Colors.m3surfaceContainerHigh
+                border.color: toast.critical ? Colors.m3error : Colors.m3outlineVariant
                 border.width: 1
 
                 Timer {
-                    running: toast.modelData.urgency !== NotificationUrgency.Critical
+                    running: !toast.critical
                     interval: toast.modelData.expireTimeout > 0 ? toast.modelData.expireTimeout * 1000 : 5000
                     onTriggered: toast.modelData.expire()
                 }
@@ -56,17 +60,19 @@ PanelWindow {
                 ColumnLayout {
                     id: content
                     anchors.fill: parent
-                    anchors.margins: 10
-                    spacing: 6
+                    anchors.margins: Tokens.space.md
+                    spacing: Tokens.space.xs
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 8
+                        spacing: Tokens.gap.inline
 
+                        // Icono de la app que manda la notificacion (identifica
+                        // el origen; no es iconografia de la shell).
                         IconImage {
                             visible: !!toast.modelData.appIcon
                             Layout.alignment: Qt.AlignVCenter
-                            implicitSize: 20
+                            implicitSize: Tokens.icon.md
                             source: toast.modelData.appIcon ? Quickshell.iconPath(toast.modelData.appIcon) : ""
                         }
 
@@ -74,9 +80,10 @@ PanelWindow {
                             Layout.fillWidth: true
                             Layout.alignment: Qt.AlignVCenter
                             text: toast.modelData.summary
-                            color: Colors.fg
-                            font.pixelSize: 13
-                            font.bold: true
+                            color: Colors.m3onSurface
+                            font.family: Tokens.font.ui
+                            font.pixelSize: Tokens.type.body
+                            font.weight: Tokens.weight.semibold
                             elide: Text.ElideRight
                         }
                     }
@@ -85,8 +92,9 @@ PanelWindow {
                         visible: !!toast.modelData.body
                         Layout.fillWidth: true
                         text: toast.modelData.body
-                        color: Colors.fg
-                        font.pixelSize: 12
+                        color: Colors.m3onSurfaceVariant
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.label
                         wrapMode: Text.WordWrap
                         maximumLineCount: 4
                         elide: Text.ElideRight
@@ -95,31 +103,42 @@ PanelWindow {
 
                     RowLayout {
                         visible: toast.modelData.actions.length > 0
-                        spacing: 6
+                        Layout.topMargin: Tokens.space.xs
+                        spacing: Tokens.space.sm
 
                         Repeater {
                             model: toast.modelData.actions
 
+                            // Boton tonal M3 (secondary_container), forma de pildora.
                             Rectangle {
                                 id: actionBtn
                                 required property var modelData
-                                implicitWidth: actionLabel.implicitWidth + 16
-                                implicitHeight: 26
-                                radius: 8
-                                color: actionMouse.containsMouse ? Colors.hoverBg : Colors.bg2
+                                implicitWidth: actionLabel.implicitWidth + Tokens.pad.pillH * 2
+                                implicitHeight: Tokens.pill.height
+                                radius: Tokens.radius.pill(height)
+                                color: Colors.m3secondaryContainer
+
+                                StateLayer {
+                                    hovered: actionMouse.containsMouse
+                                    pressed: actionMouse.pressed
+                                    contentColor: Colors.m3onSecondaryContainer
+                                }
 
                                 Text {
                                     id: actionLabel
                                     anchors.centerIn: parent
                                     text: actionBtn.modelData.text
-                                    color: Colors.fg
-                                    font.pixelSize: 12
+                                    color: Colors.m3onSecondaryContainer
+                                    font.family: Tokens.font.ui
+                                    font.pixelSize: Tokens.type.label
+                                    font.weight: Tokens.weight.medium
                                 }
 
                                 MouseArea {
                                     id: actionMouse
                                     anchors.fill: parent
                                     hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
                                     onClicked: actionBtn.modelData.invoke()
                                 }
                             }

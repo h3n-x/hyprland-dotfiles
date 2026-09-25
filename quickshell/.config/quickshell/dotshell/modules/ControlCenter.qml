@@ -10,7 +10,7 @@ import Quickshell.Io
 import Quickshell.Networking
 import Quickshell.Bluetooth
 import Quickshell.Widgets
-import ".." // Colors.qml, NotificationState.qml, ControlCenterState.qml
+import ".." // Colors.qml, Tokens.qml, NotificationState.qml, ControlCenterState.qml
 
 PanelWindow {
     id: window
@@ -19,14 +19,13 @@ PanelWindow {
         top: true
         right: true
     }
-    // top: 60, no 10 -- la barra ocupa hasta y=44 (margin 6 + alto 38),
-    // con 10 quedaba solapado encima de ella en vez de debajo (mismo
-    // valor que usa Osd.qml por el mismo motivo).
+    // Debajo de la barra (popupTop = margen + alto de la barra + md) y
+    // alineado con su borde derecho; mismo valor que Osd.qml y los toasts.
     margins {
-        top: 60
-        right: 10
+        top: Tokens.popupTop
+        right: Tokens.screenEdge
     }
-    implicitWidth: 360
+    implicitWidth: Tokens.panel.widthLg
     implicitHeight: Math.min(600, card.implicitHeight)
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
@@ -64,7 +63,7 @@ PanelWindow {
         }
     }
 
-    property var nvidiaData: ({ active: false, text: "Reposo (D3cold - 0W)", processes: [] })
+    property var nvidiaData: ({ active: false, text: "Reposo (D3cold - 0W)", icon: "memory", processes: [] })
     Process {
         id: checkNvidia
         command: [Quickshell.env("HOME") + "/.config/hypr/scripts/nvidia-status.sh"]
@@ -86,50 +85,63 @@ PanelWindow {
 
     onVisibleChanged: if (window.visible) window.refreshHardware()
 
+    // Nivel de elevacion 2 (surface_container) con borde sutil, igual que los
+    // desplegables. Padding 16 = radio lg: los hijos no necesitan radio anidado (Q1).
     Rectangle {
         id: card
         width: window.implicitWidth
-        implicitHeight: layout.implicitHeight + 28
-        radius: 18
-        color: Colors.bg1
-        border.color: Colors.br
+        implicitHeight: layout.implicitHeight + Tokens.pad.panel * 2
+        radius: Tokens.radius.lg
+        color: Colors.m3surfaceContainer
+        border.color: Colors.m3outlineVariant
         border.width: 1
 
         ColumnLayout {
             id: layout
             anchors.fill: parent
-            anchors.margins: 14
-            spacing: 12
+            anchors.margins: Tokens.pad.panel
+            spacing: Tokens.space.md
 
             RowLayout {
                 Layout.fillWidth: true
 
                 Text {
                     text: "Notificaciones"
-                    color: Colors.fg
-                    font.pixelSize: 15
-                    font.bold: true
+                    color: Colors.m3onSurface
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.title
+                    font.weight: Tokens.weight.semibold
                     Layout.fillWidth: true
                 }
 
+                // Boton de texto M3 (primary, sin contenedor).
                 Rectangle {
-                    implicitWidth: clearLabel.implicitWidth + 16
-                    implicitHeight: 26
-                    radius: 8
-                    color: clearMouse.containsMouse ? Colors.hoverBg : "transparent"
+                    implicitWidth: clearLabel.implicitWidth + Tokens.pad.pillH * 2
+                    implicitHeight: Tokens.pill.height
+                    radius: Tokens.radius.pill(height)
+                    color: "transparent"
+
+                    StateLayer {
+                        hovered: clearMouse.containsMouse
+                        pressed: clearMouse.pressed
+                        contentColor: Colors.m3primary
+                    }
 
                     Text {
                         id: clearLabel
                         anchors.centerIn: parent
                         text: "Limpiar todo"
-                        color: Colors.fg
-                        font.pixelSize: 12
+                        color: Colors.m3primary
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.label
+                        font.weight: Tokens.weight.medium
                     }
 
                     MouseArea {
                         id: clearMouse
                         anchors.fill: parent
                         hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
                         onClicked: NotificationState.clearAll()
                     }
                 }
@@ -138,21 +150,21 @@ PanelWindow {
             GridLayout {
                 Layout.fillWidth: true
                 columns: 5
-                columnSpacing: 8
-                rowSpacing: 8
+                columnSpacing: Tokens.space.sm
+                rowSpacing: Tokens.space.sm
 
                 QuickToggle {
-                    icon: "󰖩"
+                    icon: "wifi"
                     active: Networking.wifiEnabled
                     onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
                 }
                 QuickToggle {
-                    icon: "󰂯"
+                    icon: "bluetooth"
                     active: !!(Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled)
                     onClicked: if (Bluetooth.defaultAdapter) Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
                 }
                 QuickToggle {
-                    icon: "󰛨"
+                    icon: "nightlight"
                     active: window.hyprsunsetActive
                     onClicked: {
                         Quickshell.execDetached(["sh", "-c", "pgrep -x hyprsunset >/dev/null && pkill hyprsunset || (hyprsunset &)"]);
@@ -160,7 +172,7 @@ PanelWindow {
                     }
                 }
                 QuickToggle {
-                    icon: "󰊴"
+                    icon: "sports_esports"
                     active: window.gameModeActive
                     onClicked: {
                         Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/game-mode.sh", "toggle"]);
@@ -168,52 +180,65 @@ PanelWindow {
                     }
                 }
                 QuickToggle {
-                    icon: "󰌾"
+                    icon: "lock"
                     active: false
                     onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/lock.sh"])
                 }
             }
 
-            // Selector de Perfiles de Rendimiento (power-profiles-daemon)
+            // Selector de Perfiles de Rendimiento (power-profiles-daemon).
+            // Botones segmentados: el perfil activo en secondary_container (C3).
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
+                spacing: Tokens.space.xs
 
                 Repeater {
                     model: [
-                        { id: "power-saver", label: "Ahorro", icon: "🍃" },
-                        { id: "balanced", label: "Normal", icon: "⚖️" },
-                        { id: "performance", label: "Rendimiento", icon: "🚀" }
+                        { id: "power-saver", label: "Ahorro", icon: "eco" },
+                        { id: "balanced", label: "Normal", icon: "balance" },
+                        { id: "performance", label: "Rendimiento", icon: "rocket_launch" }
                     ]
 
                     Rectangle {
                         id: profBtn
                         required property var modelData
+                        readonly property bool selected: window.powerProfile === profBtn.modelData.id
+                        readonly property color contentColor: profBtn.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
                         Layout.fillWidth: true
-                        implicitHeight: 28
-                        radius: 8
-                        color: window.powerProfile === profBtn.modelData.id ? Colors.bg2 : Colors.bg0
-                        border.color: window.powerProfile === profBtn.modelData.id ? Colors.accent : Colors.br
+                        implicitHeight: Tokens.pill.height
+                        radius: Tokens.radius.sm
+                        color: profBtn.selected ? Colors.m3secondaryContainer : "transparent"
+                        border.color: profBtn.selected ? Colors.m3secondaryContainer : Colors.m3outlineVariant
                         border.width: 1
+
+                        StateLayer {
+                            hovered: profMouse.containsMouse
+                            pressed: profMouse.pressed
+                            contentColor: profBtn.contentColor
+                        }
 
                         RowLayout {
                             anchors.centerIn: parent
-                            spacing: 4
+                            spacing: Tokens.space.xs
 
-                            Text {
-                                text: profBtn.modelData.icon
-                                font.pixelSize: 11
+                            Icon {
+                                name: profBtn.modelData.icon
+                                filled: profBtn.selected
+                                size: Tokens.icon.sm
+                                color: profBtn.contentColor
                             }
 
                             Text {
                                 text: profBtn.modelData.label
-                                color: window.powerProfile === profBtn.modelData.id ? Colors.accent : Colors.fg
-                                font.pixelSize: 11
-                                font.bold: window.powerProfile === profBtn.modelData.id
+                                color: profBtn.contentColor
+                                font.family: Tokens.font.ui
+                                font.pixelSize: Tokens.type.label
+                                font.weight: profBtn.selected ? Tokens.weight.semibold : Tokens.weight.regular
                             }
                         }
 
                         MouseArea {
+                            id: profMouse
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
@@ -226,32 +251,36 @@ PanelWindow {
                 }
             }
 
-            // Monitor de dGPU NVIDIA RTX 3050
+            // Monitor de dGPU NVIDIA RTX 3050. Activa = aviso (tertiary, como
+            // el warning de la bateria); en reposo, texto secundario.
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: 30
-                radius: 8
-                color: Colors.bg0
-                border.color: window.nvidiaData.active ? Colors.warning : Colors.br
+                implicitHeight: Tokens.row.height
+                radius: Tokens.radius.sm
+                color: Colors.m3surfaceContainerHigh
+                border.color: window.nvidiaData.active ? Colors.m3tertiary : "transparent"
                 border.width: 1
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 6
-                    spacing: 8
+                    anchors.leftMargin: Tokens.space.md
+                    anchors.rightMargin: Tokens.space.md
+                    spacing: Tokens.gap.inline
 
-                    Rectangle {
-                        width: 8
-                        height: 8
-                        radius: 4
-                        color: window.nvidiaData.active ? Colors.warning : Colors.accent
+                    // Nombre de icono enviado por nvidia-status.sh (I5).
+                    Icon {
+                        name: window.nvidiaData.icon || "memory"
+                        filled: window.nvidiaData.active
+                        size: Tokens.icon.sm
+                        color: window.nvidiaData.active ? Colors.m3tertiary : Colors.m3onSurfaceVariant
                     }
 
                     Text {
-                        text: "NVIDIA RTX 3050:"
-                        color: Colors.fg
-                        font.pixelSize: 11
-                        font.bold: true
+                        text: "NVIDIA RTX 3050"
+                        color: Colors.m3onSurface
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.label
+                        font.weight: Tokens.weight.semibold
                     }
 
                     Text {
@@ -263,8 +292,10 @@ PanelWindow {
                             }
                             return "Activa";
                         }
-                        color: window.nvidiaData.active ? Colors.warning : Colors.br
-                        font.pixelSize: 11
+                        color: window.nvidiaData.active ? Colors.m3tertiary : Colors.m3onSurfaceVariant
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.label
+                        horizontalAlignment: Text.AlignRight
                         Layout.fillWidth: true
                         elide: Text.ElideRight
                     }
@@ -273,34 +304,19 @@ PanelWindow {
 
             RowLayout {
                 Layout.fillWidth: true
+                Layout.leftMargin: Tokens.space.xs
 
                 Text {
                     text: "No molestar"
-                    color: Colors.fg
-                    font.pixelSize: 13
+                    color: Colors.m3onSurface
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.body
                     Layout.fillWidth: true
                 }
 
-                Rectangle {
-                    width: 36
-                    height: 20
-                    radius: 10
-                    color: NotificationState.doNotDisturb ? Colors.accent : Colors.bg3
-
-                    Rectangle {
-                        width: 16
-                        height: 16
-                        radius: 8
-                        color: Colors.bg0
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: NotificationState.doNotDisturb ? parent.width - width - 2 : 2
-                        Behavior on x { NumberAnimation { duration: 120 } }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: NotificationState.doNotDisturb = !NotificationState.doNotDisturb
-                    }
+                Switch {
+                    checked: NotificationState.doNotDisturb
+                    onToggled: NotificationState.doNotDisturb = !NotificationState.doNotDisturb
                 }
             }
 
@@ -318,13 +334,15 @@ PanelWindow {
                 ColumnLayout {
                     id: historyList
                     width: parent.width
-                    spacing: 6
+                    spacing: Tokens.space.sm
 
                     Text {
                         visible: NotificationState.server.trackedNotifications.values.length === 0
+                        Layout.leftMargin: Tokens.space.xs
                         text: "Sin notificaciones"
-                        color: Colors.br
-                        font.pixelSize: 13
+                        color: Colors.m3onSurfaceVariant
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.body
                     }
 
                     Repeater {
@@ -334,37 +352,59 @@ PanelWindow {
                             id: histItem
                             required property var modelData
                             Layout.fillWidth: true
-                            implicitHeight: histContent.implicitHeight + 16
-                            radius: 10
-                            color: Colors.bg2
+                            implicitHeight: histContent.implicitHeight + Tokens.space.md * 2
+                            radius: Tokens.radius.md
+                            color: Colors.m3surfaceContainerHigh
 
                             ColumnLayout {
                                 id: histContent
                                 anchors.fill: parent
-                                anchors.margins: 8
-                                spacing: 4
+                                anchors.margins: Tokens.space.md
+                                spacing: Tokens.space.xs
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    spacing: 6
+                                    spacing: Tokens.gap.inline
 
                                     Text {
                                         text: histItem.modelData.summary
-                                        color: Colors.fg
-                                        font.pixelSize: 13
-                                        font.bold: true
+                                        color: Colors.m3onSurface
+                                        font.family: Tokens.font.ui
+                                        font.pixelSize: Tokens.type.body
+                                        font.weight: Tokens.weight.semibold
                                         Layout.fillWidth: true
                                         elide: Text.ElideRight
                                     }
 
-                                    Text {
-                                        text: "✕"
-                                        color: Colors.br
-                                        font.pixelSize: 12
+                                    // Boton de icono circular para descartar.
+                                    Item {
+                                        implicitWidth: Tokens.icon.lg
+                                        implicitHeight: Tokens.icon.lg
+
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            radius: Tokens.radius.pill(height)
+                                            color: "transparent"
+
+                                            StateLayer {
+                                                hovered: dismissMouse.containsMouse
+                                                pressed: dismissMouse.pressed
+                                                contentColor: Colors.m3onSurfaceVariant
+                                            }
+                                        }
+
+                                        Icon {
+                                            anchors.centerIn: parent
+                                            name: "close"
+                                            size: Tokens.icon.sm
+                                            color: Colors.m3onSurfaceVariant
+                                        }
 
                                         MouseArea {
+                                            id: dismissMouse
                                             anchors.fill: parent
-                                            anchors.margins: -4
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
                                             onClicked: histItem.modelData.dismiss()
                                         }
                                     }
@@ -373,8 +413,9 @@ PanelWindow {
                                 Text {
                                     visible: !!histItem.modelData.body
                                     text: histItem.modelData.body
-                                    color: Colors.br
-                                    font.pixelSize: 12
+                                    color: Colors.m3onSurfaceVariant
+                                    font.family: Tokens.font.ui
+                                    font.pixelSize: Tokens.type.label
                                     wrapMode: Text.WordWrap
                                     Layout.fillWidth: true
                                     maximumLineCount: 3

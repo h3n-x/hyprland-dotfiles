@@ -22,7 +22,7 @@ Item {
 
     onMutedChanged: {
         if (!root.armed) return;
-        OsdState.show(root.muted ? "󰍭" : "󰍬", root.muted ? 0 : 1, root.muted ? "Mic muted" : "Mic on");
+        OsdState.show(root.muted ? "mic_off" : "mic", root.muted ? 0 : 1, root.muted ? "Mic muted" : "Mic on");
     }
 
     implicitWidth: label.implicitWidth

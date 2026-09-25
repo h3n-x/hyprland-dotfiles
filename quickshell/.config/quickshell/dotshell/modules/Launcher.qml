@@ -16,7 +16,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Widgets
-import ".." // Colors.qml, LauncherState.qml
+import ".." // Colors.qml, Tokens.qml, LauncherState.qml
 
 PanelWindow {
     id: window
@@ -51,9 +51,10 @@ PanelWindow {
         }
     }
 
+    // Debe durar al menos lo que la animacion de salida de la card (abajo).
     Timer {
         id: closeTimer
-        interval: 160
+        interval: Tokens.motion.short
         onTriggered: window.closing = false
     }
 
@@ -100,7 +101,7 @@ PanelWindow {
         return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // Marca en Colors.accent los caracteres que matchearon la busqueda --
+    // Marca en primary los caracteres que matchearon la busqueda --
     // sin busqueda, o sin match en el nombre (matcheo por generic
     // name/keywords), se muestra el nombre tal cual.
     function highlightedName(name, positions) {
@@ -109,7 +110,7 @@ PanelWindow {
         let result = "";
         for (let i = 0; i < name.length; i++) {
             const ch = window.escapeHtml(name[i]);
-            result += posSet.has(i) ? ("<b style=\"color:" + Colors.accent + "\">" + ch + "</b>") : ch;
+            result += posSet.has(i) ? ("<b style=\"color:" + Colors.m3primary + "\">" + ch + "</b>") : ch;
         }
         return result;
     }
@@ -164,7 +165,8 @@ PanelWindow {
     // Tamano dinamico: la card crece/encoge segun la cantidad de
     // resultados en vez de ser siempre una caja fija de 560x420 -- hasta
     // 8 filas visibles, con scroll si hay mas.
-    readonly property int rowHeight: 46
+    // Fila de 44 + 2 de separacion entre filas (el delegate resta el hueco).
+    readonly property int rowHeight: Tokens.row.heightLarge + Tokens.space.hair
     readonly property int maxVisibleRows: 8
     readonly property int visibleRows: Math.max(1, Math.min(maxVisibleRows, filtered.length))
     readonly property int listHeight: filtered.length > 0 ? visibleRows * rowHeight : 56
@@ -172,22 +174,25 @@ PanelWindow {
     Item {
         id: card
         anchors.centerIn: parent
-        width: 560
-        // margenes (16*2) + searchBox + lista/"sin resultados" + footer +
+        width: Tokens.panel.launcherWidth
+        // margenes (md*2) + searchBox + lista/"sin resultados" + footer +
         // dos huecos de "spacing" del ColumnLayout (entre esas 3 filas).
-        height: 16 * 2 + searchBox.height + window.listHeight + footerText.implicitHeight + 12 * 2
+        height: Tokens.space.md * 2 + searchBox.height + window.listHeight + footerText.implicitHeight + Tokens.space.md * 2
         // Animacion de apertura/cierre -- ver el comentario largo en
-        // "shouldShow"/"closing" mas arriba.
+        // "shouldShow"/"closing" mas arriba. Misma curva que antes (easeOutCubic
+        // = ease.standard); la salida dura exitFor() de la entrada. Las
+        // animaciones de entrada/salida propias de paneles son Fase 2 (P2.4).
+        readonly property int animDuration: window.shouldShow ? Tokens.motion.short : Tokens.motion.exitFor(Tokens.motion.short)
         opacity: window.shouldShow ? 1 : 0
         scale: window.shouldShow ? 1 : 0.94
-        Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-        Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-        Behavior on height { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: card.animDuration; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
+        Behavior on scale { NumberAnimation { duration: card.animDuration; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
+        Behavior on height { NumberAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
         // Sombra pobre-pero-honesta: 3 capas semitransparentes cada vez
         // mas grandes detras de la card, sin sumar Qt5Compat.
         // GraphicalEffects (paquete qt5compat, no siempre instalado) solo
-        // para un drop-shadow.
+        // para un drop-shadow. Provisoria: la reemplaza shadow.md en P2.2.
         Repeater {
             model: 3
             Rectangle {
@@ -195,19 +200,21 @@ PanelWindow {
                 anchors.centerIn: parent
                 width: card.width + (index + 1) * 6
                 height: card.height + (index + 1) * 6
-                radius: 20 + (index + 1) * 3
-                color: "black"
+                radius: Tokens.radius.xl + (index + 1) * 3
+                color: Colors.m3shadow
                 opacity: 0.06 - index * 0.015
                 z: -1
             }
         }
 
+        // Nivel de elevacion 3 (surface_container_high). Radio xl con inset md:
+        // buscador y filas en radio md, concentricos (Q1).
         Rectangle {
             id: bg
             anchors.fill: parent
-            radius: 20
-            color: Colors.bg1
-            border.color: Colors.br
+            radius: Tokens.radius.xl
+            color: Colors.m3surfaceContainerHigh
+            border.color: Colors.m3outlineVariant
             border.width: 1
 
             // Sin esto, clickear el padding de la card (no cubierto por
@@ -220,36 +227,40 @@ PanelWindow {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 16
-                spacing: 12
+                anchors.margins: Tokens.space.md
+                spacing: Tokens.space.md
 
+                // Campo de busqueda en el contenedor mas alto; foco = borde primary.
                 Rectangle {
                     id: searchBox
                     Layout.fillWidth: true
-                    implicitHeight: 42
-                    radius: 12
-                    color: Colors.bg0
-                    border.color: searchField.activeFocus ? Colors.accent : Colors.br
+                    implicitHeight: Tokens.row.heightLarge
+                    radius: Tokens.radius.md
+                    color: Colors.m3surfaceContainerHighest
+                    border.color: searchField.activeFocus ? Colors.m3primary : Colors.m3outlineVariant
                     border.width: 1
-                    Behavior on border.color { ColorAnimation { duration: 100 } }
+                    Behavior on border.color { ColorAnimation { duration: Tokens.motion.fast } }
 
-                    Text {
+                    Icon {
+                        id: searchIcon
                         anchors.left: parent.left
-                        anchors.leftMargin: 12
+                        anchors.leftMargin: Tokens.space.md
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "󰍉"
-                        color: Colors.br
-                        font.pixelSize: 15
+                        name: "search"
+                        color: Colors.m3onSurfaceVariant
                     }
 
                     TextInput {
                         id: searchField
                         anchors.fill: parent
-                        anchors.leftMargin: 36
-                        anchors.rightMargin: 10
+                        anchors.leftMargin: Tokens.space.md + searchIcon.width + Tokens.space.sm
+                        anchors.rightMargin: Tokens.space.md
                         verticalAlignment: TextInput.AlignVCenter
-                        color: Colors.fg
-                        font.pixelSize: 15
+                        color: Colors.m3onSurface
+                        selectionColor: Colors.m3primary
+                        selectedTextColor: Colors.m3onPrimary
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.title
                         clip: true
 
                         onTextChanged: {
@@ -268,11 +279,12 @@ PanelWindow {
                     Text {
                         visible: searchField.text.length === 0
                         anchors.left: parent.left
-                        anchors.leftMargin: 36
+                        anchors.leftMargin: searchField.anchors.leftMargin
                         anchors.verticalCenter: parent.verticalCenter
                         text: "Buscar aplicaciones..."
-                        color: Colors.br
-                        font.pixelSize: 14
+                        color: Colors.m3onSurfaceVariant
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.title
                     }
                 }
 
@@ -284,7 +296,7 @@ PanelWindow {
                     clip: true
                     model: window.filtered
                     currentIndex: 0
-                    highlightMoveDuration: 80
+                    highlightMoveDuration: Tokens.motion.fast
                     boundsBehavior: Flickable.StopAtBounds
 
                     delegate: Rectangle {
@@ -293,19 +305,30 @@ PanelWindow {
                         required property int index
                         readonly property bool selected: index === listView.currentIndex
                         width: listView.width
-                        height: window.rowHeight - 2
-                        radius: 10
-                        color: appRow.selected ? Colors.accent : (rowMouse.containsMouse ? Colors.hoverBg : "transparent")
-                        Behavior on color { ColorAnimation { duration: 80 } }
+                        height: window.rowHeight - Tokens.space.hair
+                        radius: Tokens.radius.md
+                        // Fila seleccionada en secondary_container (C3); el hover
+                        // lo da la StateLayer.
+                        color: appRow.selected ? Colors.m3secondaryContainer : "transparent"
+                        Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
+
+                        StateLayer {
+                            hovered: rowMouse.containsMouse
+                            pressed: rowMouse.pressed
+                            contentColor: appRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                        }
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.margins: 6
-                            spacing: 12
+                            anchors.leftMargin: Tokens.space.sm
+                            anchors.rightMargin: Tokens.space.md
+                            spacing: Tokens.space.md
 
+                            // Icono de la aplicacion (tema de iconos, no Material:
+                            // identifica la app).
                             IconImage {
                                 Layout.alignment: Qt.AlignVCenter
-                                implicitSize: 32
+                                implicitSize: Tokens.space.xxl
                                 source: appRow.modelData.entry.icon ? Quickshell.iconPath(appRow.modelData.entry.icon, "application-x-executable") : ""
                             }
 
@@ -319,8 +342,10 @@ PanelWindow {
                                         ? window.escapeHtml(appRow.modelData.entry.name)
                                         : window.highlightedName(appRow.modelData.entry.name, appRow.modelData.positions)
                                     textFormat: Text.RichText
-                                    color: appRow.selected ? Colors.bg0 : Colors.fg
-                                    font.pixelSize: 14
+                                    color: appRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                                    font.family: Tokens.font.ui
+                                    font.pixelSize: Tokens.type.body
+                                    font.weight: appRow.selected ? Tokens.weight.semibold : Tokens.weight.medium
                                     elide: Text.ElideRight
                                 }
 
@@ -328,8 +353,9 @@ PanelWindow {
                                     visible: !!appRow.modelData.entry.genericName
                                     Layout.fillWidth: true
                                     text: appRow.modelData.entry.genericName
-                                    color: appRow.selected ? Colors.bg0 : Colors.br
-                                    font.pixelSize: 11
+                                    color: appRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                                    font.family: Tokens.font.ui
+                                    font.pixelSize: Tokens.type.caption
                                     elide: Text.ElideRight
                                 }
                             }
@@ -339,6 +365,7 @@ PanelWindow {
                             id: rowMouse
                             anchors.fill: parent
                             hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
                             onClicked: window.launch(appRow.modelData.entry)
                         }
                     }
@@ -350,16 +377,18 @@ PanelWindow {
                     Layout.preferredHeight: window.listHeight
                     verticalAlignment: Text.AlignVCenter
                     text: "Sin resultados"
-                    color: Colors.br
-                    font.pixelSize: 13
+                    color: Colors.m3onSurfaceVariant
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.body
                 }
 
                 Text {
                     id: footerText
                     Layout.alignment: Qt.AlignHCenter
                     text: "↑↓ navegar   ⏎ abrir   esc cerrar"
-                    color: Colors.br
-                    font.pixelSize: 11
+                    color: Colors.m3onSurfaceVariant
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.caption
                 }
             }
         }

@@ -51,7 +51,8 @@ def get_status():
         "status": status,
         "active": is_active,
         "text": "Activa" if is_active else "Reposo (D3cold - 0W)",
-        "icon": "󰢮",
+        # Nombre de ligadura de Material Symbols (lo dibuja ControlCenter.qml).
+        "icon": "memory",
         "processes": processes
     }
 

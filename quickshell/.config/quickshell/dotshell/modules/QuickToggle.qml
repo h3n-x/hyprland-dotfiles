@@ -1,9 +1,9 @@
 // Boton cuadrado para el grid de accesos rapidos del Control Center
 // (wifi/bluetooth/hyprsunset/lock) -- mismo rol que "buttons-grid" en
-// swaync/config.json.
+// swaync/config.json. icon = nombre de ligadura de Material Symbols.
 import QtQuick
 import QtQuick.Layouts
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 Rectangle {
     id: root
@@ -11,20 +11,33 @@ Rectangle {
     property bool active: false
     signal clicked()
 
-    Layout.fillWidth: true
-    implicitHeight: 44
-    radius: 12
-    color: root.active ? Colors.accent : Colors.bg2
+    // Toggle activo en primary_container, inactivo en el contenedor mas alto
+    // (decision C3); icono relleno = activo (I4).
+    readonly property color contentColor: root.active ? Colors.m3onPrimaryContainer : Colors.m3onSurface
 
-    Text {
+    Layout.fillWidth: true
+    implicitHeight: Tokens.row.heightLarge
+    radius: Tokens.radius.md
+    color: root.active ? Colors.m3primaryContainer : Colors.m3surfaceContainerHighest
+
+    StateLayer {
+        hovered: mouse.containsMouse
+        pressed: mouse.pressed
+        contentColor: root.contentColor
+    }
+
+    Icon {
         anchors.centerIn: parent
-        text: root.icon
-        color: root.active ? Colors.bg0 : Colors.fg
-        font.pixelSize: 18
+        name: root.icon
+        filled: root.active
+        color: root.contentColor
     }
 
     MouseArea {
+        id: mouse
         anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
     }
 }

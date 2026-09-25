@@ -6,7 +6,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import ".." // Colors.qml, OsdState.qml
+import ".." // Colors.qml, Tokens.qml, OsdState.qml
 
 PanelWindow {
     id: osd
@@ -16,58 +16,73 @@ PanelWindow {
         left: true
         right: true
     }
-    implicitHeight: 70
+    implicitHeight: box.implicitHeight
     margins {
-        top: 60
+        top: Tokens.popupTop
     }
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     visible: OsdState.visible
 
+    // Nivel de elevacion 3 (surface_container_high), forma de pildora.
     Rectangle {
-        anchors.centerIn: parent
-        implicitWidth: content.implicitWidth + 28
-        implicitHeight: content.implicitHeight + 16
-        radius: height / 2
-        color: Colors.bg1
+        id: box
+        anchors.horizontalCenter: parent.horizontalCenter
+        implicitWidth: content.implicitWidth + Tokens.pad.panel * 2
+        implicitHeight: content.implicitHeight + Tokens.space.sm * 2
+        radius: Tokens.radius.pill(height)
+        color: Colors.m3surfaceContainerHigh
 
         RowLayout {
             id: content
             anchors.centerIn: parent
-            spacing: 10
+            spacing: Tokens.space.md
 
-            Text {
-                id: iconText
+            // OsdState.icon es un nombre de ligadura de Material Symbols.
+            Icon {
                 Layout.alignment: Qt.AlignVCenter
-                text: OsdState.icon
-                color: Colors.fg
-                font.pixelSize: 18
+                name: OsdState.icon
+                filled: true
+                size: Tokens.icon.xl
             }
 
-            Item {
+            // Barra de nivel: pista activa en primary, inactiva en
+            // secondary_container (slider M3).
+            Rectangle {
                 Layout.alignment: Qt.AlignVCenter
-                width: 120
-                height: 6
+                implicitWidth: 128
+                implicitHeight: Tokens.space.xs
+                radius: Tokens.radius.pill(height)
+                color: Colors.m3secondaryContainer
 
                 Rectangle {
-                    anchors.fill: parent
-                    radius: height / 2
-                    color: Colors.bg3
-
-                    Rectangle {
-                        width: parent.width * Math.max(0, Math.min(1, OsdState.value))
-                        height: parent.height
-                        radius: parent.radius
-                        color: Colors.accent
-                    }
+                    width: parent.width * Math.max(0, Math.min(1, OsdState.value))
+                    height: parent.height
+                    radius: parent.radius
+                    color: Colors.m3primary
                 }
             }
 
+            // Ancho minimo = "100%": la pildora no cambia de ancho mientras
+            // se sube o baja el valor.
             Text {
                 Layout.alignment: Qt.AlignVCenter
+                Layout.minimumWidth: widest.width
                 text: OsdState.label
-                color: Colors.fg
-                font.pixelSize: 13
+                color: Colors.m3onSurface
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.headline
+                font.weight: Tokens.weight.medium
+                font.features: Tokens.tabularNumbers
+
+                TextMetrics {
+                    id: widest
+                    text: "100%"
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.headline
+                    font.weight: Tokens.weight.medium
+                    font.features: Tokens.tabularNumbers
+                }
             }
         }
     }
