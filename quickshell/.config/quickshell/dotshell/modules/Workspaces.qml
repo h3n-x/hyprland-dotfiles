@@ -58,8 +58,13 @@ Row {
                 : label.isFocused ? Colors.m3primary
                 : Colors.m3onSurfaceVariant
 
+            // Cada workspace es un boton propio (Q2 = A).
+            HoverHalo { hovered: slotMouse.containsMouse; pressed: slotMouse.pressed }
+
             MouseArea {
+                id: slotMouse
                 anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     if (label.isPlaceholder) {

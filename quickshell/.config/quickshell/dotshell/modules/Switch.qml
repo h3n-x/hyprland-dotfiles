@@ -30,6 +30,23 @@ Rectangle {
         }
     }
 
+    // Halo de estado alrededor del knob (switch M3, P2.4): sigue al knob y
+    // toma el color del estado (primary encendido, on_surface apagado).
+    Rectangle {
+        width: Tokens.pill.height
+        height: width
+        radius: Tokens.radius.pill(height)
+        anchors.verticalCenter: parent.verticalCenter
+        x: knob.x + knob.width / 2 - width / 2
+        color: "transparent"
+
+        StateLayer {
+            hovered: mouse.containsMouse
+            pressed: mouse.pressed
+            contentColor: root.checked ? Colors.m3primary : Colors.m3onSurface
+        }
+    }
+
     Rectangle {
         id: knob
         width: 16
@@ -50,7 +67,9 @@ Rectangle {
     }
 
     MouseArea {
+        id: mouse
         anchors.fill: parent
+        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: root.toggled()
     }

@@ -22,6 +22,13 @@ Rectangle {
     radius: Tokens.radius.pill(height)
     color: Colors.m3surfaceContainerLow
 
+    // Hover de la pill entera, solo para pills de accion unica (Clock, Mpris;
+    // decision Q2 = A). En las de varios botones cada control lleva su propio
+    // HoverHalo y esto queda en false.
+    property bool hovered: false
+    property bool pressed: false
+    StateLayer { hovered: root.hovered; pressed: root.pressed }
+
     // RowLayout (no Row) a proposito: con Row, cada hijo se posiciona con
     // y=0 (top-align), asi que un modulo con font.pixelSize mas chico (ej.
     // Microphone.qml, 13px) queda visualmente "mas arriba" que uno con

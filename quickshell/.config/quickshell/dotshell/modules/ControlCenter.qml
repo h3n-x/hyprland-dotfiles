@@ -224,6 +224,8 @@ PanelWindow {
                         radius: Tokens.radius.sm
                         color: profBtn.selected ? Colors.m3secondaryContainer : "transparent"
                         border.color: profBtn.selected ? Colors.m3secondaryContainer : Colors.m3outlineVariant
+                        Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
+                        Behavior on border.color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
                         border.width: 1
 
                         StateLayer {

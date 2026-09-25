@@ -19,6 +19,8 @@ Rectangle {
     implicitHeight: Tokens.row.heightLarge
     radius: Tokens.radius.md
     color: root.active ? Colors.m3primaryContainer : Colors.m3surfaceContainerHighest
+    // Cambio de estado animado (guia 3.6.1).
+    Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
     StateLayer {
         hovered: mouse.containsMouse

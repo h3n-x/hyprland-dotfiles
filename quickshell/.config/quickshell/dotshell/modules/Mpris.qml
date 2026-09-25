@@ -53,8 +53,14 @@ Item {
         }
     }
 
+    // Accion unica: la Pill que lo contiene se ilumina entera (Bar.qml, Q2 = A).
+    readonly property bool hovered: hoverArea.containsMouse
+    readonly property bool pressed: hoverArea.pressed
+
     MouseArea {
+        id: hoverArea
         anchors.fill: parent
+        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: if (root.player && root.player.canTogglePlaying) root.player.togglePlaying()
     }

@@ -57,6 +57,9 @@ PanelWindow {
             // IdleToggle.qml) -- se expone la visibilidad del propio
             // componente en su lugar.
             visible: mprisModule.active
+            // Accion unica: la pill entera responde al hover (Q2 = A).
+            hovered: mprisModule.hovered
+            pressed: mprisModule.pressed
             Mpris { id: mprisModule; Layout.alignment: Qt.AlignVCenter }
         }
 
@@ -64,7 +67,9 @@ PanelWindow {
 
         Pill {
             Layout.alignment: Qt.AlignVCenter
-            Clock { Layout.alignment: Qt.AlignVCenter }
+            hovered: clockModule.hovered
+            pressed: clockModule.pressed
+            Clock { id: clockModule; Layout.alignment: Qt.AlignVCenter }
         }
 
         Item { Layout.fillWidth: true }

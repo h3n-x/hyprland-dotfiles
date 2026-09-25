@@ -81,8 +81,14 @@ Row {
                 anchor.rect.y: root.panelWindow.height
             }
 
+            // Cada icono es un boton propio (Q2 = A).
+            HoverHalo { hovered: trayMouse.containsMouse; pressed: trayMouse.pressed }
+
             MouseArea {
+                id: trayMouse
                 anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
                 acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                 onClicked: (mouse) => {
                     if (mouse.button === Qt.RightButton) {

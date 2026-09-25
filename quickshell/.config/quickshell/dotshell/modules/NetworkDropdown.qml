@@ -184,6 +184,7 @@ PopupWindow {
                     // Fila seleccionada (conectada / por defecto) en secondary
                     // container (decision C3); el hover lo da la StateLayer.
                     color: netRow.selected ? Colors.m3secondaryContainer : "transparent"
+                    Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
                     StateLayer { hovered: netMouse.containsMouse; pressed: netMouse.pressed }
 

@@ -65,8 +65,13 @@ Item {
         }
     }
 
+    // Hover por control (P2.4, Q2 = A).
+    HoverHalo { hovered: hoverArea.containsMouse; pressed: hoverArea.pressed }
+
     MouseArea {
+        id: hoverArea
         anchors.fill: parent
+        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton
         onClicked: (mouse) => {

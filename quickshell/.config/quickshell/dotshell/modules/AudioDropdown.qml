@@ -191,6 +191,7 @@ PopupWindow {
                     // Fila seleccionada (conectada / por defecto) en secondary
                     // container (decision C3); el hover lo da la StateLayer.
                     color: sinkRow.selected ? Colors.m3secondaryContainer : "transparent"
+                    Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
                     StateLayer { hovered: sinkMouse.containsMouse; pressed: sinkMouse.pressed }
 
@@ -269,6 +270,7 @@ PopupWindow {
                     // Fila seleccionada (conectada / por defecto) en secondary
                     // container (decision C3); el hover lo da la StateLayer.
                     color: srcRow.selected ? Colors.m3secondaryContainer : "transparent"
+                    Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
                     StateLayer { hovered: srcMouse.containsMouse; pressed: srcMouse.pressed }
 

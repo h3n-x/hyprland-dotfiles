@@ -48,8 +48,13 @@ Item {
         filled: root.icon === "download"
     }
 
+    // Hover por control (P2.4, Q2 = A).
+    HoverHalo { hovered: hoverArea.containsMouse; pressed: hoverArea.pressed }
+
     MouseArea {
+        id: hoverArea
         anchors.fill: parent
+        hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
         onClicked: (mouse) => {
