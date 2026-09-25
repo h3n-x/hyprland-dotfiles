@@ -2,7 +2,7 @@
 // del wallpaper seleccionado con un mini escritorio pintado con SU paleta
 // (la de la cache de wallpaper-cache.sh, modo oscuro) y muestras de color.
 // Todo en memoria: no escribe ningun archivo de tema. La vista previa en vivo
-// de la shell real llega en B7. Etiquetas del wallpaper (B4): chips con quitar
+// de la shell real es el boton del ojo (B7, ThemePreview.qml). Etiquetas del wallpaper (B4): chips con quitar
 // y un campo para agregar; los cambios los escribe theme-apply.sh --tag.
 import QtQuick
 import QtQuick.Layouts
@@ -31,6 +31,8 @@ ColumnLayout {
     // El campo de etiqueta termino (Enter vacio o Esc): volver a la grilla.
     signal tagInputDone()
     signal undoRequested()
+    // Vista previa en todo el escritorio (Fase 3 B7).
+    signal previewRequested()
 
     function focusTagInput(): void {
         tagField.forceActiveFocus();
@@ -379,6 +381,26 @@ ColumnLayout {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.undoRequested()
+            }
+        }
+
+        // Vista previa (boton de icono): el tema en todo el escritorio, sin aplicar.
+        Rectangle {
+            implicitWidth: Tokens.row.height
+            implicitHeight: Tokens.row.height
+            radius: Tokens.radius.pill(height)
+            color: "transparent"
+            border.color: Colors.m3outlineVariant
+            opacity: root.name ? 1 : Tokens.opacity.disabled
+            StateLayer { visible: root.name !== ""; hovered: previewMouse.containsMouse; pressed: previewMouse.pressed }
+            Icon { anchors.centerIn: parent; name: "visibility"; color: Colors.m3onSurfaceVariant }
+            MouseArea {
+                id: previewMouse
+                anchors.fill: parent
+                enabled: root.name !== ""
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.previewRequested()
             }
         }
 

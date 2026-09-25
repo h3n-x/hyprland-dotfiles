@@ -81,72 +81,77 @@ Item {
 
     readonly property string image: json.image
 
+    // Vista previa (Fase 3 B7): mientras hay un candidato, sus colores (de la
+    // cache de la galeria) en vez de los del JSON. El JSON se sigue leyendo.
+    readonly property var pv: ThemePreview.candidate
+
     // Cambio de paleta animado (guia de transiciones 3.6.1: dur.theme, ease.standard);
     // instantaneo con movimiento reducido y en la primera carga.
+    // Durante la vista previa (pasos y vuelta) dur.medium (decision B7c).
     component ColorFade: ColorAnimation {
-        duration: Tokens.motion.theme
+        duration: ThemePreview.fast ? Tokens.motion.medium : Tokens.motion.theme
         easing.type: Easing.BezierSpline
         easing.bezierCurve: Tokens.motion.easeStandard
     }
 
-    property color m3surface: json.surface
+    property color m3surface: root.pv ? root.pv.surface : json.surface
     Behavior on m3surface { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3surfaceContainerLowest: json.surface_container_lowest
+    property color m3surfaceContainerLowest: root.pv ? root.pv.surface_container_lowest : json.surface_container_lowest
     Behavior on m3surfaceContainerLowest { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3surfaceContainerLow: json.surface_container_low
+    property color m3surfaceContainerLow: root.pv ? root.pv.surface_container_low : json.surface_container_low
     Behavior on m3surfaceContainerLow { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3surfaceContainer: json.surface_container
+    property color m3surfaceContainer: root.pv ? root.pv.surface_container : json.surface_container
     Behavior on m3surfaceContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3surfaceContainerHigh: json.surface_container_high
+    property color m3surfaceContainerHigh: root.pv ? root.pv.surface_container_high : json.surface_container_high
     Behavior on m3surfaceContainerHigh { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3surfaceContainerHighest: json.surface_container_highest
+    property color m3surfaceContainerHighest: root.pv ? root.pv.surface_container_highest : json.surface_container_highest
     Behavior on m3surfaceContainerHighest { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onSurface: json.on_surface
+    property color m3onSurface: root.pv ? root.pv.on_surface : json.on_surface
     Behavior on m3onSurface { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onSurfaceVariant: json.on_surface_variant
+    property color m3onSurfaceVariant: root.pv ? root.pv.on_surface_variant : json.on_surface_variant
     Behavior on m3onSurfaceVariant { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3outline: json.outline
+    property color m3outline: root.pv ? root.pv.outline : json.outline
     Behavior on m3outline { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3outlineVariant: json.outline_variant
+    property color m3outlineVariant: root.pv ? root.pv.outline_variant : json.outline_variant
     Behavior on m3outlineVariant { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3primary: json.primary
+    property color m3primary: root.pv ? root.pv.primary : json.primary
     Behavior on m3primary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onPrimary: json.on_primary
+    property color m3onPrimary: root.pv ? root.pv.on_primary : json.on_primary
     Behavior on m3onPrimary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3primaryContainer: json.primary_container
+    property color m3primaryContainer: root.pv ? root.pv.primary_container : json.primary_container
     Behavior on m3primaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onPrimaryContainer: json.on_primary_container
+    property color m3onPrimaryContainer: root.pv ? root.pv.on_primary_container : json.on_primary_container
     Behavior on m3onPrimaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3secondary: json.secondary
+    property color m3secondary: root.pv ? root.pv.secondary : json.secondary
     Behavior on m3secondary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onSecondary: json.on_secondary
+    property color m3onSecondary: root.pv ? root.pv.on_secondary : json.on_secondary
     Behavior on m3onSecondary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3secondaryContainer: json.secondary_container
+    property color m3secondaryContainer: root.pv ? root.pv.secondary_container : json.secondary_container
     Behavior on m3secondaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onSecondaryContainer: json.on_secondary_container
+    property color m3onSecondaryContainer: root.pv ? root.pv.on_secondary_container : json.on_secondary_container
     Behavior on m3onSecondaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3tertiary: json.tertiary
+    property color m3tertiary: root.pv ? root.pv.tertiary : json.tertiary
     Behavior on m3tertiary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onTertiary: json.on_tertiary
+    property color m3onTertiary: root.pv ? root.pv.on_tertiary : json.on_tertiary
     Behavior on m3onTertiary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3tertiaryContainer: json.tertiary_container
+    property color m3tertiaryContainer: root.pv ? root.pv.tertiary_container : json.tertiary_container
     Behavior on m3tertiaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onTertiaryContainer: json.on_tertiary_container
+    property color m3onTertiaryContainer: root.pv ? root.pv.on_tertiary_container : json.on_tertiary_container
     Behavior on m3onTertiaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3error: json.error
+    property color m3error: root.pv ? root.pv.error : json.error
     Behavior on m3error { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onError: json.on_error
+    property color m3onError: root.pv ? root.pv.on_error : json.on_error
     Behavior on m3onError { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3errorContainer: json.error_container
+    property color m3errorContainer: root.pv ? root.pv.error_container : json.error_container
     Behavior on m3errorContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onErrorContainer: json.on_error_container
+    property color m3onErrorContainer: root.pv ? root.pv.on_error_container : json.on_error_container
     Behavior on m3onErrorContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3inverseSurface: json.inverse_surface
+    property color m3inverseSurface: root.pv ? root.pv.inverse_surface : json.inverse_surface
     Behavior on m3inverseSurface { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3inverseOnSurface: json.inverse_on_surface
+    property color m3inverseOnSurface: root.pv ? root.pv.inverse_on_surface : json.inverse_on_surface
     Behavior on m3inverseOnSurface { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3shadow: json.shadow
+    property color m3shadow: root.pv ? root.pv.shadow : json.shadow
     Behavior on m3shadow { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3scrim: json.scrim
+    property color m3scrim: root.pv ? root.pv.scrim : json.scrim
     Behavior on m3scrim { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
 }

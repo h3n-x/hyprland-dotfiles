@@ -174,4 +174,14 @@ ShellRoot {
             screen: modelData
         }
     }
+
+    // Barra de la vista previa del tema (Fase 3 B7).
+    Variants {
+        model: Quickshell.screens
+
+        PreviewBar {
+            required property var modelData
+            screen: modelData
+        }
+    }
 }

@@ -25,6 +25,11 @@
 // Recientes son interruptores independientes que se combinan entre si y con
 // la busqueda y la etiqueta (Todos los apaga). Deshacer vuelve al tema
 // anterior (theme-apply.sh --undo) y cierra la galeria, igual que Aplicar.
+//
+// Vista previa (Fase 3 B7): Espacio o el boton del ojo cierran la galeria y
+// muestran el seleccionado en todo el escritorio (ThemePreview.qml); la lista
+// filtrada pasa a la barra de la vista previa para <- / ->. Esc vuelve aca con
+// los mismos filtros y sobre el ultimo wallpaper visto.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -32,7 +37,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
-import ".." // Colors.qml, Tokens.qml, GalleryState.qml, ThemeState.qml
+import ".." // Colors.qml, Tokens.qml, GalleryState.qml, ThemeState.qml, ThemePreview.qml
 
 PanelWindow {
     id: window
@@ -55,6 +60,7 @@ PanelWindow {
     readonly property bool shouldShow: GalleryState.visible
     Presence { id: presence; open: window.shouldShow; enterDuration: Tokens.motion.long; slide: false }
     visible: presence.shown
+    onVisibleChanged: GalleryState.windowShown = window.visible
 
     HyprlandFocusGrab {
         windows: [window]
@@ -123,6 +129,20 @@ PanelWindow {
         Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", window.pathOf(window.selectedName), "--source", "gallery"]);
         GalleryState.visible = false;
     }
+    function startPreview(): void {
+        if (!window.selectedName) return;
+        ThemePreview.open(window.filtered.slice(), grid.currentIndex, window.wallpapersDir, window.index, window.scriptsDir);
+        GalleryState.visible = false;
+    }
+    // Vuelta desde la vista previa (Esc): reabrir sin tocar filtros ni busqueda.
+    property string resumeName: ""
+    Connections {
+        target: ThemePreview
+        function onReturned(name: string): void {
+            window.resumeName = name;
+            GalleryState.visible = true;
+        }
+    }
     function toggleFavorite(): void {
         if (!window.selectedName) return;
         Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--favorite", window.pathOf(window.selectedName), "toggle"]);
@@ -162,14 +182,17 @@ PanelWindow {
     // se reintenta cuando llegan los datos; cualquier tecla, busqueda o click
     // lo cancela para no pelear con el usuario.
     property bool jumpPending: false
+    // Destino del salto: el aplicado, o el ultimo visto al volver de la vista previa.
+    property string jumpName: ""
     function jumpToCurrent(): void {
         if (!window.jumpPending) return;
-        const i = window.filtered.indexOf(window.currentPath.split("/").pop());
+        const i = window.filtered.indexOf(window.jumpName || window.currentPath.split("/").pop());
         if (i < 0 || grid.count <= i) return;
         grid.currentIndex = i;
         // Centrado tras el layout de la grilla (antes quedaba cortado abajo).
         Qt.callLater(() => grid.positionViewAtIndex(i, GridView.Center));
         window.jumpPending = false;
+        window.jumpName = "";
     }
     // Diferido: al poblarse el modelo, GridView vuelve currentIndex a 0 despues
     // de emitir countChanged y pisaria el salto.
@@ -178,11 +201,22 @@ PanelWindow {
 
     onShouldShowChanged: {
         if (!window.shouldShow) return;
+        if (window.resumeName) {
+            // Mismo salto diferido que al abrir (la grilla se repuebla y vuelve
+            // currentIndex a 0), pero al ultimo visto y sin tocar los filtros.
+            window.jumpName = window.resumeName;
+            window.resumeName = "";
+            window.jumpPending = true;
+            window.jumpToCurrent();
+            grid.forceActiveFocus();
+            return;
+        }
         window.query = "";
         searchField.text = "";
         window.onlyFavorites = false;
         window.onlyRecent = false;
         window.activeTag = "";
+        window.jumpName = "";
         window.jumpPending = true;
         window.jumpToCurrent();
         grid.forceActiveFocus();
@@ -428,6 +462,9 @@ PanelWindow {
                         } else if (event.key === Qt.Key_T) {
                             preview.focusTagInput();
                             event.accepted = true;
+                        } else if (event.key === Qt.Key_Space) {
+                            window.startPreview();
+                            event.accepted = true;
                         } else if (event.key === Qt.Key_Slash) {
                             searchField.forceActiveFocus();
                             event.accepted = true;
@@ -534,7 +571,7 @@ PanelWindow {
 
                 Text {
                     Layout.fillWidth: true
-                    text: window.filtered.length + " de " + window.names.length + " wallpapers   ·   ↑↓←→ mover   ⏎ aplicar   F favorito   T etiqueta   / buscar   esc cerrar"
+                    text: window.filtered.length + " de " + window.names.length + " wallpapers   ·   ↑↓←→ mover   ⏎ aplicar   espacio vista previa   F favorito   T etiqueta   / buscar   esc cerrar"
                     elide: Text.ElideRight
                     color: Colors.m3onSurfaceVariant
                     font.family: Tokens.font.ui
@@ -563,6 +600,7 @@ PanelWindow {
                 canUndo: ThemeState.canUndo
                 undoTarget: ThemeState.previous ? ThemeState.previous.wallpaper.split("/").pop() : ""
                 onUndoRequested: window.undo()
+                onPreviewRequested: window.startPreview()
             }
         }
     }

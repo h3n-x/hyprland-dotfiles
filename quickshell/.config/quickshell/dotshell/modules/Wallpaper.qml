@@ -17,7 +17,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import ".." // Colors.qml, Tokens.qml, ThemeState.qml
+import ".." // Colors.qml, Tokens.qml, ThemeState.qml, ThemePreview.qml
 
 PanelWindow {
     id: root
@@ -41,10 +41,13 @@ PanelWindow {
     readonly property bool active: ThemeState.settled ? ThemeState.wallpaperBackend === "quickshell" : persist.active
     // Sin JSON de colores todavia: el wallpaper registrado por theme-apply.sh.
     readonly property string wallpaper: Colors.image || (ThemeState.current && ThemeState.current.wallpaper) || persist.image
-    readonly property url target: (root.active && root.wallpaper) ? "file://" + root.wallpaper : ""
-    // El que se acaba de pedir: se decodifica mientras corre matugen.
-    readonly property url upcoming: (root.active && ThemeState.current && ThemeState.current.wallpaper)
-        ? "file://" + ThemeState.current.wallpaper : ""
+    // Lo que se muestra: el candidato de la vista previa (B7) o el aplicado.
+    readonly property string shownPath: ThemePreview.wallpaper || root.wallpaper
+    readonly property url target: (root.active && root.shownPath) ? "file://" + root.shownPath : ""
+    // El que se acaba de pedir: se decodifica mientras corre matugen, o el
+    // paso de la vista previa (la paleta espera a que este listo).
+    readonly property string upcomingPath: ThemePreview.requested || (ThemeState.current && ThemeState.current.wallpaper) || ""
+    readonly property url upcoming: (root.active && root.upcomingPath) ? "file://" + root.upcomingPath : ""
 
     // Tamaño fijo de decodificacion (pixeles reales de la pantalla): atarlo al
     // tamaño de la ventana reinicia la decodificacion mientras se mapea.
@@ -119,6 +122,14 @@ PanelWindow {
 
     onTargetChanged: root.show()
     onUpcomingChanged: root.preload()
+    // Vista previa del que ya se ve (el aplicado): upcoming no cambia, pero
+    // hay que avisar que esta listo.
+    Connections {
+        target: ThemePreview
+        function onRequestedChanged(): void {
+            root.preload();
+        }
+    }
     Component.onCompleted: root.checkDpr()
 
     // Mostrar root.target: si ya esta precargada en back, el fundido arranca
@@ -149,12 +160,29 @@ PanelWindow {
     // Decodificar en back el wallpaper pedido, sin mostrarlo todavia.
     function preload(): void {
         const src = String(root.upcoming);
-        if (!root.started || !root.dprStable || src === "" || src === String(root.target)
-            || src === String(root.front.source) || src === String(root.back.source))
+        if (src === "")
             return;
+        if (!root.started || !root.dprStable || src === String(root.target) || src === String(root.front.source)) {
+            root.notifyPreview(src);
+            return;
+        }
+        if (src === String(root.back.source)) {
+            if (root.back.status !== Image.Loading)
+                root.notifyPreview(src);
+            return;
+        }
         if (fade.running)
             fade.complete();
         root.back.source = src;
+        // Cache de Qt: ya lista, onStatusChanged no pasa.
+        if (root.back.status !== Image.Loading)
+            root.notifyPreview(src);
+    }
+
+    // Vista previa: la imagen pedida ya se puede mostrar (o no se pudo leer).
+    function notifyPreview(src: string): void {
+        if (ThemePreview.requested && src === "file://" + ThemePreview.requested)
+            ThemePreview.imageReady(ThemePreview.requested);
     }
 
     function reveal(img: Image): void {
@@ -191,13 +219,27 @@ PanelWindow {
         z: this === root.back ? 1 : 0
         opacity: this === root.back ? root.mix : (root.backFailed ? 1 - root.mix : 1)
         onStatusChanged: {
-            if (status === Image.Ready || status === Image.Error)
+            if (status === Image.Ready || status === Image.Error) {
+                root.notifyPreview(String(source));
                 root.reveal(this);
+            }
         }
     }
 
     Slot {
         id: slotA
+    }
+    // Vista previa: el wallpaper aplicado sigue referenciado (oculto) para que
+    // cancelar salga de la cache de Qt al instante. Solo durante la sesion y la
+    // vuelta (fast), ≈ una imagen decodificada extra.
+    Image {
+        visible: false
+        // Mismas opciones que Slot: son parte de la clave de la cache de Qt.
+        fillMode: Image.PreserveAspectCrop
+        sourceSize: root.decodeSize
+        asynchronous: true
+        source: (root.active && root.wallpaper && (ThemePreview.active || ThemePreview.wallpaper || ThemePreview.fast))
+            ? "file://" + root.wallpaper : ""
     }
     Slot {
         id: slotB
@@ -210,7 +252,7 @@ PanelWindow {
         property: "mix"
         from: 0
         to: 1
-        duration: Tokens.motion.theme
+        duration: ThemePreview.fast ? Tokens.motion.medium : Tokens.motion.theme
         easing.type: Easing.BezierSpline
         easing.bezierCurve: Tokens.motion.easeStandard
         onFinished: root.swap()
