@@ -22,6 +22,8 @@ Item {
     readonly property var favorites: adapter.favorites
     readonly property var tags: adapter.tags
     readonly property var prefs: adapter.prefs
+    // Excepciones por wallpaper (Fase 3 B8b): ruta -> {seed, scheme}.
+    readonly property var overrides: adapter.overrides
     // true tras la primera lectura correcta (la carga es asincrona: al primer
     // uso los valores son los por defecto durante ~150 ms).
     property bool loaded: false
@@ -100,6 +102,7 @@ Item {
             property var favorites: []
             property var tags: ({})
             property var prefs: ({})
+            property var overrides: ({})
         }
     }
 }

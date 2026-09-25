@@ -1,0 +1,248 @@
+// Opciones de color de UN wallpaper (Fase 3 B8b): color base y esquema.
+//
+// Color base: los candidatos que matugen encuentra en la imagen (el dominante
+// primero, marcado con un punto) o, si la imagen no tiene un color claro, 8
+// colores predefinidos (decision B8h). Esquema: Predeterminado (el global) o
+// uno propio; "Mas..." muestra el resto. Elegir guarda la excepcion al
+// instante (decision B8b-1, como favoritos y etiquetas); "Restablecer" la
+// borra. No se aplica nada: la paleta de la vista previa (y de Aplicar) sale de
+// la cache, que theme-apply.sh refresca tras cada cambio.
+import QtQuick
+import QtQuick.Layouts
+import ".." // Colors.qml, Tokens.qml
+
+ColumnLayout {
+    id: root
+
+    property var candidates: []
+    property bool noColor: false
+    // Opciones efectivas de la cache ({seed, scheme, contrast}) y excepcion guardada.
+    property var opts: null
+    property var override: null
+
+    signal seedChosen(string seed)
+    signal schemeChosen(string scheme) // "" = predeterminado
+    signal resetRequested()
+
+    readonly property var presets: ["#d9534f", "#e8894a", "#d9a93a", "#5f9e5a", "#3a9e96", "#4a7fd4", "#6a5fc8", "#c95f9b"]
+    readonly property var swatches: root.noColor ? root.presets : root.candidates
+    readonly property string seed: root.opts ? root.opts.seed : ""
+    readonly property string overrideScheme: root.override && root.override.scheme ? root.override.scheme : ""
+    readonly property var mainSchemes: ["scheme-content", "scheme-tonal-spot", "scheme-vibrant"]
+    readonly property var moreSchemes: ["scheme-expressive", "scheme-fidelity", "scheme-neutral", "scheme-monochrome",
+                                        "scheme-rainbow", "scheme-fruit-salad"]
+    readonly property var schemeNames: ({
+        "scheme-content": "Contenido", "scheme-tonal-spot": "Tonal", "scheme-vibrant": "Vibrante",
+        "scheme-expressive": "Expresivo", "scheme-fidelity": "Fidelidad", "scheme-neutral": "Neutro",
+        "scheme-monochrome": "Monocromo", "scheme-rainbow": "Arcoíris", "scheme-fruit-salad": "Macedonia" })
+    // "Mas..." abierto; tambien si el esquema propio es uno de los de adentro.
+    property bool showMore: false
+    readonly property bool moreSelected: root.moreSchemes.indexOf(root.overrideScheme) >= 0
+
+    spacing: Tokens.space.sm
+
+    // Chip de eleccion: el elegido se marca con el relleno (como los filtros de la galeria).
+    component Chip: Rectangle {
+        id: chip
+        property string text
+        property bool selected: false
+        property string trailingIcon: ""
+        signal clicked()
+        implicitHeight: Tokens.pill.height - Tokens.space.xs
+        // Relleno algo menor que el de los chips de etiquetas: los cinco entran en una fila.
+        implicitWidth: chipRow.implicitWidth + (Tokens.space.xs + Tokens.space.hair) * 2
+        radius: Tokens.radius.pill(height)
+        color: chip.selected ? Colors.m3secondaryContainer : "transparent"
+        border.color: chip.selected ? "transparent" : Colors.m3outlineVariant
+        StateLayer {
+            hovered: chipMouse.containsMouse
+            pressed: chipMouse.pressed
+            contentColor: chip.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+        }
+        Row {
+            id: chipRow
+            anchors.centerIn: parent
+            spacing: Tokens.space.hair
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: chip.text
+                color: chip.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.label
+                font.weight: chip.selected ? Tokens.weight.semibold : Tokens.weight.regular
+            }
+            Icon {
+                visible: chip.trailingIcon !== ""
+                name: chip.trailingIcon
+                size: Tokens.icon.sm
+                color: chip.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+            }
+        }
+        MouseArea {
+            id: chipMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: chip.clicked()
+        }
+    }
+
+    RowLayout {
+        Layout.fillWidth: true
+        Text {
+            text: "ESTE WALLPAPER"
+            color: Colors.m3onSurfaceVariant
+            font.family: Tokens.font.ui
+            font.pixelSize: Tokens.type.caption
+            font.weight: Tokens.weight.semibold
+            font.letterSpacing: 0.6
+        }
+        Item { Layout.fillWidth: true }
+        Text {
+            visible: !!root.override
+            text: "Personalizado ·"
+            color: Colors.m3onSurfaceVariant
+            font.family: Tokens.font.ui
+            font.pixelSize: Tokens.type.caption
+        }
+        Rectangle {
+            visible: !!root.override
+            implicitHeight: resetRow.implicitHeight + Tokens.space.hair * 2
+            implicitWidth: resetRow.implicitWidth + Tokens.space.xs * 2
+            radius: Tokens.radius.sm
+            color: "transparent"
+            StateLayer { hovered: resetMouse.containsMouse; pressed: resetMouse.pressed; contentColor: Colors.m3primary }
+            Row {
+                id: resetRow
+                anchors.centerIn: parent
+                spacing: Tokens.space.hair
+                Icon { name: "restart_alt"; size: Tokens.icon.sm; color: Colors.m3primary }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Restablecer"
+                    color: Colors.m3primary
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.caption
+                    font.weight: Tokens.weight.semibold
+                }
+            }
+            MouseArea {
+                id: resetMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.resetRequested()
+            }
+        }
+    }
+
+    RowLayout {
+        Layout.fillWidth: true
+        Text {
+            text: "Color base"
+            color: Colors.m3onSurface
+            font.family: Tokens.font.ui
+            font.pixelSize: Tokens.type.label
+        }
+        Item { Layout.fillWidth: true }
+        Text {
+            text: root.noColor ? "sin color claro en la imagen" : (root.seed === root.candidates[0] ? "dominante" : "elegido")
+            color: Colors.m3onSurfaceVariant
+            font.family: Tokens.font.ui
+            font.pixelSize: Tokens.type.caption
+        }
+    }
+    Row {
+        spacing: root.noColor ? Tokens.space.sm : Tokens.space.md
+        Repeater {
+            model: root.swatches
+            Item {
+                id: sw
+                required property string modelData
+                required property int index
+                readonly property bool sel: sw.modelData.toLowerCase() === root.seed
+                width: root.noColor ? 28 : 32
+                height: width + 7
+                // Anillo del elegido.
+                Rectangle {
+                    width: sw.width; height: sw.width; radius: width / 2
+                    color: "transparent"
+                    border.width: sw.sel ? 2 : 0
+                    border.color: Colors.m3primary
+                }
+                Rectangle {
+                    x: sw.sel ? 4 : 0; y: x
+                    width: sw.width - (sw.sel ? 8 : 0); height: width; radius: width / 2
+                    color: sw.modelData
+                    border.color: Qt.alpha(Colors.m3onSurface, 0.15)
+                    scale: swMouse.containsMouse && !sw.sel ? 1.08 : 1
+                    Behavior on scale { NumberAnimation { duration: Tokens.motion.fast } }
+                }
+                // Punto del dominante.
+                Rectangle {
+                    visible: !root.noColor && sw.index === 0
+                    x: (sw.width - width) / 2; y: sw.width + 3
+                    width: 4; height: 4; radius: 2
+                    color: Colors.m3onSurfaceVariant
+                }
+                MouseArea {
+                    id: swMouse
+                    width: sw.width; height: sw.width
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: if (!sw.sel) root.seedChosen(sw.modelData.toLowerCase())
+                }
+            }
+        }
+    }
+
+    Text {
+        Layout.topMargin: Tokens.space.hair
+        text: "Esquema"
+        color: Colors.m3onSurface
+        font.family: Tokens.font.ui
+        font.pixelSize: Tokens.type.label
+    }
+    Flow {
+        Layout.fillWidth: true
+        spacing: Tokens.space.xs
+        Chip {
+            text: "Predeterminado"
+            selected: root.overrideScheme === ""
+            onClicked: if (!selected) root.schemeChosen("")
+        }
+        Repeater {
+            model: root.mainSchemes
+            Chip {
+                required property string modelData
+                text: root.schemeNames[modelData]
+                selected: root.overrideScheme === modelData
+                onClicked: if (!selected) root.schemeChosen(modelData)
+            }
+        }
+        // Con un esquema de "Mas..." elegido, el chip lo nombra.
+        Chip {
+            text: root.moreSelected ? root.schemeNames[root.overrideScheme] : "Más"
+            selected: root.moreSelected
+            trailingIcon: root.showMore ? "expand_less" : "expand_more"
+            onClicked: root.showMore = !root.showMore
+        }
+    }
+    Flow {
+        visible: root.showMore
+        Layout.fillWidth: true
+        spacing: Tokens.space.xs
+        Repeater {
+            model: root.moreSchemes
+            Chip {
+                required property string modelData
+                text: root.schemeNames[modelData]
+                selected: root.overrideScheme === modelData
+                onClicked: {
+                    if (!selected) root.schemeChosen(modelData);
+                    root.showMore = false;
+                }
+            }
+        }
+    }
+}

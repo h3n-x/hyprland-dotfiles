@@ -4,6 +4,7 @@
 // Todo en memoria: no escribe ningun archivo de tema. La vista previa en vivo
 // de la shell real es el boton del ojo (B7, ThemePreview.qml). Etiquetas del wallpaper (B4): chips con quitar
 // y un campo para agregar; los cambios los escribe theme-apply.sh --tag.
+// Opciones de color del wallpaper (B8b): ThemeOptions.qml.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Widgets
@@ -23,6 +24,9 @@ ColumnLayout {
     property string appliedAgo: ""
     property bool canUndo: false
     property string undoTarget: ""
+    // Opciones de color (Fase 3 B8b): entrada de la cache y excepcion guardada.
+    property var entry: null
+    property var override: null
 
     signal applyRequested()
     signal favoriteToggled()
@@ -31,6 +35,9 @@ ColumnLayout {
     // El campo de etiqueta termino (Enter vacio o Esc): volver a la grilla.
     signal tagInputDone()
     signal undoRequested()
+    signal seedChosen(string seed)
+    signal schemeChosen(string scheme)
+    signal resetRequested()
     // Vista previa en todo el escritorio (Fase 3 B7).
     signal previewRequested()
 
@@ -319,6 +326,17 @@ ColumnLayout {
     }
 
     Item { Layout.fillHeight: true }
+
+    ThemeOptions {
+        Layout.fillWidth: true
+        candidates: root.entry && root.entry.candidates ? root.entry.candidates : []
+        noColor: !!(root.entry && root.entry.no_color)
+        opts: root.entry ? root.entry.opts : null
+        override: root.override
+        onSeedChosen: (seed) => root.seedChosen(seed)
+        onSchemeChosen: (scheme) => root.schemeChosen(scheme)
+        onResetRequested: root.resetRequested()
+    }
 
     // Acciones.
     RowLayout {

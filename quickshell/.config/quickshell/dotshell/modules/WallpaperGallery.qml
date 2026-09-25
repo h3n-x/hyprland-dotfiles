@@ -30,6 +30,12 @@
 // muestran el seleccionado en todo el escritorio (ThemePreview.qml); la lista
 // filtrada pasa a la barra de la vista previa para <- / ->. Esc vuelve aca con
 // los mismos filtros y sobre el ultimo wallpaper visto.
+//
+// Opciones de color (Fase 3 B8b): la columna derecha tiene las del wallpaper
+// elegido (color base, esquema: excepcion guardada al instante) y el boton
+// "Tema global" abre las de todos (esquema predeterminado, contraste). Ambas
+// pasan por theme-apply.sh (--override / --prefs), que refresca la cache: la
+// vista previa sigue mostrando exactamente lo que dara Aplicar.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -94,6 +100,8 @@ PanelWindow {
     property bool onlyFavorites: false
     property bool onlyRecent: false
     property string activeTag: ""
+    // Panel "Tema global" abierto.
+    property bool showGlobals: false
 
     // Wallpapers del historial en orden cronologico (solo los que estan en la cache).
     readonly property var recentNames: (ThemeState.recent || [])
@@ -143,6 +151,21 @@ PanelWindow {
             GalleryState.visible = true;
         }
     }
+    // Opciones de color (B8b).
+    function setOverride(kind: string, value: string): void {
+        if (!window.selectedName) return;
+        // value "" = volver al predeterminado solo en ese campo.
+        Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--override", window.pathOf(window.selectedName),
+                                 kind, value === "" ? "default" : value]);
+    }
+    function resetOverride(): void {
+        if (!window.selectedName) return;
+        Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--override", window.pathOf(window.selectedName), "reset"]);
+    }
+    function setPref(kind: string, value: string): void {
+        Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--prefs", kind, value]);
+    }
+
     function toggleFavorite(): void {
         if (!window.selectedName) return;
         Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--favorite", window.pathOf(window.selectedName), "toggle"]);
@@ -200,6 +223,7 @@ PanelWindow {
     onCurrentPathChanged: Qt.callLater(window.jumpToCurrent)
 
     onShouldShowChanged: {
+        window.showGlobals = false;
         if (!window.shouldShow) return;
         if (window.resumeName) {
             // Mismo salto diferido que al abrir (la grilla se repuebla y vuelve
@@ -254,6 +278,43 @@ PanelWindow {
         // MouseArea de fondo y cerraria la galeria.
         MouseArea { anchors.fill: parent }
 
+        // Panel "Tema global" (B8b). Con el panel abierto, un clic en cualquier
+        // otro lugar de la tarjeta lo cierra (y no hace nada mas).
+        MouseArea {
+            anchors.fill: parent
+            z: 19
+            visible: window.showGlobals
+            onClicked: window.showGlobals = false
+        }
+        // Se crea al abrirse: una Surface creada oculta no aporta nada y su
+        // sombra (MultiEffect) queda sin inicializar hasta mostrarse.
+        Loader {
+            id: globalPanel
+            z: 20
+            active: window.showGlobals
+            x: globalBtn.mapToItem(card, 0, 0).x + globalBtn.width - width
+            y: globalBtn.mapToItem(card, 0, 0).y + globalBtn.height + Tokens.space.sm
+            sourceComponent: Surface {
+                level: 3
+                radius: Tokens.radius.lg
+                width: Tokens.panel.widthMd
+                height: globalContent.implicitHeight + Tokens.space.lg * 2
+                // Los clics dentro del panel no llegan a la capa que lo cierra.
+                MouseArea { anchors.fill: parent }
+                GlobalThemeOptions {
+                    id: globalContent
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: Tokens.space.lg
+                    scheme: (ThemeState.prefs && ThemeState.prefs.scheme) || "scheme-content"
+                    contrast: (ThemeState.prefs && ThemeState.prefs.contrast) || 0
+                    onSchemeChosen: (scheme) => window.setPref("scheme", scheme)
+                    onContrastChosen: (contrast) => window.setPref("contrast", String(contrast))
+                }
+            }
+        }
+
         RowLayout {
             anchors.fill: parent
             anchors.margins: Tokens.space.md
@@ -304,7 +365,10 @@ PanelWindow {
                             }
                             Keys.onDownPressed: grid.forceActiveFocus()
                             Keys.onReturnPressed: grid.forceActiveFocus()
-                            Keys.onEscapePressed: GalleryState.visible = false
+                            Keys.onEscapePressed: {
+                                if (window.showGlobals) window.showGlobals = false;
+                                else GalleryState.visible = false;
+                            }
                         }
                         Text {
                             visible: searchField.text.length === 0
@@ -384,6 +448,47 @@ PanelWindow {
                             }
                         }
                     }
+
+                    // Opciones de todos los wallpapers (B8b): abre el panel.
+                    Rectangle {
+                        id: globalBtn
+                        implicitHeight: Tokens.row.height
+                        implicitWidth: globalRow.implicitWidth + Tokens.pad.pillH * 2
+                        radius: Tokens.radius.sm
+                        color: window.showGlobals ? Colors.m3secondaryContainer : "transparent"
+                        border.color: window.showGlobals ? Colors.m3secondaryContainer : Colors.m3outlineVariant
+                        Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
+                        StateLayer {
+                            hovered: globalMouse.containsMouse
+                            pressed: globalMouse.pressed
+                            contentColor: window.showGlobals ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                        }
+                        Row {
+                            id: globalRow
+                            anchors.centerIn: parent
+                            spacing: Tokens.space.xs
+                            Icon {
+                                name: "tune"
+                                size: Tokens.icon.sm
+                                color: window.showGlobals ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                            }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "Tema global"
+                                color: window.showGlobals ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                                font.family: Tokens.font.ui
+                                font.pixelSize: Tokens.type.label
+                                font.weight: window.showGlobals ? Tokens.weight.semibold : Tokens.weight.medium
+                            }
+                        }
+                        MouseArea {
+                            id: globalMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: window.showGlobals = !window.showGlobals
+                        }
+                    }
                 }
 
                 // Filtro por etiqueta: una a la vez, click de nuevo para quitarlo.
@@ -451,7 +556,10 @@ PanelWindow {
 
                     Keys.onReturnPressed: window.apply()
                     Keys.onEnterPressed: window.apply()
-                    Keys.onEscapePressed: GalleryState.visible = false
+                    Keys.onEscapePressed: {
+                        if (window.showGlobals) window.showGlobals = false;
+                        else GalleryState.visible = false;
+                    }
                     onCountChanged: Qt.callLater(window.jumpToCurrent)
 
                     Keys.onPressed: (event) => {
@@ -601,6 +709,11 @@ PanelWindow {
                 undoTarget: ThemeState.previous ? ThemeState.previous.wallpaper.split("/").pop() : ""
                 onUndoRequested: window.undo()
                 onPreviewRequested: window.startPreview()
+                entry: window.selectedName ? window.index[window.selectedName] : null
+                override: window.selectedName && ThemeState.overrides ? (ThemeState.overrides[window.pathOf(window.selectedName)] || null) : null
+                onSeedChosen: (seed) => window.setOverride("seed", seed)
+                onSchemeChosen: (scheme) => window.setOverride("scheme", scheme)
+                onResetRequested: window.resetOverride()
             }
         }
     }

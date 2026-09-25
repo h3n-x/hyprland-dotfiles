@@ -11,7 +11,8 @@
 #   theme-apply.sh --undo [--no-notify] [--dry-run]   (tema anterior del historial, B5)
 #   theme-apply.sh --backend quickshell|hyprpaper|status   (quien dibuja el wallpaper, B6)
 #   theme-apply.sh --prefs scheme <tipo>|contrast <0..1>|reset   (valores globales, B8a)
-#   theme-apply.sh --override <wallpaper> seed <#hex>|scheme <tipo>|reset   (excepcion por wallpaper, B8a)
+#   theme-apply.sh --override <wallpaper> seed <#hex>|scheme <tipo>|reset   (excepcion por wallpaper, B8a;
+#                  "default" en seed o scheme quita solo ese campo, B8b)
 #
 # Una sola aplicacion a la vez: cada llamada deja su pedido en un archivo (el
 # ultimo pisa al anterior) y solo un proceso "worker", protegido con flock,
@@ -98,7 +99,7 @@ die() {
 }
 
 usage() {
-  sed -n '6,14p' "$0" | sed 's/^# \{0,3\}//' >&2
+  sed -n '6,15p' "$0" | sed 's/^# \{0,3\}//' >&2
   exit 2
 }
 
@@ -550,6 +551,19 @@ if [ "${1:-}" = "--override" ]; then
   owp="$(readlink -f -- "$2")"
   [ -f "$owp" ] || die "no existe: $2"
   init_state
+  # "default": quitar solo ese campo (y la excepcion entera si queda vacia).
+  if [ "${4:-}" = default ] && { [ "$3" = seed ] || [ "$3" = scheme ]; }; then
+    _set_override() {
+      jq --arg wp "$owp" --arg k "$3" '.overrides = (.overrides // {})
+        | .overrides[$wp] = ((.overrides[$wp] // {}) | del(.[$k]))
+        | if (.overrides[$wp] | length) == 0 then .overrides |= del(.[$wp]) else . end' "$STATE" > "$STATE.tmp" \
+        && mv "$STATE.tmp" "$STATE"
+    }
+    with_state_lock _set_override "$@"
+    log "override: $owp $3 predeterminado"
+    refresh_cache
+    exit 0
+  fi
   case "$3" in
     seed)
       [ $# -eq 4 ] || usage
