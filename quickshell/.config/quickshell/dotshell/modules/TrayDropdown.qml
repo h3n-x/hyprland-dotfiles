@@ -3,7 +3,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 PopupWindow {
     id: popup
@@ -28,7 +28,7 @@ PopupWindow {
         popup.currentMenuAnchor = null;
     }
 
-    implicitWidth: 220
+    implicitWidth: Tokens.panel.widthSm
     implicitHeight: card.implicitHeight
     color: "transparent"
     grabFocus: true
@@ -53,26 +53,31 @@ PopupWindow {
     Rectangle {
         id: card
         width: popup.implicitWidth
-        implicitHeight: layout.implicitHeight + 20
-        radius: 14
-        color: Colors.bg1
-        border.color: Colors.br
+        implicitHeight: layout.implicitHeight + Tokens.pad.card * 2
+        // Nivel de elevacion 2 (surface_container) con borde sutil; radio lg con
+        // inset de 8 para que las filas (radio sm) queden concentricas (Q1).
+        radius: Tokens.radius.lg
+        color: Colors.m3surfaceContainer
+        border.color: Colors.m3outlineVariant
         border.width: 1
 
         ColumnLayout {
             id: layout
             anchors.fill: parent
-            anchors.margins: 10
-            spacing: 8
+            anchors.margins: Tokens.pad.card
+            spacing: Tokens.space.xs
 
-            // Cabecera con icono y nombre de la app
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                Layout.leftMargin: Tokens.space.md
+                Layout.rightMargin: Tokens.space.md
+                Layout.topMargin: Tokens.space.xs
+                Layout.bottomMargin: Tokens.space.xs
+                spacing: Tokens.gap.inline
 
                 Image {
-                    width: 18
-                    height: 18
+                    Layout.preferredWidth: Tokens.icon.sm
+                    Layout.preferredHeight: Tokens.icon.sm
                     source: popup.currentItem ? (popup.currentItem.icon || "") : ""
                     smooth: true
                     visible: source !== ""
@@ -80,9 +85,10 @@ PopupWindow {
 
                 Text {
                     text: popup.currentItem ? (popup.currentItem.title || popup.currentItem.id || "Aplicación") : ""
-                    color: Colors.fg
-                    font.pixelSize: 13
-                    font.bold: true
+                    color: Colors.m3onSurface
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.title
+                    font.weight: Tokens.weight.semibold
                     Layout.fillWidth: true
                     elide: Text.ElideRight
                 }
@@ -90,32 +96,34 @@ PopupWindow {
 
             Rectangle {
                 Layout.fillWidth: true
-                height: 1
-                color: Colors.br
+                Layout.topMargin: Tokens.space.xs
+                Layout.bottomMargin: Tokens.space.xs
+                implicitHeight: 1
+                color: Colors.m3outlineVariant
             }
 
-            // Opcion 1: Abrir ventana
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: 32
-                radius: 8
-                color: openMouse.containsMouse ? Colors.hoverBg : "transparent"
+                implicitHeight: Tokens.row.height
+                radius: Tokens.radius.sm
+                color: "transparent"
+
+                StateLayer { hovered: openMouse.containsMouse; pressed: openMouse.pressed; contentColor: Colors.m3onSurface }
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 6
-                    spacing: 8
+                    anchors.leftMargin: Tokens.space.md
+                    anchors.rightMargin: Tokens.space.md
+                    spacing: Tokens.gap.inline
 
-                    Text {
-                        text: "󰅍"
-                        color: Colors.fg
-                        font.pixelSize: 14
-                    }
+                    Icon { name: "open_in_new"; color: Colors.m3onSurface }
 
                     Text {
                         text: "Abrir ventana"
-                        color: Colors.fg
-                        font.pixelSize: 12
+                        color: Colors.m3onSurface
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.body
+                        font.weight: Tokens.weight.regular
                         Layout.fillWidth: true
                     }
                 }
@@ -124,36 +132,35 @@ PopupWindow {
                     id: openMouse
                     anchors.fill: parent
                     hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         if (popup.currentItem) popup.currentItem.activate();
                         popup.close();
                     }
                 }
             }
-
-            // Opcion 2: Detener aplicacion
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: 32
-                radius: 8
-                color: stopMouse.containsMouse ? Colors.hoverBg : "transparent"
+                implicitHeight: Tokens.row.height
+                radius: Tokens.radius.sm
+                color: "transparent"
+
+                StateLayer { hovered: stopMouse.containsMouse; pressed: stopMouse.pressed; contentColor: Colors.m3error }
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 6
-                    spacing: 8
+                    anchors.leftMargin: Tokens.space.md
+                    anchors.rightMargin: Tokens.space.md
+                    spacing: Tokens.gap.inline
 
-                    Text {
-                        text: "󰓛"
-                        color: Colors.critical
-                        font.pixelSize: 14
-                    }
+                    Icon { name: "stop_circle"; color: Colors.m3error }
 
                     Text {
                         text: "Detener aplicación"
-                        color: Colors.critical
-                        font.pixelSize: 12
-                        font.bold: true
+                        color: Colors.m3error
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.body
+                        font.weight: Tokens.weight.medium
                         Layout.fillWidth: true
                     }
                 }
@@ -162,6 +169,7 @@ PopupWindow {
                     id: stopMouse
                     anchors.fill: parent
                     hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         if (popup.currentItem) {
                             const id = popup.currentItem.id || "";
@@ -172,30 +180,29 @@ PopupWindow {
                     }
                 }
             }
-
-            // Opcion 3: Menu nativo (si la app provee uno)
             Rectangle {
-                visible: popup.currentItem && popup.currentItem.hasMenu
+                    visible: !!(popup.currentItem && popup.currentItem.hasMenu)
                 Layout.fillWidth: true
-                implicitHeight: 32
-                radius: 8
-                color: nativeMouse.containsMouse ? Colors.hoverBg : "transparent"
+                implicitHeight: Tokens.row.height
+                radius: Tokens.radius.sm
+                color: "transparent"
+
+                StateLayer { hovered: nativeMouse.containsMouse; pressed: nativeMouse.pressed; contentColor: Colors.m3onSurface }
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 6
-                    spacing: 8
+                    anchors.leftMargin: Tokens.space.md
+                    anchors.rightMargin: Tokens.space.md
+                    spacing: Tokens.gap.inline
 
-                    Text {
-                        text: "󰍜"
-                        color: Colors.fg
-                        font.pixelSize: 14
-                    }
+                    Icon { name: "menu"; color: Colors.m3onSurface }
 
                     Text {
                         text: "Menú contextual nativo"
-                        color: Colors.fg
-                        font.pixelSize: 12
+                        color: Colors.m3onSurface
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.body
+                        font.weight: Tokens.weight.regular
                         Layout.fillWidth: true
                     }
                 }
@@ -204,6 +211,7 @@ PopupWindow {
                     id: nativeMouse
                     anchors.fill: parent
                     hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         const anchor = popup.currentMenuAnchor;
                         popup.close();

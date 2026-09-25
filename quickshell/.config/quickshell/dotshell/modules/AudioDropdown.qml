@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 PopupWindow {
     id: popup
@@ -39,7 +39,7 @@ PopupWindow {
         if (popup.visible) popup.refresh();
     }
 
-    implicitWidth: 320
+    implicitWidth: Tokens.panel.widthMd
     implicitHeight: Math.min(460, card.implicitHeight)
     color: "transparent"
     grabFocus: true
@@ -64,64 +64,72 @@ PopupWindow {
     Rectangle {
         id: card
         width: popup.implicitWidth
-        implicitHeight: layout.implicitHeight + 24
-        radius: 16
-        color: Colors.bg1
-        border.color: Colors.br
+        implicitHeight: layout.implicitHeight + Tokens.pad.card * 2
+        // Nivel de elevacion 2 (surface_container) con borde sutil; radio lg con
+        // inset de 8 para que las filas (radio sm) queden concentricas (Q1).
+        radius: Tokens.radius.lg
+        color: Colors.m3surfaceContainer
+        border.color: Colors.m3outlineVariant
         border.width: 1
 
         ColumnLayout {
             id: layout
             anchors.fill: parent
-            anchors.margins: 12
-            spacing: 10
+            anchors.margins: Tokens.pad.card
+            spacing: Tokens.space.xs
 
-            // Encabezado
+            // Encabezado con el mismo inset horizontal que el texto de las filas.
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
-
-                Text {
-                    text: "󰓃"
-                    color: Colors.accent
-                    font.pixelSize: 16
-                }
+                Layout.leftMargin: Tokens.space.md
+                Layout.rightMargin: Tokens.space.xs
+                Layout.topMargin: Tokens.space.xs
+                Layout.bottomMargin: Tokens.space.xs
+                spacing: Tokens.gap.inline
 
                 ColumnLayout {
-                    spacing: 1
+                    spacing: 0
                     Layout.fillWidth: true
 
                     Text {
-                        text: "Dispositivos de Audio"
-                        color: Colors.fg
-                        font.pixelSize: 13
-                        font.bold: true
+                        text: "Dispositivos de audio"
+                        color: Colors.m3onSurface
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.title
+                        font.weight: Tokens.weight.semibold
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
                     }
-
                     Text {
-                        text: "Salidas y Micrófonos (PipeWire)"
-                        color: Colors.br
-                        font.pixelSize: 10
+                        text: "Salidas y micrófonos (PipeWire)"
+                        color: Colors.m3onSurfaceVariant
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.caption
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
                     }
                 }
 
                 Rectangle {
-                    width: 26
-                    height: 26
-                    radius: 13
-                    color: refMouse.containsMouse ? Colors.hoverBg : "transparent"
+                    implicitWidth: Tokens.pill.height
+                    implicitHeight: Tokens.pill.height
+                    radius: Tokens.radius.pill(height)
+                    color: "transparent"
 
-                    Text {
+                    StateLayer { hovered: refMouse.containsMouse; pressed: refMouse.pressed }
+
+                    Icon {
                         anchors.centerIn: parent
-                        text: "󰑐"
-                        color: Colors.fg
-                        font.pixelSize: 13
+                        name: "refresh"
+                        filled: false
+                        color: Colors.m3onSurface
                     }
 
                     MouseArea {
                         id: refMouse
                         anchors.fill: parent
                         hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
                         onClicked: popup.refresh()
                     }
                 }
@@ -129,17 +137,21 @@ PopupWindow {
 
             Rectangle {
                 Layout.fillWidth: true
-                height: 1
-                color: Colors.br
+                Layout.topMargin: Tokens.space.xs
+                Layout.bottomMargin: Tokens.space.xs
+                implicitHeight: 1
+                color: Colors.m3outlineVariant
             }
 
-            // Seccion Salidas (Sinks)
             Text {
                 text: "SALIDA (ALTAVOCES / AURICULARES)"
-                color: Colors.accent
-                font.pixelSize: 10
-                font.bold: true
-                Layout.topMargin: 2
+                color: Colors.m3primary
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.caption
+                font.weight: Tokens.weight.semibold
+                Layout.leftMargin: Tokens.space.md
+                Layout.topMargin: Tokens.space.xs
+                Layout.bottomMargin: Tokens.space.xs
             }
 
             Repeater {
@@ -148,37 +160,43 @@ PopupWindow {
                 Rectangle {
                     id: sinkRow
                     required property var modelData
+                    readonly property bool selected: sinkRow.modelData.default
                     Layout.fillWidth: true
-                    implicitHeight: 34
-                    radius: 8
-                    color: sinkMouse.containsMouse ? Colors.hoverBg : (sinkRow.modelData.default ? Colors.bg2 : "transparent")
+                    implicitHeight: Tokens.row.height
+                    radius: Tokens.radius.sm
+                    // Fila seleccionada (conectada / por defecto) en secondary
+                    // container (decision C3); el hover lo da la StateLayer.
+                    color: sinkRow.selected ? Colors.m3secondaryContainer : "transparent"
+
+                    StateLayer { hovered: sinkMouse.containsMouse; pressed: sinkMouse.pressed }
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: 6
-                        spacing: 8
+                        anchors.leftMargin: Tokens.space.md
+                        anchors.rightMargin: Tokens.space.md
+                        spacing: Tokens.gap.inline
 
-                        Text {
-                            text: sinkRow.modelData.name.toLowerCase().includes("headphone") ? "󰋋" : "󰓃"
-                            color: sinkRow.modelData.default ? Colors.accent : Colors.fg
-                            font.pixelSize: 14
+                        Icon {
+                            name: sinkRow.modelData.name.toLowerCase().includes("headphone") ? "headphones" : "speaker"
+                            filled: sinkRow.selected
+                            color: sinkRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
                         }
 
                         Text {
                             text: sinkRow.modelData.name
-                            color: sinkRow.modelData.default ? Colors.accent : Colors.fg
-                            font.pixelSize: 12
-                            font.bold: sinkRow.modelData.default
+                            color: sinkRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            font.family: Tokens.font.ui
+                            font.pixelSize: Tokens.type.body
+                            font.weight: sinkRow.selected ? Tokens.weight.medium : Tokens.weight.regular
                             Layout.fillWidth: true
                             elide: Text.ElideRight
                         }
 
-                        Text {
-                            visible: sinkRow.modelData.default
-                            text: "✓"
-                            color: Colors.accent
-                            font.pixelSize: 12
-                            font.bold: true
+                        Icon {
+                            visible: sinkRow.selected
+                            name: "check"
+                            size: Tokens.icon.sm
+                            color: Colors.m3onSecondaryContainer
                         }
                     }
 
@@ -197,18 +215,21 @@ PopupWindow {
 
             Rectangle {
                 Layout.fillWidth: true
-                height: 1
-                color: Colors.br
-                Layout.topMargin: 4
+                Layout.topMargin: Tokens.space.xs
+                Layout.bottomMargin: Tokens.space.xs
+                implicitHeight: 1
+                color: Colors.m3outlineVariant
             }
 
-            // Seccion Entradas (Sources)
             Text {
                 text: "ENTRADA (MICRÓFONO)"
-                color: Colors.charging
-                font.pixelSize: 10
-                font.bold: true
-                Layout.topMargin: 2
+                color: Colors.m3tertiary
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.caption
+                font.weight: Tokens.weight.semibold
+                Layout.leftMargin: Tokens.space.md
+                Layout.topMargin: Tokens.space.xs
+                Layout.bottomMargin: Tokens.space.xs
             }
 
             Repeater {
@@ -217,37 +238,43 @@ PopupWindow {
                 Rectangle {
                     id: srcRow
                     required property var modelData
+                    readonly property bool selected: srcRow.modelData.default
                     Layout.fillWidth: true
-                    implicitHeight: 34
-                    radius: 8
-                    color: srcMouse.containsMouse ? Colors.hoverBg : (srcRow.modelData.default ? Colors.bg2 : "transparent")
+                    implicitHeight: Tokens.row.height
+                    radius: Tokens.radius.sm
+                    // Fila seleccionada (conectada / por defecto) en secondary
+                    // container (decision C3); el hover lo da la StateLayer.
+                    color: srcRow.selected ? Colors.m3secondaryContainer : "transparent"
+
+                    StateLayer { hovered: srcMouse.containsMouse; pressed: srcMouse.pressed }
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: 6
-                        spacing: 8
+                        anchors.leftMargin: Tokens.space.md
+                        anchors.rightMargin: Tokens.space.md
+                        spacing: Tokens.gap.inline
 
-                        Text {
-                            text: "󰍬"
-                            color: srcRow.modelData.default ? Colors.charging : Colors.fg
-                            font.pixelSize: 14
+                        Icon {
+                            name: "mic"
+                            filled: srcRow.selected
+                            color: srcRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
                         }
 
                         Text {
                             text: srcRow.modelData.name
-                            color: srcRow.modelData.default ? Colors.charging : Colors.fg
-                            font.pixelSize: 12
-                            font.bold: srcRow.modelData.default
+                            color: srcRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            font.family: Tokens.font.ui
+                            font.pixelSize: Tokens.type.body
+                            font.weight: srcRow.selected ? Tokens.weight.medium : Tokens.weight.regular
                             Layout.fillWidth: true
                             elide: Text.ElideRight
                         }
 
-                        Text {
-                            visible: srcRow.modelData.default
-                            text: "✓"
-                            color: Colors.charging
-                            font.pixelSize: 12
-                            font.bold: true
+                        Icon {
+                            visible: srcRow.selected
+                            name: "check"
+                            size: Tokens.icon.sm
+                            color: Colors.m3onSecondaryContainer
                         }
                     }
 

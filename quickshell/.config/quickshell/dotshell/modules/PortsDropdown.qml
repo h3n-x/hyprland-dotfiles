@@ -2,7 +2,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 PopupWindow {
     id: popup
@@ -19,7 +19,7 @@ PopupWindow {
         popup.visible = !popup.visible;
     }
 
-    implicitWidth: 340
+    implicitWidth: Tokens.panel.widthLg
     implicitHeight: Math.min(450, card.implicitHeight)
     color: "transparent"
     grabFocus: true
@@ -48,40 +48,42 @@ PopupWindow {
     Rectangle {
         id: card
         width: popup.implicitWidth
-        implicitHeight: layout.implicitHeight + 24
-        radius: 16
-        color: Colors.bg1
-        border.color: Colors.br
+        implicitHeight: layout.implicitHeight + Tokens.pad.card * 2
+        // Nivel de elevacion 2 (surface_container) con borde sutil; radio lg con
+        // inset de 8 para que las filas (radio sm) queden concentricas (Q1).
+        radius: Tokens.radius.lg
+        color: Colors.m3surfaceContainer
+        border.color: Colors.m3outlineVariant
         border.width: 1
 
         ColumnLayout {
             id: layout
             anchors.fill: parent
-            anchors.margins: 12
-            spacing: 10
+            anchors.margins: Tokens.pad.card
+            spacing: Tokens.space.xs
 
-            // Encabezado
+            // Encabezado con el mismo inset horizontal que el texto de las filas.
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
-
-                Text {
-                    text: "󰛳"
-                    color: Colors.accent
-                    font.pixelSize: 16
-                }
+                Layout.leftMargin: Tokens.space.md
+                Layout.rightMargin: Tokens.space.xs
+                Layout.topMargin: Tokens.space.xs
+                Layout.bottomMargin: Tokens.space.xs
+                spacing: Tokens.gap.inline
 
                 ColumnLayout {
-                    spacing: 1
+                    spacing: 0
                     Layout.fillWidth: true
 
                     Text {
-                        text: popup.filterMode === "dev" ? "Puertos Dev / HTB" : "Todos los Puertos"
-                        color: Colors.fg
-                        font.pixelSize: 13
-                        font.bold: true
+                        text: popup.filterMode === "dev" ? "Puertos Dev / HTB" : "Todos los puertos"
+                        color: Colors.m3onSurface
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.title
+                        font.weight: Tokens.weight.semibold
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
                     }
-
                     Text {
                         text: {
                             const count = popup.ports.length;
@@ -90,23 +92,27 @@ PopupWindow {
                             }
                             return count + " sockets en el sistema";
                         }
-                        color: Colors.br
-                        font.pixelSize: 11
+                        color: Colors.m3onSurfaceVariant
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.caption
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
                     }
                 }
 
-                // Botón de alternar filtro Dev/HTB vs Todos
                 Rectangle {
-                    width: 28
-                    height: 28
-                    radius: 14
-                    color: filterMouse.containsMouse ? Colors.hoverBg : "transparent"
+                    implicitWidth: Tokens.pill.height
+                    implicitHeight: Tokens.pill.height
+                    radius: Tokens.radius.pill(height)
+                    color: "transparent"
 
-                    Text {
+                    StateLayer { hovered: filterMouse.containsMouse; pressed: filterMouse.pressed }
+
+                    Icon {
                         anchors.centerIn: parent
-                        text: "󰈲"
-                        color: popup.filterMode === "dev" ? Colors.accent : Colors.br
-                        font.pixelSize: 14
+                        name: "filter_list"
+                        filled: false
+                        color: popup.filterMode === "dev" ? Colors.m3primary : Colors.m3onSurfaceVariant
                     }
 
                     MouseArea {
@@ -117,19 +123,19 @@ PopupWindow {
                         onClicked: popup.filterModeToggled()
                     }
                 }
-
-                // Botón de refresco manual
                 Rectangle {
-                    width: 28
-                    height: 28
-                    radius: 14
-                    color: refreshMouse.containsMouse ? Colors.hoverBg : "transparent"
+                    implicitWidth: Tokens.pill.height
+                    implicitHeight: Tokens.pill.height
+                    radius: Tokens.radius.pill(height)
+                    color: "transparent"
 
-                    Text {
+                    StateLayer { hovered: refreshMouse.containsMouse; pressed: refreshMouse.pressed }
+
+                    Icon {
                         anchors.centerIn: parent
-                        text: "󰑐"
-                        color: Colors.fg
-                        font.pixelSize: 14
+                        name: "refresh"
+                        filled: false
+                        color: Colors.m3onSurface
                     }
 
                     MouseArea {
@@ -144,45 +150,48 @@ PopupWindow {
 
             Rectangle {
                 Layout.fillWidth: true
-                height: 1
-                color: Colors.br
+                Layout.topMargin: Tokens.space.xs
+                Layout.bottomMargin: Tokens.space.xs
+                implicitHeight: 1
+                color: Colors.m3outlineVariant
             }
 
-            // Estado vacio
             Item {
                 visible: popup.ports.length === 0
                 Layout.fillWidth: true
-                implicitHeight: 70
+                implicitHeight: emptyCol.implicitHeight + Tokens.space.lg * 2
 
                 ColumnLayout {
+                    id: emptyCol
                     anchors.centerIn: parent
-                    spacing: 4
+                    spacing: Tokens.space.xs
 
-                    Text {
-                        text: "󰈂"
-                        color: Colors.br
-                        font.pixelSize: 18
+                    Icon {
+                        name: "link_off"
+                        size: Tokens.icon.lg
+                        color: Colors.m3onSurfaceVariant
                         Layout.alignment: Qt.AlignHCenter
                     }
 
                     Text {
                         text: popup.filterMode === "dev" ? "Sin servidores Dev ni listeners HTB" : "No hay puertos en escucha"
-                        color: Colors.br
-                        font.pixelSize: 12
+                        color: Colors.m3onSurfaceVariant
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.label
                         Layout.alignment: Qt.AlignHCenter
                     }
 
                     Text {
                         visible: popup.filterMode === "dev"
                         text: "(Node, Python, Netcat, Chisel, Docker, etc.)"
-                        color: Colors.br
-                        font.pixelSize: 10
+                        color: Colors.m3onSurfaceVariant
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.caption
                         Layout.alignment: Qt.AlignHCenter
                     }
                 }
             }
 
-            // Lista de puertos con scroll si excede la altura
             Flickable {
                 visible: popup.ports.length > 0
                 Layout.fillWidth: true
@@ -195,7 +204,7 @@ PopupWindow {
                 ColumnLayout {
                     id: portCol
                     width: parent.width
-                    spacing: 6
+                    spacing: Tokens.space.xs
 
                     Repeater {
                         model: popup.ports
@@ -204,50 +213,57 @@ PopupWindow {
                             id: portRow
                             required property var modelData
                             Layout.fillWidth: true
-                            implicitHeight: 38
-                            radius: 8
-                            color: rowMouse.containsMouse ? Colors.hoverBg : Colors.bg0
+                            implicitHeight: Tokens.row.heightLarge
+                            radius: Tokens.radius.sm
+                            color: Colors.m3surfaceContainerLow
+
+                            StateLayer { hovered: rowMouse.containsMouse }
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.margins: 6
-                                spacing: 8
+                                anchors.leftMargin: Tokens.space.sm
+                                anchors.rightMargin: Tokens.space.xs
+                                spacing: Tokens.gap.inline
 
-                                // Badge de protocolo
+                                // Badge de protocolo: radio xs, contenedores M3.
                                 Rectangle {
-                                    width: 32
-                                    height: 20
-                                    radius: 4
-                                    color: portRow.modelData.proto === "TCP" ? Colors.bg2 : Colors.bg3
+                                    readonly property bool tcp: portRow.modelData.proto === "TCP"
+                                    implicitWidth: protoText.implicitWidth + Tokens.space.sm * 2
+                                    implicitHeight: 20
+                                    radius: Tokens.radius.xs
+                                    color: tcp ? Colors.m3secondaryContainer : Colors.m3tertiaryContainer
 
                                     Text {
+                                        id: protoText
                                         anchors.centerIn: parent
                                         text: portRow.modelData.proto
-                                        color: portRow.modelData.proto === "TCP" ? Colors.accent : Colors.warning
-                                        font.pixelSize: 9
-                                        font.bold: true
+                                        color: parent.tcp ? Colors.m3onSecondaryContainer : Colors.m3onTertiaryContainer
+                                        font.family: Tokens.font.ui
+                                        font.pixelSize: Tokens.type.caption
+                                        font.weight: Tokens.weight.semibold
                                     }
                                 }
 
-                                // Informacion de puerto y host
                                 ColumnLayout {
-                                    spacing: 1
+                                    spacing: 0
                                     Layout.fillWidth: true
 
                                     RowLayout {
-                                        spacing: 4
+                                        spacing: Tokens.space.xs
 
                                         Text {
                                             text: ":" + portRow.modelData.port
-                                            color: Colors.fg
-                                            font.pixelSize: 12
-                                            font.bold: true
+                                            color: Colors.m3onSurface
+                                            font.family: Tokens.font.mono
+                                            font.pixelSize: Tokens.type.body
+                                            font.weight: Tokens.weight.semibold
                                         }
 
                                         Text {
                                             text: "(" + portRow.modelData.host + ")"
-                                            color: Colors.br
-                                            font.pixelSize: 10
+                                            color: Colors.m3onSurfaceVariant
+                                            font.family: Tokens.font.mono
+                                            font.pixelSize: Tokens.type.caption
                                             elide: Text.ElideRight
                                         }
                                     }
@@ -258,27 +274,30 @@ PopupWindow {
                                             const pid = portRow.modelData.pid ? " [PID " + portRow.modelData.pid + "]" : "";
                                             return p + pid;
                                         }
-                                        color: Colors.br
-                                        font.pixelSize: 10
+                                        color: Colors.m3onSurfaceVariant
+                                        font.family: Tokens.font.ui
+                                        font.pixelSize: Tokens.type.caption
                                         elide: Text.ElideRight
+                                        Layout.fillWidth: true
                                     }
                                 }
 
-                                // Boton para cerrar puerto
+                                // Cerrar puerto: boton de icono con capa de estado en el rol de
+                                // error. Antes el hover hacia Colors.critical + "33", que QML lee
+                                // como #AARRGGBB (opaco y amarillento), no como rojo al 20%.
                                 Rectangle {
                                     id: closeBtn
-                                    width: 26
-                                    height: 26
-                                    radius: 13
-                                    color: closeMouse.containsMouse ? (Colors.critical + "33") : "transparent"
-                                    border.color: closeMouse.containsMouse ? Colors.critical : "transparent"
-                                    border.width: 1
+                                    implicitWidth: Tokens.pill.height
+                                    implicitHeight: Tokens.pill.height
+                                    radius: Tokens.radius.pill(height)
+                                    color: "transparent"
 
-                                    Text {
+                                    StateLayer { hovered: closeMouse.containsMouse; pressed: closeMouse.pressed; contentColor: Colors.m3error }
+
+                                    Icon {
                                         anchors.centerIn: parent
-                                        text: "󰅙"
-                                        color: closeMouse.containsMouse ? Colors.critical : Colors.br
-                                        font.pixelSize: 13
+                                        name: "cancel"
+                                        color: closeMouse.containsMouse ? Colors.m3error : Colors.m3onSurfaceVariant
                                     }
 
                                     MouseArea {
@@ -299,6 +318,7 @@ PopupWindow {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 acceptedButtons: Qt.NoButton
+                                z: -1
                             }
                         }
                     }

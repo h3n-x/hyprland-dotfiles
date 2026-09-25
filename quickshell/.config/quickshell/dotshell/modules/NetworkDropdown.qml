@@ -8,7 +8,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Networking
-import ".." // Colors.qml
+import ".." // Colors.qml, Tokens.qml
 
 PopupWindow {
     id: popup
@@ -21,15 +21,11 @@ PopupWindow {
         popup.visible = !popup.visible;
     }
 
-    implicitWidth: 300
+    implicitWidth: Tokens.panel.widthMd
     implicitHeight: Math.min(420, card.implicitHeight)
     color: "transparent"
     grabFocus: true
 
-    // Sin esto la lista de redes solo mostraba la ya conectada -- el
-    // dispositivo no escanea activamente por si solo. Igual criterio que
-    // "discovering" en BluetoothDropdown.qml: solo mientras el popup esta
-    // abierto, no tiene sentido dejarlo escaneando de fondo indefinido.
     // Sin esto la lista de redes solo mostraba la ya conectada -- el
     // dispositivo no escanea activamente por si solo. Igual criterio que
     // "discovering" en BluetoothDropdown.qml: solo mientras el popup esta
@@ -68,57 +64,73 @@ PopupWindow {
     Rectangle {
         id: card
         width: popup.implicitWidth
-        implicitHeight: layout.implicitHeight + 28
-        radius: 16
-        color: Colors.bg1
-        border.color: Colors.br
+        implicitHeight: layout.implicitHeight + Tokens.pad.card * 2
+        // Nivel de elevacion 2 (surface_container) con borde sutil; radio lg con
+        // inset de 8 para que las filas (radio sm) queden concentricas (Q1).
+        radius: Tokens.radius.lg
+        color: Colors.m3surfaceContainer
+        border.color: Colors.m3outlineVariant
         border.width: 1
 
         ColumnLayout {
             id: layout
             anchors.fill: parent
-            anchors.margins: 14
-            spacing: 10
+            anchors.margins: Tokens.pad.card
+            spacing: Tokens.space.xs
 
+            // Encabezado con el mismo inset horizontal que el texto de las filas.
             RowLayout {
                 Layout.fillWidth: true
+                Layout.leftMargin: Tokens.space.md
+                Layout.rightMargin: Tokens.space.xs
+                Layout.topMargin: Tokens.space.xs
+                Layout.bottomMargin: Tokens.space.xs
+                spacing: Tokens.gap.inline
 
-                Text {
-                    text: "Wi-Fi"
-                    color: Colors.fg
-                    font.pixelSize: 14
-                    font.bold: true
+                ColumnLayout {
+                    spacing: 0
                     Layout.fillWidth: true
+
+                    Text {
+                        text: "Wi-Fi"
+                        color: Colors.m3onSurface
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.title
+                        font.weight: Tokens.weight.semibold
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
+                    }
                 }
 
-                Rectangle {
-                    width: 36
-                    height: 20
-                    radius: 10
-                    color: Networking.wifiEnabled ? Colors.accent : Colors.bg3
-
-                    Rectangle {
-                        width: 16
-                        height: 16
-                        radius: 8
-                        color: Colors.bg0
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: Networking.wifiEnabled ? parent.width - width - 2 : 2
-                        Behavior on x { NumberAnimation { duration: 120 } }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
-                    }
+                Switch {
+                    checked: Networking.wifiEnabled
+                    onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
                 }
             }
 
-            Text {
+            Rectangle {
                 visible: !!(popup.wiredDevice && popup.wiredDevice.connected)
-                text: "󰈀  Ethernet conectado"
-                color: Colors.fg
-                font.pixelSize: 13
+                Layout.fillWidth: true
+                implicitHeight: Tokens.row.height
+                radius: Tokens.radius.sm
+                color: Colors.m3secondaryContainer
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: Tokens.space.md
+                    anchors.rightMargin: Tokens.space.md
+                    spacing: Tokens.gap.inline
+
+                    Icon { name: "lan"; filled: true; color: Colors.m3onSecondaryContainer }
+                    Text {
+                        text: "Ethernet conectado"
+                        color: Colors.m3onSecondaryContainer
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.body
+                        font.weight: Tokens.weight.medium
+                        Layout.fillWidth: true
+                    }
+                }
             }
 
             Repeater {
@@ -128,7 +140,7 @@ PopupWindow {
                     id: row
                     required property var modelData
                     Layout.fillWidth: true
-                    spacing: 4
+                    spacing: Tokens.space.xs
 
                     property bool needsPsk: false
 
@@ -139,67 +151,80 @@ PopupWindow {
                         }
                     }
 
-                    Rectangle {
-                        Layout.fillWidth: true
-                        implicitHeight: 34
-                        radius: 8
-                        color: netMouse.containsMouse ? Colors.hoverBg : "transparent"
+                Rectangle {
+                    id: netRow
+                    readonly property bool selected: row.modelData.connected
+                    Layout.fillWidth: true
+                    implicitHeight: Tokens.row.height
+                    radius: Tokens.radius.sm
+                    // Fila seleccionada (conectada / por defecto) en secondary
+                    // container (decision C3); el hover lo da la StateLayer.
+                    color: netRow.selected ? Colors.m3secondaryContainer : "transparent"
 
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.margins: 6
-                            spacing: 8
+                    StateLayer { hovered: netMouse.containsMouse; pressed: netMouse.pressed }
 
-                            Text {
-                                text: {
-                                    const s = row.modelData.signalStrength;
-                                    return s > 0.75 ? "󰤨" : s > 0.5 ? "󰤥" : s > 0.25 ? "󰤢" : "󰤟";
-                                }
-                                color: row.modelData.connected ? Colors.accent : Colors.fg
-                                font.pixelSize: 14
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: Tokens.space.md
+                        anchors.rightMargin: Tokens.space.md
+                        spacing: Tokens.gap.inline
+
+                        Icon {
+                            name: {
+                                const s = row.modelData.signalStrength;
+                                return s > 0.75 ? "signal_wifi_4_bar" : s > 0.5 ? "network_wifi_3_bar" : s > 0.25 ? "network_wifi_2_bar" : "network_wifi_1_bar";
                             }
-
-                            Text {
-                                text: row.modelData.name
-                                color: row.modelData.connected ? Colors.accent : Colors.fg
-                                font.pixelSize: 13
-                                Layout.fillWidth: true
-                                elide: Text.ElideRight
-                            }
-
-                            Text {
-                                visible: row.modelData.connected
-                                text: "󰄬"
-                                color: Colors.accent
-                                font.pixelSize: 13
-                            }
+                            filled: netRow.selected
+                            color: netRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
                         }
 
-                        MouseArea {
-                            id: netMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            onClicked: {
-                                if (!row.modelData.connected) row.modelData.connect();
-                            }
+                        Text {
+                            text: row.modelData.name
+                            color: netRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            font.family: Tokens.font.ui
+                            font.pixelSize: Tokens.type.body
+                            font.weight: netRow.selected ? Tokens.weight.medium : Tokens.weight.regular
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                        }
+
+                        Icon {
+                            visible: netRow.selected
+                            name: "check"
+                            size: Tokens.icon.sm
+                            color: Colors.m3onSecondaryContainer
                         }
                     }
+
+                    MouseArea {
+                        id: netMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (!row.modelData.connected) row.modelData.connect();
+                        }
+                    }
+                }
 
                     Rectangle {
                         visible: row.needsPsk
                         Layout.fillWidth: true
-                        implicitHeight: 30
-                        radius: 6
-                        color: Colors.bg0
-                        border.color: Colors.br
+                        implicitHeight: Tokens.row.height
+                        radius: Tokens.radius.sm
+                        color: Colors.m3surfaceContainerLowest
+                        border.color: pskField.activeFocus ? Colors.m3primary : Colors.m3outline
                         border.width: 1
 
                         TextInput {
                             id: pskField
                             anchors.fill: parent
-                            anchors.margins: 6
-                            color: Colors.fg
-                            font.pixelSize: 13
+                            anchors.leftMargin: Tokens.space.md
+                            anchors.rightMargin: Tokens.space.md
+                            verticalAlignment: TextInput.AlignVCenter
+                            color: Colors.m3onSurface
+                            font.family: Tokens.font.ui
+                            font.pixelSize: Tokens.type.body
                             echoMode: TextInput.Password
                             clip: true
                             focus: row.needsPsk
@@ -212,11 +237,12 @@ PopupWindow {
                         Text {
                             visible: pskField.text.length === 0
                             anchors.left: parent.left
-                            anchors.leftMargin: 6
+                            anchors.leftMargin: Tokens.space.md
                             anchors.verticalCenter: parent.verticalCenter
                             text: "Contraseña, Enter para conectar"
-                            color: Colors.br
-                            font.pixelSize: 12
+                            color: Colors.m3onSurfaceVariant
+                            font.family: Tokens.font.ui
+                            font.pixelSize: Tokens.type.label
                         }
                     }
                 }
