@@ -1,12 +1,9 @@
 // Reemplaza a waybar/modules/mpris.jsonc. Solo se muestra si hay un
 // reproductor MPRIS activo (Spotify via spicetify, navegador, etc.).
-// Muestra el icono de la app real del reproductor (via su desktop entry,
-// no un icono de la bandeja -- mas robusto: no depende de que esa app
-// ademas registre un tray icon).
+// Presentacion neutra: mismo icono Material Symbols para cualquier
+// reproductor, sin iconos dependientes de la app (desktop entry).
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Widgets
 import ".." // Colors.qml, Tokens.qml
 import Quickshell.Services.Mpris
 
@@ -32,10 +29,10 @@ Item {
         id: row
         spacing: Tokens.gap.inline
 
-        IconImage {
+        Icon {
             Layout.alignment: Qt.AlignVCenter
-            implicitSize: Tokens.icon.sm
-            source: root.player ? Quickshell.iconPath(root.player.desktopEntry, "multimedia-player") : ""
+            name: "music_note"
+            size: Tokens.icon.sm
         }
 
         Icon {
