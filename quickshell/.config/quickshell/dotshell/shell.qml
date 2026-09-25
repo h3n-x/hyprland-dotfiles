@@ -3,6 +3,7 @@
 // components"). Gestionado con GNU Stow desde
 // /home/h3n/Dotfiles/quickshell -> ~/.config/quickshell. Se lanza con
 // `qs -c dotshell` (ver hypr/.config/hypr/modules/autostart.lua).
+import QtQuick
 import Quickshell
 import Quickshell.Io
 import "modules"
@@ -45,6 +46,34 @@ ShellRoot {
         }
         function clearAll(): void {
             NotificationState.clearAll();
+        }
+    }
+
+    // Reducir movimiento (D9, M4): `qs -c dotshell ipc call motion reduce`
+    // pone Tokens.motion.scale en 0 (todas las duraciones en 0 y los springs
+    // desactivados); `restore` lo vuelve a 1. PersistentProperties sobrevive
+    // a los reloads (el de "colors" corre en cada cambio de wallpaper), no a
+    // reiniciar el proceso.
+    PersistentProperties {
+        id: motionPrefs
+        reloadableId: "motionPrefs"
+        property bool reduced: false
+    }
+    Binding {
+        target: Tokens.motion
+        property: "scale"
+        value: motionPrefs.reduced ? 0 : 1
+    }
+    IpcHandler {
+        target: "motion"
+        function reduce(): void {
+            motionPrefs.reduced = true;
+        }
+        function restore(): void {
+            motionPrefs.reduced = false;
+        }
+        function status(): string {
+            return motionPrefs.reduced ? "reduced" : "normal";
         }
     }
 

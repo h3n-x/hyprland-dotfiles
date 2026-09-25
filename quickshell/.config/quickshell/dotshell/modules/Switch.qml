@@ -38,7 +38,10 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         x: root.checked ? root.width - width - 2 : 2
         color: root.checked ? Colors.m3onPrimary : Colors.m3outline
+        // Un spring no tiene duracion que escalar: con movimiento reducido
+        // (Tokens.motion.scale 0) el knob salta directo.
         Behavior on x {
+            enabled: Tokens.motion.scale > 0
             SpringAnimation {
                 spring: Tokens.motion.spring.qmlSpring
                 damping: Tokens.motion.spring.qmlDamping
