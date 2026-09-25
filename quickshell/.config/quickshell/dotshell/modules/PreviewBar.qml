@@ -29,7 +29,9 @@ PanelWindow {
     // Solo la tarjeta recibe clics; el resto de la franja cuenta como "afuera".
     mask: Region { item: box }
 
-    Presence { id: presence; open: ThemePreview.active; enterDuration: Tokens.motion.medium }
+    // En el mismo monitor que la galeria desde la que se abrio (Fase 4 B0).
+    readonly property bool onThisScreen: GalleryState.screen === "" || (!!win.screen && win.screen.name === GalleryState.screen)
+    Presence { id: presence; open: ThemePreview.active && win.onThisScreen; enterDuration: Tokens.motion.medium }
     visible: presence.shown
 
     // Teclado recien cuando la galeria termino de irse (ver GalleryState) y

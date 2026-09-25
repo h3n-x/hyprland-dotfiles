@@ -63,7 +63,8 @@ PanelWindow {
     readonly property string wallpapersDir: Quickshell.env("WALLPAPERS_DIR") || (Quickshell.env("HOME") + "/Pictures/Wallpapers")
     readonly property string cacheDir: Quickshell.env("WALLPAPER_CACHE_DIR") || (Quickshell.env("HOME") + "/.cache/dotfiles/wallpapers")
 
-    readonly property bool shouldShow: GalleryState.visible
+    // Solo en el monitor enfocado al abrir (Fase 4 B0, E12).
+    readonly property bool shouldShow: GalleryState.visible && (GalleryState.screen === "" || (!!window.screen && window.screen.name === GalleryState.screen))
     Presence { id: presence; open: window.shouldShow; enterDuration: Tokens.motion.long; slide: false }
     visible: presence.shown
     onVisibleChanged: GalleryState.windowShown = window.visible

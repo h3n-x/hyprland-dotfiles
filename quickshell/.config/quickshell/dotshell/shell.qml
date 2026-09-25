@@ -79,8 +79,16 @@ ShellRoot {
     // SUPER+D (ver binds.lua) -- reemplaza a "rofi -show drun".
     IpcHandler {
         target: "launcher"
+        // Se abre en el monitor enfocado (Fase 4 B0); open/close para los
+        // paneles nuevos, toggle para el bind de siempre.
         function toggle(): void {
-            LauncherState.visible = !LauncherState.visible;
+            LauncherState.toggle();
+        }
+        function open(): void {
+            LauncherState.open();
+        }
+        function close(): void {
+            LauncherState.close();
         }
     }
 
@@ -89,7 +97,7 @@ ShellRoot {
     IpcHandler {
         target: "gallery"
         function toggle(): void {
-            GalleryState.visible = !GalleryState.visible;
+            GalleryState.toggle();
         }
     }
 
