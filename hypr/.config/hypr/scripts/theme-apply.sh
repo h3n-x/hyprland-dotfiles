@@ -10,6 +10,8 @@
 #   theme-apply.sh --tag <wallpaper> add|remove <etiqueta>  (galeria, Fase 3 B4)
 #   theme-apply.sh --undo [--no-notify] [--dry-run]   (tema anterior del historial, B5)
 #   theme-apply.sh --backend quickshell|hyprpaper|status   (quien dibuja el wallpaper, B6)
+#   theme-apply.sh --prefs scheme <tipo>|contrast <0..1>|reset   (valores globales, B8a)
+#   theme-apply.sh --override <wallpaper> seed <#hex>|scheme <tipo>|reset   (excepcion por wallpaper, B8a)
 #
 # Una sola aplicacion a la vez: cada llamada deja su pedido en un archivo (el
 # ultimo pisa al anterior) y solo un proceso "worker", protegido con flock,
@@ -32,6 +34,17 @@
 # que hacer. Vuelta atras: --backend hyprpaper arranca hyprpaper y oculta la
 # capa de Quickshell; la eleccion queda en prefs.wallpaper_backend.
 # current-wallpaper.conf se escribe siempre: hyprpaper arranca con el correcto.
+#
+# Color base (Fase 3 B8a, KI-L12): matugen propone hasta 4 colores semilla por
+# imagen; se usa el DOMINANTE (el primero de su ranking, con el filtro de
+# reduccion gaussian, estable ante el decodificador) en vez del mas saturado,
+# y el esquema scheme-content por defecto. Opciones efectivas de cada aplicacion
+# = excepcion del wallpaper (semilla, esquema) > preferencias globales (esquema,
+# contraste) > estos valores. La semilla sale de los candidatos que guarda
+# wallpaper-cache.sh (o se calcula si el archivo no esta en la cache). Todo se
+# resuelve al PEDIR y viaja en el pedido y el historial: deshacer restaura el
+# tema exacto. Entradas viejas sin semilla ("legacy") se aplican como antes
+# (--prefer saturation, tonal-spot).
 #
 # --dry-run no ejecuta hyprctl, magick ni matugen: solo registra lo que haria
 # (para pruebas; usar THEME_STATE_DIR/THEME_LOG_DIR para no tocar el estado
@@ -60,6 +73,16 @@ LOG_MAX=500
 # Solo en --dry-run: cuanto "tarda" la aplicacion simulada (probar la cola).
 DRY_DELAY="${THEME_DRY_DELAY:-1}"
 
+CACHE_DIR="${WALLPAPER_CACHE_DIR:-$HOME/.cache/dotfiles/wallpapers}"
+CACHE_INDEX="$CACHE_DIR/palettes.json"
+# Mismos valores por defecto que wallpaper-cache.sh (la vista previa usa su paleta).
+DEFAULT_SCHEME="scheme-content"
+DEFAULT_CONTRAST="0"
+RULE="dominante"
+# Color de respaldo de matugen: si es el unico candidato, la imagen no tiene un
+# color claro y la semilla puede ser cualquier color (colores predefinidos, B8h).
+MATUGEN_FALLBACK="#4285f4"
+
 SCHEMES="scheme-content scheme-expressive scheme-fidelity scheme-fruit-salad scheme-monochrome scheme-neutral scheme-rainbow scheme-tonal-spot scheme-vibrant scheme-smart"
 
 mkdir -p "$STATE_DIR" "$LOG_DIR"
@@ -75,7 +98,7 @@ die() {
 }
 
 usage() {
-  sed -n '6,12p' "$0" | sed 's/^# \{0,3\}//' >&2
+  sed -n '6,14p' "$0" | sed 's/^# \{0,3\}//' >&2
   exit 2
 }
 
@@ -108,16 +131,18 @@ record_apply() { with_state_lock _record_apply "$@"; }
 # y contraste) solo se refresca su fecha en vez de agregar una entrada
 # (decision B5d). Cubre tambien el deshacer: --undo ya saco la entrada
 # deshecha, asi que el tema restaurado es el tope. Si no, se agrega arriba.
-_record_apply() { # wallpaper scheme contrast source
-  jq --arg wp "$1" --arg scheme "$2" --arg contrast "$3" --arg source "$4" \
+_record_apply() { # wallpaper scheme contrast source seed rule
+  jq --arg wp "$1" --arg scheme "$2" --arg contrast "$3" --arg source "$4" --arg seed "${5:-}" --arg rule "${6:-legacy}" \
      --arg now "$(date -Iseconds)" --argjson max "$HISTORY_MAX" '
     {wallpaper: $wp,
      scheme: (if $scheme == "" then null else $scheme end),
      contrast: (if $contrast == "" then null else ($contrast | tonumber) end),
+     seed: (if $seed == "" then null else $seed end), rule: $rule,
      mode: "dark", applied_at: $now, source: $source} as $e
     | (.history // []) as $h
     | def same($a; $b): $a != null and $b != null and $a.wallpaper == $b.wallpaper
-                        and $a.scheme == $b.scheme and $a.contrast == $b.contrast;
+                        and $a.scheme == $b.scheme and $a.contrast == $b.contrast
+                        and ($a.seed // null) == ($b.seed // null) and ($a.rule // "legacy") == ($b.rule // "legacy");
     if ($h | length) > 0 and same($h[0]; $e) then
       .history = ([$h[0] + {applied_at: $now}] + $h[1:])
       | .current = .history[0]
@@ -135,6 +160,38 @@ wallpaper_backend() {
   [ "$b" = hyprpaper ] && echo hyprpaper || echo quickshell
 }
 
+# ---- Opciones efectivas (Fase 3 B8a) --------------------------------------
+
+# Candidatos (semillas) de un wallpaper: de la cache si el archivo no cambio;
+# si no, matugen los calcula (mismo comando que wallpaper-cache.sh).
+candidates_of() { # wallpaper -> una semilla por linea, la dominante primero
+  local wp="$1" name mt sz
+  name="$(basename "$wp")"; mt="$(stat -c %Y "$wp")"; sz="$(stat -c %s "$wp")"
+  if [ -s "$CACHE_INDEX" ] && jq -e --arg n "$name" --argjson m "$mt" --argjson s "$sz" \
+       '.[$n] | .mtime == $m and .size == $s and ((.candidates // []) | length) > 0' "$CACHE_INDEX" >/dev/null 2>&1; then
+    jq -r --arg n "$name" '.[$n].candidates[]' "$CACHE_INDEX"
+    return
+  fi
+  local cfg="$CACHE_DIR/.matugen-empty.toml"
+  [ -f "$cfg" ] || { mkdir -p "$CACHE_DIR"; printf '[config]\n\n[templates]\n' > "$cfg"; }
+  matugen -c "$cfg" image "$wp" -r gaussian --prefer saturation --dry-run -d 2>&1 \
+    | sed 's/\x1b\[[0-9;]*m//g' | grep -oE '\] [0-9]+: #[0-9a-fA-F]{6}' | awk '{print tolower($3)}'
+}
+
+# Opciones efectivas: argumento > excepcion del wallpaper > preferencia global > defecto.
+resolve_opts() { # wallpaper scheme contrast seed -> "scheme contrast seed"
+  local wp="$1" scheme="$2" contrast="$3" seed="$4" ov
+  ov="$(jq -c --arg wp "$wp" '{o: (.overrides[$wp] // {}), p: (.prefs // {})}' "$STATE" 2>/dev/null || echo '{"o":{},"p":{}}')"
+  [ -n "$scheme" ] || scheme="$(jq -r '.o.scheme // .p.scheme // empty' <<< "$ov")"
+  [ -n "$scheme" ] || scheme="$DEFAULT_SCHEME"
+  [ -n "$contrast" ] || contrast="$(jq -r '.p.contrast // empty' <<< "$ov")"
+  [ -n "$contrast" ] || contrast="$DEFAULT_CONTRAST"
+  [ -n "$seed" ] || seed="$(jq -r '.o.seed // empty' <<< "$ov")"
+  [ -n "$seed" ] || seed="$(candidates_of "$wp" | head -1)"
+  [ -n "$seed" ] || seed="$MATUGEN_FALLBACK"
+  echo "$scheme $contrast ${seed,,}"
+}
+
 # ---- Aplicacion -----------------------------------------------------------
 
 run() { # comando... (en --dry-run solo se registra)
@@ -145,10 +202,10 @@ run() { # comando... (en --dry-run solo se registra)
   fi
 }
 
-apply() { # wallpaper scheme contrast source no_system
-  local wp="$1" scheme="$2" contrast="$3" source="$4" no_system="${5:-false}" t0 rc
+apply() { # wallpaper scheme contrast source no_system seed rule
+  local wp="$1" scheme="$2" contrast="$3" source="$4" no_system="${5:-false}" seed="${6:-}" rule="${7:-legacy}" t0 rc
   t0=$(date +%s%N)
-  log "aplicar: $wp (esquema=${scheme:-defecto} contraste=${contrast:-defecto} origen=$source)$([ "$DRY" = true ] && echo " [dry-run]")"
+  log "aplicar: $wp (esquema=${scheme:-defecto} contraste=${contrast:-defecto} semilla=${seed:-?} regla=$rule origen=$source)$([ "$DRY" = true ] && echo " [dry-run]")"
 
   # 1. Wallpaper. Con Quickshell lo cambia la shell al leer el JSON de colores
   #    (paso 4), junto con la paleta. Con hyprpaper, por IPC (0.8.x solo
@@ -179,10 +236,9 @@ EOF
     run magick "$src" -gravity center -resize 512x512^ -extent 512x512 "$HOME/.face" >/dev/null 2>&1
   fi
 
-  # 4. Paleta y plantillas. --prefer evita el prompt interactivo de matugen.
-  #    Sin --scheme/--contrast se usan los defaults de siempre.
+  # 4. Paleta y plantillas, con las opciones ya resueltas al pedir (B8a).
   local args
-  mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast")
+  mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast" "$seed" "$rule")
   if [ "$DRY" = true ]; then
     log "  dry: matugen ${args[*]}"
     sleep "$DRY_DELAY"
@@ -201,23 +257,32 @@ EOF
   log "listo: matugen rc=$rc en $(( ($(date +%s%N) - t0) / 1000000 )) ms"
 
   # 6. Temas de arranque/login, diferidos.
-  [ "$no_system" = true ] || schedule_system "$wp" "$scheme" "$contrast"
+  [ "$no_system" = true ] || schedule_system "$wp" "$scheme" "$contrast" "$seed" "$rule"
 }
 
 # ---- Pasada de sistema (SDDM, Plymouth, GRUB), diferida -------------------
 
-matugen_args() { # wallpaper scheme contrast -> argumentos de matugen image
-  local a=(image "$1" --prefer saturation)
-  [ -n "$2" ] && a+=(-t "$2")
-  [ -n "$3" ] && a+=(--contrast "$3")
+matugen_args() { # wallpaper scheme contrast seed rule -> argumentos de matugen image
+  local a
+  if [ "${5:-legacy}" = legacy ]; then
+    # Como antes de B8a: el candidato mas saturado (temas del historial viejo).
+    a=(image "$1" --prefer saturation)
+    [ -n "$2" ] && a+=(-t "$2")
+    [ -n "$3" ] && a+=(--contrast "$3")
+  else
+    # La semilla elegida: closest-to-fallback con ella como respaldo elige
+    # exactamente ese candidato (o la usa tal cual si la imagen no tiene color).
+    a=(image "$1" -t "$2" --contrast "$3" -r gaussian --prefer closest-to-fallback --fallback-color "$4")
+  fi
   printf '%s\n' "${a[@]}"
 }
 
-schedule_system() { # wallpaper scheme contrast
+schedule_system() { # wallpaper scheme contrast seed rule
   local token
   token="$(date +%s%N)"
-  jq -n --arg wp "$1" --arg scheme "$2" --arg contrast "$3" --arg token "$token" --argjson dry "$DRY" \
-    '{wallpaper: $wp, scheme: $scheme, contrast: $contrast, token: $token, dry: $dry}' \
+  jq -n --arg wp "$1" --arg scheme "$2" --arg contrast "$3" --arg seed "${4:-}" --arg rule "${5:-legacy}" \
+        --arg token "$token" --argjson dry "$DRY" \
+    '{wallpaper: $wp, scheme: $scheme, contrast: $contrast, seed: $seed, rule: $rule, token: $token, dry: $dry}' \
     > "$SYSTEM_PENDING.tmp" && mv "$SYSTEM_PENDING.tmp" "$SYSTEM_PENDING"
   log "sistema: pendiente en ${SYSTEM_DELAY} s (token $token)"
   setsid -f "$SCRIPTS_DIR/$(basename "$0")" --system-run "$token" < /dev/null > /dev/null 2>&1
@@ -234,11 +299,12 @@ run_system() { # token esperado ("" = el que haya pendiente)
     log "sistema: token $1 reemplazado por uno mas nuevo, se omite"
     return 0
   fi
-  local wp scheme contrast t0 rc
+  local wp scheme contrast seed rule t0 rc
   wp="$(jq -r .wallpaper <<< "$job")"; scheme="$(jq -r .scheme <<< "$job")"; contrast="$(jq -r .contrast <<< "$job")"
+  seed="$(jq -r '.seed // ""' <<< "$job")"; rule="$(jq -r '.rule // "legacy"' <<< "$job")"
   DRY="$(jq -r .dry <<< "$job")"
   local args
-  mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast")
+  mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast" "$seed" "$rule")
   t0=$(date +%s%N)
   log "sistema: aplicar $wp$([ "$DRY" = true ] && echo " [dry-run]")"
   if [ "$DRY" = true ]; then
@@ -281,7 +347,9 @@ worker() {
             "$(jq -r '.scheme // ""' <<< "$req")" \
             "$(jq -r '.contrast // "" | tostring' <<< "$req")" \
             "$(jq -r '.source' <<< "$req")" \
-            "$(jq -r '.no_system // false' <<< "$req")"
+            "$(jq -r '.no_system // false' <<< "$req")" \
+            "$(jq -r '.seed // ""' <<< "$req")" \
+            "$(jq -r '.rule // "legacy"' <<< "$req")"
     done
     flock -u 9
     exec 9>&-
@@ -368,6 +436,7 @@ if [ "${1:-}" = "--undo" ]; then
   twp="$(jq -r .wallpaper <<< "$target")"
   jq -n --argjson e "$target" \
     '{wallpaper: $e.wallpaper, scheme: $e.scheme, contrast: ($e.contrast | if . == null then null else tostring end),
+      seed: ($e.seed // null), rule: ($e.rule // "legacy"),
       source: "undo", dry: $dry, no_system: false}' --argjson dry "$undo_dry" \
     > "$REQUEST.$$" && mv "$REQUEST.$$" "$REQUEST"
   log "deshacer: pedido de $twp"
@@ -448,10 +517,72 @@ if [ "${1:-}" = "--tag" ]; then
   exit 0
 fi
 
-wallpaper="" scheme="" contrast="" source="ipc" DRY=false NO_SYSTEM=false
+# Preferencias globales y excepciones por wallpaper (Fase 3 B8a). Tras cada
+# cambio se refresca la cache: la galeria y la vista previa muestran la paleta
+# con las opciones nuevas (y aplicar da lo mismo que la vista previa).
+refresh_cache() {
+  setsid -f "$SCRIPTS_DIR/wallpaper-cache.sh" < /dev/null > /dev/null 2>&1
+}
+if [ "${1:-}" = "--prefs" ]; then
+  [ $# -ge 2 ] || usage
+  init_state
+  case "$2" in
+    scheme)
+      [ $# -eq 3 ] || usage
+      [[ " $SCHEMES " == *" $3 "* ]] || die "esquema desconocido: $3"
+      _set_prefs() { jq --arg v "$3" '.prefs = ((.prefs // {}) + {scheme: $v})' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
+    contrast)
+      [ $# -eq 3 ] || usage
+      # Sin valores negativos (decision B8d): 0 estandar .. 1 maximo.
+      awk -v c="$3" 'BEGIN { exit !(c ~ /^[0-9]*\.?[0-9]+$/ && c >= 0 && c <= 1) }' || die "contraste fuera de rango (0..1): $3"
+      _set_prefs() { jq --argjson v "$3" '.prefs = ((.prefs // {}) + {contrast: $v})' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
+    reset)
+      _set_prefs() { jq '.prefs = ((.prefs // {}) + {scheme: null, contrast: null})' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
+    *) die "prefs: usar scheme <tipo>|contrast <0..1>|reset" ;;
+  esac
+  with_state_lock _set_prefs "$@"
+  log "prefs: ${*:2}"
+  refresh_cache
+  exit 0
+fi
+if [ "${1:-}" = "--override" ]; then
+  [ $# -ge 3 ] || usage
+  owp="$(readlink -f -- "$2")"
+  [ -f "$owp" ] || die "no existe: $2"
+  init_state
+  case "$3" in
+    seed)
+      [ $# -eq 4 ] || usage
+      [[ "$4" =~ ^#[0-9a-fA-F]{6}$ ]] || die "semilla invalida (#rrggbb): $4"
+      oseed="${4,,}"
+      # Tiene que ser uno de los candidatos de la imagen (matugen elige el mas
+      # cercano: otro color no daria lo mismo en la vista previa y al aplicar),
+      # salvo que la imagen no tenga color (solo el de respaldo): ahi vale
+      # cualquiera (colores predefinidos, B8h).
+      mapfile -t cands < <(candidates_of "$owp")
+      if ! { [ "${#cands[@]}" -eq 1 ] && [ "${cands[0]}" = "$MATUGEN_FALLBACK" ]; }; then
+        printf '%s\n' "${cands[@]}" | grep -qx "$oseed" || die "la semilla no es un candidato de la imagen: $oseed (candidatos: ${cands[*]})"
+      fi
+      _set_override() { jq --arg wp "$owp" --arg v "$oseed" '.overrides = (.overrides // {}) | .overrides[$wp] = ((.overrides[$wp] // {}) + {seed: $v})' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
+    scheme)
+      [ $# -eq 4 ] || usage
+      [[ " $SCHEMES " == *" $4 "* ]] || die "esquema desconocido: $4"
+      _set_override() { jq --arg wp "$owp" --arg v "$4" '.overrides = (.overrides // {}) | .overrides[$wp] = ((.overrides[$wp] // {}) + {scheme: $v})' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
+    reset)
+      _set_override() { jq --arg wp "$owp" '.overrides = ((.overrides // {}) | del(.[$wp]))' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
+    *) die "override: usar seed <#hex>|scheme <tipo>|reset" ;;
+  esac
+  with_state_lock _set_override "$@"
+  log "override: $owp ${*:3}"
+  refresh_cache
+  exit 0
+fi
+
+wallpaper="" scheme="" contrast="" seed="" source="ipc" DRY=false NO_SYSTEM=false
 while [ $# -gt 0 ]; do
   case "$1" in
     --scheme)   scheme="${2:-}"; shift 2 ;;
+    --seed)     seed="${2:-}"; shift 2 ;;
     --contrast) contrast="${2:-}"; shift 2 ;;
     --source)   source="${2:-}"; shift 2 ;;
     --dry-run)  DRY=true; shift ;;
@@ -477,20 +608,25 @@ if [ -n "$contrast" ]; then
     || die "contraste fuera de rango (-1..1): $contrast"
 fi
 case "$source" in rofi|gallery|undo|ipc) ;; *) die "origen desconocido: $source" ;; esac
+if [ -n "$seed" ]; then
+  [[ "$seed" =~ ^#[0-9a-fA-F]{6}$ ]] || die "semilla invalida (#rrggbb): $seed"
+fi
+
+# Opciones efectivas (B8a), resueltas una vez: viajan en el pedido y el historial.
+init_state
+read -r scheme contrast seed <<< "$(resolve_opts "$wallpaper" "$scheme" "$contrast" "$seed")"
 
 # Historial al pedir (bajo el lock del estado): refleja la intencion aunque la
 # aplicacion todavia este en cola; "Actual" se ve al instante en la galeria.
-init_state
-record_apply "$wallpaper" "$scheme" "$contrast" "$source"
+record_apply "$wallpaper" "$scheme" "$contrast" "$source" "$seed" "$RULE"
 
 # Pedido atomico: el ultimo en escribirse gana.
-jq -n --arg wp "$wallpaper" --arg scheme "$scheme" --arg contrast "$contrast" \
+jq -n --arg wp "$wallpaper" --arg scheme "$scheme" --arg contrast "$contrast" --arg seed "$seed" --arg rule "$RULE" \
       --arg source "$source" --argjson dry "$DRY" --argjson no_system "$NO_SYSTEM" \
-  '{wallpaper: $wp, scheme: (if $scheme == "" then null else $scheme end),
-    contrast: (if $contrast == "" then null else $contrast end), source: $source, dry: $dry,
+  '{wallpaper: $wp, scheme: $scheme, contrast: $contrast, seed: $seed, rule: $rule, source: $source, dry: $dry,
     no_system: $no_system}' \
   > "$REQUEST.$$" && mv "$REQUEST.$$" "$REQUEST"
-log "pedido: $wallpaper (origen=$source)"
+log "pedido: $wallpaper (origen=$source esquema=$scheme contraste=$contrast semilla=$seed)"
 
 # Worker desacoplado: el atajo de teclado vuelve al instante.
 setsid -f "$SCRIPTS_DIR/$(basename "$0")" --worker < /dev/null > /dev/null 2>&1
