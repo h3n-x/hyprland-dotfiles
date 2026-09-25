@@ -222,7 +222,7 @@ delegacion que ya usa `bat` con su tema `ansi`, cambia el wallpaper y
 cambian los colores sin regenerar nada. Tambien existe un
 `alias fastfetch=...` generado por matugen en
 `~/.cache/matugen/fastfetch-opts.sh` (sourceado desde `.zshrc`, mismo patron
-que `fzf-opts.sh`) con flags `--logo-color-N`/`--color-*`; con el logo
+que `fzf.sh`) con flags `--logo-color-N`/`--color-*`; con el logo
 desactivado (`"type": "none"`) solo le pone color al texto de valor
 (columna derecha) via `--color-output`. Se abre solo al abrir una terminal
 nueva (ultima linea de `.zshrc`).

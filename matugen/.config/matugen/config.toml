@@ -86,6 +86,10 @@ output_path = "~/.config/gtk-4.0/gtk.css"
 input_path = "~/.config/matugen/templates/shell.sh"
 output_path = "~/.cache/matugen/colors.sh"
 
+[templates.fzf]
+input_path = "~/.config/matugen/templates/fzf.sh"
+output_path = "~/.cache/matugen/fzf.sh"
+
 [templates.qt5ct]
 input_path = "~/.config/matugen/templates/qt-colors.conf"
 output_path = "~/.config/qt5ct/colors/matugen.conf"

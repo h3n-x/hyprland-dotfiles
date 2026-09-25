@@ -71,6 +71,9 @@ alias reload-bar='qs -c dotshell ipc call shell reload'
 # matugen (ver matugen/.config/matugen/templates/fastfetch-opts.sh).
 [ -f ~/.cache/matugen/fastfetch-opts.sh ] && source ~/.cache/matugen/fastfetch-opts.sh
 
+# fzf: colores sincronizados con el wallpaper actual via matugen
+[ -f ~/.cache/matugen/fzf.sh ] && source ~/.cache/matugen/fzf.sh
+
 # ---- yazi: "y" en vez de "yazi" para que al salir te deje en el
 # directorio donde navegaste (integracion oficial recomendada por yazi) ----
 if command -v yazi >/dev/null 2>&1; then

@@ -4,7 +4,7 @@
 # archivo (que tiene la lista de modulos, pensada para editarse a mano en
 # ~/.config/fastfetch/config.jsonc), matugen genera flags de linea de
 # comandos: fastfetch les da prioridad por sobre lo que diga config.jsonc.
-# Mismo patron que fzf-opts.sh.
+# Mismo patron que fzf.sh.
 alias fastfetch="command fastfetch \
   --logo-color-1 '{{colors.primary.default.hex}}' \
   --logo-color-2 '{{colors.secondary.default.hex}}' \
