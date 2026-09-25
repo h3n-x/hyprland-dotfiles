@@ -12,6 +12,14 @@
 # claro para la vista previa de la galeria.
 #
 # Salida: ~/.cache/dotfiles/wallpapers/{thumbs/,palettes.json}
+#
+# Formato real (KI-C24): se mira el contenido de cada archivo (primeros bytes)
+# y se guarda en el indice ("format"). Avisa en stderr si la extension no
+# coincide con el contenido (p. ej. un JPEG llamado .png) y si el formato no lo
+# decodifica el Qt instalado (plugins de imageformats): la capa de wallpaper de
+# Quickshell lo mostraria como color liso. Esto ultimo, ademas, con una
+# notificacion la primera vez que aparece el archivo (WALLPAPER_CACHE_NOTIFY=0
+# la desactiva, para pruebas).
 
 set -euo pipefail
 
@@ -39,8 +47,9 @@ EMPTY_CFG="$CACHE_DIR/.matugen-empty.toml"
 printf '[config]\n\n[templates]\n' > "$EMPTY_CFG"
 
 WALLPAPERS_DIR="$WALLPAPERS_DIR" CACHE_DIR="$CACHE_DIR" JOBS="$JOBS" FORCE="$FORCE" EMPTY_CFG="$EMPTY_CFG" \
+NOTIFY="${WALLPAPER_CACHE_NOTIFY:-1}" QT_FORMATS_DIR="${QT_IMAGEFORMATS_DIR:-/usr/lib/qt6/plugins/imageformats}" \
 python3 - <<'PY'
-import json, os, subprocess, sys, time
+import glob, json, os, re, shutil, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor
 
 walls = os.environ["WALLPAPERS_DIR"]
@@ -59,8 +68,33 @@ try:
 except (OSError, ValueError):
     index = {}
 
+# Estado anterior (para avisar solo la primera vez que aparece un archivo).
+prev = {n: (e.get("mtime"), e.get("size")) for n, e in index.items()}
+
 files = sorted(n for n in os.listdir(walls)
                if n.lower().endswith(exts) and os.path.isfile(os.path.join(walls, n)))
+
+# Formato por contenido (no por extension).
+def sniff(path):
+    try:
+        with open(path, "rb") as f:
+            h = f.read(12)
+    except OSError:
+        return "desconocido"
+    if h.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "png"
+    if h[:3] == b"\xff\xd8\xff":
+        return "jpeg"
+    if h[:4] == b"GIF8":
+        return "gif"
+    if h[:4] == b"RIFF" and h[8:12] == b"WEBP":
+        return "webp"
+    return "desconocido"
+
+by_ext = {".png": "png", ".jpg": "jpeg", ".jpeg": "jpeg", ".webp": "webp", ".gif": "gif"}
+# PNG viene dentro de Qt; el resto, segun los plugins instalados (libqjpeg.so...).
+qt_formats = {"png"} | {re.sub(r"^libq|\.so$", "", os.path.basename(p))
+                        for p in glob.glob(os.path.join(os.environ["QT_FORMATS_DIR"], "libq*.so"))}
 
 def thumb_path(name):
     return os.path.join(thumbs, name + ".jpg")
@@ -102,6 +136,7 @@ def save():
 
 todo = [n for n in files if stale(n)]
 new = sum(1 for n in todo if n not in index)
+formats = {n: sniff(os.path.join(walls, n)) for n in files}
 
 # Dos pasadas: primero todas las miniaturas (rapido; el indice se guarda al
 # terminar, asi la galeria ya puede mostrar la grilla) y despues las paletas
@@ -112,6 +147,8 @@ with ThreadPoolExecutor(jobs) as ex:
         old = index.get(name, {})
         index[name] = {"mtime": int(st.st_mtime), "size": st.st_size, "thumb": ok,
                        "colors": old.get("colors") if old.get("mtime") == int(st.st_mtime) else None}
+for name in files:
+    index[name]["format"] = formats[name]
 save()
 with ThreadPoolExecutor(jobs) as ex:
     for name, palette in zip(todo, ex.map(build_palette, todo)):
@@ -128,6 +165,29 @@ for n in removed:
 save()
 
 failed = [n for n, e in index.items() if not e.get("thumb") or not e.get("colors")]
+
+# Avisos de formato (KI-C24).
+mismatch = [n for n in files if formats[n] != by_ext[os.path.splitext(n)[1].lower()]]
+unsupported = [n for n in files if formats[n] not in qt_formats]
+if mismatch:
+    kinds = {}
+    for n in mismatch:
+        kinds.setdefault(formats[n], []).append(n)
+    for fmt, names in sorted(kinds.items()):
+        print(f"aviso: {len(names)} con extension que no coincide (contenido {fmt}): {', '.join(names)}",
+              file=sys.stderr)
+if unsupported:
+    print(f"aviso: {len(unsupported)} en un formato que el Qt instalado no decodifica "
+          f"(la capa de wallpaper los mostraria como color liso): "
+          + ", ".join(f"{n} ({formats[n]})" for n in unsupported), file=sys.stderr)
+    def is_new(n):
+        st = os.stat(os.path.join(walls, n))
+        return prev.get(n) != (int(st.st_mtime), st.st_size)
+    fresh = [n for n in unsupported if is_new(n)]
+    if fresh and os.environ["NOTIFY"] != "0" and shutil.which("notify-send"):
+        subprocess.run(["notify-send", "-i", "image-missing", "Wallpaper no compatible",
+                        ", ".join(fresh) + ": formato que la shell no puede mostrar (convertir a PNG o JPEG)"],
+                       capture_output=True)
 print(f"{len(files)} wallpapers: {new} nuevos, {len(todo) - new} actualizados, "
       f"{len(removed)} eliminados, en {time.time() - t0:.1f} s"
       + (f"; con errores: {', '.join(failed)}" if failed else ""))
