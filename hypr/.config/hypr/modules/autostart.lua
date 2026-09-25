@@ -25,9 +25,11 @@ hl.on("hyprland.start", function()
     -- nada pendiente no hace nada.
     hl.exec_cmd("sh -c '~/.config/hypr/scripts/theme-apply.sh --flush-system'")
 
-    -- Historial de portapapeles (texto e imagenes por separado)
-    hl.exec_cmd("sh -c 'wl-paste --type text --watch cliphist store'")
-    hl.exec_cmd("sh -c 'wl-paste --type image --watch cliphist store'")
+    -- Historial de portapapeles (texto e imagenes por separado). Pasa por
+    -- clipboard-store (Fase 4 B2): no guarda lo sensible, respeta la pausa,
+    -- la lista de exclusion y las imagenes de mas de 10 MB.
+    hl.exec_cmd("sh -c 'wl-paste --type text --watch ~/.config/hypr/scripts/clipboard-store --type text'")
+    hl.exec_cmd("sh -c 'wl-paste --type image --watch ~/.config/hypr/scripts/clipboard-store --type image'")
     hl.exec_cmd("wl-clip-persist --clipboard both")
 
     -- Applet de red y bluetooth (si estan instalados)

@@ -7,6 +7,12 @@
 // Quien lo usa da los datos ya filtrados (model, a partir de query) y la fila
 // (delegate: en la fila, ListView.view.currentIndex es el elegido). Solo
 // lista por ahora (B0-a): rejilla y vista previa llegan con su primer uso.
+//
+// Fase 4 B2 (portapapeles, primer uso): "header" (fila bajo el buscador) y
+// "preview" (panel a la derecha, previewWidth). Con vista previa la altura es
+// fija (no salta al filtrar). keyHandler(event) recibe las teclas que el
+// selector no usa (devuelve true si las consume). Sin nada de esto el
+// selector queda igual que en B0.
 import QtQuick
 import QtQuick.Layouts
 import ".." // Colors.qml, Tokens.qml
@@ -20,6 +26,12 @@ Item {
     property string hints: ""
     property string emptyText: "Sin resultados"
     property int maxVisibleRows: 8
+    property Component header: null
+    property Component preview: null
+    property int listWidth: Tokens.panel.launcherWidth
+    property int previewWidth: 340
+    readonly property bool fixedHeight: root.preview !== null
+    property var keyHandler: null
     // Presence de la ventana (apertura/cierre); null = sin animar.
     property var presence: null
 
@@ -30,6 +42,10 @@ Item {
     signal dismissed()
 
     // Al abrir: busqueda vacia, primer elemento, foco en el campo.
+    function focusSearch(): void {
+        searchField.forceActiveFocus();
+    }
+
     function reset(): void {
         searchField.text = "";
         listView.currentIndex = 0;
@@ -39,13 +55,13 @@ Item {
     readonly property int count: root.model ? root.model.length : 0
     // Fila de 44 + 2 de separacion entre filas (el delegate resta el hueco).
     readonly property int rowHeight: Tokens.row.heightLarge + Tokens.space.hair
-    readonly property int visibleRows: Math.max(1, Math.min(root.maxVisibleRows, root.count))
-    readonly property int listHeight: root.count > 0 ? root.visibleRows * root.rowHeight : 56
+    readonly property int visibleRows: root.fixedHeight ? root.maxVisibleRows : Math.max(1, Math.min(root.maxVisibleRows, root.count))
+    readonly property int listHeight: (root.count > 0 || root.fixedHeight) ? root.visibleRows * root.rowHeight : 56
 
-    width: Tokens.panel.launcherWidth
-    // margenes (md*2) + searchBox + lista/"sin resultados" + footer +
-    // dos huecos de "spacing" del ColumnLayout (entre esas 3 filas).
-    height: Tokens.space.md * 2 + searchBox.height + root.listHeight + footerText.implicitHeight + Tokens.space.md * 2
+    width: root.listWidth + (root.preview ? root.previewWidth + Tokens.space.md : 0)
+    // margenes (md*2) + searchBox + [header] + lista/"sin resultados" + footer
+    // + los huecos de "spacing" del ColumnLayout entre esas filas.
+    height: Tokens.space.md * 2 + searchBox.height + (headerLoader.item ? headerLoader.height + Tokens.space.md : 0) + root.listHeight + footerText.implicitHeight + Tokens.space.md * 2
     opacity: root.presence ? root.presence.progress : 1
     scale: root.presence ? root.presence.contentScale : 1
     Behavior on height { NumberAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
@@ -105,6 +121,9 @@ Item {
                     clip: true
 
                     onTextChanged: listView.currentIndex = 0
+                    Keys.onPressed: (event) => {
+                        if (root.keyHandler && root.keyHandler(event)) event.accepted = true;
+                    }
                     Keys.onDownPressed: listView.incrementCurrentIndex()
                     Keys.onUpPressed: listView.decrementCurrentIndex()
                     Keys.onReturnPressed: {
@@ -126,21 +145,56 @@ Item {
                 }
             }
 
-            ListView {
-                id: listView
-                visible: root.count > 0
+            Loader {
+                id: headerLoader
+                Layout.fillWidth: true
+                visible: !!item
+                sourceComponent: root.header
+            }
+
+            RowLayout {
+                visible: root.count > 0 || root.fixedHeight
                 Layout.fillWidth: true
                 Layout.preferredHeight: root.listHeight
-                clip: true
-                model: root.model
-                currentIndex: 0
-                highlightMoveDuration: Tokens.motion.fast
-                boundsBehavior: Flickable.StopAtBounds
-                delegate: root.delegate
+                spacing: Tokens.space.md
+
+                ListView {
+                    id: listView
+                    visible: root.count > 0
+                    Layout.fillWidth: !root.preview
+                    Layout.preferredWidth: root.listWidth - Tokens.space.md * 2
+                    Layout.preferredHeight: root.listHeight
+                    clip: true
+                    model: root.model
+                    currentIndex: 0
+                    highlightMoveDuration: Tokens.motion.fast
+                    boundsBehavior: Flickable.StopAtBounds
+                    delegate: root.delegate
+                }
+
+                // "Sin resultados" con vista previa (altura fija): en el lugar de la lista.
+                Text {
+                    visible: root.count === 0
+                    Layout.preferredWidth: root.listWidth - Tokens.space.md * 2
+                    Layout.fillHeight: true
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    text: root.emptyText
+                    color: Colors.m3onSurfaceVariant
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.body
+                }
+
+                Loader {
+                    visible: !!root.preview
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    sourceComponent: root.preview
+                }
             }
 
             Text {
-                visible: root.count === 0
+                visible: root.count === 0 && !root.fixedHeight
                 Layout.alignment: Qt.AlignHCenter
                 Layout.preferredHeight: root.listHeight
                 verticalAlignment: Text.AlignVCenter

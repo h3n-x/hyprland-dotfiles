@@ -113,6 +113,30 @@ ShellRoot {
         }
     }
 
+    // Historial del portapapeles (Fase 4 B2): SUPER+SHIFT+V abre. pause /
+    // resume / status: la pausa del historial (tambien Ctrl+P en el panel).
+    IpcHandler {
+        target: "clipboard"
+        function open(): void {
+            ClipboardState.open();
+        }
+        function close(): void {
+            ClipboardState.close();
+        }
+        function toggle(): void {
+            ClipboardState.toggle();
+        }
+        function pause(): void {
+            ClipboardState.setPaused(true);
+        }
+        function resume(): void {
+            ClipboardState.setPaused(false);
+        }
+        function status(): string {
+            return ClipboardState.paused ? "paused" : "active";
+        }
+    }
+
     IpcHandler {
         target: "gallery"
         function toggle(): void {
@@ -197,6 +221,15 @@ ShellRoot {
         model: Quickshell.screens
 
         PowerMenu {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        Clipboard {
             required property var modelData
             screen: modelData
         }

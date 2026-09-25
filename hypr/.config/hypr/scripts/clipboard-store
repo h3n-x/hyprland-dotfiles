@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+# Historial del portapapeles (Fase 4 B2, P4.1): filtro delante de cliphist y
+# acciones del panel de Quickshell (modules/Clipboard.qml).
+#
+#   clipboard-store --type text|image   lo usan los "wl-paste --watch" de
+#                                       autostart.lua: decide si guardar
+#   clipboard-store --check             clasifica stdin (imprime la categoria
+#                                       si es sensible; sale 0 si lo es)
+#   clipboard-store --scan              cuenta entradas sensibles del historial
+#   clipboard-store --purge-sensitive   las borra (imprime solo cuantas)
+#   clipboard-store --pause|--resume|--status
+#   clipboard-store --list | --copy ID | --delete ID | --wipe
+#   clipboard-store --preview-text ID [--reveal] | --preview-image ID EXT
+#   clipboard-store --clean-previews
+#
+# Privacidad: nada del contenido se escribe en logs ni en disco. Lo copiado
+# pasa por un archivo temporal en $XDG_RUNTIME_DIR (tmpfs, modo 700, en RAM)
+# que se borra al salir. Lo que parece sensible NO se guarda (ni oculto):
+# claves privadas, tokens (GitHub, IA, nube, Slack), JWT, asignaciones
+# PASSWORD=/SECRET=/TOKEN=/API_KEY= y cadenas con forma de contrasena. Si la
+# clasificacion falla, tampoco se guarda. Solo afecta al historial: lo
+# copiado sigue en el portapapeles y se pega normal.
+#
+# Tambien: CLIPBOARD_STATE=sensitive|clear (lo pone wl-paste cuando la app
+# marca el dato como contrasena o limpia el portapapeles) pasa tal cual a
+# cliphist; con la pausa activa no se guarda nada; las apps de
+# ~/.config/hypr/clipboard-exclude.conf (clase de ventana, una expresion por
+# linea) tampoco; imagenes de mas de 10 MB tampoco.
+#
+# Pruebas (nunca tocan el portapapeles real): CLIPHIST_DB_PATH (base de
+# cliphist), CLIPBOARD_RUNTIME_DIR (pausa y vistas previas),
+# CLIPBOARD_DRY_COPY=<archivo> (--copy escribe ahi en vez de wl-copy),
+# CLIPBOARD_EXCLUDE_FILE, CLIPBOARD_ACTIVE_CLASS (clase de ventana simulada).
+set -uo pipefail
+umask 077
+
+RUNTIME=${CLIPBOARD_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
+PAUSE_FLAG=$RUNTIME/dotshell-clipboard.paused
+PREVIEW_DIR=$RUNTIME/dotshell-clipboard
+EXCLUDE_FILE=${CLIPBOARD_EXCLUDE_FILE:-$HOME/.config/hypr/clipboard-exclude.conf}
+MAX_IMAGE_BYTES=$((10 * 1024 * 1024))
+MAX_SCAN_BYTES=65536
+MAX_PREVIEW_BYTES=8192
+MAX_PREVIEW_FILES=8
+
+CLIPHIST=(cliphist)
+[[ -n ${CLIPHIST_DB_PATH:-} ]] && CLIPHIST+=(-db-path "$CLIPHIST_DB_PATH")
+
+# ---- Clasificacion -------------------------------------------------------
+# Mismos patrones que Sensitive.qml (el panel oculta con ellos las entradas
+# viejas, guardadas antes de este filtro). Cambiar uno = cambiar los dos.
+PATTERNS=(
+    'privkey|-----BEGIN [A-Z ]*PRIVATE KEY-----'
+    'github|(gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{40,})'
+    'apikey-ai|(sk-ant-[A-Za-z0-9_-]{20,}|sk-(proj-)?[A-Za-z0-9_-]{32,})'
+    'apikey-cloud|(AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|xox[baprs]-[A-Za-z0-9-]{10,})'
+    'jwt|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'
+    'env-secret|(^|[^A-Za-z])(PASSWORD|PASSWD|SECRET|TOKEN|API_?KEY)[A-Z_]*[[:space:]]*=[[:space:]]*[^[:space:]]{6,}'
+)
+ALL_PATTERNS=$(printf '%s\n' "${PATTERNS[@]}" | cut -d'|' -f2- | paste -sd'|')
+
+# Imprime la categoria si el archivo parece sensible (sale 0), nada si no (1).
+classify_file() {
+    local f=$1 p d
+    if head -c "$MAX_SCAN_BYTES" "$f" | LC_ALL=C grep -aqE -- "$ALL_PATTERNS"; then
+        for p in "${PATTERNS[@]}"; do
+            if head -c "$MAX_SCAN_BYTES" "$f" | LC_ALL=C grep -aqE -- "${p#*|}"; then
+                echo "${p%%|*}"; return 0
+            fi
+        done
+    fi
+    # Forma de contrasena: una sola linea (sin contar saltos finales), sin
+    # espacios, 12-128 caracteres, mayuscula + minuscula + digito + simbolo,
+    # y que no sea una ruta ni una URL.
+    (( $(stat -c %s "$f") <= 130 )) || return 1
+    d=$(LC_ALL=C tr -d '\0' < "$f")
+    d=${d%$'\n'}; d=${d%$'\r'}
+    [[ $d == *$'\n'* || $d == *[[:space:]]* || $d == */* ]] && return 1
+    (( ${#d} >= 12 && ${#d} <= 128 )) || return 1
+    if [[ $d =~ [A-Z] && $d =~ [a-z] && $d =~ [0-9] && $d =~ [^A-Za-z0-9._-] ]]; then
+        echo "password-like"; return 0
+    fi
+    return 1
+}
+
+# Clase de la ventana enfocada en la lista de exclusion (solo si hay lista).
+excluded_app() {
+    [[ -r $EXCLUDE_FILE ]] || return 1
+    local rules cls
+    rules=$(grep -vE '^[[:space:]]*(#|$)' "$EXCLUDE_FILE") || return 1
+    [[ -n $rules ]] || return 1
+    cls=${CLIPBOARD_ACTIVE_CLASS-$(hyprctl activewindow -j 2>/dev/null | jq -r '.class // empty' 2>/dev/null)}
+    [[ -n $cls ]] || return 1
+    grep -qxEf <(printf '%s\n' "$rules") <<<"$cls"
+}
+
+# Temporal en RAM con lo copiado; se borra siempre al salir (una sola trampa
+# global: una variable local ya no existe cuando corre la de EXIT).
+TMP=""
+trap '[[ -n $TMP ]] && rm -f "$TMP"' EXIT
+tmpfile() {
+    mkdir -p "$RUNTIME" && TMP=$(mktemp "$RUNTIME/dotshell-clipboard-in.XXXXXX")
+}
+
+# ---- Guardar (wl-paste --watch) -------------------------------------------
+store() {
+    local type=$1 tmp
+    case ${CLIPBOARD_STATE:-data} in
+        sensitive|clear) exec "${CLIPHIST[@]}" store ;;
+        nil) exit 0 ;;
+    esac
+    if [[ -e $PAUSE_FLAG ]] || excluded_app; then
+        cat >/dev/null; exit 0
+    fi
+    tmpfile || { cat >/dev/null; exit 1; }; tmp=$TMP
+    cat > "$tmp" || exit 1
+    [[ -s $tmp ]] || exit 0
+    if [[ $type == image ]]; then
+        (( $(stat -c %s "$tmp") <= MAX_IMAGE_BYTES )) || exit 0
+    else
+        classify_file "$tmp" >/dev/null && exit 0
+    fi
+    "${CLIPHIST[@]}" store < "$tmp"
+}
+
+# ---- Historial ------------------------------------------------------------
+decode_to() { printf '%s\t\n' "$1" | "${CLIPHIST[@]}" decode > "$2" 2>/dev/null; }
+
+# Recorre las entradas de texto; con "purge" borra las sensibles. Imprime
+# solo cantidades por categoria, nunca contenido.
+scan() {
+    local mode=$1 tmp id rest cat n=0 lines
+    local -A count=()
+    tmpfile || exit 1; tmp=$TMP
+    # Lista completa primero: borrar con la base abierta por "list" la bloquea.
+    mapfile -t lines < <("${CLIPHIST[@]}" list)
+    for line in "${lines[@]}"; do
+        IFS=$'\t' read -r id rest <<<"$line"
+        [[ $rest == '[[ binary data '* ]] && continue
+        decode_to "$id" "$tmp" || continue
+        if cat=$(classify_file "$tmp"); then
+            count[$cat]=$(( ${count[$cat]:-0} + 1 )); n=$((n + 1))
+            [[ $mode == purge ]] && printf '%s\t\n' "$id" | "${CLIPHIST[@]}" delete
+        fi
+    done
+    for cat in "${!count[@]}"; do printf '%s %s\n' "$cat" "${count[$cat]}"; done
+    printf '%s %s\n' "$([[ $mode == purge ]] && echo borradas || echo sensibles)" "$n"
+}
+
+# Vista previa de texto: primera linea "bytes lineas", despues hasta 8 KB.
+# Si el contenido completo parece sensible imprime "SENSIBLE <categoria>" y
+# nada del contenido, salvo con --reveal (accion explicita del usuario).
+preview_text() {
+    local id=$1 reveal=${2:-} tmp cat
+    tmpfile || exit 1; tmp=$TMP
+    decode_to "$id" "$tmp" || exit 1
+    if cat=$(classify_file "$tmp") && [[ $reveal != --reveal ]]; then
+        echo "SENSIBLE $cat"; exit 0
+    fi
+    printf '%s %s\n' "$(stat -c %s "$tmp")" "$(wc -l < "$tmp")"
+    head -c "$MAX_PREVIEW_BYTES" "$tmp"
+}
+
+# Vista previa de imagen: decodifica en la carpeta temporal (RAM) e imprime la
+# ruta. Quedan como mucho 8 archivos; el panel borra la carpeta al cerrar.
+preview_image() {
+    local id=$1 ext=${2:-png} f
+    [[ $id =~ ^[0-9]+$ && $ext =~ ^[a-z0-9]+$ ]] || exit 1
+    mkdir -p "$PREVIEW_DIR" && chmod 700 "$PREVIEW_DIR" || exit 1
+    f=$PREVIEW_DIR/$id.$ext
+    [[ -s $f ]] || decode_to "$id" "$f" || { rm -f "$f"; exit 1; }
+    touch "$f"
+    find "$PREVIEW_DIR" -maxdepth 1 -type f -printf '%T@ %p\n' | sort -rn | tail -n +$((MAX_PREVIEW_FILES + 1)) \
+        | cut -d' ' -f2- | xargs -r rm -f
+    echo "$f"
+}
+
+copy_entry() {
+    local id=$1
+    if [[ -n ${CLIPBOARD_DRY_COPY:-} ]]; then
+        decode_to "$id" "$CLIPBOARD_DRY_COPY"
+    else
+        printf '%s\t\n' "$id" | "${CLIPHIST[@]}" decode | wl-copy
+    fi
+}
+
+need_id() { [[ ${1:-} =~ ^[0-9]+$ ]] || { echo "falta el id" >&2; exit 2; }; }
+
+case ${1:-} in
+    --type)             store "${2:-text}" ;;
+    --check)            tmpfile || exit 1; cat > "$TMP"; classify_file "$TMP" ;;
+    --scan)             scan count ;;
+    --purge-sensitive)  scan purge ;;
+    --pause)            mkdir -p "$RUNTIME" && : > "$PAUSE_FLAG" ;;
+    --resume)           rm -f "$PAUSE_FLAG" ;;
+    --status)           [[ -e $PAUSE_FLAG ]] && echo paused || echo active ;;
+    --list)             "${CLIPHIST[@]}" list ;;
+    --copy)             need_id "${2:-}"; copy_entry "$2" ;;
+    --delete)           need_id "${2:-}"; printf '%s\t\n' "$2" | "${CLIPHIST[@]}" delete ;;
+    --wipe)             "${CLIPHIST[@]}" wipe ;;
+    --preview-text)     need_id "${2:-}"; preview_text "$2" "${3:-}" ;;
+    --preview-image)    need_id "${2:-}"; preview_image "$2" "${3:-png}" ;;
+    --clean-previews)   rm -rf "$PREVIEW_DIR" ;;
+    *)                  sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+esac

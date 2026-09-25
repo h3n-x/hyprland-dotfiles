@@ -38,7 +38,7 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 | Polkit | hyprpolkitagent |
 | Capturas | grim + slurp + satty |
 | Grabacion | wf-recorder |
-| Portapapeles | cliphist + wl-clip-persist |
+| Portapapeles | panel de Quickshell (`SUPER + SHIFT + V`) sobre cliphist + wl-clip-persist |
 | Color picker | hyprpicker |
 | Selector de emoji | rofimoji (`SUPER + .`) |
 | Spotify | spicetify + spicetify-marketplace (ver `spicetify/`) |
@@ -332,14 +332,30 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   boton de la barra): bloquear, suspender, cerrar sesion, reiniciar y apagar;
   las tres ultimas piden confirmacion y cierran las aplicaciones antes (via
   `hyprshutdown`). Reemplaza al menu de rofi (`power-menu.sh`, retirado).
+- **Historial del portapapeles** (`modules/Clipboard.qml`, `SUPER+SHIFT+V`):
+  lista con busqueda, filtros (Todo / Texto / Imagenes / Enlaces, `Tab`) y
+  vista previa de texto e imagenes a la derecha. `Enter` copia, `Supr`
+  borra, `Ctrl+P` pausa el historial (lo copiado no se guarda hasta
+  reanudar; reiniciar lo reanuda), `Ctrl+Supr` vacia (con confirmacion).
+  Lo guarda `hypr/.config/hypr/scripts/clipboard-store`, que corre delante
+  de `cliphist` en los `wl-paste --watch` de `autostart.lua` y **no guarda**
+  lo que parece sensible: claves privadas, tokens (GitHub, APIs, JWT),
+  `PASSWORD=`/`SECRET=`/`TOKEN=` y cadenas con forma de contrasena, lo que
+  una app marca como contrasena, las apps listadas en
+  `hypr/.config/hypr/clipboard-exclude.conf` (vacia por defecto) e imagenes
+  de mas de 10 MB. Lo copiado se pega igual; solo no entra al historial.
+  Las vistas previas de imagen se decodifican en `$XDG_RUNTIME_DIR` (RAM) y
+  se borran al cerrar el panel. `clipboard-store --scan` cuenta entradas
+  sensibles viejas y `--purge-sensitive` las borra (solo imprime cuantas).
+  Es la unica interfaz del historial (el menu de rofi se retiro).
 - **Launcher** (`modules/Launcher.qml` + `LauncherState.qml`): reemplaza
   a `rofi -show drun` en `SUPER+D` -- campo de búsqueda con fuzzy match
   propio (subsecuencia, sin librería externa) sobre nombre/`genericName`/
   `keywords` de `Quickshell.DesktopEntries`, orden alfabético sin
   búsqueda, resaltado de lo que matchea, tamaño de ventana dinámico según
-  cantidad de resultados. El window-switcher (`SUPER+Tab`), rofimoji y el
-  portapapeles siguen en rofi por ahora (se migran a Quickshell en la
-  Fase 4); el menu de energia y el selector de wallpaper ya se migraron.
+  cantidad de resultados. El window-switcher (`SUPER+Tab`) y rofimoji
+  siguen en rofi por ahora (se migran a Quickshell en la Fase 4); el menu
+  de energia, el portapapeles y el selector de wallpaper ya se migraron.
 - **Binds** (`binds.lua`): `SUPER+SHIFT+B` muestra/oculta la barra
   (`qs -c dotshell ipc call bar toggle`, afecta a todas las pantallas a la
   vez via el singleton `BarVisibility.qml`) y
@@ -678,7 +694,7 @@ efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
 | `SUPER + N` / `SHIFT+N` | Panel de notificaciones / limpiar todo |
 | `SUPER + SHIFT + C` | Color picker |
 | `SUPER + .` | Selector de emoji (rofimoji) |
-| `SUPER + SHIFT + V` | Historial de portapapeles |
+| `SUPER + SHIFT + V` | Historial de portapapeles (busqueda, vista previa de texto/imagenes, no guarda datos sensibles) |
 | `SUPER + SHIFT + W` | Galeria de wallpapers (vista previa, opciones de color; recolorea todo con matugen) |
 | `SUPER + SHIFT + Z` | Deshacer el ultimo cambio de tema |
 | `Print` / `SUPER+Print` / `SUPER+SHIFT+Print` | Captura completa / region / ventana |

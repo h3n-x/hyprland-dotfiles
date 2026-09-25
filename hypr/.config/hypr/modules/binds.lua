@@ -37,7 +37,8 @@ hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd("qs -c dotshell ipc call bar 
 hl.bind(mainMod .. " + SHIFT + CTRL + B", hl.dsp.exec_cmd("qs -c dotshell ipc call shell reload")) -- reload duro (recrea ventanas)
 
 hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"))
-hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(scripts .. "/clipboard-menu"))
+-- Historial del portapapeles (Quickshell, Fase 4 B2)
+hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("qs -c dotshell ipc call clipboard toggle"))
 -- Galeria de wallpapers (Quickshell, Fase 3). Sin Quickshell corriendo:
 -- theme-apply.sh <archivo> desde una terminal (el selector de rofi se retiro en B9).
 hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("qs -c dotshell ipc call gallery toggle"))
