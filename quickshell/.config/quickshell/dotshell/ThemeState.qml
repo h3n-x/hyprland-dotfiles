@@ -26,6 +26,11 @@ Item {
     // uso los valores son los por defecto durante ~150 ms).
     property bool loaded: false
 
+    // Rutas absolutas, igual que las guarda theme-apply.sh.
+    function isFavorite(path: string): bool {
+        return (root.favorites || []).indexOf(path) >= 0;
+    }
+
     FileView {
         id: file
         path: root.path

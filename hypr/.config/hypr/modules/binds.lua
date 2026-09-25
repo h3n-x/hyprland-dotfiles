@@ -33,7 +33,10 @@ hl.bind(mainMod .. " + SHIFT + CTRL + B", hl.dsp.exec_cmd("qs -c dotshell ipc ca
 
 hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"))
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(scripts .. "/clipboard-menu"))
-hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd(scripts .. "/wallpaper-selector.sh"))
+-- Galeria de wallpapers (Quickshell, Fase 3 B3). El selector de rofi queda en
+-- SUPER+ALT+W mientras la galeria madura (se retira en B9).
+hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("qs -c dotshell ipc call gallery toggle"))
+hl.bind(mainMod .. " + ALT + W", hl.dsp.exec_cmd(scripts .. "/wallpaper-selector.sh"))
 hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("rofimoji --action type copy")) -- selector de emoji (rofimoji, usa el tema de rofi)
 
 -- Capturas y grabacion (ver scripts/screenshot y scripts/record)

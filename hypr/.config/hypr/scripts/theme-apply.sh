@@ -6,6 +6,7 @@
 #   theme-apply.sh <wallpaper> [--scheme <tipo>] [--contrast <-1..1>]
 #                  [--source rofi|gallery|undo|ipc] [--dry-run] [--no-system]
 #   theme-apply.sh --flush-system   (corre ya el trabajo de sistema pendiente)
+#   theme-apply.sh --favorite <wallpaper> on|off|toggle   (galeria, Fase 3 B3)
 #
 # Una sola aplicacion a la vez: cada llamada deja su pedido en un archivo (el
 # ultimo pisa al anterior) y solo un proceso "worker", protegido con flock,
@@ -33,6 +34,9 @@ set -uo pipefail
 SCRIPTS_DIR="$(dirname "$(readlink -f "$0")")"
 STATE_DIR="${THEME_STATE_DIR:-$HOME/.local/state/dotfiles}"
 STATE="$STATE_DIR/wallpapers.json"
+# Toda escritura del estado (aplicar, favoritos) pasa por este lock: la
+# galeria y un cambio de wallpaper nunca se pisan la actualizacion.
+STATE_LOCK="$STATE_DIR/wallpapers.json.lock"
 REQUEST="$STATE_DIR/theme-apply.request"
 LOCK="$STATE_DIR/theme-apply.lock"
 SYSTEM_PENDING="$STATE_DIR/system.pending"
@@ -62,7 +66,7 @@ die() {
 }
 
 usage() {
-  sed -n '6,8p' "$0" | sed 's/^# \{0,3\}//' >&2
+  sed -n '6,9p' "$0" | sed 's/^# \{0,3\}//' >&2
   exit 2
 }
 
@@ -70,7 +74,15 @@ usage() {
 
 # Estado inicial a partir del wallpaper que ya esta aplicado, asi el
 # historial arranca desde lo que hay hoy.
-init_state() {
+with_state_lock() { # comando... (bloqueante)
+  (
+    flock 7
+    "$@"
+  ) 7> "$STATE_LOCK"
+}
+
+init_state() { with_state_lock _init_state; }
+_init_state() {
   [ -s "$STATE" ] && jq -e . "$STATE" >/dev/null 2>&1 && return 0
   local wp=""
   [ -f "$CURRENT_CONF" ] && wp=$(awk -F'= *' '/^[[:space:]]*path[[:space:]]*=/ {print $2; exit}' "$CURRENT_CONF")
@@ -82,7 +94,8 @@ init_state() {
     && mv "$STATE.tmp" "$STATE"
 }
 
-record_apply() { # wallpaper scheme contrast source
+record_apply() { with_state_lock _record_apply "$@"; }
+_record_apply() { # wallpaper scheme contrast source
   jq --arg wp "$1" --arg scheme "$2" --arg contrast "$3" --arg source "$4" \
      --arg now "$(date -Iseconds)" --argjson max "$HISTORY_MAX" '
     {wallpaper: $wp,
@@ -261,6 +274,25 @@ if [ "${1:-}" = "--system-run" ]; then
 fi
 if [ "${1:-}" = "--flush-system" ]; then
   run_system ""
+  exit 0
+fi
+if [ "${1:-}" = "--favorite" ]; then
+  [ $# -eq 3 ] || usage
+  fav="$(readlink -f -- "$2")"
+  [ -f "$fav" ] || die "no existe: $2"
+  case "$3" in on|off|toggle) ;; *) die "favorito: usar on|off|toggle" ;; esac
+  init_state
+  _set_favorite() {
+    jq --arg wp "$fav" --arg op "$3" '
+      (.favorites // []) as $f
+      | ($f | index($wp)) as $i
+      | .favorites = (if ($op == "on" or ($op == "toggle" and $i == null))
+                      then (if $i == null then $f + [$wp] else $f end)
+                      else ($f | map(select(. != $wp))) end)' "$STATE" > "$STATE.tmp" \
+      && mv "$STATE.tmp" "$STATE"
+  }
+  with_state_lock _set_favorite "$@"
+  log "favorito: $3 $fav"
   exit 0
 fi
 

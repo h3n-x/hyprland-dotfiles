@@ -84,6 +84,15 @@ ShellRoot {
         }
     }
 
+    // SUPER+SHIFT+W (ver binds.lua) -- galeria de wallpapers (Fase 3 B3);
+    // el selector de rofi queda en SUPER+ALT+W mientras la galeria madura.
+    IpcHandler {
+        target: "gallery"
+        function toggle(): void {
+            GalleryState.visible = !GalleryState.visible;
+        }
+    }
+
     Variants {
         model: Quickshell.screens
 
@@ -132,6 +141,15 @@ ShellRoot {
         model: Quickshell.screens
 
         Launcher {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        WallpaperGallery {
             required property var modelData
             screen: modelData
         }
