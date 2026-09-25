@@ -40,7 +40,7 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 | Grabacion | wf-recorder |
 | Portapapeles | panel de Quickshell (`SUPER + SHIFT + V`) sobre cliphist + wl-clip-persist |
 | Color picker | hyprpicker |
-| Selector de emoji | rofimoji (`SUPER + .`) |
+| Selector de emoji | panel de Quickshell (`SUPER + .`), datos Unicode/CLDR en español e inglés |
 | Spotify | spicetify + spicetify-marketplace (ver `spicetify/`) |
 | Visualizador de audio | cava (colores dinamicos, ver seccion cava abajo) |
 | System info / fetch | fastfetch (ver `fastfetch/`) |
@@ -59,7 +59,7 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 ```bash
 sudo pacman -S --needed rofi satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
-  qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd rofimoji wtype \
+  qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd noto-fonts-emoji python-pillow wtype \
   gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl brightnessctl \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
   matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono ttf-material-symbols-variable \
@@ -348,14 +348,29 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   se borran al cerrar el panel. `clipboard-store --scan` cuenta entradas
   sensibles viejas y `--purge-sensitive` las borra (solo imprime cuantas).
   Es la unica interfaz del historial (el menu de rofi se retiro).
+- **Selector de emoji** (`modules/Emoji.qml` + `EmojiState.qml`,
+  `SUPER+.`): rejilla con pestañas de categoria (Recientes, Caras, Personas,
+  ...), busqueda por comienzo de palabra en espanol e ingles sin tildes
+  (`gato`, `cat`, `corazon`), franja con el emoji grande y el tono de piel.
+  `Enter` escribe el emoji en la ventana activa (`wtype`, sin copiarlo),
+  `Ctrl+Enter` solo lo copia, `Tab` cambia de categoria, `Ctrl+T` o un clic
+  en los puntos cambian el tono (global, se recuerda). Guarda los ultimos 30
+  en `~/.local/state/dotfiles/emoji.json`. Los datos
+  (`dotshell/data/emoji.json`, 1914 emojis) los genera a mano
+  `hypr/.config/hypr/scripts/emoji-data` desde la lista oficial Unicode 17.0 y
+  CLDR 48 (fijados por sha256; licencia en `data/LICENSE-unicode`). Para
+  dibujar rapido usa un PNG por emoji en `~/.cache/dotfiles/emoji/72`, que
+  `emoji-data --ensure-images` crea al iniciar el shell si faltan (≈ 20 s,
+  necesita `python-pillow`); mientras tanto dibuja texto con Noto Color Emoji.
+  Reemplaza a rofimoji (retirado).
 - **Launcher** (`modules/Launcher.qml` + `LauncherState.qml`): reemplaza
   a `rofi -show drun` en `SUPER+D` -- campo de búsqueda con fuzzy match
   propio (subsecuencia, sin librería externa) sobre nombre/`genericName`/
   `keywords` de `Quickshell.DesktopEntries`, orden alfabético sin
   búsqueda, resaltado de lo que matchea, tamaño de ventana dinámico según
-  cantidad de resultados. El window-switcher (`SUPER+Tab`) y rofimoji
-  siguen en rofi por ahora (se migran a Quickshell en la Fase 4); el menu
-  de energia, el portapapeles y el selector de wallpaper ya se migraron.
+  cantidad de resultados. El window-switcher (`SUPER+Tab`) sigue en rofi
+  por ahora (se migra a Quickshell en la Fase 4); el menu de energia, el
+  portapapeles, el selector de emoji y el de wallpaper ya se migraron.
 - **Binds** (`binds.lua`): `SUPER+SHIFT+B` muestra/oculta la barra
   (`qs -c dotshell ipc call bar toggle`, afecta a todas las pantallas a la
   vez via el singleton `BarVisibility.qml`) y
@@ -693,7 +708,7 @@ efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
 | `SUPER + CTRL + SHIFT + M` | Salida de emergencia de Hyprland (sin confirmar, no depende de Quickshell) |
 | `SUPER + N` / `SHIFT+N` | Panel de notificaciones / limpiar todo |
 | `SUPER + SHIFT + C` | Color picker |
-| `SUPER + .` | Selector de emoji (rofimoji) |
+| `SUPER + .` | Selector de emoji (Enter escribe, Ctrl+Enter copia, Ctrl+T tono de piel) |
 | `SUPER + SHIFT + V` | Historial de portapapeles (busqueda, vista previa de texto/imagenes, no guarda datos sensibles) |
 | `SUPER + SHIFT + W` | Galeria de wallpapers (vista previa, opciones de color; recolorea todo con matugen) |
 | `SUPER + SHIFT + Z` | Deshacer el ultimo cambio de tema |

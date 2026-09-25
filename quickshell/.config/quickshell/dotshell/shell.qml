@@ -137,6 +137,24 @@ ShellRoot {
         }
     }
 
+    // Selector de emoji (Fase 4 B3): SUPER+. abre. clearRecent borra los
+    // recientes.
+    IpcHandler {
+        target: "emoji"
+        function open(): void {
+            EmojiState.open();
+        }
+        function close(): void {
+            EmojiState.close();
+        }
+        function toggle(): void {
+            EmojiState.toggle();
+        }
+        function clearRecent(): void {
+            EmojiState.clearRecent();
+        }
+    }
+
     IpcHandler {
         target: "gallery"
         function toggle(): void {
@@ -230,6 +248,15 @@ ShellRoot {
         model: Quickshell.screens
 
         Clipboard {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        Emoji {
             required property var modelData
             screen: modelData
         }

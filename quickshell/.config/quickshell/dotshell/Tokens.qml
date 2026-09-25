@@ -26,6 +26,7 @@ QtObject {
         readonly property string ui: "Plus Jakarta Sans"
         readonly property string mono: "Maple Mono NF"
         readonly property string icon: "Material Symbols Rounded"
+        readonly property string emoji: "Noto Color Emoji"   // selector de emoji (P4 B3)
     }
     readonly property FontFamilies font: FontFamilies {}
 

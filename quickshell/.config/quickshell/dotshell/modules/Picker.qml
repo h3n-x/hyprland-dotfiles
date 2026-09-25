@@ -13,6 +13,12 @@
 // fija (no salta al filtrar). keyHandler(event) recibe las teclas que el
 // selector no usa (devuelve true si las consume). Sin nada de esto el
 // selector queda igual que en B0.
+//
+// Fase 4 B3 (emoji): layout "grid" (GridView de columns x cellSize, flechas
+// en 2D; el indice sigue viviendo en la lista, que queda oculta y sin filas)
+// y "detail" (franja entre los resultados y la ayuda de teclas). En la
+// rejilla la altura es fija (maxVisibleRows filas de cellSize). Enter pasa
+// primero por keyHandler (Ctrl+Enter del emoji).
 import QtQuick
 import QtQuick.Layouts
 import ".." // Colors.qml, Tokens.qml
@@ -32,6 +38,10 @@ Item {
     property int previewWidth: 340
     readonly property bool fixedHeight: root.preview !== null
     property var keyHandler: null
+    property string layout: "list" // list | grid
+    property int columns: 10
+    property int cellSize: 48
+    property Component detail: null
     // Presence de la ventana (apertura/cierre); null = sin animar.
     property var presence: null
 
@@ -56,12 +66,13 @@ Item {
     // Fila de 44 + 2 de separacion entre filas (el delegate resta el hueco).
     readonly property int rowHeight: Tokens.row.heightLarge + Tokens.space.hair
     readonly property int visibleRows: root.fixedHeight ? root.maxVisibleRows : Math.max(1, Math.min(root.maxVisibleRows, root.count))
-    readonly property int listHeight: (root.count > 0 || root.fixedHeight) ? root.visibleRows * root.rowHeight : 56
+    readonly property int listHeight: root.layout === "grid" ? root.maxVisibleRows * root.cellSize
+        : ((root.count > 0 || root.fixedHeight) ? root.visibleRows * root.rowHeight : 56)
 
     width: root.listWidth + (root.preview ? root.previewWidth + Tokens.space.md : 0)
     // margenes (md*2) + searchBox + [header] + lista/"sin resultados" + footer
     // + los huecos de "spacing" del ColumnLayout entre esas filas.
-    height: Tokens.space.md * 2 + searchBox.height + (headerLoader.item ? headerLoader.height + Tokens.space.md : 0) + root.listHeight + footerText.implicitHeight + Tokens.space.md * 2
+    height: Tokens.space.md * 2 + searchBox.height + (headerLoader.item ? headerLoader.height + Tokens.space.md : 0) + root.listHeight + (detailLoader.item ? detailLoader.height + Tokens.space.md : 0) + footerText.implicitHeight + Tokens.space.md * 2
     opacity: root.presence ? root.presence.progress : 1
     scale: root.presence ? root.presence.contentScale : 1
     Behavior on height { NumberAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
@@ -124,9 +135,20 @@ Item {
                     Keys.onPressed: (event) => {
                         if (root.keyHandler && root.keyHandler(event)) event.accepted = true;
                     }
-                    Keys.onDownPressed: listView.incrementCurrentIndex()
-                    Keys.onUpPressed: listView.decrementCurrentIndex()
-                    Keys.onReturnPressed: {
+                    Keys.onDownPressed: root.layout === "grid" ? gridView.moveCurrentIndexDown() : listView.incrementCurrentIndex()
+                    Keys.onUpPressed: root.layout === "grid" ? gridView.moveCurrentIndexUp() : listView.decrementCurrentIndex()
+                    // En la rejilla izquierda/derecha mueven la seleccion; en
+                    // la lista siguen moviendo el cursor del texto.
+                    Keys.onLeftPressed: (event) => {
+                        if (root.layout === "grid") gridView.moveCurrentIndexLeft();
+                        else event.accepted = false;
+                    }
+                    Keys.onRightPressed: (event) => {
+                        if (root.layout === "grid") gridView.moveCurrentIndexRight();
+                        else event.accepted = false;
+                    }
+                    Keys.onReturnPressed: (event) => {
+                        if (root.keyHandler && root.keyHandler(event)) return;
                         const item = root.model[listView.currentIndex];
                         if (item) root.accepted(item);
                     }
@@ -158,9 +180,27 @@ Item {
                 Layout.preferredHeight: root.listHeight
                 spacing: Tokens.space.md
 
+                GridView {
+                    id: gridView
+                    visible: root.layout === "grid" && root.count > 0
+                    Layout.preferredWidth: root.columns * root.cellSize
+                    Layout.preferredHeight: root.listHeight
+                    Layout.alignment: Qt.AlignHCenter
+                    clip: true
+                    cellWidth: root.cellSize
+                    cellHeight: root.cellSize
+                    // Reusar celdas al filtrar (cada tecla cambia el modelo entero).
+                    reuseItems: true
+                    model: root.layout === "grid" ? root.model : []
+                    currentIndex: listView.currentIndex
+                    onCurrentIndexChanged: if (listView.currentIndex !== currentIndex) listView.currentIndex = currentIndex
+                    boundsBehavior: Flickable.StopAtBounds
+                    delegate: root.delegate
+                }
+
                 ListView {
                     id: listView
-                    visible: root.count > 0
+                    visible: root.layout === "list" && root.count > 0
                     Layout.fillWidth: !root.preview
                     Layout.preferredWidth: root.listWidth - Tokens.space.md * 2
                     Layout.preferredHeight: root.listHeight
@@ -169,7 +209,7 @@ Item {
                     currentIndex: 0
                     highlightMoveDuration: Tokens.motion.fast
                     boundsBehavior: Flickable.StopAtBounds
-                    delegate: root.delegate
+                    delegate: root.layout === "list" ? root.delegate : null
                 }
 
                 // "Sin resultados" con vista previa (altura fija): en el lugar de la lista.
@@ -202,6 +242,13 @@ Item {
                 color: Colors.m3onSurfaceVariant
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
+            }
+
+            Loader {
+                id: detailLoader
+                Layout.fillWidth: true
+                visible: !!item
+                sourceComponent: root.detail
             }
 
             Text {

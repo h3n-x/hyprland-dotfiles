@@ -45,7 +45,8 @@ hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("qs -c dotshell ipc call gall
 -- Deshacer el ultimo cambio de tema (Fase 3 B5): vuelve al anterior del
 -- historial con su esquema y contraste; notifica a que tema volvio.
 hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd(scripts .. "/theme-apply.sh --undo"))
-hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("rofimoji --action type copy")) -- selector de emoji (rofimoji, usa el tema de rofi)
+-- Selector de emoji (Quickshell, Fase 4 B3): Enter escribe, Ctrl+Enter copia
+hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("qs -c dotshell ipc call emoji toggle"))
 
 -- Capturas y grabacion (ver scripts/screenshot y scripts/record)
 hl.bind("Print", hl.dsp.exec_cmd(scripts .. "/screenshot full"))

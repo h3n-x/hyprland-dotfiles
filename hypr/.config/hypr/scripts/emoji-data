@@ -1,0 +1,254 @@
+#!/usr/bin/env python3
+# Genera el dataset del selector de emoji de Quickshell (Fase 4 B3):
+# quickshell/.config/quickshell/dotshell/data/emoji.json.
+#
+# Se corre a mano solo para actualizar los datos (el panel nunca lo llama, ni
+# necesita red ni paquetes). Fuentes fijadas con su sha256:
+#   - lista oficial Unicode Emoji 17.0 (emoji-test.txt): orden, grupos y
+#     variantes de tono de piel;
+#   - CLDR 48.0.0 (cldr-json): nombres y palabras clave en espanol e ingles.
+# Solo quedan los emojis que la fuente instalada (Noto Color Emoji) dibuja como
+# un unico glifo; un emoji tiene tonos solo si sus 5 variantes se dibujan.
+#
+# Uso: emoji-data [--out ARCHIVO] [--cache DIR] [--font ARCHIVO]
+# Requiere: python-fonttools, curl. Descarga a ~/.cache/dotfiles/emoji-src.
+#
+# Imagenes (CACHE, no van al repo): emoji-data --ensure-images dibuja cada
+# emoji y cada variante de tono como PNG de 72 px en ~/.cache/dotfiles/emoji/72
+# (≈ 3500 archivos, ≈ 22 MB, ≈ 20 s) si faltan o cambiaron el dataset o la
+# fuente; si estan al dia sale enseguida. Lo corre Quickshell la primera vez
+# que se abre el panel (mientras tanto el panel dibuja texto): con imagenes la
+# rejilla usa ~6 MB y ~4 ms por tecla en vez de ~38 MB y ~30 ms (medido, B3-g).
+# Requiere python-pillow con raqm.
+import argparse
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+import unicodedata
+
+EMOJI_VERSION = "17.0.0"
+CLDR_VERSION = "48.0.0"
+CLDR = f"https://raw.githubusercontent.com/unicode-org/cldr-json/{CLDR_VERSION}/cldr-json"
+SOURCES = {
+    "emoji-test.txt": (f"https://www.unicode.org/Public/{EMOJI_VERSION}/emoji/emoji-test.txt",
+                       "1d8a944f88d7952f7ef7c5167fef3c67995bcae24543949710231b03a201acda"),
+    "annotations-es.json": (f"{CLDR}/cldr-annotations-full/annotations/es/annotations.json",
+                            "339cdf9ae5fe6d3250d3c53b95ff6d8a4dae96c7c0d279756ee7a73c43c84b56"),
+    "derived-es.json": (f"{CLDR}/cldr-annotations-derived-full/annotationsDerived/es/annotations.json",
+                        "f9f43c327c5b76dbd337496738c0f5c526ee1c803dd683d60100b5fce85ab79e"),
+    "annotations-en.json": (f"{CLDR}/cldr-annotations-full/annotations/en/annotations.json",
+                            "f22083cb86dffb63a643d5bacb5d9899f82d2fa5d388ad4f3aed72184acef505"),
+    "derived-en.json": (f"{CLDR}/cldr-annotations-derived-full/annotationsDerived/en/annotations.json",
+                        "15c9457afa703a32dcc78d54626418a91e820fe0ddd67b7d491c4c4d9f5846ab"),
+}
+# Grupos de emoji-test.txt -> id del panel (Component queda fuera).
+GROUPS = {
+    "Smileys & Emotion": "smileys", "People & Body": "people", "Animals & Nature": "animals",
+    "Food & Drink": "food", "Travel & Places": "travel", "Activities": "activities",
+    "Objects": "objects", "Symbols": "symbols", "Flags": "flags",
+}
+TONES = [0x1F3FB, 0x1F3FC, 0x1F3FD, 0x1F3FE, 0x1F3FF]
+FE0F = 0xFE0F
+
+
+def fetch(cache):
+    os.makedirs(cache, exist_ok=True)
+    paths = {}
+    for name, (url, sha) in SOURCES.items():
+        path = os.path.join(cache, name)
+        if not os.path.exists(path) or sha256(path) != sha:
+            subprocess.run(["curl", "-sSfL", "--max-time", "120", "-o", path, url], check=True)
+        if sha256(path) != sha:
+            sys.exit(f"sha256 distinto en {name}: la fuente cambio, revisar antes de actualizar el hash")
+        paths[name] = path
+    return paths
+
+
+def sha256(path):
+    with open(path, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
+def annotations(path):
+    d = json.load(open(path, encoding="utf-8"))
+    root = d.get("annotations") or d.get("annotationsDerived")
+    return root["annotations"]
+
+
+def font_sequences(font):
+    """Secuencias que la fuente dibuja como un glifo: cmap + ligaduras GSUB."""
+    from fontTools.ttLib import TTFont
+    t = TTFont(font)
+    cmap = t.getBestCmap()
+    by_glyph = {}
+    for cp, g in cmap.items():
+        by_glyph.setdefault(g, cp)
+    seqs = {(cp,) for cp in cmap}
+    for lookup in t["GSUB"].table.LookupList.Lookup:
+        for st in lookup.SubTable:
+            for first, ligs in getattr(st, "ligatures", {}).items():
+                for lig in ligs:
+                    try:
+                        seqs.add(tuple(by_glyph[g] for g in (first, *lig.Component)))
+                    except KeyError:
+                        pass
+    return seqs
+
+
+def drawable(e, seqs):
+    cps = tuple(ord(c) for c in e)
+    return cps in seqs or tuple(c for c in cps if c != FE0F) in seqs
+
+
+def fold(s):
+    """minusculas sin tildes (la busqueda del panel hace lo mismo con la consulta)."""
+    s = unicodedata.normalize("NFD", s.lower())
+    return "".join(c for c in s if unicodedata.category(c) != "Mn")
+
+
+def words(*texts):
+    out = []
+    for t in texts:
+        for w in re.split(r"[^\w]+", fold(t)):
+            if w and w not in out:
+                out.append(w)
+    return out
+
+
+IMAGE_SIZE = 72
+
+
+def image_name(e):
+    """Nombre del PNG: puntos de codigo en hex sin U+FE0F (igual que EmojiState.qml)."""
+    return "-".join(f"{ord(c):x}" for c in e if ord(c) != FE0F) + ".png"
+
+
+def ensure_images(data, font, out_dir):
+    """Dibuja los PNG si el sello (dataset + fuente + tamano) no coincide."""
+    stamp = hashlib.sha256()
+    stamp.update(open(data, "rb").read())
+    st = os.stat(font)
+    stamp.update(f"{font}:{st.st_size}:{int(st.st_mtime)}:{IMAGE_SIZE}:1".encode())
+    stamp = stamp.hexdigest()
+    stamp_file = os.path.join(out_dir, ".stamp")
+    if os.path.exists(stamp_file) and open(stamp_file).read().strip() == stamp:
+        print("al dia")
+        return
+    from PIL import Image, ImageDraw, ImageFont
+    os.makedirs(out_dir, exist_ok=True)
+    # Noto Color Emoji es de mapas de bits: solo existe en 109 px.
+    pil = ImageFont.truetype(font, 109, layout_engine=ImageFont.Layout.RAQM)
+    entries = json.load(open(data, encoding="utf-8"))
+    seqs = [x["e"] for x in entries] + [v for x in entries for v in x.get("t", [])]
+    tmp = out_dir + ".tmp"
+    os.makedirs(tmp, exist_ok=True)
+    for e in seqs:
+        im = Image.new("RGBA", (160, 160), (0, 0, 0, 0))
+        ImageDraw.Draw(im).text((80, 80), e, font=pil, embedded_color=True, anchor="mm")
+        box = im.getbbox()
+        if not box:
+            continue
+        im = im.crop(box)
+        w, h = im.size
+        side = max(w, h)
+        square = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+        square.paste(im, ((side - w) // 2, (side - h) // 2))
+        square.resize((IMAGE_SIZE, IMAGE_SIZE), Image.LANCZOS).save(os.path.join(tmp, image_name(e)), optimize=True)
+    # Reemplazo de una vez: el panel nunca ve la carpeta a medias.
+    for name in os.listdir(tmp):
+        os.replace(os.path.join(tmp, name), os.path.join(out_dir, name))
+    os.rmdir(tmp)
+    with open(stamp_file, "w") as f:
+        f.write(stamp + "\n")
+    print(f"{len(seqs)} imagenes en {out_dir}")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    here = os.path.dirname(os.path.realpath(__file__))
+    ap.add_argument("--out", default=os.path.realpath(os.path.join(
+        here, "../../../../quickshell/.config/quickshell/dotshell/data/emoji.json")))
+    ap.add_argument("--cache", default=os.path.expanduser("~/.cache/dotfiles/emoji-src"))
+    ap.add_argument("--font", default="/usr/share/fonts/noto/NotoColorEmoji.ttf")
+    ap.add_argument("--ensure-images", action="store_true")
+    ap.add_argument("--images-dir", default=os.path.expanduser(f"~/.cache/dotfiles/emoji/{IMAGE_SIZE}"))
+    args = ap.parse_args()
+
+    if args.ensure_images:
+        ensure_images(args.out, args.font, args.images_dir)
+        return
+
+    p = fetch(args.cache)
+    ann = {lang: {**annotations(p[f"derived-{lang}.json"]), **annotations(p[f"annotations-{lang}.json"])}
+           for lang in ("es", "en")}
+    seqs = font_sequences(args.font)
+
+    def lookup(lang, e):
+        a = ann[lang].get(e) or ann[lang].get(e.replace("️", ""))
+        return (a["tts"][0], a.get("default", [])) if a else (None, [])
+
+    # emoji-test.txt: variantes de tono por base (mismo tono en toda la secuencia).
+    group = None
+    bases, variants = [], {}
+    for line in open(p["emoji-test.txt"], encoding="utf-8"):
+        m = re.match(r"# group: (.+)", line)
+        if m:
+            group = GROUPS.get(m.group(1).strip())
+            continue
+        m = re.match(r"([0-9A-F ]+?)\s*; fully-qualified\s*# (\S+) E[\d.]+ (.+)", line)
+        if not m or group is None:
+            continue
+        cps = [int(x, 16) for x in m.group(1).split()]
+        e, name_en = m.group(2), m.group(3).strip()
+        tones = {c for c in cps if c in TONES}
+        if not tones:
+            bases.append((e, name_en, group))
+            continue
+        if len(tones) != 1:
+            continue  # tonos mezclados (parejas): fuera
+        base = "".join(chr(c) for c in cps if c not in TONES)
+        variants.setdefault(base, {})[tones.pop()] = e
+
+    out, stats = [], {"sin_glifo": 0, "sin_es": 0, "con_tono": 0, "tono_incompleto": 0}
+    for e, name_test, group in bases:
+        if not drawable(e, seqs):
+            stats["sin_glifo"] += 1
+            continue
+        n_es, k_es = lookup("es", e)
+        n_en, k_en = lookup("en", e)
+        n_en = n_en or name_test
+        if not n_es:
+            stats["sin_es"] += 1
+        entry = {"e": e, "n": n_es or n_en, "en": n_en, "g": group}
+        kws = [k for k in dict.fromkeys(k_es + k_en) if fold(k) not in (fold(entry["n"]), fold(n_en))]
+        if kws:
+            entry["k"] = kws
+        # Busqueda: palabras del nombre (s) y de las claves (w), sin tildes.
+        entry["s"] = " ".join(words(entry["n"], n_en))
+        entry["w"] = " ".join(w for w in words(*kws) if w not in entry["s"].split())
+        v = variants.get(e) or variants.get(e.replace("️", ""))
+        if v and len(v) == 5:
+            tv = [v[t] for t in TONES]
+            if all(drawable(x, seqs) for x in tv):
+                entry["t"] = tv
+                stats["con_tono"] += 1
+            else:
+                stats["tono_incompleto"] += 1
+        out.append(entry)
+
+    os.makedirs(os.path.dirname(args.out), exist_ok=True)
+    with open(args.out, "w", encoding="utf-8") as f:
+        f.write("[\n" + ",\n".join(json.dumps(x, ensure_ascii=False, separators=(",", ":")) for x in out) + "\n]\n")
+    per = {}
+    for x in out:
+        per[x["g"]] = per.get(x["g"], 0) + 1
+    print(f"{len(out)} emojis -> {args.out} ({os.path.getsize(args.out)} bytes)")
+    print("por grupo:", per)
+    print("stats:", stats)
+
+
+if __name__ == "__main__":
+    main()
