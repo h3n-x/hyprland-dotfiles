@@ -7,7 +7,6 @@
 local mainMod = "SUPER"
 
 local terminal = "kitty"
-local windowSwitch = "rofi -show window -show-icons"
 local fileManager = "thunar"
 local browser = "zen-browser"
 
@@ -17,8 +16,11 @@ local scripts = os.getenv("HOME") .. "/.config/hypr/scripts"
 -- Programas y utilidades
 -- ---------------------------------------------------------------------------
 hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal))
-hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs -c dotshell ipc call launcher toggle")) -- reemplaza a rofi -show drun
-hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd(windowSwitch))
+hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs -c dotshell ipc call launcher toggle"))
+-- Selector de ventanas (Quickshell, Fase 4 B4): con Super apretado, TAB y
+-- SHIFT+TAB mueven y soltar Super cambia; si Super ya se solto, flechas/Enter.
+hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("qs -c dotshell ipc call switcher next"))
+hl.bind(mainMod .. " + SHIFT + TAB", hl.dsp.exec_cmd("qs -c dotshell ipc call switcher prev"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 
@@ -40,7 +42,7 @@ hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"))
 -- Historial del portapapeles (Quickshell, Fase 4 B2)
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("qs -c dotshell ipc call clipboard toggle"))
 -- Galeria de wallpapers (Quickshell, Fase 3). Sin Quickshell corriendo:
--- theme-apply.sh <archivo> desde una terminal (el selector de rofi se retiro en B9).
+-- theme-apply.sh <archivo> desde una terminal.
 hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("qs -c dotshell ipc call gallery toggle"))
 -- Deshacer el ultimo cambio de tema (Fase 3 B5): vuelve al anterior del
 -- historial con su esquema y contraste; notifica a que tema volvio.

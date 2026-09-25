@@ -76,7 +76,7 @@ ShellRoot {
         }
     }
 
-    // SUPER+D (ver binds.lua) -- reemplaza a "rofi -show drun".
+    // SUPER+D (ver binds.lua) -- lanzador de aplicaciones.
     IpcHandler {
         target: "launcher"
         // Se abre en el monitor enfocado (Fase 4 B0); open/close para los
@@ -92,8 +92,7 @@ ShellRoot {
         }
     }
 
-    // SUPER+SHIFT+W (ver binds.lua) -- galeria de wallpapers (Fase 3 B3);
-    // el selector de rofi queda en SUPER+ALT+W mientras la galeria madura.
+    // SUPER+SHIFT+W (ver binds.lua) -- galeria de wallpapers (Fase 3 B3).
     // Menu de energia y sesion (Fase 4 B1): SUPER+M abre, SUPER+SHIFT+M va
     // directo a la confirmacion de cerrar sesion.
     IpcHandler {
@@ -152,6 +151,27 @@ ShellRoot {
         }
         function clearRecent(): void {
             EmojiState.clearRecent();
+        }
+    }
+
+    // Selector de ventanas (Fase 4 B4): SUPER+TAB -> next, SUPER+SHIFT+TAB ->
+    // prev (abren con la ventana anterior elegida o mueven la seleccion).
+    IpcHandler {
+        target: "switcher"
+        function next(): void {
+            SwitcherState.next();
+        }
+        function prev(): void {
+            SwitcherState.prev();
+        }
+        function open(): void {
+            SwitcherState.open();
+        }
+        function close(): void {
+            SwitcherState.close();
+        }
+        function toggle(): void {
+            SwitcherState.toggle();
         }
     }
 
@@ -257,6 +277,15 @@ ShellRoot {
         model: Quickshell.screens
 
         Emoji {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        Switcher {
             required property var modelData
             screen: modelData
         }

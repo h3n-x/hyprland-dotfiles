@@ -68,10 +68,6 @@ output_path = "~/.config/kitty/colors.conf"
 # ventanas nuevas ya toman colors.conf actualizado.
 post_hook = "kitten @ set-colors -a -c ~/.config/kitty/colors.conf 2>/dev/null || true"
 
-[templates.rofi]
-input_path = "~/.config/matugen/templates/rofi.rasi"
-output_path = "~/.config/rofi/colors.rasi"
-
 [templates.hyprlock]
 input_path = "~/.config/matugen/templates/hyprlock.conf"
 output_path = "~/.config/hypr/colors.conf"

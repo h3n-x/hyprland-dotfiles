@@ -58,7 +58,6 @@ hl.window_rule({
 -- hl.window_rule({ name = "ws-steam",   match = { class = "steam" },          workspace = "9" })
 
 -- ---- Layer rules (blur para launcher, notificaciones) ----
-hl.layer_rule({ match = { namespace = "rofi" },            blur = true, ignore_alpha = 0.3 })
 -- Shell (Quickshell, decisiones E1-E4 del design system). Profundidad
 -- discreta: superficies al 0.92 con blur solo donde hay tarjeta. ignore_alpha
 -- 0.85: el blur se enciende recien con la tarjeta casi opaca. Con 0.3, al

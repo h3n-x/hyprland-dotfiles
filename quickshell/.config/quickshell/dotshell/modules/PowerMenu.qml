@@ -1,5 +1,4 @@
-// Menu de energia y sesion (Fase 4 B1, P4.2): reemplaza al menu de rofi
-// (power-menu.sh, que queda en SUPER+ALT+M hasta B11). Panel en el monitor
+// Menu de energia y sesion (Fase 4 B1, P4.2), SUPER+M. Panel en el monitor
 // enfocado con cinco acciones: Bloquear (L), Suspender (S), Cerrar sesion (E),
 // Reiniciar (R), Apagar (A). Flechas o Tab mueven, Enter o la letra activan,
 // Esc o un clic afuera cierran.

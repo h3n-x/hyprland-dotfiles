@@ -122,7 +122,7 @@ Item {
             if (root.applying && Colors.image === root.applying)
                 Qt.callLater(root.release);
             else if (root.active)
-                // Otro cambio de tema (deshacer, rofi) mientras se previsualiza.
+                // Otro cambio de tema (deshacer, terminal) mientras se previsualiza.
                 root.cancel(false);
         }
     }

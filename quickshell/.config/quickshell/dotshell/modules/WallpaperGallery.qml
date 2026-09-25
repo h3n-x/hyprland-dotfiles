@@ -1,6 +1,5 @@
-// Galeria de wallpapers (Fase 3 B3: P3.1, P3.2, P3.4, P3.6 por nombre) --
-// reemplaza al selector de rofi en SUPER+SHIFT+W (rofi queda en SUPER+ALT+W
-// mientras la galeria madura, decision W8).
+// Galeria de wallpapers (Fase 3 B3: P3.1, P3.2, P3.4, P3.6 por nombre), en
+// SUPER+SHIFT+W.
 //
 // Lee la cache de hypr/.config/hypr/scripts/wallpaper-cache.sh (miniaturas y
 // paletas) y el estado de ThemeState.qml. No escribe nada por su cuenta:

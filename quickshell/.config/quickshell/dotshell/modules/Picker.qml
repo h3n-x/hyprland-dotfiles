@@ -19,6 +19,9 @@
 // y "detail" (franja entre los resultados y la ayuda de teclas). En la
 // rejilla la altura es fija (maxVisibleRows filas de cellSize). Enter pasa
 // primero por keyHandler (Ctrl+Enter del emoji).
+//
+// Fase 4 B4 (ventanas): cellHeight (celdas rectangulares; por defecto
+// cuadradas) y keyReleaseHandler(event) para teclas soltadas (soltar Super).
 import QtQuick
 import QtQuick.Layouts
 import ".." // Colors.qml, Tokens.qml
@@ -38,9 +41,13 @@ Item {
     property int previewWidth: 340
     readonly property bool fixedHeight: root.preview !== null
     property var keyHandler: null
+    property var keyReleaseHandler: null
     property string layout: "list" // list | grid
     property int columns: 10
     property int cellSize: 48
+    property int cellHeight: root.cellSize
+    // Reusar celdas al filtrar (emoji); el selector de ventanas lo apaga.
+    property bool reuseCells: true
     property Component detail: null
     // Presence de la ventana (apertura/cierre); null = sin animar.
     property var presence: null
@@ -66,7 +73,7 @@ Item {
     // Fila de 44 + 2 de separacion entre filas (el delegate resta el hueco).
     readonly property int rowHeight: Tokens.row.heightLarge + Tokens.space.hair
     readonly property int visibleRows: root.fixedHeight ? root.maxVisibleRows : Math.max(1, Math.min(root.maxVisibleRows, root.count))
-    readonly property int listHeight: root.layout === "grid" ? root.maxVisibleRows * root.cellSize
+    readonly property int listHeight: root.layout === "grid" ? root.maxVisibleRows * root.cellHeight
         : ((root.count > 0 || root.fixedHeight) ? root.visibleRows * root.rowHeight : 56)
 
     width: root.listWidth + (root.preview ? root.previewWidth + Tokens.space.md : 0)
@@ -135,6 +142,9 @@ Item {
                     Keys.onPressed: (event) => {
                         if (root.keyHandler && root.keyHandler(event)) event.accepted = true;
                     }
+                    Keys.onReleased: (event) => {
+                        if (root.keyReleaseHandler && root.keyReleaseHandler(event)) event.accepted = true;
+                    }
                     Keys.onDownPressed: root.layout === "grid" ? gridView.moveCurrentIndexDown() : listView.incrementCurrentIndex()
                     Keys.onUpPressed: root.layout === "grid" ? gridView.moveCurrentIndexUp() : listView.decrementCurrentIndex()
                     // En la rejilla izquierda/derecha mueven la seleccion; en
@@ -188,9 +198,8 @@ Item {
                     Layout.alignment: Qt.AlignHCenter
                     clip: true
                     cellWidth: root.cellSize
-                    cellHeight: root.cellSize
-                    // Reusar celdas al filtrar (cada tecla cambia el modelo entero).
-                    reuseItems: true
+                    cellHeight: root.cellHeight
+                    reuseItems: root.reuseCells
                     model: root.layout === "grid" ? root.model : []
                     currentIndex: listView.currentIndex
                     onCurrentIndexChanged: if (listView.currentIndex !== currentIndex) listView.currentIndex = currentIndex

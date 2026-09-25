@@ -1,5 +1,5 @@
-// Selector de emoji (Fase 4 B3, P4.3), la unica interfaz de emoji (reemplazo
-// a rofimoji, retirado). OverlayWindow +
+// Selector de emoji (Fase 4 B3, P4.3), la unica interfaz de emoji.
+// OverlayWindow +
 // Picker en rejilla (10 columnas) con pestañas de categoria arriba y una
 // franja abajo con el emoji grande, su nombre y el tono de piel.
 //

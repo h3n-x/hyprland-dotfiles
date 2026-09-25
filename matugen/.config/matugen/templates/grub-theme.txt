@@ -74,7 +74,7 @@ terminal-font: "DotfilesSans Regular 16"
 
 # Menu: menu_pixmap_style dibuja una tarjeta de 9 slices detras de toda
 # la lista (redondeada, tenida con surface_container + borde
-# outline_variant -- mismo lenguaje "card" que quickshell/rofi en el resto
+# outline_variant -- mismo lenguaje "card" que quickshell en el resto
 # del rice, propiedad confirmada contra
 # /usr/share/grub/themes/starfield/theme.txt). selected_item_pixmap_style
 # es el highlight solido con franja de acento -- contraste de FORMA

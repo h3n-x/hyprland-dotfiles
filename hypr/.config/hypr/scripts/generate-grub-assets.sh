@@ -65,7 +65,7 @@ magick "$OUT_DIR/corner_tl.png" -flip -flop "$OUT_DIR/corner_br.png"
 # de GRUB -- ver "Component List: boot_menu" en `info grub`): rectangulo
 # redondeado tenido con surface_container + borde fino con
 # outline_variant, mismo lenguaje "card" que el resto del rice
-# (quickshell/rofi). GRUB estira cada slice para llenar el marco del menu, no
+# (quickshell). GRUB estira cada slice para llenar el marco del menu, no
 # hace falta generarlo al tamano real.
 MENU_SCRATCH=200
 MENU_CAP=28

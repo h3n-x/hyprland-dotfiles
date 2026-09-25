@@ -26,7 +26,8 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 |---|---|
 | Compositor | Hyprland (config Lua modular) |
 | Barra | Quickshell (QML, ver seccion Quickshell abajo) |
-| Launcher | Quickshell (`SUPER+D`, ver seccion Quickshell abajo) + Rofi para window-switch (`SUPER+TAB`) |
+| Launcher | Quickshell (`SUPER+D`, ver seccion Quickshell abajo) |
+| Selector de ventanas | Quickshell (`SUPER+TAB`) |
 | Notificaciones + control center | Quickshell (ver seccion Quickshell abajo) |
 | Lockscreen | Hyprlock |
 | Login manager | SDDM (tema propio, ver `sddm/`) |
@@ -57,7 +58,7 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 ## 1. Instalar paquetes
 
 ```bash
-sudo pacman -S --needed rofi satty cliphist wl-clip-persist \
+sudo pacman -S --needed satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
   qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd noto-fonts-emoji python-pillow wtype \
   gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl brightnessctl \
@@ -134,11 +135,11 @@ Para ver si hay algo corriendo en la NVIDIA ahora mismo: `nvidia-smi --query-com
 ```bash
 cd ~/Dotfiles
 mv ~/.config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua.bak  # backup del autogenerado
-stow hypr quickshell rofi kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch git
+stow hypr quickshell kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch git
 ```
 
 Quickshell (ver seccion Quickshell abajo -- barra, notificaciones Y
-control center), rofi, kitty (incluida la tab bar), hyprlock, GTK, Qt
+control center), kitty (incluida la tab bar), hyprlock, GTK, Qt
 (qt5ct/qt6ct), starship, yazi (flavor
 `matugen`, ver `yazi/.config/yazi/theme.toml`), Neovim (colorscheme
 base16 propio, ver `nvim/.config/nvim/lua/plugins/colorscheme.lua`), btop
@@ -331,7 +332,7 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
 - **Menu de energia y sesion** (`modules/PowerMenu.qml`, `SUPER+M` y el
   boton de la barra): bloquear, suspender, cerrar sesion, reiniciar y apagar;
   las tres ultimas piden confirmacion y cierran las aplicaciones antes (via
-  `hyprshutdown`). Reemplaza al menu de rofi (`power-menu.sh`, retirado).
+  `hyprshutdown`).
 - **Historial del portapapeles** (`modules/Clipboard.qml`, `SUPER+SHIFT+V`):
   lista con busqueda, filtros (Todo / Texto / Imagenes / Enlaces, `Tab`) y
   vista previa de texto e imagenes a la derecha. `Enter` copia, `Supr`
@@ -347,7 +348,7 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   Las vistas previas de imagen se decodifican en `$XDG_RUNTIME_DIR` (RAM) y
   se borran al cerrar el panel. `clipboard-store --scan` cuenta entradas
   sensibles viejas y `--purge-sensitive` las borra (solo imprime cuantas).
-  Es la unica interfaz del historial (el menu de rofi se retiro).
+  Es la unica interfaz del historial.
 - **Selector de emoji** (`modules/Emoji.qml` + `EmojiState.qml`,
   `SUPER+.`): rejilla con pestañas de categoria (Recientes, Caras, Personas,
   ...), busqueda por comienzo de palabra en espanol e ingles sin tildes
@@ -362,15 +363,21 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   dibujar rapido usa un PNG por emoji en `~/.cache/dotfiles/emoji/72`, que
   `emoji-data --ensure-images` crea al iniciar el shell si faltan (≈ 20 s,
   necesita `python-pillow`); mientras tanto dibuja texto con Noto Color Emoji.
-  Reemplaza a rofimoji (retirado).
-- **Launcher** (`modules/Launcher.qml` + `LauncherState.qml`): reemplaza
-  a `rofi -show drun` en `SUPER+D` -- campo de búsqueda con fuzzy match
+- **Launcher** (`modules/Launcher.qml` + `LauncherState.qml`, `SUPER+D`):
+  campo de búsqueda con fuzzy match
   propio (subsecuencia, sin librería externa) sobre nombre/`genericName`/
   `keywords` de `Quickshell.DesktopEntries`, orden alfabético sin
   búsqueda, resaltado de lo que matchea, tamaño de ventana dinámico según
-  cantidad de resultados. El window-switcher (`SUPER+Tab`) sigue en rofi
-  por ahora (se migra a Quickshell en la Fase 4); el menu de energia, el
-  portapapeles, el selector de emoji y el de wallpaper ya se migraron.
+  cantidad de resultados.
+- **Selector de ventanas** (`modules/Switcher.qml` + `SwitcherState.qml`,
+  `SUPER+Tab`): tarjetas con vista previa de cada ventana (capturada una vez
+  al abrir, tambien de otros workspaces), workspace (S = especial), icono y
+  titulo, por uso reciente. Con Super apretado, `Tab` / `Shift+Tab` mueven y
+  soltar Super cambia (un `SUPER+Tab` rapido vuelve a la ventana anterior);
+  si Super ya se solto, flechas, `Enter` o clic, y escribir filtra. `Esc`
+  cancela, `Supr` cierra la ventana elegida. Solo se capturan ventanas de al
+  menos 24x24 (con muchas ventanas en un workspace algunas quedan con tamano
+  negativo y capturarlas tumbaba el shell); las demas muestran el icono.
 - **Binds** (`binds.lua`): `SUPER+SHIFT+B` muestra/oculta la barra
   (`qs -c dotshell ipc call bar toggle`, afecta a todas las pantallas a la
   vez via el singleton `BarVisibility.qml`) y
@@ -689,7 +696,7 @@ efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
 |---|---|
 | `SUPER + Return` | Terminal (kitty) |
 | `SUPER + D` | Launcher (Quickshell) |
-| `SUPER + Tab` | Selector de ventanas (rofi) |
+| `SUPER + Tab` | Selector de ventanas (con Super apretado: Tab / Shift+Tab mueven, soltar cambia; Supr cierra) |
 | `SUPER + E` | Explorador de archivos (thunar) |
 | `SUPER + Q` / `SHIFT+Q` | Cerrar / forzar cierre de ventana |
 | `SUPER + V` | Flotar ventana |

@@ -1,5 +1,4 @@
-// Lanzador de aplicaciones (SUPER+D, ver binds.lua), reemplaza a
-// "rofi -show drun". Desde la Fase 4 B0 se arma con piezas compartidas:
+// Lanzador de aplicaciones (SUPER+D, ver binds.lua). Desde la Fase 4 B0 se arma con piezas compartidas:
 // OverlayWindow (ventana de pantalla completa en el monitor enfocado) y
 // Picker (tarjeta con busqueda y lista); aca queda solo lo propio: las
 // aplicaciones (DesktopEntries), el filtro, la fila y lanzar.

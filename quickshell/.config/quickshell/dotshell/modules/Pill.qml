@@ -1,8 +1,8 @@
 // Contenedor redondeado reutilizable para agrupar modulos -- reemplaza al
 // truco de glyphs de esquina (custom/left|right#bg-1|bg-2|bg-3) que hacia
 // falta en Waybar para simular el mismo efecto en CSS/GTK. En QML se puede
-// dibujar la forma directamente, mismo lenguaje "card" que ya usan
-// rofi/swaync/el menu de GRUB.
+// dibujar la forma directamente, mismo lenguaje "card" que ya usa
+// el menu de GRUB.
 import QtQuick
 import QtQuick.Layouts
 import ".." // Colors.qml y Tokens.qml (pragma Singleton) viven en el directorio padre

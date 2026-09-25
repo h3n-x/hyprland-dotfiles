@@ -1,5 +1,5 @@
 // Historial del portapapeles (Fase 4 B2, P4.1), la unica interfaz del
-// historial (reemplazo al menu de rofi, retirado). OverlayWindow + Picker con fila de filtros y vista previa
+// historial. OverlayWindow + Picker con fila de filtros y vista previa
 // a la derecha; todo el acceso a cliphist pasa por scripts/clipboard-store.
 //
 // Filas: icono por tipo (texto, codigo, enlace, color, ruta, imagen) sacado

@@ -31,7 +31,7 @@ command -v pacman >/dev/null 2>&1 || {
 # 1. Paquetes
 # -----------------------------------------------------------------------
 info "Instalando paquetes (pacman)..."
-sudo pacman -S --needed --noconfirm rofi satty cliphist wl-clip-persist \
+sudo pacman -S --needed --noconfirm satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
   qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd noto-fonts-emoji python-pillow wtype \
   gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl brightnessctl \
@@ -76,7 +76,7 @@ fi
 # la identidad (nombre/email) de quien armo este repo -- stowearlo sin
 # preguntar le pisaria la identidad de git a cualquier otra persona que
 # clone esto. Editalo primero, despues `stow git` a mano.
-stow hypr quickshell rofi kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch
+stow hypr quickshell kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch
 ok "Stow aplicado (excepto 'git', ver nota al final)."
 
 # -----------------------------------------------------------------------

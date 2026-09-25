@@ -5,7 +5,7 @@
 # deshacer (SUPER+SHIFT+Z, IPC) y la linea de comandos.
 #
 #   theme-apply.sh <wallpaper> [--scheme <tipo>] [--contrast <-1..1>]
-#                  [--source rofi|gallery|undo|ipc] [--dry-run] [--no-system]
+#                  [--source gallery|undo|ipc] [--dry-run] [--no-system]
 #   theme-apply.sh --flush-system   (corre ya el trabajo de sistema pendiente)
 #   theme-apply.sh --favorite <wallpaper> on|off|toggle   (galeria, Fase 3 B3)
 #   theme-apply.sh --tag <wallpaper> add|remove <etiqueta>  (galeria, Fase 3 B4)
@@ -622,7 +622,7 @@ if [ -n "$contrast" ]; then
   awk -v c="$contrast" 'BEGIN { exit !(c ~ /^-?[0-9]*\.?[0-9]+$/ && c >= -1 && c <= 1) }' \
     || die "contraste fuera de rango (-1..1): $contrast"
 fi
-case "$source" in rofi|gallery|undo|ipc) ;; *) die "origen desconocido: $source" ;; esac
+case "$source" in gallery|undo|ipc) ;; *) die "origen desconocido: $source" ;; esac
 if [ -n "$seed" ]; then
   [[ "$seed" =~ ^#[0-9a-fA-F]{6}$ ]] || die "semilla invalida (#rrggbb): $seed"
 fi
