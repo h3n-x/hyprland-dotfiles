@@ -13,8 +13,12 @@
 // con Presence (superficie grande y centrada: dur.long, sin desplazamiento) y
 // HyprlandFocusGrab para el teclado.
 //
-// Teclado: flechas mueven, Enter aplica, F marca favorito, / busca (Abajo o
-// Enter vuelven a la grilla), Esc cierra.
+// Teclado: flechas mueven, Enter aplica, F marca favorito, T agrega una
+// etiqueta, / busca (Abajo o Enter vuelven a la grilla), Esc cierra.
+//
+// Etiquetas (Fase 3 B4): la busqueda encuentra por nombre o por etiqueta
+// (texto normal, decision B4a); la fila de chips filtra por una etiqueta a la
+// vez (B4b).
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -37,7 +41,8 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "quickshell-panel"
 
-    readonly property string scriptsDir: Quickshell.env("HOME") + "/.config/hypr/scripts"
+    // THEME_SCRIPTS_DIR: otra copia de los scripts para pruebas.
+    readonly property string scriptsDir: Quickshell.env("THEME_SCRIPTS_DIR") || (Quickshell.env("HOME") + "/.config/hypr/scripts")
     readonly property string wallpapersDir: Quickshell.env("WALLPAPERS_DIR") || (Quickshell.env("HOME") + "/Pictures/Wallpapers")
     readonly property string cacheDir: Quickshell.env("WALLPAPER_CACHE_DIR") || (Quickshell.env("HOME") + "/.cache/dotfiles/wallpapers")
 
@@ -75,13 +80,17 @@ PanelWindow {
 
     property string query: ""
     property bool onlyFavorites: false
+    property string activeTag: ""
 
     readonly property var filtered: {
         const q = window.query.trim().toLowerCase();
         const favs = ThemeState.favorites || [];
+        const tags = ThemeState.tags || {};
         return window.names.filter(n => {
-            if (q && n.toLowerCase().indexOf(q) < 0) return false;
+            const t = tags[window.pathOf(n)] || [];
+            if (q && n.toLowerCase().indexOf(q) < 0 && !t.some(x => x.indexOf(q) >= 0)) return false;
             if (window.onlyFavorites && favs.indexOf(window.pathOf(n)) < 0) return false;
+            if (window.activeTag && t.indexOf(window.activeTag) < 0) return false;
             return true;
         });
     }
@@ -104,6 +113,10 @@ PanelWindow {
     function toggleFavorite(): void {
         if (!window.selectedName) return;
         Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--favorite", window.pathOf(window.selectedName), "toggle"]);
+    }
+    function setTag(op: string, tag: string): void {
+        if (!window.selectedName) return;
+        Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--tag", window.pathOf(window.selectedName), op, tag]);
     }
 
     // Al abrir, la seleccion arranca sobre el wallpaper aplicado. La cache y el
@@ -130,6 +143,7 @@ PanelWindow {
         window.query = "";
         searchField.text = "";
         window.onlyFavorites = false;
+        window.activeTag = "";
         window.jumpPending = true;
         window.jumpToCurrent();
         grid.forceActiveFocus();
@@ -224,7 +238,7 @@ PanelWindow {
                             anchors.left: parent.left
                             anchors.leftMargin: searchField.anchors.leftMargin
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Buscar por nombre  ( / )"
+                            text: "Buscar por nombre o etiqueta  ( / )"
                             color: Colors.m3onSurfaceVariant
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
@@ -291,6 +305,56 @@ PanelWindow {
                     }
                 }
 
+                // Filtro por etiqueta: una a la vez, click de nuevo para quitarlo.
+                ListView {
+                    id: tagBar
+                    visible: count > 0
+                    Layout.fillWidth: true
+                    implicitHeight: Tokens.pill.height
+                    orientation: ListView.Horizontal
+                    spacing: Tokens.space.xs
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    model: presence.shown ? ThemeState.allTags : []
+                    delegate: Rectangle {
+                        id: tagFilter
+                        required property var modelData
+                        readonly property bool selected: window.activeTag === tagFilter.modelData.tag
+                        height: Tokens.pill.height
+                        width: tagFilterText.implicitWidth + Tokens.pad.pillH * 2
+                        radius: Tokens.radius.sm
+                        color: tagFilter.selected ? Colors.m3secondaryContainer : "transparent"
+                        border.color: tagFilter.selected ? Colors.m3secondaryContainer : Colors.m3outlineVariant
+                        Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
+                        StateLayer {
+                            hovered: tagFilterMouse.containsMouse
+                            pressed: tagFilterMouse.pressed
+                            contentColor: tagFilter.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                        }
+                        Text {
+                            id: tagFilterText
+                            anchors.centerIn: parent
+                            text: tagFilter.modelData.tag + "  " + tagFilter.modelData.count
+                            color: tagFilter.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                            font.family: Tokens.font.ui
+                            font.pixelSize: Tokens.type.label
+                            font.weight: tagFilter.selected ? Tokens.weight.semibold : Tokens.weight.medium
+                        }
+                        MouseArea {
+                            id: tagFilterMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                window.jumpPending = false;
+                                window.activeTag = tagFilter.selected ? "" : tagFilter.modelData.tag;
+                                grid.currentIndex = 0;
+                                grid.forceActiveFocus();
+                            }
+                        }
+                    }
+                }
+
                 GridView {
                     id: grid
                     Layout.fillWidth: true
@@ -313,6 +377,9 @@ PanelWindow {
                         window.jumpPending = false;
                         if (event.key === Qt.Key_F) {
                             window.toggleFavorite();
+                            event.accepted = true;
+                        } else if (event.key === Qt.Key_T) {
+                            preview.focusTagInput();
                             event.accepted = true;
                         } else if (event.key === Qt.Key_Slash) {
                             searchField.forceActiveFocus();
@@ -409,7 +476,7 @@ PanelWindow {
                     Text {
                         visible: window.filtered.length === 0
                         anchors.centerIn: parent
-                        text: window.onlyFavorites && !window.query ? "Todavia no hay favoritos (F para marcar)" : "Sin resultados"
+                        text: window.onlyFavorites && !window.query && !window.activeTag ? "Todavia no hay favoritos (F para marcar)" : "Sin resultados"
                         color: Colors.m3onSurfaceVariant
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
@@ -418,7 +485,7 @@ PanelWindow {
 
                 Text {
                     Layout.fillWidth: true
-                    text: window.filtered.length + " de " + window.names.length + " wallpapers   ·   ↑↓←→ mover   ⏎ aplicar   F favorito   / buscar   esc cerrar"
+                    text: window.filtered.length + " de " + window.names.length + " wallpapers   ·   ↑↓←→ mover   ⏎ aplicar   F favorito   T etiqueta   / buscar   esc cerrar"
                     elide: Text.ElideRight
                     color: Colors.m3onSurfaceVariant
                     font.family: Tokens.font.ui
@@ -428,6 +495,7 @@ PanelWindow {
 
             // -- Derecha: vista previa del seleccionado --
             GalleryPreview {
+                id: preview
                 Layout.fillWidth: false
                 Layout.preferredWidth: Tokens.panel.widthLg
                 Layout.fillHeight: true
@@ -436,8 +504,12 @@ PanelWindow {
                 colors: window.selectedName && window.index[window.selectedName] ? window.index[window.selectedName].colors : null
                 isCurrent: window.selectedName !== "" && window.pathOf(window.selectedName) === window.currentPath
                 isFavorite: window.selectedName !== "" && ThemeState.isFavorite(window.pathOf(window.selectedName))
+                tags: window.selectedName ? ThemeState.tagsOf(window.pathOf(window.selectedName)) : []
                 onApplyRequested: window.apply()
                 onFavoriteToggled: window.toggleFavorite()
+                onTagAdded: (tag) => window.setTag("add", tag)
+                onTagRemoved: (tag) => window.setTag("remove", tag)
+                onTagInputDone: grid.forceActiveFocus()
             }
         }
     }

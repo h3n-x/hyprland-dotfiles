@@ -31,6 +31,24 @@ Item {
         return (root.favorites || []).indexOf(path) >= 0;
     }
 
+    // Etiquetas de un wallpaper (Fase 3 B4).
+    function tagsOf(path: string): var {
+        return (root.tags && root.tags[path]) || [];
+    }
+
+    // Etiquetas en uso con su cantidad, de la mas usada a la menos (y por
+    // nombre a igual cantidad): [{tag, count}, ...].
+    readonly property var allTags: {
+        const counts = {};
+        const t = root.tags || {};
+        for (const path in t)
+            for (const tag of t[path])
+                counts[tag] = (counts[tag] || 0) + 1;
+        return Object.keys(counts)
+            .map(tag => ({ tag: tag, count: counts[tag] }))
+            .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+    }
+
     FileView {
         id: file
         path: root.path

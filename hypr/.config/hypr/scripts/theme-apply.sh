@@ -7,6 +7,7 @@
 #                  [--source rofi|gallery|undo|ipc] [--dry-run] [--no-system]
 #   theme-apply.sh --flush-system   (corre ya el trabajo de sistema pendiente)
 #   theme-apply.sh --favorite <wallpaper> on|off|toggle   (galeria, Fase 3 B3)
+#   theme-apply.sh --tag <wallpaper> add|remove <etiqueta>  (galeria, Fase 3 B4)
 #
 # Una sola aplicacion a la vez: cada llamada deja su pedido en un archivo (el
 # ultimo pisa al anterior) y solo un proceso "worker", protegido con flock,
@@ -66,7 +67,7 @@ die() {
 }
 
 usage() {
-  sed -n '6,9p' "$0" | sed 's/^# \{0,3\}//' >&2
+  sed -n '6,10p' "$0" | sed 's/^# \{0,3\}//' >&2
   exit 2
 }
 
@@ -293,6 +294,30 @@ if [ "${1:-}" = "--favorite" ]; then
   }
   with_state_lock _set_favorite "$@"
   log "favorito: $3 $fav"
+  exit 0
+fi
+if [ "${1:-}" = "--tag" ]; then
+  [ $# -eq 4 ] || usage
+  twp="$(readlink -f -- "$2")"
+  [ -f "$twp" ] || die "no existe: $2"
+  case "$3" in add|remove) ;; *) die "etiqueta: usar add|remove" ;; esac
+  # Formato (decision B4c): minusculas, sin espacios en los bordes, espacios
+  # internos -> "-", maximo 24 caracteres. ${t,,} respeta el locale (acentos).
+  tag="${4,,}"
+  tag="$(printf '%s' "$tag" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s/[[:space:]]+/-/g')"
+  tag="${tag:0:24}"
+  [ -n "$tag" ] || die "etiqueta vacia"
+  init_state
+  _set_tag() {
+    jq --arg wp "$twp" --arg op "$3" --arg tag "$tag" '
+      .tags = (.tags // {})
+      | .tags[$wp] = ((.tags[$wp] // []) as $t
+                      | if $op == "add" then ($t + [$tag] | unique) else ($t | map(select(. != $tag))) end)
+      | if (.tags[$wp] | length) == 0 then del(.tags[$wp]) else . end' "$STATE" > "$STATE.tmp" \
+      && mv "$STATE.tmp" "$STATE"
+  }
+  with_state_lock _set_tag "$@"
+  log "etiqueta: $3 \"$tag\" $twp"
   exit 0
 fi
 
