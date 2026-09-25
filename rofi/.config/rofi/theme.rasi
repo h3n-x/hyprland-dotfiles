@@ -72,4 +72,7 @@ element-icon {
 
 element-text {
     vertical-align: 0.5;
+    /* hereda el color del element: sin esto la fila seleccionada dejaba el
+       texto claro sobre el fondo @mauve (KI-C19, P1.9/C5) */
+    text-color: inherit;
 }
