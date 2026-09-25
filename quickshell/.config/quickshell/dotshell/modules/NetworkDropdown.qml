@@ -18,7 +18,19 @@ PopupWindow {
     property var wiredDevice
 
     function toggle() {
-        popup.visible = !popup.visible;
+        presence.open = !presence.open;
+    }
+
+    // Apertura/cierre animados (P2.5, guia DESIGN_TOKENS 3.6.1): la ventana
+    // sigue a Presence y queda mapeada mientras el contenido anima la salida.
+    // Si Quickshell cierra el popup por su cuenta (grabFocus, click afuera),
+    // Presence se cierra al instante: Hyprland ya funde el popup al desmapearlo.
+    Presence { id: presence }
+    Connections {
+        target: presence
+        function onShownChanged() {
+            popup.visible = presence.shown;
+        }
     }
 
     // Ancho de la tarjeta; la ventana suma el margen de la sombra alrededor
@@ -35,6 +47,7 @@ PopupWindow {
     // "discovering" en BluetoothDropdown.qml: solo mientras el popup esta
     // abierto, no tiene sentido dejarlo escaneando de fondo indefinido.
     onVisibleChanged: {
+        if (!popup.visible && presence.shown) presence.snapClosed();
         if (popup.wifiDevice) popup.wifiDevice.scannerEnabled = popup.visible;
     }
 
@@ -77,6 +90,11 @@ PopupWindow {
         level: 2
         translucent: true
         radius: Tokens.radius.lg
+        // Entrada/salida: sube space.sm hacia la barra y crece desde 0.98.
+        opacity: presence.progress
+        scale: presence.contentScale
+        transformOrigin: Item.Top
+        transform: Translate { y: presence.offsetY }
 
         ColumnLayout {
             id: layout

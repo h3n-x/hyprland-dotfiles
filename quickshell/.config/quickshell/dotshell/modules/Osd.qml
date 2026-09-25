@@ -29,7 +29,10 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     mask: Region {}
-    visible: OsdState.visible
+    // Entrada dur.short (P2.6); volver a mostrarlo mientras se ve solo
+    // reinicia el timer de OsdState, sin segunda entrada.
+    Presence { id: presence; open: OsdState.visible; enterDuration: Tokens.motion.short }
+    visible: presence.shown
 
     // Nivel de elevacion 3 (surface_container_high translucida sobre blur,
     // sombra md), forma de pildora.
@@ -42,6 +45,10 @@ PanelWindow {
         level: 3
         translucent: true
         radius: Tokens.radius.pill(height)
+        opacity: presence.progress
+        scale: presence.contentScale
+        transformOrigin: Item.Top
+        transform: Translate { y: presence.offsetY }
 
         RowLayout {
             id: content
@@ -70,6 +77,12 @@ PanelWindow {
                     height: parent.height
                     radius: parent.radius
                     color: Colors.m3primary
+                    // Solo mientras ya esta abierto: al aparecer, el valor nuevo
+                    // se escribe antes de abrir y no anima desde el anterior.
+                    Behavior on width {
+                        enabled: presence.open
+                        NumberAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard }
+                    }
                 }
             }
 

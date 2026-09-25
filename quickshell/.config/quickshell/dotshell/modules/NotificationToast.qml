@@ -15,9 +15,15 @@ import ".." // Colors.qml, Tokens.qml, NotificationState.qml
 PanelWindow {
     id: toastWindow
 
+    // Alto completo de la pantalla a proposito: los toasts se reacomodan con
+    // un spring (P2.7) y una ventana que se achicara al instante los recortaria
+    // a mitad de camino (la geometria de las ventanas no se anima, guia 3.6.1).
+    // El input queda limitado a los toasts (mask) y el blur solo cae donde hay
+    // tarjeta (ignore_alpha).
     anchors {
         top: true
         right: true
+        bottom: true
     }
     // Debajo de la barra y alineado con su borde derecho, igual que
     // ControlCenter.qml (mismo ancho: los toasts quedan encolumnados con el panel).
@@ -30,21 +36,37 @@ PanelWindow {
         right: Tokens.screenEdge - toastWindow.shadowMargin
     }
     implicitWidth: Tokens.panel.widthLg + toastWindow.shadowMargin * 2
-    implicitHeight: column.implicitHeight + toastWindow.shadowMargin * 2
     color: "transparent"
     mask: Region { item: column }
     exclusionMode: ExclusionMode.Ignore
     visible: NotificationState.activeToasts.length > 0
 
-    ColumnLayout {
+    // Column (posicionador) y no ColumnLayout: el layout ubica a los hijos
+    // desde C++ y saltea cualquier Behavior on y, asi que el reacomodo no se
+    // animaba. Column dispara su transicion "move" cuando sale un toast.
+    Column {
         id: column
         x: toastWindow.shadowMargin
         y: toastWindow.shadowMargin
         width: Tokens.panel.widthLg
         spacing: Tokens.space.sm
 
+        // Reacomodo de la pila con el spring calibrado (guia 3.6.1).
+        move: Transition {
+            enabled: Tokens.motion.scale > 0
+            SpringAnimation {
+                properties: "y"
+                spring: Tokens.motion.spring.qmlSpring
+                damping: Tokens.motion.spring.qmlDamping
+            }
+        }
+
         Repeater {
-            model: NotificationState.activeToasts
+            // ScriptModel en vez del array directo: activeToasts se reasigna
+            // entero en cada cambio, y con el array el Repeater recreaba todos
+            // los toasts (la entrada se repetia y no habia reacomodo). ScriptModel
+            // compara los arrays y solo crea o destruye el que cambio.
+            model: ScriptModel { values: NotificationState.activeToasts }
 
             // Nivel de elevacion 3 (surface_container_high translucida sobre
             // blur, sombra md); critica con borde en error.
@@ -52,17 +74,39 @@ PanelWindow {
                 id: toast
                 required property var modelData
                 readonly property bool critical: toast.modelData.urgency === NotificationUrgency.Critical
-                Layout.fillWidth: true
+                width: column.width
                 implicitHeight: content.implicitHeight + Tokens.space.md * 2
                 level: 3
                 translucent: true
                 radius: Tokens.radius.lg
                 border.color: toast.critical ? Colors.m3error : Colors.m3outlineVariant
 
+                // Entrada al aparecer; al cerrarlo (click o timer) primero anima
+                // la salida y recien despues se descarta la notificacion. Si la
+                // cierra la app o "Limpiar todo", sale sin animacion.
+                Presence { id: presence; Component.onCompleted: open = true }
+                property string pendingClose: ""
+                function leave(kind) {
+                    toast.pendingClose = kind;
+                    presence.open = false;
+                }
+                Connections {
+                    target: presence
+                    function onShownChanged() {
+                        if (presence.shown || !toast.pendingClose) return;
+                        if (toast.pendingClose === "expire") toast.modelData.expire();
+                        else toast.modelData.dismiss();
+                    }
+                }
+                opacity: presence.progress
+                scale: presence.contentScale
+                transformOrigin: Item.TopRight
+                transform: Translate { y: presence.offsetY }
+
                 Timer {
                     running: !toast.critical
                     interval: toast.modelData.expireTimeout > 0 ? toast.modelData.expireTimeout * 1000 : 5000
-                    onTriggered: toast.modelData.expire()
+                    onTriggered: toast.leave("expire")
                 }
 
                 ColumnLayout {
@@ -157,7 +201,7 @@ PanelWindow {
                 MouseArea {
                     anchors.fill: parent
                     z: -1
-                    onClicked: toast.modelData.dismiss()
+                    onClicked: toast.leave("dismiss")
                 }
             }
         }

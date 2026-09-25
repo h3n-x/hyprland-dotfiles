@@ -35,32 +35,21 @@ PanelWindow {
     // pantalla a proposito para cerrar con un click afuera.
     WlrLayershell.namespace: "quickshell-panel"
 
-    // Animacion de apertura/cierre: si "visible" se atara directo a
-    // LauncherState.visible, la superficie wlr-layer-shell se desmapea
-    // al instante al cerrar y no da tiempo a animar nada. Se mantiene la
-    // ventana viva ("closing") un instante mas mientras la card anima su
-    // opacity/scale a 0, y recien ahi se desmapea de verdad.
+    // Animacion de apertura/cierre (P2.6): si "visible" se atara directo a
+    // LauncherState.visible, la superficie wlr-layer-shell se desmapea al
+    // instante al cerrar y no da tiempo a animar nada. Presence mantiene la
+    // ventana mapeada mientras la card anima la salida. Superficie grande y
+    // centrada: dur.long, sin desplazamiento (guia 3.6.1).
     readonly property bool shouldShow: LauncherState.visible
-    property bool closing: false
-    visible: window.shouldShow || window.closing
+    Presence { id: presence; open: window.shouldShow; enterDuration: Tokens.motion.long; slide: false }
+    visible: presence.shown
 
     onShouldShowChanged: {
         if (window.shouldShow) {
-            window.closing = false;
             searchField.text = "";
             listView.currentIndex = 0;
             searchField.forceActiveFocus();
-        } else {
-            window.closing = true;
-            closeTimer.restart();
         }
-    }
-
-    // Debe durar al menos lo que la animacion de salida de la card (abajo).
-    Timer {
-        id: closeTimer
-        interval: Tokens.motion.short
-        onTriggered: window.closing = false
     }
 
     HyprlandFocusGrab {
@@ -183,15 +172,9 @@ PanelWindow {
         // margenes (md*2) + searchBox + lista/"sin resultados" + footer +
         // dos huecos de "spacing" del ColumnLayout (entre esas 3 filas).
         height: Tokens.space.md * 2 + searchBox.height + window.listHeight + footerText.implicitHeight + Tokens.space.md * 2
-        // Animacion de apertura/cierre -- ver el comentario largo en
-        // "shouldShow"/"closing" mas arriba. Misma curva que antes (easeOutCubic
-        // = ease.standard); la salida dura exitFor() de la entrada. Las
-        // animaciones de entrada/salida propias de paneles son Fase 2 (P2.4).
-        readonly property int animDuration: window.shouldShow ? Tokens.motion.short : Tokens.motion.exitFor(Tokens.motion.short)
-        opacity: window.shouldShow ? 1 : 0
-        scale: window.shouldShow ? 1 : 0.94
-        Behavior on opacity { NumberAnimation { duration: card.animDuration; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
-        Behavior on scale { NumberAnimation { duration: card.animDuration; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
+        // Apertura/cierre -- ver "shouldShow" mas arriba (Presence).
+        opacity: presence.progress
+        scale: presence.contentScale
         Behavior on height { NumberAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
         // Nivel de elevacion 3 (surface_container_high translucida sobre blur,

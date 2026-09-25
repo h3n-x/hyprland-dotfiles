@@ -19,13 +19,29 @@ PopupWindow {
         popup.anchorItem = item;
         popup.currentItem = modelData;
         popup.currentMenuAnchor = menuAnchor;
-        popup.visible = true;
+        presence.open = true;
     }
 
+    // Apertura/cierre animados (P2.5, guia DESIGN_TOKENS 3.6.1): la ventana
+    // sigue a Presence y queda mapeada mientras el contenido anima la salida.
+    // Si Quickshell cierra el popup por su cuenta (grabFocus, click afuera),
+    // Presence se cierra al instante: Hyprland ya funde el popup al desmapearlo.
+    Presence { id: presence }
+    Connections {
+        target: presence
+        function onShownChanged() {
+            popup.visible = presence.shown;
+            if (!presence.shown) {
+                popup.currentItem = null;
+                popup.currentMenuAnchor = null;
+            }
+        }
+    }
+
+    // El item se limpia al terminar la salida (onShownChanged), no aca: el
+    // contenido sigue visible mientras anima.
     function close() {
-        popup.visible = false;
-        popup.currentItem = null;
-        popup.currentMenuAnchor = null;
+        presence.open = false;
     }
 
     // Ancho de la tarjeta; la ventana suma el margen de la sombra alrededor
@@ -38,6 +54,7 @@ PopupWindow {
     grabFocus: true
 
     anchor.window: popup.panelWindow
+    onVisibleChanged: if (!popup.visible && presence.shown) presence.snapClosed()
     function absoluteX(item) {
         let x = 0;
         let cur = item;
@@ -66,6 +83,11 @@ PopupWindow {
         level: 2
         translucent: true
         radius: Tokens.radius.lg
+        // Entrada/salida: sube space.sm hacia la barra y crece desde 0.98.
+        opacity: presence.progress
+        scale: presence.contentScale
+        transformOrigin: Item.Top
+        transform: Translate { y: presence.offsetY }
 
         ColumnLayout {
             id: layout

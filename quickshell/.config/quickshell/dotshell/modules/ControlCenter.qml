@@ -34,7 +34,10 @@ PanelWindow {
     color: "transparent"
     mask: Region { item: card }
     exclusionMode: ExclusionMode.Ignore
-    visible: ControlCenterState.visible
+    // Apertura/cierre animados (P2.5): la ventana queda mapeada mientras el
+    // contenido anima la salida.
+    Presence { id: presence; open: ControlCenterState.visible }
+    visible: presence.shown
 
     // Estado y procesos de hardware
     property bool hyprsunsetActive: false
@@ -102,6 +105,11 @@ PanelWindow {
         level: 2
         translucent: true
         radius: Tokens.radius.lg
+        // Entrada/salida: sube space.sm hacia la barra y crece desde su esquina.
+        opacity: presence.progress
+        scale: presence.contentScale
+        transformOrigin: Item.TopRight
+        transform: Translate { y: presence.offsetY }
 
         ColumnLayout {
             id: layout

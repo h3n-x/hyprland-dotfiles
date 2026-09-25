@@ -35,6 +35,19 @@ Item {
     readonly property real offsetY: root.slide ? (1 - root.progress) * Tokens.space.sm : 0
     readonly property real contentScale: 0.98 + 0.02 * root.progress
 
+    // Cierre sin animacion: para cuando la ventana ya se cerro por fuera (un
+    // popup con grabFocus que Quickshell cierra al clickear afuera; Hyprland
+    // ya funde el popup al desmapearlo).
+    function snapClosed() {
+        root._snapping = true;
+        anim.stop();
+        root.open = false;
+        root.progress = 0;
+        root._snapping = false;
+    }
+
+    property bool _snapping: false
+
     function run() {
         anim.stop();
         const target = root.open ? 1 : 0;
@@ -45,7 +58,7 @@ Item {
         anim.start();
     }
 
-    onOpenChanged: root.run()
+    onOpenChanged: if (!root._snapping) root.run()
     Component.onCompleted: if (root.open) root.run()
 
     NumberAnimation {
