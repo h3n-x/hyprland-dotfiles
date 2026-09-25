@@ -8,6 +8,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
+import Quickshell.Wayland
 import Quickshell.Services.Notifications
 import ".." // Colors.qml, Tokens.qml, NotificationState.qml
 
@@ -20,36 +21,43 @@ PanelWindow {
     }
     // Debajo de la barra y alineado con su borde derecho, igual que
     // ControlCenter.qml (mismo ancho: los toasts quedan encolumnados con el panel).
+    // La ventana suma alrededor el margen de la sombra de nivel 3 y solo
+    // acepta input sobre los toasts (mask).
+    readonly property int shadowMargin: Tokens.elevationShadow[3].blur + Tokens.elevationShadow[3].offsetY
+    WlrLayershell.namespace: "quickshell-panel"
     margins {
-        top: Tokens.popupTop
-        right: Tokens.screenEdge
+        top: Tokens.popupTop - toastWindow.shadowMargin
+        right: Tokens.screenEdge - toastWindow.shadowMargin
     }
-    implicitWidth: Tokens.panel.widthLg
-    implicitHeight: column.implicitHeight
+    implicitWidth: Tokens.panel.widthLg + toastWindow.shadowMargin * 2
+    implicitHeight: column.implicitHeight + toastWindow.shadowMargin * 2
     color: "transparent"
+    mask: Region { item: column }
     exclusionMode: ExclusionMode.Ignore
     visible: NotificationState.activeToasts.length > 0
 
     ColumnLayout {
         id: column
-        width: parent.width
+        x: toastWindow.shadowMargin
+        y: toastWindow.shadowMargin
+        width: Tokens.panel.widthLg
         spacing: Tokens.space.sm
 
         Repeater {
             model: NotificationState.activeToasts
 
-            // Nivel de elevacion 3 (surface_container_high); critica con
-            // borde en error.
-            Rectangle {
+            // Nivel de elevacion 3 (surface_container_high translucida sobre
+            // blur, sombra md); critica con borde en error.
+            Surface {
                 id: toast
                 required property var modelData
                 readonly property bool critical: toast.modelData.urgency === NotificationUrgency.Critical
                 Layout.fillWidth: true
                 implicitHeight: content.implicitHeight + Tokens.space.md * 2
+                level: 3
+                translucent: true
                 radius: Tokens.radius.lg
-                color: Colors.m3surfaceContainerHigh
                 border.color: toast.critical ? Colors.m3error : Colors.m3outlineVariant
-                border.width: 1
 
                 Timer {
                     running: !toast.critical

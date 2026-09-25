@@ -17,9 +17,13 @@ PopupWindow {
         popup.visible = !popup.visible;
     }
 
-    implicitWidth: Tokens.panel.widthSm
-    implicitHeight: Math.min(400, card.implicitHeight)
+    // Ancho de la tarjeta; la ventana suma el margen de la sombra alrededor
+    // (Surface.shadowMargin) y solo acepta input sobre la tarjeta (mask).
+    readonly property int cardWidth: Tokens.panel.widthSm
+    implicitWidth: popup.cardWidth + card.shadowMargin * 2
+    implicitHeight: Math.min(400, card.implicitHeight) + card.shadowMargin * 2
     color: "transparent"
+    mask: Region { item: card }
     grabFocus: true
 
     anchor.window: popup.panelWindow
@@ -38,9 +42,9 @@ PopupWindow {
     anchor.rect.x: {
         if (!popup.anchorItem || !popup.panelWindow || !popup.panelWindow.contentItem) return 0;
         const x = popup.absoluteX(popup.anchorItem);
-        return Math.max(0, x - popup.implicitWidth + popup.anchorItem.width);
+        return Math.max(0, x - popup.cardWidth + popup.anchorItem.width) - card.shadowMargin;
     }
-    anchor.rect.y: popup.panelWindow ? popup.panelWindow.height : 0
+    anchor.rect.y: popup.panelWindow ? popup.panelWindow.height - card.shadowMargin : 0
 
     readonly property var adapter: Bluetooth.defaultAdapter
     // De-duplicado por MAC: algunos dispositivos (ej. TVs con BR/EDR+LE)
@@ -66,16 +70,18 @@ PopupWindow {
         if (popup.adapter) popup.adapter.discovering = popup.visible;
     }
 
-    Rectangle {
+    // Nivel de elevacion 2: surface_container translucida sobre el blur de
+    // popups de la barra (blur_popups, ver rules.lua) y sombra sm. Radio lg con
+    // inset de 8 para que las filas (radio sm) queden concentricas (Q1).
+    Surface {
         id: card
-        width: popup.implicitWidth
+        x: card.shadowMargin
+        y: card.shadowMargin
+        width: popup.cardWidth
         implicitHeight: layout.implicitHeight + Tokens.pad.card * 2
-        // Nivel de elevacion 2 (surface_container) con borde sutil; radio lg con
-        // inset de 8 para que las filas (radio sm) queden concentricas (Q1).
+        level: 2
+        translucent: true
         radius: Tokens.radius.lg
-        color: Colors.m3surfaceContainer
-        border.color: Colors.m3outlineVariant
-        border.width: 1
 
         ColumnLayout {
             id: layout

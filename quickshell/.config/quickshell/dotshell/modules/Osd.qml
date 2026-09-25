@@ -6,6 +6,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Wayland
 import ".." // Colors.qml, Tokens.qml, OsdState.qml
 
 PanelWindow {
@@ -16,22 +17,31 @@ PanelWindow {
         left: true
         right: true
     }
-    implicitHeight: box.implicitHeight
+    // La franja suma arriba y abajo el margen de la sombra. Sin input: el OSD
+    // no es interactivo y la franja ocupa todo el ancho, asi que la mascara
+    // vacia deja pasar los clicks (antes bloqueaba ese borde de la pantalla
+    // mientras se veia).
+    WlrLayershell.namespace: "quickshell-panel"
+    implicitHeight: box.implicitHeight + box.shadowMargin * 2
     margins {
-        top: Tokens.popupTop
+        top: Tokens.popupTop - box.shadowMargin
     }
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
+    mask: Region {}
     visible: OsdState.visible
 
-    // Nivel de elevacion 3 (surface_container_high), forma de pildora.
-    Rectangle {
+    // Nivel de elevacion 3 (surface_container_high translucida sobre blur,
+    // sombra md), forma de pildora.
+    Surface {
         id: box
         anchors.horizontalCenter: parent.horizontalCenter
+        y: box.shadowMargin
         implicitWidth: content.implicitWidth + Tokens.pad.panel * 2
         implicitHeight: content.implicitHeight + Tokens.space.sm * 2
+        level: 3
+        translucent: true
         radius: Tokens.radius.pill(height)
-        color: Colors.m3surfaceContainerHigh
 
         RowLayout {
             id: content

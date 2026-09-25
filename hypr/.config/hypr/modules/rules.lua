@@ -58,14 +58,18 @@ hl.window_rule({
 -- hl.window_rule({ name = "ws-steam",   match = { class = "steam" },          workspace = "9" })
 
 -- ---- Layer rules (blur para launcher, notificaciones) ----
--- La barra (namespace "quickshell") no lleva blur: cada Pill ya tiene su
--- propio fondo solido (ver Pill.qml), asi que el unico efecto visible del
--- blur era detras de los huecos transparentes entre pills -- a pedido del
--- usuario, sin blur ahi.
 hl.layer_rule({ match = { namespace = "rofi" },            blur = true, ignore_alpha = 0.3 })
--- El Control Center y los toasts de notificaciones (quickshell/
--- ControlCenter.qml, NotificationToast.qml) reemplazan a swaync -- mismo
--- namespace "quickshell" que la barra, sin blur (ver nota arriba).
+-- Shell (Quickshell, decisiones E1-E4 del design system). Profundidad
+-- discreta: superficies al 0.92 con blur solo donde hay tarjeta (ignore_alpha
+-- deja afuera el margen transparente y la sombra, que no pasa de 0.28).
+-- Paneles flotantes (centro de control, toasts, OSD, launcher):
+hl.layer_rule({ match = { namespace = "quickshell-panel" }, blur = true, ignore_alpha = 0.3 })
+-- La barra ("quickshell") no lleva blur: cada Pill ya tiene su propio fondo
+-- solido (ver Pill.qml), asi que el unico efecto visible del blur era detras
+-- de los huecos transparentes entre pills -- a pedido del usuario, sin blur
+-- ahi (E3). Sus desplegables son popups de esta capa: blur_popups los
+-- difumina a ellos sin tocar la barra.
+hl.layer_rule({ match = { namespace = "quickshell" },       blur_popups = true, ignore_alpha = 0.3 })
 hl.layer_rule({ match = { namespace = "hyprpicker" },        no_anim = true })
 
 -- Widgets/relojes que deben verse incluso arriba de hyprlock (ninguno por ahora)

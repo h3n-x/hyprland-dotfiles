@@ -10,6 +10,7 @@ import Quickshell.Io
 import Quickshell.Networking
 import Quickshell.Bluetooth
 import Quickshell.Widgets
+import Quickshell.Wayland
 import ".." // Colors.qml, Tokens.qml, NotificationState.qml, ControlCenterState.qml
 
 PanelWindow {
@@ -20,14 +21,18 @@ PanelWindow {
         right: true
     }
     // Debajo de la barra (popupTop = margen + alto de la barra + md) y
-    // alineado con su borde derecho; mismo valor que Osd.qml y los toasts.
+    // alineado con su borde derecho; mismo valor que Osd.qml y los toasts. La
+    // ventana suma el margen de la sombra alrededor de la tarjeta, asi que se
+    // corre ese margen hacia afuera y solo acepta input sobre la tarjeta.
+    WlrLayershell.namespace: "quickshell-panel"
     margins {
-        top: Tokens.popupTop
-        right: Tokens.screenEdge
+        top: Tokens.popupTop - card.shadowMargin
+        right: Tokens.screenEdge - card.shadowMargin
     }
-    implicitWidth: Tokens.panel.widthLg
-    implicitHeight: Math.min(600, card.implicitHeight)
+    implicitWidth: Tokens.panel.widthLg + card.shadowMargin * 2
+    implicitHeight: Math.min(600, card.implicitHeight) + card.shadowMargin * 2
     color: "transparent"
+    mask: Region { item: card }
     exclusionMode: ExclusionMode.Ignore
     visible: ControlCenterState.visible
 
@@ -85,16 +90,18 @@ PanelWindow {
 
     onVisibleChanged: if (window.visible) window.refreshHardware()
 
-    // Nivel de elevacion 2 (surface_container) con borde sutil, igual que los
-    // desplegables. Padding 16 = radio lg: los hijos no necesitan radio anidado (Q1).
-    Rectangle {
+    // Nivel de elevacion 2 (surface_container translucida sobre blur, sombra sm),
+    // igual que los desplegables. Padding 16 = radio lg: los hijos no necesitan
+    // radio anidado (Q1).
+    Surface {
         id: card
-        width: window.implicitWidth
+        x: card.shadowMargin
+        y: card.shadowMargin
+        width: Tokens.panel.widthLg
         implicitHeight: layout.implicitHeight + Tokens.pad.panel * 2
+        level: 2
+        translucent: true
         radius: Tokens.radius.lg
-        color: Colors.m3surfaceContainer
-        border.color: Colors.m3outlineVariant
-        border.width: 1
 
         ColumnLayout {
             id: layout

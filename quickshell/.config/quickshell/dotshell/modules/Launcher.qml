@@ -16,6 +16,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Widgets
+import Quickshell.Wayland
 import ".." // Colors.qml, Tokens.qml, LauncherState.qml
 
 PanelWindow {
@@ -29,6 +30,10 @@ PanelWindow {
     }
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
+    // Blur del compositor detras de la card (el resto de la ventana es
+    // transparente, ignore_alpha lo excluye). Sin mask: la ventana cubre la
+    // pantalla a proposito para cerrar con un click afuera.
+    WlrLayershell.namespace: "quickshell-panel"
 
     // Animacion de apertura/cierre: si "visible" se atara directo a
     // LauncherState.visible, la superficie wlr-layer-shell se desmapea
@@ -189,33 +194,15 @@ PanelWindow {
         Behavior on scale { NumberAnimation { duration: card.animDuration; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
         Behavior on height { NumberAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
-        // Sombra pobre-pero-honesta: 3 capas semitransparentes cada vez
-        // mas grandes detras de la card, sin sumar Qt5Compat.
-        // GraphicalEffects (paquete qt5compat, no siempre instalado) solo
-        // para un drop-shadow. Provisoria: la reemplaza shadow.md en P2.2.
-        Repeater {
-            model: 3
-            Rectangle {
-                required property int index
-                anchors.centerIn: parent
-                width: card.width + (index + 1) * 6
-                height: card.height + (index + 1) * 6
-                radius: Tokens.radius.xl + (index + 1) * 3
-                color: Colors.m3shadow
-                opacity: 0.06 - index * 0.015
-                z: -1
-            }
-        }
-
-        // Nivel de elevacion 3 (surface_container_high). Radio xl con inset md:
-        // buscador y filas en radio md, concentricos (Q1).
-        Rectangle {
+        // Nivel de elevacion 3 (surface_container_high translucida sobre blur,
+        // sombra md; reemplaza la sombra hecha a mano de 3 rectangulos). Radio
+        // xl con inset md: buscador y filas en radio md, concentricos (Q1).
+        Surface {
             id: bg
             anchors.fill: parent
+            level: 3
+            translucent: true
             radius: Tokens.radius.xl
-            color: Colors.m3surfaceContainerHigh
-            border.color: Colors.m3outlineVariant
-            border.width: 1
 
             // Sin esto, clickear el padding de la card (no cubierto por
             // ningun control) atravesaria hacia el MouseArea de fondo
