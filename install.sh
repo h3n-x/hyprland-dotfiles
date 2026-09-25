@@ -103,8 +103,8 @@ sudo -n /usr/local/bin/sync-sddm-theme >/dev/null 2>&1 || true
 ok "Paleta generada a partir de $(basename "$seed"). Cambiala cuando quieras con SUPER+SHIFT+W."
 
 # ~/.face: imagen "de usuario" que dibuja hyprlock (ver hyprlock.conf).
-# Recorte cuadrado centrado del wallpaper semilla -- wallpaper-selector.sh
-# la regenera igual en cada cambio de fondo, ver README.
+# Recorte cuadrado centrado del wallpaper semilla -- theme-apply.sh la
+# regenera igual en cada cambio de fondo, ver README.
 if command -v magick >/dev/null 2>&1; then
   magick "$seed" -gravity center -resize 512x512^ -extent 512x512 ~/.face
   ok "~/.face generado a partir de $(basename "$seed")."

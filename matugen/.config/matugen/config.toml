@@ -11,8 +11,8 @@
 # ============================================================================
 
 [config]
-# No usamos el `set_wallpaper` de matugen: el wallpaper lo aplica
-# wallpaper-selector.sh via IPC de hyprpaper antes de llamar a matugen.
+# No usamos el `set_wallpaper` de matugen: el wallpaper lo dibuja la capa de
+# Quickshell a partir del JSON de colores (o hyprpaper, via theme-apply.sh).
 
 [templates.btop]
 input_path = "~/.config/matugen/templates/btop.theme"

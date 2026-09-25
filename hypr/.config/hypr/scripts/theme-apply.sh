@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Punto de entrada unico para aplicar un tema (wallpaper + paleta), Fase 3 B0.
-# Lo llaman el selector de rofi y, mas adelante, la galeria, deshacer y la IPC.
+# Lo llaman la galeria (aplicar, favoritos, etiquetas, opciones de color),
+# deshacer (SUPER+SHIFT+Z, IPC) y la linea de comandos.
 #
 #   theme-apply.sh <wallpaper> [--scheme <tipo>] [--contrast <-1..1>]
 #                  [--source rofi|gallery|undo|ipc] [--dry-run] [--no-system]
@@ -19,8 +20,8 @@
 # los aplica en orden. Si elegis varios wallpapers seguidos se aplica solo el
 # ultimo y nunca corren dos matugen a la vez (KI-S11).
 #
-# Los pasos son los mismos que hacia wallpaper-selector.sh, con ~/.face
-# generado ANTES de matugen: el hook de Plymouth lo usa como avatar (KI-S1).
+# ~/.face se genera ANTES de matugen: el hook de Plymouth lo usa como avatar
+# (KI-S1).
 # Estado e historial: ~/.local/state/dotfiles/wallpapers.json (fuera del repo).
 #
 # Dos velocidades (Fase 3 B2): matugen corre al instante con config.toml (lo

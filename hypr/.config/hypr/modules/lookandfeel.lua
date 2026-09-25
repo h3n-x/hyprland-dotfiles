@@ -4,7 +4,7 @@
 -- ============================================================================
 
 -- Paleta generada por matugen (../../matugen/.config/matugen/templates/hyprland-colors.lua),
--- regenerada en cada cambio de wallpaper por scripts/wallpaper-selector.sh.
+-- regenerada en cada cambio de wallpaper por scripts/theme-apply.sh.
 -- Fallback si todavia no se corrio matugen una vez (modules/colors.lua no existe).
 local ok, colors = pcall(require, "modules.colors")
 if not ok then

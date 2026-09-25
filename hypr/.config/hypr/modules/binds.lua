@@ -33,10 +33,9 @@ hl.bind(mainMod .. " + SHIFT + CTRL + B", hl.dsp.exec_cmd("qs -c dotshell ipc ca
 
 hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"))
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd(scripts .. "/clipboard-menu"))
--- Galeria de wallpapers (Quickshell, Fase 3 B3). El selector de rofi queda en
--- SUPER+ALT+W mientras la galeria madura (se retira en B9).
+-- Galeria de wallpapers (Quickshell, Fase 3). Sin Quickshell corriendo:
+-- theme-apply.sh <archivo> desde una terminal (el selector de rofi se retiro en B9).
 hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("qs -c dotshell ipc call gallery toggle"))
-hl.bind(mainMod .. " + ALT + W", hl.dsp.exec_cmd(scripts .. "/wallpaper-selector.sh"))
 -- Deshacer el ultimo cambio de tema (Fase 3 B5): vuelve al anterior del
 -- historial con su esquema y contraste; notifica a que tema volvio.
 hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd(scripts .. "/theme-apply.sh --undo"))

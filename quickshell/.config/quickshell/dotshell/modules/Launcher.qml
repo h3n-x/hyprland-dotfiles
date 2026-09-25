@@ -1,7 +1,7 @@
 // Reemplaza a "rofi -show drun" (SUPER+D, ver binds.lua) -- fuera de
 // alcance a proposito: window-switcher (SUPER+TAB), rofimoji, power-menu,
-// clipboard-menu y wallpaper-selector siguen en rofi tal cual, ver Fase D
-// del plan.
+// y clipboard-menu siguen en rofi tal cual, ver Fase D del plan (los
+// wallpapers pasaron a la galeria, WallpaperGallery.qml).
 //
 // PanelWindow (no FloatingWindow) a proposito: FloatingWindow es una
 // ventana de verdad manejada por Hyprland (necesitaria una window_rule

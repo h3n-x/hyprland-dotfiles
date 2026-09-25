@@ -162,16 +162,24 @@ generarla una vez a mano, si no `@import`/`include`/`source`/`require`/
 matugen image ~/Pictures/Wallpapers/imagen_161.png
 ```
 
-Para cambiar de wallpaper (y recolorear todo junto) usa `SUPER+SHIFT+W`
-(`hypr/.config/hypr/scripts/wallpaper-selector.sh`), que aplica el fondo con
-hyprpaper, corre `matugen image` con el wallpaper elegido y regenera
-`~/.face` -- la imagen "de usuario" que dibuja hyprlock arriba del reloj de
-palabras (`image { path = ~/.face }` en `hyprlock.conf`) -- como un recorte
-cuadrado centrado (512x512, via `magick`) del mismo wallpaper. No hace falta
-poner una foto real: el avatar del lockscreen cambia solo junto con el resto
-del theming. Si preferis una foto tuya en vez del recorte del wallpaper,
-sobreescribi `~/.face` a mano despues de cambiar de fondo (el selector la
-va a volver a pisar en el proximo cambio).
+Para cambiar de wallpaper (y recolorear todo junto) usa `SUPER+SHIFT+W`: la
+galeria de Quickshell (busqueda, etiquetas, favoritos, recientes, vista
+previa con `Espacio` y opciones de color por wallpaper o para todos).
+`SUPER+SHIFT+Z` vuelve al tema anterior. Todo pasa por
+`hypr/.config/hypr/scripts/theme-apply.sh`, que tambien sirve desde una
+terminal (por ejemplo si Quickshell no esta corriendo):
+
+```bash
+~/.config/hypr/scripts/theme-apply.sh ~/Pictures/Wallpapers/imagen_161.png
+```
+
+Ademas regenera `~/.face` -- la imagen "de usuario" que dibuja hyprlock
+arriba del reloj de palabras (`image { path = ~/.face }` en
+`hyprlock.conf`) -- como un recorte cuadrado centrado (512x512, via
+`magick`) del mismo wallpaper. No hace falta poner una foto real: el avatar
+del lockscreen cambia solo junto con el resto del theming. Si preferis una
+foto tuya en vez del recorte del wallpaper, sobreescribi `~/.face` a mano
+despues de cambiar de fondo (el proximo cambio la va a volver a pisar).
 
 Shell: zsh (con [zinit](https://github.com/zdharma-continuum/zinit) para
 plugins -- se clona solo la primera vez que abris una terminal, no hace
@@ -438,7 +446,7 @@ sudo, corre como `post_hook` en cada cambio de wallpaper):
   radial (mismo criterio que el blur de `hyprlock.conf`, pero horneado en
   la imagen porque Plymouth Script no tiene filtro de blur propio).
 - **Avatar**: `~/.face` (el mismo recorte cuadrado que usa hyprlock, ver
-  `wallpaper-selector.sh`) recortado en circulo, centrado en el hueco
+  `theme-apply.sh`) recortado en circulo, centrado en el hueco
   transparente que deja el anillo del spinner.
 - **Spinner**: un anillo de 270 grados (24 frames rotando) tenido con
   `primary`, alrededor del avatar.
