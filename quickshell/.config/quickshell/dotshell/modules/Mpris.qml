@@ -13,7 +13,13 @@ import Quickshell.Services.Mpris
 Item {
     id: root
     readonly property var player: Mpris.players.values[0] ?? null
-    visible: !!root.player
+    // Condicion de datos para el Pill contenedor (ver Bar.qml). No usar
+    // "visible" para eso: en QML visible es la visibilidad EFECTIVA -- si el
+    // Pill arranca oculto (la lista de reproductores llega unos ms despues
+    // del arranque), el hijo reporta false por tener al padre oculto y el
+    // Pill no vuelve a mostrarse nunca (deadlock).
+    readonly property bool active: !!root.player
+    visible: root.active
 
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight

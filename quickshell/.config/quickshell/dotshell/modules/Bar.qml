@@ -56,7 +56,7 @@ PanelWindow {
             // mismo nombre (mismo problema que IdleInhibitor, ver
             // IdleToggle.qml) -- se expone la visibilidad del propio
             // componente en su lugar.
-            visible: mprisModule.visible
+            visible: mprisModule.active
             Mpris { id: mprisModule; Layout.alignment: Qt.AlignVCenter }
         }
 
