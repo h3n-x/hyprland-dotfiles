@@ -96,6 +96,10 @@ if [ -z "$seed" ]; then
 fi
 
 matugen image "$seed" --prefer saturation
+# Temas de arranque/login (SDDM, Plymouth, GRUB) van en una config aparte
+# (Fase 3 B2); su sync con sudo solo funciona tras el setup del README.
+matugen -c ~/.config/matugen/config-system.toml image "$seed" --prefer saturation
+sudo -n /usr/local/bin/sync-sddm-theme >/dev/null 2>&1 || true
 ok "Paleta generada a partir de $(basename "$seed"). Cambiala cuando quieras con SUPER+SHIFT+W."
 
 # ~/.face: imagen "de usuario" que dibuja hyprlock (ver hyprlock.conf).

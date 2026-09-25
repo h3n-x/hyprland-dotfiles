@@ -4,7 +4,8 @@
 # Lo llaman el selector de rofi y, mas adelante, la galeria, deshacer y la IPC.
 #
 #   theme-apply.sh <wallpaper> [--scheme <tipo>] [--contrast <-1..1>]
-#                  [--source rofi|gallery|undo|ipc] [--dry-run]
+#                  [--source rofi|gallery|undo|ipc] [--dry-run] [--no-system]
+#   theme-apply.sh --flush-system   (corre ya el trabajo de sistema pendiente)
 #
 # Una sola aplicacion a la vez: cada llamada deja su pedido en un archivo (el
 # ultimo pisa al anterior) y solo un proceso "worker", protegido con flock,
@@ -15,8 +16,17 @@
 # generado ANTES de matugen: el hook de Plymouth lo usa como avatar (KI-S1).
 # Estado e historial: ~/.local/state/dotfiles/wallpapers.json (fuera del repo).
 #
+# Dos velocidades (Fase 3 B2): matugen corre al instante con config.toml (lo
+# que se ve en la sesion); los temas de arranque/login (config-system.toml:
+# SDDM, Plymouth, GRUB) quedan como trabajo pendiente y un "debouncer" los
+# regenera una sola vez, 60 s despues del ultimo cambio. Cada cambio nuevo
+# reemplaza el pendiente. Si la sesion termina antes, autostart.lua corre
+# --flush-system al iniciar la siguiente.
+#
 # --dry-run no ejecuta hyprctl, magick ni matugen: solo registra lo que haria
-# (para pruebas; usar THEME_STATE_DIR/THEME_LOG_DIR para no tocar el estado real).
+# (para pruebas; usar THEME_STATE_DIR/THEME_LOG_DIR para no tocar el estado
+# real, THEME_SYSTEM_DELAY para acortar la espera). --no-system no agenda la
+# pasada de sistema.
 
 set -uo pipefail
 
@@ -25,6 +35,10 @@ STATE_DIR="${THEME_STATE_DIR:-$HOME/.local/state/dotfiles}"
 STATE="$STATE_DIR/wallpapers.json"
 REQUEST="$STATE_DIR/theme-apply.request"
 LOCK="$STATE_DIR/theme-apply.lock"
+SYSTEM_PENDING="$STATE_DIR/system.pending"
+SYSTEM_LOCK="$STATE_DIR/theme-system.lock"
+SYSTEM_CFG="$HOME/.config/matugen/config-system.toml"
+SYSTEM_DELAY="${THEME_SYSTEM_DELAY:-60}"
 LOG_DIR="${THEME_LOG_DIR:-$HOME/.cache/dotfiles}"
 LOG="$LOG_DIR/theme-apply.log"
 CURRENT_CONF="$HOME/.config/hypr/current-wallpaper.conf"
@@ -48,7 +62,7 @@ die() {
 }
 
 usage() {
-  sed -n '6,7p' "$0" | sed 's/^# \{0,3\}//' >&2
+  sed -n '6,8p' "$0" | sed 's/^# \{0,3\}//' >&2
   exit 2
 }
 
@@ -90,8 +104,8 @@ run() { # comando... (en --dry-run solo se registra)
   fi
 }
 
-apply() { # wallpaper scheme contrast source
-  local wp="$1" scheme="$2" contrast="$3" source="$4" t0 rc
+apply() { # wallpaper scheme contrast source no_system
+  local wp="$1" scheme="$2" contrast="$3" source="$4" no_system="${5:-false}" t0 rc
   t0=$(date +%s%N)
   log "aplicar: $wp (esquema=${scheme:-defecto} contraste=${contrast:-defecto} origen=$source)$([ "$DRY" = true ] && echo " [dry-run]")"
 
@@ -122,9 +136,8 @@ EOF
 
   # 4. Paleta y plantillas. --prefer evita el prompt interactivo de matugen.
   #    Sin --scheme/--contrast se usan los defaults de siempre.
-  local args=(image "$wp" --prefer saturation)
-  [ -n "$scheme" ] && args+=(-t "$scheme")
-  [ -n "$contrast" ] && args+=(--contrast "$contrast")
+  local args
+  mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast")
   if [ "$DRY" = true ]; then
     log "  dry: matugen ${args[*]}"
     sleep "$DRY_DELAY"
@@ -139,6 +152,62 @@ EOF
   # 5. Estado e historial.
   record_apply "$wp" "$scheme" "$contrast" "$source"
   log "listo: matugen rc=$rc en $(( ($(date +%s%N) - t0) / 1000000 )) ms"
+
+  # 6. Temas de arranque/login, diferidos.
+  [ "$no_system" = true ] || schedule_system "$wp" "$scheme" "$contrast"
+}
+
+# ---- Pasada de sistema (SDDM, Plymouth, GRUB), diferida -------------------
+
+matugen_args() { # wallpaper scheme contrast -> argumentos de matugen image
+  local a=(image "$1" --prefer saturation)
+  [ -n "$2" ] && a+=(-t "$2")
+  [ -n "$3" ] && a+=(--contrast "$3")
+  printf '%s\n' "${a[@]}"
+}
+
+schedule_system() { # wallpaper scheme contrast
+  local token
+  token="$(date +%s%N)"
+  jq -n --arg wp "$1" --arg scheme "$2" --arg contrast "$3" --arg token "$token" --argjson dry "$DRY" \
+    '{wallpaper: $wp, scheme: $scheme, contrast: $contrast, token: $token, dry: $dry}' \
+    > "$SYSTEM_PENDING.tmp" && mv "$SYSTEM_PENDING.tmp" "$SYSTEM_PENDING"
+  log "sistema: pendiente en ${SYSTEM_DELAY} s (token $token)"
+  setsid -f "$SCRIPTS_DIR/$(basename "$0")" --system-run "$token" < /dev/null > /dev/null 2>&1
+}
+
+run_system() { # token esperado ("" = el que haya pendiente)
+  exec 8> "$SYSTEM_LOCK"
+  flock 8
+  [ -s "$SYSTEM_PENDING" ] || { log "sistema: nada pendiente"; return 0; }
+  local job token
+  job="$(cat "$SYSTEM_PENDING")"
+  token="$(jq -r .token <<< "$job")"
+  if [ -n "$1" ] && [ "$1" != "$token" ]; then
+    log "sistema: token $1 reemplazado por uno mas nuevo, se omite"
+    return 0
+  fi
+  local wp scheme contrast t0 rc
+  wp="$(jq -r .wallpaper <<< "$job")"; scheme="$(jq -r .scheme <<< "$job")"; contrast="$(jq -r .contrast <<< "$job")"
+  DRY="$(jq -r .dry <<< "$job")"
+  local args
+  mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast")
+  t0=$(date +%s%N)
+  log "sistema: aplicar $wp$([ "$DRY" = true ] && echo " [dry-run]")"
+  if [ "$DRY" = true ]; then
+    log "  dry: matugen -c $SYSTEM_CFG ${args[*]}"
+    log "  dry: sudo -n /usr/local/bin/sync-sddm-theme"
+    rc=0
+  else
+    matugen -c "$SYSTEM_CFG" "${args[@]}" >/dev/null 2>&1
+    rc=$?
+    # SDDM despues de escribir sus 9 archivos (KI-C2); Plymouth y GRUB
+    # sincronizan desde sus propios post_hook.
+    sudo -n /usr/local/bin/sync-sddm-theme >/dev/null 2>&1 || log "sistema: sync-sddm-theme fallo o no hay regla sudoers"
+  fi
+  # Solo se borra si nadie agendo otro mientras tanto.
+  if [ "$(jq -r .token "$SYSTEM_PENDING" 2>/dev/null)" = "$token" ]; then rm -f "$SYSTEM_PENDING"; fi
+  log "sistema: listo rc=$rc en $(( ($(date +%s%N) - t0) / 1000000 )) ms"
 }
 
 # ---- Cola (ultimo pedido gana) --------------------------------------------
@@ -164,7 +233,8 @@ worker() {
       apply "$(jq -r '.wallpaper' <<< "$req")" \
             "$(jq -r '.scheme // ""' <<< "$req")" \
             "$(jq -r '.contrast // "" | tostring' <<< "$req")" \
-            "$(jq -r '.source' <<< "$req")"
+            "$(jq -r '.source' <<< "$req")" \
+            "$(jq -r '.no_system // false' <<< "$req")"
     done
     flock -u 9
     exec 9>&-
@@ -184,14 +254,24 @@ if [ "${1:-}" = "--worker" ]; then
   worker
   exit 0
 fi
+if [ "${1:-}" = "--system-run" ]; then
+  sleep "$SYSTEM_DELAY"
+  run_system "${2:-}"
+  exit 0
+fi
+if [ "${1:-}" = "--flush-system" ]; then
+  run_system ""
+  exit 0
+fi
 
-wallpaper="" scheme="" contrast="" source="ipc" DRY=false
+wallpaper="" scheme="" contrast="" source="ipc" DRY=false NO_SYSTEM=false
 while [ $# -gt 0 ]; do
   case "$1" in
     --scheme)   scheme="${2:-}"; shift 2 ;;
     --contrast) contrast="${2:-}"; shift 2 ;;
     --source)   source="${2:-}"; shift 2 ;;
     --dry-run)  DRY=true; shift ;;
+    --no-system) NO_SYSTEM=true; shift ;;
     -h|--help)  usage ;;
     -*)         die "opcion desconocida: $1" ;;
     *)          [ -z "$wallpaper" ] || die "mas de un wallpaper"; wallpaper="$1"; shift ;;
@@ -216,9 +296,10 @@ case "$source" in rofi|gallery|undo|ipc) ;; *) die "origen desconocido: $source"
 
 # Pedido atomico: el ultimo en escribirse gana.
 jq -n --arg wp "$wallpaper" --arg scheme "$scheme" --arg contrast "$contrast" \
-      --arg source "$source" --argjson dry "$DRY" \
+      --arg source "$source" --argjson dry "$DRY" --argjson no_system "$NO_SYSTEM" \
   '{wallpaper: $wp, scheme: (if $scheme == "" then null else $scheme end),
-    contrast: (if $contrast == "" then null else $contrast end), source: $source, dry: $dry}' \
+    contrast: (if $contrast == "" then null else $contrast end), source: $source, dry: $dry,
+    no_system: $no_system}' \
   > "$REQUEST.$$" && mv "$REQUEST.$$" "$REQUEST"
 log "pedido: $wallpaper (origen=$source)"
 

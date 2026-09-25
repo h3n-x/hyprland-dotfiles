@@ -1,0 +1,76 @@
+# ============================================================================
+# matugen, temas de arranque y login (Fase 3 B2): SDDM, Plymouth y GRUB.
+# Son lentos (assets PNG, reconstruccion del UKI con sudo, grub-mkconfig) y
+# solo se ven al reiniciar o cerrar sesion, asi que no van en la pasada
+# inmediata (config.toml): hypr/.config/hypr/scripts/theme-apply.sh corre
+#   matugen -c ~/.config/matugen/config-system.toml image <wallpaper> ...
+# una sola vez, 60 s despues del ultimo cambio de wallpaper (o al iniciar la
+# siguiente sesion si quedo pendiente).
+#
+# SDDM no tiene post_hook: quien corre esta config sincroniza despues con
+#   sudo -n /usr/local/bin/sync-sddm-theme
+# cuando ya existen los 9 archivos del tema (antes el hook colgaba de
+# sddm-sleepbutton y matugen no escribe en orden: podia copiar un tema a
+# medias, KI-C2). Apunta a una copia root-owned en /usr/local/bin (no al
+# script de este repo: si el sudoers apuntara ahi, NOPASSWD equivaldria a
+# sudo sin restricciones). Fuente: hypr/.config/hypr/scripts/sync-sddm-theme.sh.
+# ============================================================================
+
+[config]
+
+[templates.sddm-main]
+input_path = "~/.config/matugen/templates/sddm/Main.qml"
+output_path = "~/.cache/matugen/sddm-theme/Main.qml"
+
+[templates.sddm-clock]
+input_path = "~/.config/matugen/templates/sddm/Components/Clock.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/Clock.qml"
+
+[templates.sddm-loginpanel]
+input_path = "~/.config/matugen/templates/sddm/Components/LoginPanel.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/LoginPanel.qml"
+
+[templates.sddm-sessionpanel]
+input_path = "~/.config/matugen/templates/sddm/Components/SessionPanel.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/SessionPanel.qml"
+
+[templates.sddm-passwordfield]
+input_path = "~/.config/matugen/templates/sddm/Components/PasswordField.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/PasswordField.qml"
+
+[templates.sddm-userfield]
+input_path = "~/.config/matugen/templates/sddm/Components/UserField.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/UserField.qml"
+
+[templates.sddm-powerbutton]
+input_path = "~/.config/matugen/templates/sddm/Components/PowerButton.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/PowerButton.qml"
+
+[templates.sddm-rebootbutton]
+input_path = "~/.config/matugen/templates/sddm/Components/RebootButton.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/RebootButton.qml"
+
+[templates.sddm-sleepbutton]
+input_path = "~/.config/matugen/templates/sddm/Components/SleepButton.qml"
+output_path = "~/.cache/matugen/sddm-theme/Components/SleepButton.qml"
+
+[templates.plymouth]
+input_path = "~/.config/matugen/templates/plymouth.script"
+output_path = "~/.cache/matugen/plymouth-theme/dotfiles-matugen.script"
+# Genera el fondo (blur+vignette del wallpaper) y los frames del spinner (sin
+# sudo, cache del usuario) y despues sincroniza+reconstruye el initramfs
+# (root, script puntual via sudoers, igual que sync-sddm-theme -- ver README
+# seccion Plymouth). {{image}} = path absoluto del wallpaper que esta
+# procesando esta corrida de matugen. El rebuild de initramfs corre en
+# background: unos segundos de disco, no bloquea el cambio de wallpaper.
+post_hook = "~/.config/hypr/scripts/generate-plymouth-assets.sh {{colors.primary.default.hex_stripped}} {{image}} && (sudo -n /usr/local/bin/sync-plymouth-theme >/dev/null 2>&1 &) || true"
+
+[templates.grub]
+input_path = "~/.config/matugen/templates/grub-theme.txt"
+output_path = "~/.cache/matugen/grub-theme/theme.txt"
+# Genera fondo+avatar+tick (sin sudo, cache del usuario) y despues
+# sincroniza+regenera grub.cfg (root, script puntual via sudoers, igual
+# patron que sync-sddm/plymouth-theme -- ver README seccion GRUB). Mucho
+# mas liviano que el post_hook de Plymouth: sin UKI de por medio, no hace
+# falta backgroundearlo.
+post_hook = "~/.config/hypr/scripts/generate-grub-assets.sh {{colors.primary.default.hex_stripped}} {{colors.tertiary.default.hex_stripped}} {{colors.on_primary.default.hex_stripped}} {{colors.surface_container.default.hex_stripped}} {{colors.outline_variant.default.hex_stripped}} {{image}} && sudo -n /usr/local/bin/sync-grub-theme >/dev/null 2>&1 || true"

@@ -53,7 +53,11 @@ EOF
 if command -v matugen >/dev/null 2>&1; then
   # --prefer evita el prompt interactivo de seleccion de color (no hay
   # terminal cuando esto corre desde un keybind)
-  matugen image "$wallpaper" --prefer saturation >/dev/null 2>&1 &
+  # Las dos configs de matugen (Fase 3 B2): la de la sesion y la de los temas
+  # de arranque/login, que sincroniza SDDM al final (KI-C2).
+  ( matugen image "$wallpaper" --prefer saturation
+    matugen -c ~/.config/matugen/config-system.toml image "$wallpaper" --prefer saturation
+    sudo -n /usr/local/bin/sync-sddm-theme ) >/dev/null 2>&1 &
 fi
 
 # ~/.face es la imagen "de usuario" que hyprlock.conf dibuja arriba del

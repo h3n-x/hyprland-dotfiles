@@ -1,8 +1,13 @@
 # ============================================================================
 # matugen -- genera paletas Material You a partir de un wallpaper y las
 # vuelca en cada app via templates. Se corre con `matugen image <wallpaper>`
-# (lo hace hypr/.config/hypr/scripts/wallpaper-selector.sh en cada cambio de
-# fondo). Ver README.md para el setup inicial.
+# (lo hace hypr/.config/hypr/scripts/theme-apply.sh en cada cambio de fondo).
+# Ver README.md para el setup inicial.
+#
+# Dos velocidades (Fase 3 B2): este archivo es lo que se ve en la sesion y se
+# aplica al instante. Los temas de arranque/login (SDDM, Plymouth, GRUB) estan
+# en config-system.toml y theme-apply.sh los regenera una sola vez, 60 s
+# despues del ultimo cambio de wallpaper.
 # ============================================================================
 
 [config]
@@ -51,7 +56,9 @@ output_path = "~/.config/spicetify/Themes/matugen/color.ini"
 # los archivos parcheados al dia en cada cambio de wallpaper, pero Spotify
 # (si esta abierto) no se reinicia solo -- hay que cerrarlo y abrirlo de
 # nuevo para ver los colores nuevos.
-post_hook = "spicetify apply >/dev/null 2>&1 || true"
+# En segundo plano (setsid) desde la Fase 3 B2: tarda ~8 s y bloqueaba las
+# plantillas siguientes (los colores de la shell llegaban ~16 s tarde).
+post_hook = "setsid -f sh -c 'spicetify apply >/dev/null 2>&1' >/dev/null 2>&1 || true"
 
 [templates.kitty]
 input_path = "~/.config/matugen/templates/kitty.conf"
@@ -110,69 +117,6 @@ output_path = "~/.config/nvim/lua/matugen_colors.lua"
 input_path = "~/.config/matugen/templates/yazi-flavor.toml"
 output_path = "~/.config/yazi/flavors/matugen.yazi/flavor.toml"
 
-[templates.sddm-main]
-input_path = "~/.config/matugen/templates/sddm/Main.qml"
-output_path = "~/.cache/matugen/sddm-theme/Main.qml"
-
-[templates.sddm-clock]
-input_path = "~/.config/matugen/templates/sddm/Components/Clock.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/Clock.qml"
-
-[templates.sddm-loginpanel]
-input_path = "~/.config/matugen/templates/sddm/Components/LoginPanel.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/LoginPanel.qml"
-
-[templates.sddm-sessionpanel]
-input_path = "~/.config/matugen/templates/sddm/Components/SessionPanel.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/SessionPanel.qml"
-
-[templates.sddm-passwordfield]
-input_path = "~/.config/matugen/templates/sddm/Components/PasswordField.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/PasswordField.qml"
-
-[templates.sddm-userfield]
-input_path = "~/.config/matugen/templates/sddm/Components/UserField.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/UserField.qml"
-
-[templates.sddm-powerbutton]
-input_path = "~/.config/matugen/templates/sddm/Components/PowerButton.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/PowerButton.qml"
-
-[templates.sddm-rebootbutton]
-input_path = "~/.config/matugen/templates/sddm/Components/RebootButton.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/RebootButton.qml"
-
-[templates.sddm-sleepbutton]
-input_path = "~/.config/matugen/templates/sddm/Components/SleepButton.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/SleepButton.qml"
-# Unico post_hook del grupo sddm-*: copia el staging (~/.cache/matugen/sddm-theme/)
-# a /usr/share/sddm/themes/ via sudo sin password. Apunta a una copia root-owned
-# del script en /usr/local/bin (no al de este repo, que el usuario puede editar
-# -- si el sudoers apuntara ahi, NOPASSWD equivaldria a sudo sin restricciones).
-# Ver hypr/.config/hypr/scripts/sync-sddm-theme.sh (fuente) y README (setup).
-post_hook = "sudo -n /usr/local/bin/sync-sddm-theme >/dev/null 2>&1 || true"
-
-[templates.plymouth]
-input_path = "~/.config/matugen/templates/plymouth.script"
-output_path = "~/.cache/matugen/plymouth-theme/dotfiles-matugen.script"
-# Genera el fondo (blur+vignette del wallpaper) y los frames del spinner (sin
-# sudo, cache del usuario) y despues sincroniza+reconstruye el initramfs
-# (root, script puntual via sudoers, igual que sync-sddm-theme -- ver README
-# seccion Plymouth). {{image}} = path absoluto del wallpaper que esta
-# procesando esta corrida de matugen. El rebuild de initramfs corre en
-# background: unos segundos de disco, no bloquea el cambio de wallpaper.
-post_hook = "~/.config/hypr/scripts/generate-plymouth-assets.sh {{colors.primary.default.hex_stripped}} {{image}} && (sudo -n /usr/local/bin/sync-plymouth-theme >/dev/null 2>&1 &) || true"
-
-[templates.grub]
-input_path = "~/.config/matugen/templates/grub-theme.txt"
-output_path = "~/.cache/matugen/grub-theme/theme.txt"
-# Genera fondo+avatar+tick (sin sudo, cache del usuario) y despues
-# sincroniza+regenera grub.cfg (root, script puntual via sudoers, igual
-# patron que sync-sddm/plymouth-theme -- ver README seccion GRUB). Mucho
-# mas liviano que el post_hook de Plymouth: sin UKI de por medio, no hace
-# falta backgroundearlo.
-post_hook = "~/.config/hypr/scripts/generate-grub-assets.sh {{colors.primary.default.hex_stripped}} {{colors.tertiary.default.hex_stripped}} {{colors.on_primary.default.hex_stripped}} {{colors.surface_container.default.hex_stripped}} {{colors.outline_variant.default.hex_stripped}} {{image}} && sudo -n /usr/local/bin/sync-grub-theme >/dev/null 2>&1 || true"
-
 [templates.quickshell]
 # Ver quickshell/.config/quickshell/dotshell/ -- barra en QML (reemplazo
 # de Waybar, ver README seccion Quickshell). Colors.qml (fuente, no
@@ -187,4 +131,5 @@ output_path = "~/.cache/matugen/quickshell-colors.json"
 # Dark es simlinks relativos al tema base -- ver README).
 input_path = "~/.config/matugen/templates/icon-color.txt"
 output_path = "~/.cache/matugen/icon-color"
-post_hook = "~/.config/hypr/scripts/recolor-icons.sh {{colors.primary.default.hex_stripped}}"
+# En segundo plano (setsid) desde la Fase 3 B2: ~3 s, no bloquea al resto.
+post_hook = "setsid -f ~/.config/hypr/scripts/recolor-icons.sh {{colors.primary.default.hex_stripped}} >/dev/null 2>&1 || true"

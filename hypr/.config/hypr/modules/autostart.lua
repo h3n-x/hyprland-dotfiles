@@ -18,6 +18,11 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("hypridle")
     hl.exec_cmd("hyprsunset")
 
+    -- Temas de arranque/login que quedaron pendientes si la sesion anterior
+    -- termino antes de que theme-apply.sh los regenerara (Fase 3 B2). Sin
+    -- nada pendiente no hace nada.
+    hl.exec_cmd("sh -c '~/.config/hypr/scripts/theme-apply.sh --flush-system'")
+
     -- Historial de portapapeles (texto e imagenes por separado)
     hl.exec_cmd("sh -c 'wl-paste --type text --watch cliphist store'")
     hl.exec_cmd("sh -c 'wl-paste --type image --watch cliphist store'")
