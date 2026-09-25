@@ -211,8 +211,14 @@ QtObject {
         readonly property int lg: 24
         readonly property int xl: 40   // OSD
 
-        function axes(filled, weight) {
-            return { "FILL": filled ? 1 : 0, "wght": weight, "GRAD": 0, "opsz": 24 };
+        // Ejes de Material Symbols (I2): opsz sigue al tamano del icono, peso
+        // 400 por defecto (500 junto a texto activo/semibold). Los iconos se
+        // escriben por nombre de ligadura con font.family explicita (I4):
+        // Text { text: "wifi"; font.family: Tokens.font.icon; font.pixelSize: Tokens.icon.md
+        //        font.variableAxes: Tokens.icon.axes(true) }
+        function axes(filled, weight, size) {
+            return { "FILL": filled ? 1 : 0, "wght": weight === undefined ? 400 : weight,
+                     "GRAD": 0, "opsz": size === undefined ? md : size };
         }
     }
     readonly property IconTokens icon: IconTokens {}
