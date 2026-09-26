@@ -199,6 +199,21 @@ ShellRoot {
         }
     }
 
+    // Panel del reloj (Fase 4 B6: calendario + clima; dashboard en B7). Sin
+    // atajo propio por ahora (B6-i); el clic en el reloj lo abre.
+    IpcHandler {
+        target: "dashboard"
+        function open(): void {
+            DashboardState.open("");
+        }
+        function close(): void {
+            DashboardState.close();
+        }
+        function toggle(): void {
+            DashboardState.toggle("");
+        }
+    }
+
     IpcHandler {
         target: "gallery"
         function toggle(): void {

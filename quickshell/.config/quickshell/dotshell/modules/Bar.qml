@@ -69,7 +69,7 @@ PanelWindow {
             Layout.alignment: Qt.AlignVCenter
             hovered: clockModule.hovered
             pressed: clockModule.pressed
-            Clock { id: clockModule; Layout.alignment: Qt.AlignVCenter }
+            Clock { id: clockModule; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
         }
 
         Item { Layout.fillWidth: true }

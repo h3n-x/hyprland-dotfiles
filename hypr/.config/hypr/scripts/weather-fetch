@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# Clima del panel del reloj (Fase 4 B6, P4.7). Fuente: Open-Meteo (sin clave,
+# datos CC BY 4.0: el panel muestra la atribucion). Unica consulta periodica
+# de la fase: la hace WeatherState.qml cada 30 min, solo si hay una ubicacion.
+#
+#   weather-fetch                 consulta y actualiza la cache
+#   weather-fetch --search NOMBRE busca ciudades (geocoding): JSON en stdout
+#   weather-fetch --set LAT LON NOMBRE [DETALLE]   guarda la ubicacion y consulta
+#   weather-fetch --clear         olvida la ubicacion y la cache (sin consultas)
+#   weather-fetch --status        resumen legible
+#
+# Privacidad: la ubicacion vive solo en este equipo (~/.local/state, fuera del
+# repo) y se guarda redondeada a 0,1 grados (~10 km); eso es lo unico que se
+# envia. Sin ubicacion no hay ninguna consulta.
+#
+# Cache: la ultima respuesta buena se conserva siempre. Si una consulta falla
+# se anota el error (offline: sin red o sin respuesta; http: codigo de error;
+# parse: respuesta invalida) sin tocar los datos, para que el panel distinga
+# "sin conexion", "usando cache", "datos antiguos" y "error de consulta".
+#
+# Pruebas: WEATHER_API_BASE, WEATHER_GEO_BASE, WEATHER_STATE, WEATHER_CACHE.
+set -uo pipefail
+
+API=${WEATHER_API_BASE:-https://api.open-meteo.com}
+GEO=${WEATHER_GEO_BASE:-https://geocoding-api.open-meteo.com}
+STATE=${WEATHER_STATE:-$HOME/.local/state/dotfiles/weather.json}
+CACHE=${WEATHER_CACHE:-$HOME/.cache/dotfiles/weather.json}
+LOCK=$CACHE.lock
+
+now() { date +%s; }
+
+# Temporal de la respuesta: uno global y una sola trampa (una variable local
+# ya no existe cuando corre la trampa de salida).
+BODY=""
+trap '[[ -n $BODY ]] && rm -f "$BODY"' EXIT
+
+# Escribe un archivo de una vez (el panel nunca lee uno a medias).
+write_atomic() {
+    local dest=$1 tmp
+    mkdir -p "$(dirname "$dest")"
+    tmp=$(mktemp "$dest.XXXXXX") || return 1
+    cat > "$tmp" && mv -f "$tmp" "$dest"
+}
+
+# Anota el error en la cache sin tocar los datos.
+record_error() {
+    local kind=$1 detail=$2 base='{}'
+    [[ -s $CACHE ]] && base=$(cat "$CACHE")
+    jq --arg k "$kind" --arg d "$detail" --argjson at "$(now)" \
+        '.last_error = {kind: $k, detail: $d, at: $at} | .last_attempt = $at' <<<"$base" | write_atomic "$CACHE"
+}
+
+fetch() {
+    [[ -s $STATE ]] || { echo "sin ubicacion: no se consulta" >&2; return 2; }
+    local lat lon place
+    lat=$(jq -r '.lat' "$STATE"); lon=$(jq -r '.lon' "$STATE"); place=$(jq -r '.name' "$STATE")
+    [[ $lat != null && $lon != null ]] || { echo "ubicacion invalida" >&2; return 2; }
+
+    exec 9>"$LOCK"
+    flock -n 9 || { echo "ya hay una consulta en curso" >&2; return 0; }
+
+    local url="$API/v1/forecast?latitude=$lat&longitude=$lon&timezone=auto&forecast_days=5&forecast_hours=12"
+    url+="&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day,wind_speed_10m,precipitation"
+    url+="&hourly=temperature_2m,weather_code,is_day,precipitation_probability"
+    url+="&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset"
+    url+="&wind_speed_unit=kmh&temperature_unit=celsius"
+
+    local code rc
+    BODY=$(mktemp) || return 1
+    code=$(curl -s -o "$BODY" -w '%{http_code}' --max-time 10 "$url"); rc=$?
+    if (( rc != 0 )); then
+        record_error offline "curl $rc"; return 1
+    fi
+    if [[ $code != 200 ]]; then
+        record_error http "HTTP $code"; return 1
+    fi
+    if ! jq -e '.current.temperature_2m != null and (.hourly.time | length) > 0 and (.daily.time | length) > 0' "$BODY" >/dev/null 2>&1; then
+        record_error parse "respuesta invalida"; return 1
+    fi
+    jq --arg place "$place" --argjson at "$(now)" \
+        '{fetched_at: $at, last_attempt: $at, place: $place, data: {timezone, current, hourly, daily}}' "$BODY" | write_atomic "$CACHE"
+}
+
+search() {
+    local q=$1 enc
+    enc=$(jq -rn --arg q "$q" '$q | @uri')
+    curl -sf --max-time 10 "$GEO/v1/search?name=$enc&count=8&language=es&format=json" \
+        | jq '[.results // [] | .[] | {name, detail: ([.admin1, .country] | map(select(. != null)) | join(", ")), lat: .latitude, lon: .longitude}]'
+}
+
+set_location() {
+    local lat=$1 lon=$2 name=$3 detail=${4:-}
+    # Redondeo a 0,1 grados (~10 km): es lo unico que se guarda y se envia.
+    jq -n --arg name "$name" --arg detail "$detail" --argjson lat "$lat" --argjson lon "$lon" \
+        '{name: $name, detail: $detail, lat: (($lat * 10 | round) / 10), lon: (($lon * 10 | round) / 10)}' | write_atomic "$STATE"
+    rm -f "$CACHE"
+    fetch
+}
+
+status() {
+    if [[ ! -s $STATE ]]; then echo "sin ubicacion (el clima no consulta nada)"; return; fi
+    jq -r '"ubicacion: \(.name) (\(.detail)) · \(.lat), \(.lon)"' "$STATE"
+    if [[ -s $CACHE ]]; then
+        jq -r --argjson now "$(now)" '
+            (if .fetched_at then "datos: hace \((($now - .fetched_at) / 60) | floor) min" else "datos: ninguno" end),
+            (if .last_error and ((.last_error.at // 0) >= (.fetched_at // 0)) then "ultimo intento: error \(.last_error.kind) (\(.last_error.detail))" else "ultimo intento: bien" end)' "$CACHE"
+    else
+        echo "datos: ninguno todavia"
+    fi
+}
+
+case ${1:-} in
+    "")        fetch ;;
+    --search)  search "${2:?falta el nombre}" ;;
+    --set)     set_location "${2:?lat}" "${3:?lon}" "${4:?nombre}" "${5:-}" ;;
+    --clear)   rm -f "$STATE" "$CACHE" "$LOCK" ;;
+    --status)  status ;;
+    *)         sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+esac

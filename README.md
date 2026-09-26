@@ -43,6 +43,7 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 | Color picker | hyprpicker |
 | Selector de emoji | panel de Quickshell (`SUPER + .`), datos Unicode/CLDR en español e inglés |
 | Multimedia | media hub de Quickshell (pill de la barra + teclas multimedia) |
+| Calendario y clima | panel del reloj de Quickshell (clima de Open-Meteo, ubicacion elegida a mano) |
 | Spotify | spicetify + spicetify-marketplace (ver `spicetify/`) |
 | Visualizador de audio | cava (colores dinamicos, ver seccion cava abajo) |
 | System info / fetch | fastfetch (ver `fastfetch/`) |
@@ -379,6 +380,20 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   cancela, `Supr` cierra la ventana elegida. Solo se capturan ventanas de al
   menos 24x24 (con muchas ventanas en un workspace algunas quedan con tamano
   negativo y capturarlas tumbaba el shell); las demas muestran el icono.
+- **Reloj, calendario y clima** (`modules/Clock.qml`, `ClockPanel.qml`,
+  `CalendarCard.qml`, `WeatherCard.qml`, `WeatherState.qml`): la pill del
+  reloj muestra la hora (24 h) y, con una ubicacion elegida, el clima (icono y
+  temperatura; atenuado si los datos son viejos o no se pudo actualizar).
+  Clic: panel con el calendario del mes (en espanol, lunes primero, flechas o
+  rueda para cambiar de mes, "Hoy" para volver) y el clima (actual, 6 horas,
+  5 dias). El clima viene de [Open-Meteo](https://open-meteo.com) (sin
+  clave; datos CC BY 4.0) via `hypr/.config/hypr/scripts/weather-fetch`
+  (cache en `~/.cache/dotfiles/weather.json`, se conserva si falla). **Sin
+  ubicacion no se consulta nada**; la ciudad se elige en el panel ("Cambiar"
+  / "Quitar"), se guarda solo en `~/.local/state/dotfiles/weather.json`
+  (fuera del repo) redondeada a ~10 km, y se consulta cada 30 min. Estados
+  visibles: primera configuracion, sin conexion, usando cache, datos
+  antiguos y error de consulta. Es la base del dashboard (Fase 4 B7).
 - **Media hub** (`MediaState.qml`, `modules/MediaCard.qml`, `MediaDropdown.qml`,
   `Mpris.qml`): la pill de la barra muestra el titulo y el estado (ecualizador
   sonando, pausa en pausa); clic izquierdo abre el hub, clic central pausa.
