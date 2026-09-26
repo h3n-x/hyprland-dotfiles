@@ -2,18 +2,16 @@
 // el icono de estado de la pill multimedia; fijo: el dia/noche ya lo dice el
 // icono del clima), la hora (24 h) y, con una ubicacion
 // configurada, el clima compacto (icono + temperatura, atenuado si los datos
-// son viejos o no se pudo actualizar). Clic: abre el panel del reloj
-// (calendario + clima; dashboard en B7). La fecha ya no se alterna aca: esta
-// en el panel, siempre en espanol. SystemClock evita un proceso "date".
+// son viejos o no se pudo actualizar). Solo informa: sin accion al clic (el
+// dashboard se abre unicamente con SUPER+A, Fase 4 B7). SystemClock evita un
+// proceso "date".
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import ".." // Colors.qml, Tokens.qml, WeatherState.qml, DashboardState.qml
+import ".." // Colors.qml, Tokens.qml, WeatherState.qml
 
 Item {
     id: root
-    // Barra que contiene el reloj (para anclar el panel).
-    property var panelWindow: null
 
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
@@ -23,11 +21,9 @@ Item {
         precision: SystemClock.Minutes
     }
 
-    readonly property var cur: WeatherState.data ? WeatherState.data.current : null
+    readonly property var cur: WeatherState.current
     readonly property bool showWeather: WeatherState.configured && !!root.cur
-    // Datos viejos (> 60 min) o ultimo intento fallido: atenuado, no oculto.
-    readonly property bool weatherDim: root.showWeather
-        && (!!WeatherState.lastError || clock.date.getTime() / 1000 - WeatherState.fetchedAt > 3600)
+    readonly property bool weatherDim: root.showWeather && WeatherState.isDim(clock.date.getTime() / 1000)
 
     RowLayout {
         id: row
@@ -69,22 +65,5 @@ Item {
                 font.features: Tokens.tabularNumbers
             }
         }
-    }
-
-    // Accion unica: la Pill que lo contiene se ilumina entera (Bar.qml, Q2 = A).
-    readonly property bool hovered: hoverArea.containsMouse
-    readonly property bool pressed: hoverArea.pressed
-
-    MouseArea {
-        id: hoverArea
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: if (root.panelWindow && root.panelWindow.screen) DashboardState.toggle(root.panelWindow.screen.name)
-    }
-
-    ClockPanel {
-        anchorItem: root.parent ? root.parent : root
-        panelWindow: root.panelWindow
     }
 }

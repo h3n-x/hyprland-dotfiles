@@ -37,6 +37,7 @@ PanelWindow {
     visible: !BarVisibility.hidden
 
     RowLayout {
+        id: layout
         anchors.fill: parent
         spacing: Tokens.space.sm
 
@@ -60,16 +61,14 @@ PanelWindow {
             // Accion unica: la pill entera responde al hover (Q2 = A).
             hovered: mprisModule.hovered
             pressed: mprisModule.pressed
-            Mpris { id: mprisModule; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
+            Mpris { id: mprisModule; Layout.alignment: Qt.AlignVCenter }
         }
 
         Item { Layout.fillWidth: true }
 
         Pill {
             Layout.alignment: Qt.AlignVCenter
-            hovered: clockModule.hovered
-            pressed: clockModule.pressed
-            Clock { id: clockModule; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
+            Clock { Layout.alignment: Qt.AlignVCenter }
         }
 
         Item { Layout.fillWidth: true }
@@ -95,5 +94,12 @@ PanelWindow {
         Power {
             Layout.alignment: Qt.AlignVCenter
         }
+    }
+
+    // Dashboard (Fase 4 B7): uno por barra, centrado bajo ella (no depende de
+    // ningun modulo: se abre solo con SUPER+A).
+    Dashboard {
+        anchorItem: layout
+        panelWindow: bar
     }
 }

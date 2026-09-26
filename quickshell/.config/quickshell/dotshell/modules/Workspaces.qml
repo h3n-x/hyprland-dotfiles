@@ -4,13 +4,8 @@
 // el on-scroll-up/down de waybar ("hl.dsp.focus(...)"). Los iconos son los
 // Material Symbols (circulos, decision I1 del design system).
 //
-// "persistent-workspaces": {"*": 5} de waybar fuerza que se vean siempre
-// 5 slots aunque esten vacios -- Hyprland.workspaces de Quickshell solo
-// lista los que existen de verdad, asi que "slots" rellena con objetos
-// placeholder livianos {id, placeholder:true} los numeros 1..N que no
-// tienen workspace real todavia (N = 5 o el id mas alto que exista, lo
-// que sea mayor). Clickear un placeholder crea+enfoca ese workspace via
-// dispatch (Hyprland lo crea solo al enfocarlo).
+// Slots (1..N, al menos 5, huecos como marcadores que se crean al
+// enfocarlos): DesktopState.slots, los mismos que muestra el dashboard.
 //
 // Indicador de foco (P2.8, decision Q3 = A): un unico radio_button_checked
 // que se desliza entre los slots con el spring calibrado. Los circulos de
@@ -18,24 +13,14 @@
 // indicador, asi no se superponen a mitad de camino.
 import QtQuick
 import Quickshell.Hyprland
-import ".." // Colors.qml, Tokens.qml
+import ".." // Colors.qml, Tokens.qml, DesktopState.qml
 
 Item {
     id: root
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
 
-    readonly property int minWorkspaces: 5
-    readonly property var slots: {
-        const real = Hyprland.workspaces.values;
-        const maxId = real.reduce((m, w) => Math.max(m, w.id), 0);
-        const count = Math.max(root.minWorkspaces, maxId);
-        const result = [];
-        for (let i = 1; i <= count; i++) {
-            result.push(real.find(w => w.id === i) || { id: i, placeholder: true });
-        }
-        return result;
-    }
+    readonly property var slots: DesktopState.slots
 
     readonly property int pitch: Tokens.icon.md + Tokens.space.md
     readonly property int focusedIndex: root.slots.findIndex(w => !w.placeholder && Hyprland.focusedWorkspace === w)
@@ -88,11 +73,8 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        if (label.isPlaceholder) {
-                            Hyprland.dispatch("hl.dsp.focus({ workspace = " + label.modelData.id + " })");
-                        } else {
-                            label.modelData.activate();
-                        }
+                        if (label.isPlaceholder) DesktopState.focusWorkspace(label.modelData.id);
+                        else label.modelData.activate();
                     }
                 }
             }

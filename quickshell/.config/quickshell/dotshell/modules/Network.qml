@@ -2,10 +2,11 @@
 // duplicar el de la bandeja -- ver Tray.qml, que ahora filtra "nm-applet"
 // a proposito). Razon real esta vez: abrir NetworkDropdown.qml, un panel
 // propio en QML en vez de mandar a un menu fzf en una terminal.
+// Dispositivos, red activa e icono: NetworkState (compartido con el
+// dashboard, Fase 4 B7).
 import QtQuick
 import Quickshell
-import Quickshell.Networking
-import ".." // Colors.qml
+import ".." // Colors.qml, NetworkState.qml
 
 Item {
     id: root
@@ -14,48 +15,17 @@ Item {
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight
 
-    function findDevice(type) {
-        for (const d of Networking.devices.values) {
-            if (d.type === type) return d;
-        }
-        return null;
-    }
-
-    readonly property var wifiDevice: root.findDevice(DeviceType.Wifi)
-    readonly property var wiredDevice: root.findDevice(DeviceType.Wired)
-
-    readonly property var activeWifiNetwork: {
-        if (!root.wifiDevice) return null;
-        for (const n of root.wifiDevice.networks.values) {
-            if (n.connected) return n;
-        }
-        return null;
-    }
-
-    readonly property string icon: {
-        if (root.wiredDevice && root.wiredDevice.connected) return "lan";
-        if (!Networking.wifiEnabled) return "wifi_off";
-        if (!root.activeWifiNetwork) return "signal_wifi_0_bar";
-        const s = root.activeWifiNetwork.signalStrength;
-        if (s > 0.75) return "signal_wifi_4_bar";
-        if (s > 0.5) return "network_wifi_3_bar";
-        if (s > 0.25) return "network_wifi_2_bar";
-        return "network_wifi_1_bar";
-    }
-
     Icon {
         id: label
-        name: root.icon
+        name: NetworkState.icon
         // Relleno = conectado (regla on/off de D10).
-        filled: !!root.activeWifiNetwork || !!(root.wiredDevice && root.wiredDevice.connected)
+        filled: NetworkState.connected
     }
 
     NetworkDropdown {
         id: dropdown
         anchorItem: root
         panelWindow: root.panelWindow
-        wifiDevice: root.wifiDevice
-        wiredDevice: root.wiredDevice
     }
 
     // Hover por control (P2.4, Q2 = A).

@@ -1,8 +1,7 @@
-// Media hub (Fase 4 B5, P4.8): un solo lugar para "que reproductor" y sus
-// acciones. Lo usan la pill de la barra (Mpris.qml), la tarjeta completa
-// (MediaCard.qml, en el desplegable y luego en el dashboard) y el IpcHandler
-// "media" de shell.qml (teclas multimedia): todos actuan sobre el MISMO
-// reproductor.
+// Reproductor (Fase 4 B5, P4.8): un solo lugar para "que reproductor" y sus
+// acciones. Lo usan la pill de la barra (Mpris.qml), el reproductor del
+// dashboard (MediaHero.qml, Fase 4 B7) y el IpcHandler "media" de shell.qml
+// (teclas multimedia): todos actuan sobre el MISMO reproductor.
 //
 // Reproductor activo: el que eligio el usuario (se mantiene mientras exista);
 // si no, el que esta sonando; si no, el primero. Presentacion neutra: nombre
@@ -13,7 +12,6 @@
 // activo con otro nombre): mostrarlo duplicaria el mismo reproductor.
 pragma Singleton
 import QtQuick
-import Quickshell
 import Quickshell.Services.Mpris
 
 QtObject {
@@ -31,14 +29,18 @@ QtObject {
     }
 
     // Nombre legible: el de la aplicacion ("Zen Browser", "Spotify"), no el
-    // identity crudo ("Mozilla zen").
+    // identity crudo ("Mozilla zen"). AppInfo: el mismo nombre que en el
+    // resto de la shell.
     function nameOf(player: var): string {
         if (!player) return "";
-        const entry = player.desktopEntry ? DesktopEntries.byId(player.desktopEntry) : null;
-        if (entry && entry.name) return entry.name;
+        if (player.desktopEntry && AppInfo.entry(player.desktopEntry)) return AppInfo.name(player.desktopEntry);
         const id = player.identity || "Reproductor";
         return id.charAt(0).toUpperCase() + id.slice(1);
     }
+
+    // Aplicacion (desktop entry) del reproductor, si esta sonando.
+    readonly property var playingEntry: root.active && root.active.isPlaying
+        ? AppInfo.entry(root.active.desktopEntry || root.active.identity) : null
 
     function select(player: var): void {
         root.selectedId = player ? player.dbusName : "";
@@ -72,28 +74,5 @@ QtObject {
         if (!p || !p.loopSupported) return;
         p.loopState = p.loopState === MprisLoopState.None ? MprisLoopState.Playlist
             : p.loopState === MprisLoopState.Playlist ? MprisLoopState.Track : MprisLoopState.None;
-    }
-
-    // Desplegable del hub: uno por barra; se abre en la pantalla pedida (la
-    // de la pill clickeada o, por IPC, la enfocada).
-    property bool hubOpen: false
-    property string hubScreen: ""
-    function openHub(screenName: string): void {
-        if (screenName) {
-            root.hubScreen = screenName;
-            root.hubOpen = true;
-            return;
-        }
-        FocusedScreen.request(name => {
-            root.hubScreen = name;
-            root.hubOpen = true;
-        });
-    }
-    function closeHub(): void {
-        root.hubOpen = false;
-    }
-    function toggleHub(screenName: string): void {
-        if (root.hubOpen && (!screenName || root.hubScreen === screenName)) root.closeHub();
-        else root.openHub(screenName);
     }
 }

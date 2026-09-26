@@ -1,11 +1,10 @@
-// Calendario (Fase 4 B6, P4.6): cabecera con el dia de hoy y la fecha
-// completa, mes con navegacion (flechas, rueda del mouse, izquierda/derecha
-// con el foco en la tarjeta) y "Hoy" cuando se mira otro mes. Solo
-// visualizacion (eventos: funcion futura aparte). Siempre en espanol, lunes
-// primero, sin depender del locale del sistema. Tarjeta autonoma: la usa el
-// panel del reloj (ClockPanel) y la usara el dashboard (B7).
+// Calendario del mes (Fase 4 B6, P4.6; vista Hoy del dashboard en B7): mes
+// con navegacion (flechas, rueda del mouse, izquierda/derecha con el teclado)
+// y "Hoy" cuando se mira otro mes. La fecha completa esta en la cabecera de
+// la vista. Solo visualizacion (eventos: funcion futura aparte). Siempre en
+// espanol, lunes primero, sin depender del locale del sistema.
 //
-// "active" (del panel que la contiene): solo mientras se ve se actualiza la
+// "active" (de la vista que lo contiene): solo mientras se ve se actualiza la
 // fecha (medianoche) -- cerrado no corre nada.
 import QtQuick
 import QtQuick.Controls
@@ -17,7 +16,7 @@ Item {
     id: card
     property bool active: true
     readonly property var es: Qt.locale("es_ES")
-    readonly property int cell: 36
+    property int cell: 40
 
     implicitWidth: col.implicitWidth
     implicitHeight: col.implicitHeight
@@ -69,32 +68,16 @@ Item {
         id: col
         spacing: Tokens.space.sm
 
-        Text {
-            text: WeatherState.cap(card.es.standaloneDayName(card.today.getDay(), Locale.LongFormat))
-            color: Colors.m3primary
-            font.family: Tokens.font.ui
-            font.pixelSize: Tokens.type.body
-            font.weight: Tokens.weight.semibold
-        }
-        Text {
-            text: card.today.getDate() + " de " + card.es.standaloneMonthName(card.today.getMonth(), Locale.LongFormat) + " de " + card.today.getFullYear()
-            color: Colors.m3onSurface
-            font.family: Tokens.font.ui
-            font.pixelSize: Tokens.type.headline
-            font.weight: Tokens.weight.semibold
-        }
-
         RowLayout {
             Layout.fillWidth: true
-            Layout.topMargin: Tokens.space.sm
             spacing: Tokens.space.xs
             Text {
                 Layout.fillWidth: true
                 text: WeatherState.cap(card.es.standaloneMonthName(card.month, Locale.LongFormat)) + " " + card.year
                 color: Colors.m3onSurface
                 font.family: Tokens.font.ui
-                font.pixelSize: Tokens.type.body
-                font.weight: Tokens.weight.medium
+                font.pixelSize: Tokens.type.title
+                font.weight: Tokens.weight.semibold
             }
             // "Hoy": solo si se esta mirando otro mes.
             Rectangle {
@@ -157,9 +140,9 @@ Item {
                 implicitHeight: card.cell - 2
                 Rectangle {
                     anchors.centerIn: parent
-                    width: 30
-                    height: 30
-                    radius: 15
+                    width: card.cell - 6
+                    height: card.cell - 6
+                    radius: width / 2
                     visible: day.isToday
                     color: Colors.m3primary
                 }
@@ -169,7 +152,7 @@ Item {
                     color: day.isToday ? Colors.m3onPrimary : (day.inMonth ? Colors.m3onSurface : Colors.m3outline)
                     opacity: day.inMonth || day.isToday ? 1 : 0.6
                     font.family: Tokens.font.ui
-                    font.pixelSize: Tokens.type.label
+                    font.pixelSize: Tokens.type.body
                     font.weight: day.isToday ? Tokens.weight.semibold : Tokens.weight.regular
                     font.features: Tokens.tabularNumbers
                 }

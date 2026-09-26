@@ -42,8 +42,9 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 | Portapapeles | panel de Quickshell (`SUPER + SHIFT + V`) sobre cliphist + wl-clip-persist |
 | Color picker | hyprpicker |
 | Selector de emoji | panel de Quickshell (`SUPER + .`), datos Unicode/CLDR en español e inglés |
-| Multimedia | media hub de Quickshell (pill de la barra + teclas multimedia) |
-| Calendario y clima | panel del reloj de Quickshell (clima de Open-Meteo, ubicacion elegida a mano) |
+| Dashboard | Quickshell (`SUPER + A`): inicio, hoy (calendario y clima), sistema y escritorios |
+| Multimedia | reproductor de Quickshell (pill de la barra, dashboard y teclas multimedia) |
+| Calendario y clima | vista Hoy del dashboard (clima de Open-Meteo, ubicacion elegida a mano) |
 | Spotify | spicetify + spicetify-marketplace (ver `spicetify/`) |
 | Visualizador de audio | cava (colores dinamicos, ver seccion cava abajo) |
 | System info / fetch | fastfetch (ver `fastfetch/`) |
@@ -130,7 +131,8 @@ Para correr algo puntual en la NVIDIA (juegos, Blender, etc.):
 # o en Steam: opciones de lanzamiento -> ~/.config/hypr/scripts/nvidia-offload %command%
 ```
 
-Para ver si hay algo corriendo en la NVIDIA ahora mismo: `nvidia-smi --query-compute-apps=pid,process_name --format=csv,noheader`.
+Para ver si hay algo corriendo en la NVIDIA ahora mismo: `nvidia-smi --query-compute-apps=pid,process_name --format=csv,noheader`
+(o la vista Sistema del dashboard, `SUPER + A` y `S`, que muestra su estado sin despertarla).
 
 ## 3. Aplicar la config con Stow
 
@@ -309,8 +311,9 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   aparece como toast). `ControlCenter.qml` reproduce lo que daba
   `swaync/config.json`: historial con "limpiar todo", grid de accesos
   rápidos (wifi/bluetooth/hyprsunset -- este último sin servicio nativo,
-  se chequea con `pgrep` al abrir el panel/lock) y DND; el reproductor
-  esta en el media hub de la barra. `SUPER+N`/`SUPER+SHIFT+N` (ver
+  se chequea con `pgrep` al abrir el panel/lock), perfil de energia y DND;
+  el reproductor y el estado del equipo (incluida la NVIDIA) estan en el
+  dashboard. `SUPER+N`/`SUPER+SHIFT+N` (ver
   `binds.lua`) reemplazan a `swaync-client -t -sw`/`-C`.
 - **OSD** (`modules/Osd.qml` + `OsdState.qml`): popup temporal
   (icono + barra de nivel) para volumen/mic/brillo, reemplaza a los
@@ -380,33 +383,46 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   cancela, `Supr` cierra la ventana elegida. Solo se capturan ventanas de al
   menos 24x24 (con muchas ventanas en un workspace algunas quedan con tamano
   negativo y capturarlas tumbaba el shell); las demas muestran el icono.
-- **Reloj, calendario y clima** (`modules/Clock.qml`, `ClockPanel.qml`,
-  `CalendarCard.qml`, `WeatherCard.qml`, `WeatherState.qml`): la pill del
-  reloj muestra la hora (24 h) y, con una ubicacion elegida, el clima (icono y
-  temperatura; atenuado si los datos son viejos o no se pudo actualizar).
-  Clic: panel con el calendario del mes (en espanol, lunes primero, flechas o
-  rueda para cambiar de mes, "Hoy" para volver) y el clima (actual, 6 horas,
-  5 dias). El clima viene de [Open-Meteo](https://open-meteo.com) (sin
-  clave; datos CC BY 4.0) via `hypr/.config/hypr/scripts/weather-fetch`
-  (cache en `~/.cache/dotfiles/weather.json`, se conserva si falla). **Sin
-  ubicacion no se consulta nada**; la ciudad se elige en el panel ("Cambiar"
-  / "Quitar"), se guarda solo en `~/.local/state/dotfiles/weather.json`
-  (fuera del repo) redondeada a ~10 km, y se consulta cada 30 min. Estados
-  visibles: primera configuracion, sin conexion, usando cache, datos
-  antiguos y error de consulta. Es la base del dashboard (Fase 4 B7).
-- **Media hub** (`MediaState.qml`, `modules/MediaCard.qml`, `MediaDropdown.qml`,
-  `Mpris.qml`): la pill de la barra muestra el titulo y el estado (ecualizador
-  sonando, pausa en pausa); clic izquierdo abre el hub, clic central pausa.
-  El hub tiene la portada como protagonista (con un halo de sus propios
-  colores), titulo/artista/album, progreso con busqueda (clic o arrastre),
-  cinco controles fijos (lo que el reproductor no admite queda atenuado y
-  dice por que) y chips para elegir reproductor cuando hay mas de uno. Al
-  cambiar de cancion hay una transicion corta; con "reducir movimiento" es
-  instantanea. Teclado: `Espacio`, flechas (-/+10 s), `Esc`. Las teclas
-  multimedia (`binds.lua`) usan el mismo reproductor via
+- **Reloj** (`modules/Clock.qml`): la hora (24 h) y, con una ubicacion
+  elegida, el clima (icono y temperatura; atenuado si los datos son viejos o
+  no se pudo actualizar). Solo informa: sin accion al clic.
+- **Reproductor** (`MediaState.qml`, `modules/Mpris.qml`): la pill muestra el
+  titulo y el estado (ecualizador sonando, pausa en pausa); clic central
+  pausa. Las teclas multimedia (`binds.lua`) usan el mismo reproductor via
   `qs -c dotshell ipc call media next|previous|playPause`, tambien con la
-  pantalla bloqueada. Sin actividad con el hub cerrado. Se ignoran los
-  reproductores "proxy" (playerctld) para no duplicar.
+  pantalla bloqueada. Se ignoran los reproductores "proxy" (playerctld).
+- **Dashboard** (`modules/Dashboard.qml` y sus vistas, `DashboardState.qml`):
+  el centro de la shell. **Se abre solo con `SUPER+A`** (ningun modulo de la
+  barra lo abre), centrado bajo la barra del monitor enfocado; `Esc` o
+  `SUPER+A` lo cierran. Una sola superficie con zonas, en cuatro vistas:
+  - **Inicio**: hora, fecha, avisos (actualizaciones, notificaciones, no
+    molestar; solo si los hay) y clima; el reproductor como protagonista
+    mientras hay uno (portada grande, progreso con busqueda, cinco controles,
+    transicion al cambiar de cancion); el estado general del equipo ("Todo
+    en orden" y cuatro medidores) y los escritorios en miniatura. Sin musica,
+    el reloj crece y el panel se acorta.
+  - **Hoy**: calendario del mes y el clima con una frase ("Sensacion 30°. Hoy
+    entre 18° y 33°, sin lluvia a la vista."), las proximas 12 h y 5 dias. El
+    clima viene de [Open-Meteo](https://open-meteo.com) (sin clave; datos
+    CC BY 4.0) via `hypr/.config/hypr/scripts/weather-fetch` (cache en
+    `~/.cache/dotfiles/weather.json`). **Sin ubicacion no se consulta nada**;
+    la ciudad se elige aca (`C`), se guarda solo en
+    `~/.local/state/dotfiles/weather.json` (fuera del repo) redondeada a
+    ~10 km y se consulta cada 30 min.
+  - **Sistema**: el estado en palabras, procesador, memoria, almacenamiento y
+    energia (con el perfil), las aplicaciones que mas usan (agrupadas por
+    aplicacion, no por proceso), la red y las graficas (la NVIDIA sin
+    despertarla).
+  - **Escritorios**: cada workspace como la pantalla real a escala (fondo,
+    barra, gaps, bordes y la captura de cada ventana, tomada una vez al abrir
+    la vista); clic en una ventana va a esa ventana, en el fondo al
+    workspace.
+  Teclado: `Tab` recorre las zonas de Inicio, `Enter` abre la vista de la
+  zona, `H`/`S`/`E` abren Hoy/Sistema/Escritorios desde cualquier lugar,
+  `Esc`/`Retroceso` vuelven; `1`-`9` van a ese workspace; con el foco en el
+  reproductor, `Espacio`, flechas (-/+10 s), `N`/`P`. Cerrado no corre nada
+  (ni muestreo del equipo ni seguimiento de ventanas); todo respeta "reducir
+  movimiento".
 - **Binds** (`binds.lua`): `SUPER+SHIFT+B` muestra/oculta la barra
   (`qs -c dotshell ipc call bar toggle`, afecta a todas las pantallas a la
   vez via el singleton `BarVisibility.qml`) y
@@ -742,11 +758,12 @@ efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
 | `SUPER + M` | Menu de energia y sesion (bloquear/suspender/cerrar sesion/reiniciar/apagar; confirma las tres ultimas) |
 | `SUPER + SHIFT + M` | Cerrar sesion (pide confirmacion) |
 | `SUPER + CTRL + SHIFT + M` | Salida de emergencia de Hyprland (sin confirmar, no depende de Quickshell) |
+| `SUPER + A` | Dashboard (inicio, hoy, sistema, escritorios); unica forma de abrirlo |
 | `SUPER + N` / `SHIFT+N` | Panel de notificaciones / limpiar todo |
 | `SUPER + SHIFT + C` | Color picker |
 | `SUPER + .` | Selector de emoji (Enter escribe, Ctrl+Enter copia, Ctrl+T tono de piel) |
 | `SUPER + SHIFT + V` | Historial de portapapeles (busqueda, vista previa de texto/imagenes, no guarda datos sensibles) |
-| Teclas multimedia | Reproducir/pausa, siguiente, anterior del reproductor del media hub (tambien con la pantalla bloqueada) |
+| Teclas multimedia | Reproducir/pausa, siguiente, anterior del reproductor (el de la pill y el dashboard; tambien con la pantalla bloqueada) |
 | `SUPER + SHIFT + W` | Galeria de wallpapers (vista previa, opciones de color; recolorea todo con matugen) |
 | `SUPER + SHIFT + Z` | Deshacer el ultimo cambio de tema |
 | `Print` / `SUPER+Print` / `SUPER+SHIFT+Print` | Captura completa / region / ventana |

@@ -1,7 +1,8 @@
 // Reemplaza a swaync del todo -- ver Fase C del plan. Reproduce lo que
 // daba swaync/config.json: historial de notificaciones + "limpiar todo",
 // grid de accesos rapidos (wifi/bluetooth/hyprsunset/lock) y DND (el
-// reproductor esta en el media hub de la barra, Fase 4 B5). Una instancia por pantalla (ver shell.qml), toggle global via
+// reproductor y el estado del equipo, incluida la dGPU, estan en el
+// dashboard, Fase 4 B7). Una instancia por pantalla (ver shell.qml), toggle global via
 // ControlCenterState.qml (bind SUPER+N, ver shell.qml + binds.lua).
 import QtQuick
 import QtQuick.Layouts
@@ -11,7 +12,7 @@ import Quickshell.Networking
 import Quickshell.Bluetooth
 import Quickshell.Widgets
 import Quickshell.Wayland
-import ".." // Colors.qml, Tokens.qml, NotificationState.qml, ControlCenterState.qml
+import ".." // Colors.qml, Tokens.qml, NotificationState.qml, ControlCenterState.qml, PowerProfileState.qml
 
 PanelWindow {
     id: window
@@ -60,35 +61,11 @@ PanelWindow {
         onTriggered: checkGameMode.running = true
     }
 
-    property string powerProfile: "balanced"
-    Process {
-        id: checkPowerProfile
-        command: ["powerprofilesctl", "get"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                if (this.text.trim()) window.powerProfile = this.text.trim();
-            }
-        }
-    }
-
-    property var nvidiaData: ({ active: false, text: "Reposo (D3cold - 0W)", icon: "memory", processes: [] })
-    Process {
-        id: checkNvidia
-        command: [Quickshell.env("HOME") + "/.config/hypr/scripts/nvidia-status.sh"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    window.nvidiaData = JSON.parse(this.text);
-                } catch (e) {}
-            }
-        }
-    }
 
     function refreshHardware() {
         checkHyprsunset.running = true;
         checkGameMode.running = true;
-        checkPowerProfile.running = true;
-        checkNvidia.running = true;
+        PowerProfileState.refresh();
     }
 
     onVisibleChanged: if (window.visible) window.refreshHardware()
@@ -208,16 +185,12 @@ PanelWindow {
                 spacing: Tokens.space.xs
 
                 Repeater {
-                    model: [
-                        { id: "power-saver", label: "Ahorro", icon: "eco" },
-                        { id: "balanced", label: "Normal", icon: "balance" },
-                        { id: "performance", label: "Rendimiento", icon: "rocket_launch" }
-                    ]
+                    model: PowerProfileState.profiles
 
                     Rectangle {
                         id: profBtn
                         required property var modelData
-                        readonly property bool selected: window.powerProfile === profBtn.modelData.id
+                        readonly property bool selected: PowerProfileState.current === profBtn.modelData.id
                         readonly property color contentColor: profBtn.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
                         Layout.fillWidth: true
                         implicitHeight: Tokens.pill.height
@@ -259,62 +232,8 @@ PanelWindow {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                Quickshell.execDetached(["powerprofilesctl", "set", profBtn.modelData.id]);
-                                window.powerProfile = profBtn.modelData.id;
-                            }
+                            onClicked: PowerProfileState.set(profBtn.modelData.id)
                         }
-                    }
-                }
-            }
-
-            // Monitor de dGPU NVIDIA RTX 3050. Activa = aviso (tertiary, como
-            // el warning de la bateria); en reposo, texto secundario.
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: Tokens.row.height
-                radius: Tokens.radius.sm
-                color: Colors.m3surfaceContainerHigh
-                border.color: window.nvidiaData.active ? Colors.m3tertiary : "transparent"
-                border.width: 1
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: Tokens.space.md
-                    anchors.rightMargin: Tokens.space.md
-                    spacing: Tokens.gap.inline
-
-                    // Nombre de icono enviado por nvidia-status.sh (I5).
-                    Icon {
-                        name: window.nvidiaData.icon || "memory"
-                        filled: window.nvidiaData.active
-                        size: Tokens.icon.sm
-                        color: window.nvidiaData.active ? Colors.m3tertiary : Colors.m3onSurfaceVariant
-                    }
-
-                    Text {
-                        text: "NVIDIA RTX 3050"
-                        color: Colors.m3onSurface
-                        font.family: Tokens.font.ui
-                        font.pixelSize: Tokens.type.label
-                        font.weight: Tokens.weight.semibold
-                    }
-
-                    Text {
-                        text: {
-                            if (!window.nvidiaData.active) return window.nvidiaData.text || "Reposo (0W)";
-                            if (window.nvidiaData.processes && window.nvidiaData.processes.length > 0) {
-                                const names = window.nvidiaData.processes.map(p => p.name).join(", ");
-                                return "Activa (" + names + ")";
-                            }
-                            return "Activa";
-                        }
-                        color: window.nvidiaData.active ? Colors.m3tertiary : Colors.m3onSurfaceVariant
-                        font.family: Tokens.font.ui
-                        font.pixelSize: Tokens.type.label
-                        horizontalAlignment: Text.AlignRight
-                        Layout.fillWidth: true
-                        elide: Text.ElideRight
                     }
                 }
             }

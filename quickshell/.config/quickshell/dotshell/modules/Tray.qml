@@ -23,7 +23,7 @@ Row {
     visible: root.filteredItems.length > 0
 
     // Las apps con un reproductor MPRIS activo ya tienen la pill multimedia
-    // y el media hub (Mpris.qml, MediaCard.qml) -- no hace falta duplicarlas
+    // y el reproductor del dashboard (Mpris.qml, MediaHero.qml) -- no hace falta duplicarlas
     // aca (tipico: Spotify aparece tambien en la bandeja si no se filtra). Match difuso por nombre (desktopEntry vs. id
     // del tray item) porque no hay una forma directa de correlacionar un
     // SystemTrayItem con un MprisPlayer -- son dos protocolos DBus

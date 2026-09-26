@@ -1,24 +1,22 @@
-// Reemplaza a waybar/modules/battery.jsonc, incluidas las notificaciones de
-// los eventos on-discharging-warning/critical y on-charging-100. UPower.
-// displayDevice es reactivo (DBus), sin polling.
+// Pill de bateria, con las notificaciones de bateria baja, critica y llena.
+// Porcentaje, carga y umbrales salen de SystemState (UPower, sin polling),
+// los mismos que usa el estado general del dashboard.
 import QtQuick
 import Quickshell
-import Quickshell.Services.UPower
 import QtQuick.Layouts
-import ".." // Colors.qml, Tokens.qml, ControlCenterState.qml
+import ".." // Colors.qml, Tokens.qml, ControlCenterState.qml, SystemState.qml, PowerProfileState.qml
 
 Item {
     id: root
-    visible: device.ready && device.isLaptopBattery
+    visible: SystemState.hasBattery
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight
 
-    readonly property var device: UPower.displayDevice
-    readonly property real pct: device.ready ? device.percentage : 0
-    readonly property bool charging: device.state === UPowerDeviceState.Charging
-    readonly property bool isCritical: !root.charging && root.pct > 0 && root.pct <= 0.10
-    readonly property bool isWarning: !root.charging && root.pct > 0.10 && root.pct <= 0.20
-    readonly property bool isFull: root.charging && root.pct >= 0.999
+    readonly property real pct: SystemState.batteryPct
+    readonly property bool charging: SystemState.charging
+    readonly property bool isCritical: SystemState.batteryCritical
+    readonly property bool isWarning: SystemState.batteryWarning
+    readonly property bool isFull: SystemState.batteryFull
 
     // Material Symbols (D10): 7 niveles de barras + lleno, alerta en critico.
     readonly property string icon: {
@@ -41,9 +39,9 @@ Item {
             "-h", "string:x-canonical-private-synchronous:battery"]);
     }
 
-    onIsCriticalChanged: if (root.isCritical) root.notify("Battery Critical (10%)", "critical", "battery-010")
-    onIsWarningChanged: if (root.isWarning) root.notify("Battery Low (20%)", "critical", "battery-020")
-    onIsFullChanged: if (root.isFull) root.notify("Battery Full (100%)", "normal", "battery-100-charged")
+    onIsCriticalChanged: if (root.isCritical) root.notify("Batería crítica (10 %)", "critical", "battery-010")
+    onIsWarningChanged: if (root.isWarning) root.notify("Batería baja (20 %)", "critical", "battery-020")
+    onIsFullChanged: if (root.isFull) root.notify("Batería cargada (100 %)", "normal", "battery-100-charged")
 
     RowLayout {
         id: label
@@ -76,7 +74,7 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton
         onClicked: (mouse) => {
             if (mouse.button === Qt.MiddleButton) {
-                Quickshell.execDetached(["sh", "-c", "cur=$(powerprofilesctl get 2>/dev/null || echo balanced); case \"$cur\" in power-saver) next=balanced ;; balanced) next=performance ;; *) next=power-saver ;; esac; powerprofilesctl set \"$next\"; notify-send -a 'Energía' 'Perfil cambiado' \"$next\" -i power-profile-$next -t 2000"]);
+                PowerProfileState.cycle();
             } else {
                 ControlCenterState.visible = !ControlCenterState.visible;
             }

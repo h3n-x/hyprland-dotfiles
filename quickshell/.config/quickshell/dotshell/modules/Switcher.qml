@@ -1,6 +1,6 @@
 // Selector de ventanas (Fase 4 B4, P4.4), la unica interfaz para cambiar de
 // ventana. OverlayWindow + Picker
-// en rejilla de tarjetas: vista previa capturada al abrir (ScreencopyView,
+// en rejilla de tarjetas: vista previa capturada al abrir (WindowPreview,
 // una sola vez, tambien de otros workspaces), insignia del workspace (S =
 // especial; con varias pantallas, tambien el monitor), icono y titulo. Orden
 // por uso reciente (focusHistoryID de hyprctl clients): la ventana actual
@@ -17,16 +17,15 @@
 //
 // Cambiar = hl.dsp.focus({ window = "address:0x..." }) en el acto: Hyprland
 // mueve el foco (y el workspace), el focus grab del panel se libera y el panel
-// se cierra solo. A los 250 ms se comprueba que la ventana quedo activa y si
-// no se repite una vez. SWITCHER_DRY=1 (solo pruebas) registra los comandos.
+// se cierra solo (DesktopState.focusWindow: a los 250 ms comprueba que la
+// ventana quedo activa y si no repite una vez). DESKTOP_DRY=1 (solo pruebas)
+// registra los comandos. Vista previa: WindowPreview (la misma de las
+// miniaturas de Escritorios).
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
-import Quickshell.Io
-import Quickshell.Wayland
 import Quickshell.Widgets
-import ".." // Colors.qml, Tokens.qml, SwitcherState.qml
+import ".." // Colors.qml, Tokens.qml, SwitcherState.qml, DesktopState.qml, AppInfo.qml
 
 OverlayWindow {
     id: window
@@ -40,72 +39,42 @@ OverlayWindow {
     readonly property int cardHeight: 214
     // Tamano fijo de la vista previa (no depende del layout).
     readonly property size previewSize: Qt.size(window.cardWidth - 24, window.cardHeight - 64)
-    // Solo se capturan ventanas de al menos 24x24. Con muchas ventanas en un
-    // workspace (dwindle) las ultimas quedan con tamanos minimos o NEGATIVOS
-    // (11x-3, -5x-2); capturarlas crea un buffer de 0x0 y la conexion Wayland
-    // del shell entero cae ("Protocol error", reproducido con 15 ventanas en
-    // un workspace, KI-L18). Esas tarjetas muestran el icono de la app.
-    readonly property int minCaptureSize: 24
 
     // true mientras se supone Super apretado (soltarlo cambia de ventana).
     property bool hold: true
-    // Ventanas de hyprctl clients -j, por uso reciente: [{ address, title,
-    // cls, ws, special, monitor, urgent, focused }].
+    // Ventanas de DesktopState (hyprctl), por uso reciente. Las que miden
+    // menos de 24x24 no se capturan (capturable, KI-L18): muestran el icono.
     property var clients: []
     property bool loaded: false
     // Pasos (SUPER+TAB) que llegaron antes de tener la lista.
     property int pendingSteps: 0
 
-    readonly property bool dry: Quickshell.env("SWITCHER_DRY") === "1"
-    property var lastCommand: null
     readonly property bool multiMonitor: Quickshell.screens.length > 1
 
-    function addr(a: string): string {
-        return a.startsWith("0x") ? a : "0x" + a;
-    }
-    function toplevelOf(address: string): var {
-        const a = window.addr(address);
-        return Hyprland.toplevels.values.find(t => window.addr(t.address) === a) || null;
-    }
-    function run(cmd: string): void {
-        if (window.dry) {
-            window.lastCommand = cmd;
-            console.log("SWITCHER_DRY " + cmd);
-        } else {
-            Hyprland.dispatch(cmd);
-        }
-    }
-
-    Process {
-        id: clientsProc
-        command: ["hyprctl", "clients", "-j"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                let list = [];
-                try {
-                    list = JSON.parse(this.text);
-                } catch (e) {
-                    list = [];
-                }
-                window.clients = list
-                    .filter(c => c.mapped && !!c.workspace)
-                    .sort((a, b) => a.focusHistoryID - b.focusHistoryID)
-                    .map(c => ({
-                        address: window.addr(c.address),
-                        title: c.title || c.initialTitle || c["class"],
-                        cls: c["class"] || c.initialClass || "",
-                        ws: c.workspace.name.startsWith("special") ? "S" : c.workspace.name,
-                        monitor: c.monitor,
-                        urgent: !!c.urgent,
-                        focused: c.focusHistoryID === 0,
-                        capturable: !!c.size && c.size[0] >= window.minCaptureSize && c.size[1] >= window.minCaptureSize
-                    }));
-                window.loaded = true;
-                // La anterior (o la unica) + los SUPER+TAB que ya llegaron.
-                const n = window.clients.length;
-                if (body.item && n > 0) body.item.select(((Math.min(1, n - 1) + window.pendingSteps) % n + n) % n);
-                window.pendingSteps = 0;
-            }
+    // La lista llega de DesktopState: se toma la primera respuesta despues
+    // de abrir (el dashboard puede pedir otras mientras tanto; no se pisan).
+    Connections {
+        target: DesktopState
+        function onUpdated(): void {
+            if (!window.shouldShow || window.loaded) return;
+            window.clients = DesktopState.windows
+                .slice()
+                .sort((a, b) => a.history - b.history)
+                .map(c => ({
+                    address: c.address,
+                    title: c.title,
+                    cls: c.cls,
+                    ws: c.special ? "S" : c.ws,
+                    monitor: c.monitor,
+                    urgent: c.urgent,
+                    focused: c.focused,
+                    capturable: c.capturable
+                }));
+            window.loaded = true;
+            // La anterior (o la unica) + los SUPER+TAB que ya llegaron.
+            const n = window.clients.length;
+            if (body.item && n > 0) body.item.select(((Math.min(1, n - 1) + window.pendingSteps) % n + n) % n);
+            window.pendingSteps = 0;
         }
     }
 
@@ -123,33 +92,20 @@ OverlayWindow {
         window.loaded = false;
         window.clients = [];
         window.pendingSteps = 0;
-        clientsProc.running = true;
+        DesktopState.refresh();
     }
 
     // Cambiar a la ventana elegida.
     function activate(c: var): void {
         SwitcherState.close();
         if (!c || c.focused) return;
-        window.targetAddress = c.address;
-        window.run('hl.dsp.focus({ window = "address:' + c.address + '" })');
-        verifyTimer.restart();
-    }
-    property string targetAddress: ""
-    Timer {
-        id: verifyTimer
-        interval: 250
-        onTriggered: {
-            if (window.dry || !window.targetAddress) return;
-            const t = window.toplevelOf(window.targetAddress);
-            if (t && !t.activated)
-                Hyprland.dispatch('hl.dsp.focus({ window = "address:' + window.targetAddress + '" })');
-        }
+        DesktopState.focusWindow(c.address);
     }
 
     // Cerrar la ventana elegida (Supr): se quita de la lista enseguida.
     function closeWindow(c: var): void {
         if (!c) return;
-        window.run('hl.dsp.window.close({ window = "address:' + c.address + '" })');
+        DesktopState.closeWindow(c.address);
         window.clients = window.clients.filter(x => x.address !== c.address);
     }
 
@@ -247,7 +203,6 @@ OverlayWindow {
                     required property var modelData
                     required property int index
                     readonly property bool selected: card.index === picker.currentIndex
-                    readonly property var toplevel: window.toplevelOf(card.modelData.address)
                     width: window.cardWidth
                     height: window.cardHeight
 
@@ -275,19 +230,13 @@ OverlayWindow {
                                 color: Colors.m3surfaceContainerHighest
                                 clip: true
 
-                                ScreencopyView {
-                                    id: shot
+                                WindowPreview {
                                     anchors.fill: parent
-                                    // Solo con tamano real (nunca una captura de 0x0).
-                                    captureSource: card.modelData.capturable && width > 0 && height > 0 && card.toplevel ? card.toplevel.wayland : null
-                                    live: false
+                                    address: card.modelData.address
+                                    cls: card.modelData.cls
+                                    capturable: card.modelData.capturable
                                     constraintSize: window.previewSize
-                                }
-                                IconImage {
-                                    visible: !shot.hasContent
-                                    anchors.centerIn: parent
-                                    implicitSize: Tokens.space.xxl * 2
-                                    source: Quickshell.iconPath(card.modelData.cls.toLowerCase(), "application-x-executable")
+                                    iconSize: Tokens.space.xxl * 2
                                 }
 
                                 // Workspace (S = especial), monitor si hay varios, urgente.
@@ -316,7 +265,7 @@ OverlayWindow {
                                 spacing: Tokens.space.sm
                                 IconImage {
                                     implicitSize: 20
-                                    source: Quickshell.iconPath(card.modelData.cls.toLowerCase(), "application-x-executable")
+                                    source: AppInfo.icon(card.modelData.cls)
                                 }
                                 Text {
                                     Layout.fillWidth: true

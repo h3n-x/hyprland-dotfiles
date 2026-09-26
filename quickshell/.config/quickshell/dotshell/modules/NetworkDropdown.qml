@@ -8,14 +8,14 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Networking
-import ".." // Colors.qml, Tokens.qml
+import ".." // Colors.qml, Tokens.qml, NetworkState.qml
 
 PopupWindow {
     id: popup
     required property var anchorItem
     required property var panelWindow
-    property var wifiDevice
-    property var wiredDevice
+    readonly property var wifiDevice: NetworkState.wifiDevice
+    readonly property var wiredDevice: NetworkState.wiredDevice
 
     function toggle() {
         presence.open = !presence.open;

@@ -1,5 +1,5 @@
-// Base de los desplegables de la barra con tarjetas (Fase 4 B6; B7 la
-// reutiliza para el dashboard): PopupWindow anclado bajo un elemento de la
+// Base de los desplegables de la barra con tarjetas (Fase 4 B6; el dashboard
+// de B7 la usa con su radio, margen y entrada propios): PopupWindow anclado bajo un elemento de la
 // barra (izquierda, centro o derecha), tarjeta de elevacion 2, apertura y
 // cierre con Presence, clic afuera y Esc cierran, altura animada cuando cambia
 // el contenido. El contenido (las tarjetas) se pone como hijo.
@@ -22,10 +22,21 @@ PopupWindow {
     property string alignment: "center" // left | center | right
     default property alias content: body.data
     readonly property bool active: presence.shown
-    readonly property int cardWidth: body.childrenRect.width + Tokens.pad.card * 2 + Tokens.space.sm * 2
+    // Margen interior, radio, duracion de entrada y altura animada: los
+    // valores de un desplegable salvo que el contenido pida otros.
+    property int padding: Tokens.pad.card + Tokens.space.sm
+    property int cardRadius: Tokens.radius.lg
+    property int enterDuration: Tokens.motion.medium
+    // false si el contenido anima su propia altura (seguirla con otra
+    // animacion la atrasa y recorta el contenido a mitad de camino).
+    property bool animateHeight: true
+    readonly property int cardWidth: body.childrenRect.width + popup.padding * 2
     // Teclas del panel (con el foco en el panel, no en un campo de texto):
     // keyHandler(event) devuelve true si la usa. Esc siempre cierra.
     property var keyHandler: null
+    // Esc: escapeHandler() devuelve true si lo usa (p. ej. volver atras en
+    // una vista); si no, cierra.
+    property var escapeHandler: null
     signal closeRequested()
     // Devolver el foco al panel (p. ej. al salir de un campo de texto que se
     // oculta: si no, las teclas no llegan a ningun lado).
@@ -33,7 +44,10 @@ PopupWindow {
         keys.forceActiveFocus();
     }
 
-    Presence { id: presence }
+    Presence {
+        id: presence
+        enterDuration: popup.enterDuration
+    }
     Connections {
         target: presence
         function onShownChanged() {
@@ -85,11 +99,14 @@ PopupWindow {
         x: card.shadowMargin
         y: card.shadowMargin
         width: popup.cardWidth
-        implicitHeight: body.childrenRect.height + Tokens.pad.card * 2 + Tokens.space.sm * 2
-        Behavior on implicitHeight { NumberAnimation { duration: Tokens.motion.medium; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
+        implicitHeight: body.childrenRect.height + popup.padding * 2
+        Behavior on implicitHeight {
+            enabled: popup.animateHeight
+            NumberAnimation { duration: Tokens.motion.medium; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard }
+        }
         level: 2
         translucent: true
-        radius: Tokens.radius.lg
+        radius: popup.cardRadius
         opacity: presence.progress
         scale: presence.contentScale
         transformOrigin: Item.Top
@@ -98,8 +115,8 @@ PopupWindow {
         MouseArea { anchors.fill: parent }
         Item {
             id: body
-            x: Tokens.pad.card + Tokens.space.sm
-            y: Tokens.pad.card + Tokens.space.sm
+            x: popup.padding
+            y: popup.padding
             width: childrenRect.width
             height: childrenRect.height
         }
@@ -107,7 +124,9 @@ PopupWindow {
         Item {
             id: keys
             focus: true
-            Keys.onEscapePressed: popup.closeRequested()
+            Keys.onEscapePressed: {
+                if (!(popup.escapeHandler && popup.escapeHandler())) popup.closeRequested();
+            }
             Keys.onPressed: (event) => {
                 if (popup.keyHandler && popup.keyHandler(event)) event.accepted = true;
             }

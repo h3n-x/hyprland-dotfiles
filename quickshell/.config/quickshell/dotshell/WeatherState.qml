@@ -1,6 +1,7 @@
 // Clima (Fase 4 B6, P4.7): ubicacion y ultima respuesta de Open-Meteo, leidas
 // de los archivos que escribe scripts/weather-fetch (unico que toca la red).
-// Lo usan el reloj de la barra (clima compacto) y WeatherCard.qml.
+// Lo usan el reloj de la barra (clima compacto) y el dashboard (linea de
+// contexto de Inicio y la vista Hoy, WeatherView.qml).
 //
 // Consulta cada 30 min solo si hay ubicacion; al abrir el panel, si los datos
 // tienen mas de 30 min (despues de suspender, por ejemplo); tras un fallo,
@@ -37,6 +38,7 @@ QtObject {
 
     readonly property bool configured: !!root.location
     readonly property var data: root.cache && root.cache.data ? root.cache.data : null
+    readonly property var current: root.data ? root.data.current : null
     readonly property real fetchedAt: root.cache && root.cache.fetched_at ? root.cache.fetched_at : 0
     // Error del ultimo intento, solo si es posterior a los datos.
     readonly property var lastError: root.cache && root.cache.last_error && root.cache.last_error.at >= root.fetchedAt
@@ -54,6 +56,12 @@ QtObject {
         if (err) return err.kind === "offline" ? "cached" : "error";
         if (now - root.fetchedAt > 3600) return "stale";
         return "ok";
+    }
+
+    // Clima compacto (barra, Inicio): atenuado, no oculto, si los datos tienen
+    // mas de 60 min o el ultimo intento fallo.
+    function isDim(now: real): bool {
+        return !!root.current && (!!root.lastError || now - root.fetchedAt > 3600);
     }
 
     // ---- Consultas ------------------------------------------------------------

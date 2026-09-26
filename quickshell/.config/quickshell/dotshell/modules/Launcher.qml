@@ -6,7 +6,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
-import ".." // Colors.qml, Tokens.qml, LauncherState.qml, Fuzzy.qml
+import ".." // Colors.qml, Tokens.qml, LauncherState.qml, Fuzzy.qml, AppInfo.qml
 
 OverlayWindow {
     id: window
@@ -93,7 +93,7 @@ OverlayWindow {
                 IconImage {
                     Layout.alignment: Qt.AlignVCenter
                     implicitSize: Tokens.space.xxl
-                    source: appRow.modelData.entry.icon ? Quickshell.iconPath(appRow.modelData.entry.icon, "application-x-executable") : ""
+                    source: AppInfo.entryIcon(appRow.modelData.entry)
                 }
 
                 ColumnLayout {

@@ -10,7 +10,7 @@ import Quickshell
 import Quickshell.Widgets
 import Quickshell.Wayland
 import Quickshell.Services.Notifications
-import ".." // Colors.qml, Tokens.qml, NotificationState.qml
+import ".." // Colors.qml, Tokens.qml, NotificationState.qml, AppInfo.qml
 
 PanelWindow {
     id: toastWindow
@@ -121,11 +121,15 @@ PanelWindow {
 
                         // Icono de la app que manda la notificacion (identifica
                         // el origen; no es iconografia de la shell).
+                        // Sin icono propio: el de su aplicacion (AppInfo), si se conoce.
                         IconImage {
-                            visible: !!toast.modelData.appIcon
+                            id: appIconImage
+                            readonly property string src: toast.modelData.appIcon ? Quickshell.iconPath(toast.modelData.appIcon)
+                                : AppInfo.entry(toast.modelData.appName) ? AppInfo.icon(toast.modelData.appName) : ""
+                            visible: !!appIconImage.src
                             Layout.alignment: Qt.AlignVCenter
                             implicitSize: Tokens.icon.md
-                            source: toast.modelData.appIcon ? Quickshell.iconPath(toast.modelData.appIcon) : ""
+                            source: appIconImage.src
                         }
 
                         Text {

@@ -1,7 +1,8 @@
-// Pill multimedia de la barra: la vista compacta del media hub (Fase 4 B5).
+// Pill multimedia de la barra: la vista compacta del reproductor (Fase 4 B5).
 // Solo se muestra si hay un reproductor MPRIS; muestra el mismo reproductor
-// que el hub y las teclas multimedia (MediaState.active). Clic izquierdo abre
-// el hub (MediaDropdown), clic central pausa/reanuda. Presentacion neutra:
+// que el dashboard y las teclas multimedia (MediaState.active). Clic central:
+// pausa/reanuda (el dashboard se abre unicamente con SUPER+A, Fase 4 B7).
+// Presentacion neutra:
 // mismo icono Material Symbols para cualquier reproductor, sin iconos de la
 // app (desktop entry).
 import QtQuick
@@ -10,8 +11,6 @@ import ".." // Colors.qml, Tokens.qml, MediaState.qml
 
 Item {
     id: root
-    // Barra que contiene la pill (para anclar el desplegable).
-    property var panelWindow: null
     readonly property var player: MediaState.active
     // Condicion de datos para el Pill contenedor (ver Bar.qml). No usar
     // "visible" para eso: en QML visible es la visibilidad EFECTIVA -- si el
@@ -83,16 +82,8 @@ Item {
         id: hoverArea
         anchors.fill: parent
         hoverEnabled: true
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+        acceptedButtons: Qt.MiddleButton
         cursorShape: Qt.PointingHandCursor
-        onClicked: (mouse) => {
-            if (mouse.button === Qt.MiddleButton) MediaState.togglePlaying();
-            else if (root.panelWindow && root.panelWindow.screen) MediaState.toggleHub(root.panelWindow.screen.name);
-        }
-    }
-
-    MediaDropdown {
-        anchorItem: root.parent ? root.parent : root
-        panelWindow: root.panelWindow
+        onClicked: MediaState.togglePlaying()
     }
 }

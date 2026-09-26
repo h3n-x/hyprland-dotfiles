@@ -175,8 +175,8 @@ ShellRoot {
         }
     }
 
-    // Media hub (Fase 4 B5): las teclas multimedia (binds.lua) actuan sobre el
-    // mismo reproductor que la pill y el hub (MediaState.active).
+    // Reproductor (Fase 4 B5): las teclas multimedia (binds.lua) actuan sobre
+    // el mismo reproductor que la pill y el dashboard (MediaState.active).
     IpcHandler {
         target: "media"
         function playPause(): void {
@@ -188,29 +188,20 @@ ShellRoot {
         function previous(): void {
             MediaState.previous();
         }
-        function open(): void {
-            MediaState.openHub("");
-        }
-        function close(): void {
-            MediaState.closeHub();
-        }
-        function toggle(): void {
-            MediaState.toggleHub("");
-        }
     }
 
-    // Panel del reloj (Fase 4 B6: calendario + clima; dashboard en B7). Sin
-    // atajo propio por ahora (B6-i); el clic en el reloj lo abre.
+    // Dashboard (Fase 4 B7): unica entrada, SUPER+A (binds.lua) -> toggle, en
+    // el monitor enfocado y con el foco en el reproductor si algo esta sonando.
     IpcHandler {
         target: "dashboard"
         function open(): void {
-            DashboardState.open("");
+            DashboardState.open();
         }
         function close(): void {
             DashboardState.close();
         }
         function toggle(): void {
-            DashboardState.toggle("");
+            DashboardState.toggle();
         }
     }
 

@@ -33,6 +33,9 @@ hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd("qs -c dotshell ipc call powe
 -- (por si la shell no responde).
 hl.bind(mainMod .. " + CTRL + SHIFT + M", hl.dsp.exit())
 
+-- Dashboard (Quickshell, Fase 4 B7): Inicio, Hoy, Sistema y Escritorios, en el
+-- monitor enfocado y con el foco en el reproductor si algo esta sonando.
+hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("qs -c dotshell ipc call dashboard toggle"))
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("qs -c dotshell ipc call controlcenter toggle")) -- mostrar/ocultar
 hl.bind(mainMod .. " + SHIFT + N", hl.dsp.exec_cmd("qs -c dotshell ipc call controlcenter clearAll")) -- limpiar notificaciones
 hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd("qs -c dotshell ipc call bar toggle")) -- mostrar/ocultar
@@ -154,8 +157,8 @@ hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURC
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"), { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"), { locked = true, repeating = true })
 
--- Teclas multimedia -> media hub de Quickshell (Fase 4 B5): el mismo
--- reproductor que muestran la pill y el hub.
+-- Teclas multimedia -> reproductor de Quickshell (Fase 4 B5): el mismo
+-- reproductor que muestran la pill de la barra y el dashboard.
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("qs -c dotshell ipc call media next"), { locked = true })
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("qs -c dotshell ipc call media playPause"), { locked = true })
 hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("qs -c dotshell ipc call media playPause"), { locked = true })

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Clima del panel del reloj (Fase 4 B6, P4.7). Fuente: Open-Meteo (sin clave,
-# datos CC BY 4.0: el panel muestra la atribucion). Unica consulta periodica
+# Clima de la barra y del dashboard (Fase 4 B6, P4.7; vista Hoy en B7). Fuente:
+# Open-Meteo (sin clave, datos CC BY 4.0: la vista Hoy muestra la atribucion). Unica consulta periodica
 # de la fase: la hace WeatherState.qml cada 30 min, solo si hay una ubicacion.
 #
 #   weather-fetch                 consulta y actualiza la cache
