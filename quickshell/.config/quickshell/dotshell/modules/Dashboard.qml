@@ -76,9 +76,10 @@ DropdownPanel {
     readonly property var titles: ({
         today: "Hoy",
         system: "Sistema",
-        workspaces: "Escritorios"
+        workspaces: "Escritorios",
+        maintenance: "Mantenimiento"
     })
-    readonly property var letters: ({ [Qt.Key_H]: "today", [Qt.Key_S]: "system", [Qt.Key_E]: "workspaces" })
+    readonly property var letters: ({ [Qt.Key_H]: "today", [Qt.Key_S]: "system", [Qt.Key_E]: "workspaces", [Qt.Key_M]: "maintenance" })
 
     function back(): bool {
         if (DashboardState.view === "home") return false;
@@ -138,7 +139,7 @@ DropdownPanel {
 
     function handleKey(event: var): bool {
         const plain = !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
-        // H, S, E: esa vista, desde cualquier lugar.
+        // H, S, E, M: esa vista, desde cualquier lugar.
         const byLetter = plain ? panel.letters[event.key] : undefined;
         if (byLetter) {
             DashboardState.showView(byLetter);
@@ -147,6 +148,7 @@ DropdownPanel {
         if (panel.view === "home") return home.handleKey(event);
         if (event.key === Qt.Key_Backspace) return panel.back();
         if (panel.detail === "today") return todayView.handleKey(event);
+        if (panel.detail === "maintenance" && maintenanceLoader.item) return maintenanceLoader.item.handleKey(event);
         if (panel.detail === "workspaces" && workspacesLoader.item) {
             if (plain && event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
                 workspacesLoader.item.go(event.key - Qt.Key_0, "");
@@ -185,6 +187,11 @@ DropdownPanel {
             if (WeatherState.configured && WeatherState.fetchedAt > 0)
                 s += " · clima " + WeatherState.ago(d.getTime() / 1000 - WeatherState.fetchedAt) + " · Open-Meteo";
             return s;
+        }
+        if (panel.detail === "maintenance") {
+            if (MaintenanceState.checking) return "Revisando…";
+            const at = MaintenanceState.checkedAt;
+            return at > 0 ? "Revisado " + WeatherState.ago(clock.date.getTime() / 1000 - at / 1000) : "";
         }
         if (panel.detail === "workspaces") {
             const wins = DesktopState.windows.filter(w => !w.hidden && w.monitor === (panel.scr ? panel.scr.name : ""));
@@ -321,6 +328,17 @@ DropdownPanel {
                 // de cerrarse el panel, se sueltan las capturas). No ligarlo a
                 // "active": cargar la vista cambia el tamano del popup y eso
                 // vuelve a tocar su visibilidad (bucle a 100 % de CPU).
+                // Mantenimiento (B9): solo mientras es la vista.
+                Loader {
+                    id: maintenanceLoader
+                    Layout.fillWidth: true
+                    active: panel.detail === "maintenance"
+                    visible: active
+                    sourceComponent: MaintenanceView {
+                        active: panel.active && panel.detail === "maintenance"
+                        narrow: panel.narrow
+                    }
+                }
                 Loader {
                     id: workspacesLoader
                     Layout.fillWidth: true

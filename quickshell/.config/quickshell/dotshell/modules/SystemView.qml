@@ -12,7 +12,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import ".." // Colors.qml, Tokens.qml, SystemState.qml, NetworkState.qml, PowerProfileState.qml
+import ".." // Colors.qml, Tokens.qml, SystemState.qml, NetworkState.qml, PowerProfileState.qml, MaintenanceState.qml, DashboardState.qml
 
 ColumnLayout {
     id: view
@@ -379,6 +379,30 @@ ColumnLayout {
                     }
                 }
             }
+        }
+    }
+
+    // ---- Mantenimiento (B9): una fila que lleva a su vista --------------------------------
+    DashZone {
+        Layout.fillWidth: true
+        clickable: true
+        padding: Tokens.space.md
+        implicitHeight: maintRow.implicitHeight + 2 * Tokens.space.md
+        onActivated: DashboardState.showView("maintenance")
+        RowLayout {
+            id: maintRow
+            width: parent.width
+            spacing: Tokens.space.sm
+            Icon { name: "build"; size: Tokens.icon.md; color: Colors.m3onSurfaceVariant }
+            Text {
+                Layout.fillWidth: true
+                text: "Mantenimiento · " + MaintenanceState.shortStatus
+                color: Colors.m3onSurface
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.body
+                elide: Text.ElideRight
+            }
+            Icon { name: "chevron_right"; size: Tokens.icon.md; color: Colors.m3onSurfaceVariant }
         }
     }
 

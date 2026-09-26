@@ -4,7 +4,7 @@
 // Dashboard.qml (uno por barra) lee de aca.
 //
 // view: "home" (Inicio) o una vista de detalle ("today", "system",
-// "workspaces"); abrir siempre empieza en Inicio.
+// "workspaces", "maintenance" -- Fase 4 B9); abrir siempre empieza en Inicio.
 pragma Singleton
 import QtQuick
 
@@ -14,7 +14,7 @@ QtObject {
     property string screen: ""
     property string view: "home"
     // En el orden de Inicio (de arriba abajo): los puntos de la cabecera.
-    readonly property var views: ["home", "today", "system", "workspaces"]
+    readonly property var views: ["home", "today", "system", "workspaces", "maintenance"]
 
     function open(): void {
         FocusedScreen.request(name => {

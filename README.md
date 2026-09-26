@@ -333,8 +333,12 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   memoria y temperatura no tienen servicio nativo (se leen de `/proc` y
   `sysfs` con `FileView`) asi que se sacaron de la barra por decision
   propia, no por limitacion tecnica de Quickshell.
-- **Scripts reusados**: `hypr/.config/hypr/scripts/update.sh` (movido ahi
-  al sacar Waybar -- antes vivia en `waybar/.config/waybar/scripts/`).
+- **Actualizaciones y mantenimiento** (`MaintenanceState.qml`,
+  `hypr/.config/hypr/scripts/maintenance`): la pill de la barra solo informa
+  (actualizaciones, al dia, error o reinicio pendiente; clic = actualizar en
+  una terminal, clic derecho = revisar ya). La explicacion esta en la vista
+  Mantenimiento del dashboard. Revisa al arrancar, cada hora y despues de cada
+  operacion de pacman; cerrado no hace nada mas.
 - **Menu de energia y sesion** (`modules/PowerMenu.qml`, `SUPER+M` y el
   boton de la barra): bloquear, suspender, cerrar sesion, reiniciar y apagar;
   las tres ultimas piden confirmacion y cierran las aplicaciones antes (via
@@ -395,9 +399,9 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
 - **Dashboard** (`modules/Dashboard.qml` y sus vistas, `DashboardState.qml`):
   el centro de la shell. **Se abre solo con `SUPER+A`** (ningun modulo de la
   barra lo abre), centrado bajo la barra del monitor enfocado; `Esc` o
-  `SUPER+A` lo cierran. Una sola superficie con zonas, en cuatro vistas:
-  - **Inicio**: hora, fecha, avisos (actualizaciones, notificaciones, no
-    molestar; solo si los hay) y clima; el reproductor como protagonista
+  `SUPER+A` lo cierran. Una sola superficie con zonas, en cinco vistas:
+  - **Inicio**: hora, fecha, avisos (actualizaciones y mantenimiento, que
+    abren esa vista; notificaciones, no molestar; solo si los hay) y clima; el reproductor como protagonista
     mientras hay uno (portada grande, progreso con busqueda, cinco controles,
     transicion al cambiar de cancion); el estado general del equipo ("Todo
     en orden" y cuatro medidores) y los escritorios en miniatura. Sin musica,
@@ -418,8 +422,18 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
     barra, gaps, bordes y la captura de cada ventana, tomada una vez al abrir
     la vista); clic en una ventana va a esa ventana, en el fondo al
     workspace.
+  - **Mantenimiento**: primero si el sistema esta bien y que conviene hacer
+    ("El sistema funciona correctamente, pero hay 2 elementos que requieren
+    atencion."), despues lo que requiere atencion y lo recomendado, con cuatro
+    severidades (informacion, recomendacion, advertencia, accion importante);
+    lo que esta bien, en una sola linea. Actualizaciones, reinicio pendiente
+    (kernel o driver NVIDIA), servicios caidos (se pueden ocultar), paquetes
+    huerfanos, caches, papelera, diario y volcados de error. El detalle
+    (paquetes, servicios, comandos exactos) solo al desplegar. **Las acciones
+    abren una terminal visible** que muestra los comandos y pide
+    confirmacion; `sudo` pide la contrasena ahi, nunca desde la shell.
   Teclado: `Tab` recorre las zonas de Inicio, `Enter` abre la vista de la
-  zona, `H`/`S`/`E` abren Hoy/Sistema/Escritorios desde cualquier lugar,
+  zona, `H`/`S`/`E`/`M` abren Hoy/Sistema/Escritorios/Mantenimiento desde cualquier lugar,
   `Esc`/`Retroceso` vuelven; `1`-`9` van a ese workspace; con el foco en el
   reproductor, `Espacio`, flechas (-/+10 s), `N`/`P`. Cerrado no corre nada
   (ni muestreo del equipo ni seguimiento de ventanas); todo respeta "reducir

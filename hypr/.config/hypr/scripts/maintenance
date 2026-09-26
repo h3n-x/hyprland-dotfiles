@@ -1,0 +1,250 @@
+#!/usr/bin/env bash
+# Mantenimiento del sistema (Fase 4 B9): datos de solo lectura para
+# Quickshell (MaintenanceState) y acciones en una terminal visible.
+#
+#   maintenance data quick     huerfanos, servicios fallidos, reinicio pendiente,
+#                              .pacnew, ultima actualizacion, diario, volcados
+#   maintenance data updates   actualizaciones del repositorio y de AUR (red)
+#   maintenance data sizes     caches de paquetes, papelera, ~/.cache, capturas
+#   maintenance data plan      que explica y que ejecuta cada accion (la misma
+#                              tabla que usa "run")
+#   maintenance run <accion>   update | orphans | pkgcache | journal | coredumps |
+#                              trash | unit-log <unidad> [user]
+#
+# "data" nunca cambia nada: imprime un JSON y sale. "run" se abre en kitty
+# (MaintenanceState lo lanza asi): explica que va a pasar, muestra los
+# comandos, pide confirmacion y recien ahi los ejecuta; sudo pide la
+# contrasena en esa misma terminal (decision E7: nada privilegiado desde la
+# shell). MAINT_DRY=1 (pruebas): "run" solo muestra los comandos.
+# Requiere: pacman-contrib (checkupdates, paccache), jq, systemd; yay/paru opcional
+set -uo pipefail
+
+SHOTS="$HOME/Pictures/Screenshots"
+RECS="$HOME/Videos/Recordings"
+TRASH="${XDG_DATA_HOME:-$HOME/.local/share}/Trash"
+COREDUMPS=/var/lib/systemd/coredump
+
+helper() {
+    local h
+    for h in paru yay; do
+        command -v "$h" >/dev/null && { echo "$h"; return; }
+    done
+}
+
+bytes_of() { /usr/bin/du -sb "$@" 2>/dev/null | awk '{s += $1} END {print s + 0}'; }
+count_of() { find "$@" -type f 2>/dev/null | wc -l; }
+# "4,1 GB" (coma decimal, como la shell).
+human() { numfmt --to=iec --suffix=B --format '%.1f' "$1" | sed -E 's/([0-9])\.([0-9])/\1,\2/; s/([0-9])([KMGT]?B)$/\1 \2/; s/ KB$/ kB/'; }
+
+# ---- data quick -----------------------------------------------------------------
+quick() {
+    local orphans units reboot kernel nvidia_loaded nvidia_installed pacnew last journal cores core_bytes tpm_used
+
+    orphans=$(pacman -Qdtq 2>/dev/null | jq -R . | jq -sc .)
+
+    # Servicios fallidos del sistema y del usuario, con su descripcion y la
+    # ultima linea de su registro en este arranque.
+    units=$(
+        {
+            systemctl --failed --no-legend --plain 2>/dev/null | awk '{print "system " $1}'
+            systemctl --user --failed --no-legend --plain 2>/dev/null | awk '{print "user " $1}'
+        } | while read -r scope name; do
+            [[ -n $name ]] || continue
+            flag=()
+            [[ $scope == user ]] && flag=(--user)
+            desc=$(systemctl "${flag[@]}" show "$name" -p Description --value 2>/dev/null)
+            log=$(journalctl "${flag[@]}" -b -u "$name" -n 1 --no-pager -q -o cat 2>/dev/null | tail -1)
+            jq -nc --arg n "$name" --arg s "$scope" --arg d "$desc" --arg l "$log" '{name: $n, scope: $s, description: $d, lastLog: $l}'
+        done | jq -sc .
+    )
+
+    # Reinicio pendiente: el kernel en uso ya no tiene sus modulos instalados
+    # (se actualizo) o el modulo NVIDIA cargado no es la version instalada.
+    kernel=$(uname -r)
+    reboot=null
+    if [[ ! -d /usr/lib/modules/$kernel ]]; then
+        reboot=$(jq -nc --arg r "$kernel" '{reason: "kernel", running: $r}')
+    elif [[ -r /sys/module/nvidia/version ]]; then
+        nvidia_loaded=$(cat /sys/module/nvidia/version)
+        nvidia_installed=$(pacman -Q nvidia-open-dkms nvidia-dkms nvidia 2>/dev/null | awk 'NR == 1 {sub(/-[0-9]+$/, "", $2); print $2}')
+        if [[ -n $nvidia_installed && $nvidia_loaded != "$nvidia_installed" ]]; then
+            reboot=$(jq -nc --arg r "$nvidia_loaded" --arg i "$nvidia_installed" '{reason: "nvidia", running: $r, installed: $i}')
+        fi
+    fi
+
+    pacnew=$(find /etc \( -name '*.pacnew' -o -name '*.pacsave' \) 2>/dev/null | jq -R . | jq -sc .)
+    last=$(grep 'starting full system upgrade' /var/log/pacman.log 2>/dev/null | tail -1 | sed -E 's/^\[([^]]+)\].*/\1/')
+    last=$( [[ -n $last ]] && date -d "$last" +%s 2>/dev/null || echo 0 )
+    journal=$(journalctl --disk-usage 2>/dev/null | grep -oE '[0-9.]+[KMGT]?B?' | head -1 | numfmt --from=iec 2>/dev/null || echo 0)
+
+    # Volcados agrupados por programa: count = fallos registrados (historial del
+    # diario), stored = volcados que todavia ocupan disco; el primero y el ultimo.
+    cores=$(coredumpctl list --json=short --no-pager 2>/dev/null |
+        jq -c 'group_by(.exe) | map({exe: (.[0].exe | split("/") | last), path: .[0].exe, count: length,
+               stored: (map(select(.corefile == "present")) | length),
+               first: (map(.time) | min / 1000000 | floor), last: (map(.time) | max / 1000000 | floor)}) | sort_by(-.stored, -.count)' 2>/dev/null)
+    [[ -n $cores ]] || cores='[]'
+    core_bytes=$(bytes_of "$COREDUMPS")
+
+    # El TPM guarda algo que se usaria (cifrado de disco con tpm2); null: sin TPM.
+    tpm_used=false
+    grep -qs 'tpm2' /etc/crypttab && tpm_used=true
+    [[ -e /sys/class/tpm/tpm0 ]] || tpm_used=null
+
+    jq -nc --argjson o "$orphans" --argjson u "$units" --argjson r "$reboot" --argjson p "$pacnew" \
+        --argjson last "$last" --argjson j "$journal" --argjson c "$cores" --argjson cb "$core_bytes" \
+        --argjson tpm "$tpm_used" --arg k "$kernel" --argjson now "$(date +%s)" \
+        '{checkedAt: $now, kernel: $k, orphans: $o, units: $u, reboot: $r, pacnew: $p, lastUpgrade: $last,
+          journalBytes: $j, coredumps: {bytes: $cb, sources: $c}, tpmUsed: $tpm}'
+}
+
+# ---- data updates -----------------------------------------------------------------
+updates() {
+    local repo rc aur="[]" h out error=null
+    repo=$(checkupdates 2>/dev/null); rc=$?
+    if ((rc != 0 && rc != 2)); then
+        error='"repo"'
+        repo=""
+    fi
+    repo=$(awk 'NF >= 4 {print $1 "\t" $2 "\t" $4}' <<<"$repo" | jq -Rc 'split("\t") | {name: .[0], from: .[1], to: .[2]}' | jq -sc .)
+    h=$(helper)
+    if [[ -n $h ]]; then
+        # -Qua sale con 1 cuando no hay nada: solo es error si ademas escribio algo.
+        if out=$("$h" -Qua 2>/dev/null) || [[ -z $out ]]; then
+            aur=$(awk 'NF >= 4 && $NF != "[ignored]" {print $1 "\t" $2 "\t" $4}' <<<"$out" | jq -Rc 'split("\t") | {name: .[0], from: .[1], to: .[2]}' | jq -sc .)
+        else
+            error='"aur"'
+        fi
+    fi
+    jq -nc --argjson r "$repo" --argjson a "$aur" --arg h "$h" --argjson e "$error" --argjson now "$(date +%s)" \
+        '{checkedAt: $now, helper: $h, repo: $r, aur: $a, error: $e}'
+}
+
+# ---- data sizes -------------------------------------------------------------------
+sizes() {
+    local reclaim candidates h hc=0
+    # "==> finished dry run: 46 candidates (disk space saved: 836.12 MiB)"
+    read -r candidates reclaim < <(paccache -d -k2 2>/dev/null | tail -1 |
+        sed -nE 's/.*: ([0-9]+) candidates \(disk space saved: ([0-9.]+) ([KMGT]i?B)\).*/\1 \2\3/p' |
+        awk '{v = $2; sub(/B$/, "", v); print $1, v}')
+    reclaim=$( [[ -n ${reclaim:-} ]] && numfmt --from=iec-i "$reclaim" 2>/dev/null || echo 0 )
+    h=$(helper)
+    [[ -n $h ]] && hc=$(bytes_of "$HOME/.cache/$h")
+    jq -nc --argjson rc "$reclaim" --argjson cand "${candidates:-0}" --arg h "$h" --argjson hc "$hc" \
+        --argjson tb "$(bytes_of "$TRASH/files")" --argjson ti "$(find "$TRASH/files" -mindepth 1 -maxdepth 1 2>/dev/null | wc -l)" \
+        --argjson cb "$(bytes_of "$HOME/.cache")" \
+        --arg sd "$SHOTS" --argjson sb "$(bytes_of "$SHOTS")" --argjson sc "$(count_of "$SHOTS")" \
+        --arg vd "$RECS" --argjson vb "$(bytes_of "$RECS")" --argjson vc "$(count_of "$RECS")" --argjson now "$(date +%s)" \
+        '{checkedAt: $now, pkgCache: {reclaimBytes: $rc, candidates: $cand}, helper: $h, helperCacheBytes: $hc,
+          trash: {bytes: $tb, items: $ti}, homeCacheBytes: $cb,
+          captures: {screenshots: {bytes: $sb, count: $sc, dir: $sd}, recordings: {bytes: $vb, count: $vc, dir: $vd}}}'
+}
+
+# ---- Acciones: una sola tabla ---------------------------------------------------------
+# La usan "run" (lo que ejecuta la terminal) y "data plan" (lo que muestra el
+# dashboard antes de abrirla).
+ACTIONS=(update orphans pkgcache journal coredumps trash)
+commands_for() {
+    local h
+    h=$(helper)
+    case "$1" in
+        update) if [[ -n $h ]]; then echo "$h -Syu"; else echo "sudo pacman -Syu"; fi ;;
+        orphans) echo 'sudo pacman -Rns $(pacman -Qdtq)' ;;
+        pkgcache) echo "sudo paccache -rk2"; [[ -n $h ]] && echo "$h -Sc" ;;
+        journal) echo "sudo journalctl --vacuum-size=200M" ;;
+        coredumps) echo "sudo find $COREDUMPS -type f -delete" ;;
+        trash) echo "gio trash --empty" ;;
+    esac
+    return 0
+}
+why_for() {
+    case "$1" in
+        update) echo "Actualizar el sistema (repositorio y AUR)." ;;
+        orphans) echo "Quitar los paquetes que ya nada usa (pacman vuelve a preguntar)." ;;
+        pkgcache) echo "Limpiar la caché de paquetes: quedan las dos últimas versiones de cada paquete." ;;
+        journal) echo "Reducir el diario del sistema a 200 MB (se borran los registros más viejos)." ;;
+        coredumps) echo "Borrar los volcados de error guardados. El registro de fallos (coredumpctl) se conserva." ;;
+        trash) echo "Vaciar la papelera. No se puede deshacer." ;;
+    esac
+}
+plan() {
+    local a out="{}"
+    for a in "${ACTIONS[@]}"; do
+        out=$(jq -c --arg a "$a" --arg w "$(why_for "$a")" --argjson c "$(commands_for "$a" | jq -R . | jq -sc .)" \
+            '. + {($a): {why: $w, commands: $c}}' <<<"$out")
+    done
+    echo "$out"
+}
+
+# ---- run: en una terminal visible ------------------------------------------------------
+say() { printf '\e[1m%s\e[0m\n' "$*"; }
+note() { printf '\e[2m%s\e[0m\n' "$*"; }
+
+# ask_and_run "explicacion" comando...: muestra, pregunta y ejecuta.
+ask_and_run() {
+    local why=$1 c ans; shift
+    say "$why"
+    echo
+    note "Se va a ejecutar:"
+    for c in "$@"; do printf '  %s\n' "$c"; done
+    echo
+    if [[ ${MAINT_DRY:-} == 1 ]]; then
+        note "(MAINT_DRY: no se ejecuta nada)"
+        return 0
+    fi
+    read -rp "¿Continuar? [s/N] " ans
+    [[ $ans == [sSyY]* ]] || { note "Cancelado."; return 1; }
+    for c in "$@"; do bash -c "$c" || return 1; done
+}
+
+finish() {
+    [[ ${MAINT_DRY:-} == 1 ]] && return 0
+    echo
+    read -rsn 1 -p "Listo. Pulsa una tecla para cerrar."
+}
+
+run_action() {
+    local action=${1:-} cmds=()
+    case "$action" in
+        orphans)
+            say "Paquetes que ya nada usa:"
+            pacman -Qdtq | column
+            echo
+            note "Revisa la lista: algunas herramientas de compilación (p. ej. cmake, go) aparecen aquí aunque las uses a mano."
+            echo
+            ;;
+        coredumps) note "Ocupan $(human "$(bytes_of "$COREDUMPS")")." ;;
+        trash) note "Ocupa $(human "$(bytes_of "$TRASH/files")")." ;;
+        unit-log)
+            local unit=${2:-} flag=
+            [[ ${3:-} == user ]] && flag=--user
+            [[ -n $unit ]] || { echo "falta la unidad" >&2; return 2; }
+            say "Registro de $unit en este arranque"
+            if [[ ${MAINT_DRY:-} == 1 ]]; then note "journalctl $flag -b -u $unit"; return 0; fi
+            journalctl $flag -b -u "$unit" --no-pager | tail -n 60
+            finish
+            return 0
+            ;;
+    esac
+    mapfile -t cmds < <(commands_for "$action")
+    if ((${#cmds[@]} == 0)); then
+        echo "uso: maintenance run update|orphans|pkgcache|journal|coredumps|trash|unit-log <unidad> [user]" >&2
+        return 2
+    fi
+    ask_and_run "$(why_for "$action")" "${cmds[@]}"
+    finish
+}
+
+case "${1:-}" in
+    data)
+        case "${2:-}" in
+            quick) quick ;;
+            updates) updates ;;
+            sizes) sizes ;;
+            plan) plan ;;
+            *) echo "uso: maintenance data quick|updates|sizes|plan" >&2; exit 2 ;;
+        esac
+        ;;
+    run) shift; run_action "$@" ;;
+    *) echo "uso: maintenance data quick|updates|sizes|plan | run <accion>" >&2; exit 2 ;;
+esac

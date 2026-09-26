@@ -1,9 +1,10 @@
-// Pill de actualizaciones: icono del ultimo chequeo (UpdateState, compartido
-// con el aviso del dashboard). Clic: update interactivo en una terminal;
-// clic derecho: chequear ya.
+// Pill de actualizaciones: la barra informa (Fase 4 B9). Icono del ultimo
+// chequeo de MaintenanceState (el mismo del dashboard): actualizaciones, al
+// dia, error o reinicio pendiente. Clic: actualizar en una terminal visible;
+// clic derecho: revisar ya.
 import QtQuick
 import Quickshell
-import ".." // Colors.qml, Tokens.qml, UpdateState.qml
+import ".." // Colors.qml, Tokens.qml, MaintenanceState.qml
 
 Item {
     id: root
@@ -13,8 +14,8 @@ Item {
 
     Icon {
         id: label
-        name: UpdateState.icon
-        filled: UpdateState.icon === "download"
+        name: MaintenanceState.pillIcon
+        filled: MaintenanceState.pillIcon === "download" || MaintenanceState.pillIcon === "restart_alt"
     }
 
     // Hover por control (P2.4, Q2 = A).
@@ -27,8 +28,8 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
         onClicked: (mouse) => {
-            if (mouse.button === Qt.RightButton) UpdateState.check();
-            else UpdateState.run();
+            if (mouse.button === Qt.RightButton) MaintenanceState.refresh(true);
+            else MaintenanceState.act("update", "", "");
         }
     }
 }

@@ -19,7 +19,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Notifications
-import ".." // Colors.qml, Tokens.qml, MediaState.qml, WeatherState.qml, UpdateState.qml, NotificationState.qml, ControlCenterState.qml, DashboardState.qml
+import ".." // Colors.qml, Tokens.qml, MediaState.qml, WeatherState.qml, MaintenanceState.qml, NotificationState.qml, ControlCenterState.qml, DashboardState.qml
 
 Item {
     id: home
@@ -36,7 +36,7 @@ Item {
     // Rectangulo de una zona en las coordenadas de "target" (de donde sale la
     // transicion de contenedor).
     function zoneRect(key: string, target: Item): rect {
-        const z = key === "system" ? systemZone : key === "workspaces" ? workspacesZone : key === "today" ? context : null;
+        const z = key === "system" ? systemZone : key === "workspaces" ? workspacesZone : key === "today" || key === "maintenance" ? context : null;
         if (!z) return Qt.rect(0, 0, target.width, 0);
         const p = z.mapToItem(target, 0, 0);
         return Qt.rect(p.x, p.y, z.width, z.height);
@@ -147,9 +147,15 @@ Item {
     readonly property int notificationCount: NotificationState.server.trackedNotifications.values.length
     readonly property var notices: {
         const list = [];
-        if (UpdateState.count > 0)
-            list.push({ key: "updates", icon: "download", filled: true, n: UpdateState.count,
-                        full: UpdateState.count + (UpdateState.count === 1 ? " actualización" : " actualizaciones") });
+        // Actualizaciones y mantenimiento abren la vista Mantenimiento (B9-b).
+        const updates = MaintenanceState.updateCount;
+        if (updates > 0)
+            list.push({ key: "updates", icon: "download", filled: true, n: updates,
+                        full: updates + (updates === 1 ? " actualización" : " actualizaciones") });
+        const warn = MaintenanceState.attention.length;
+        if (warn > 0)
+            list.push({ key: "maintenance", icon: "build", filled: false, n: warn,
+                        full: "Mantenimiento · " + warn + (warn === 1 ? " aviso" : " avisos") });
         if (home.notificationCount > 0)
             list.push({ key: "notifications", icon: "notifications", filled: false, n: home.notificationCount,
                         full: home.notificationCount + (home.notificationCount === 1 ? " aviso" : " avisos") });
@@ -158,9 +164,12 @@ Item {
         return list;
     }
     function actOn(key: string): void {
+        if (key === "updates" || key === "maintenance") {
+            DashboardState.showView("maintenance");
+            return;
+        }
         DashboardState.close();
-        if (key === "updates") UpdateState.run();
-        else ControlCenterState.visible = true;
+        ControlCenterState.visible = true;
     }
 
     // Un bloque escalado que ocupa su tamano escalado en el layout.

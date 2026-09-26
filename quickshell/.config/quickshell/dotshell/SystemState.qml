@@ -281,9 +281,12 @@ QtObject {
         }
     }
 
-    // ---- Almacenamiento (al abrir Sistema) -----------------------------------------
+    // ---- Almacenamiento (al abrir Sistema; Mantenimiento lo pide con refreshStorage) --
     // [{ mount, size, used, avail }] de / y, si es otro sistema de archivos, /home.
     property var storage: []
+    function refreshStorage(): void {
+        if (!storageProc.running) storageProc.running = true;
+    }
     property Process storageProc: Process {
         command: ["df", "-B1", "--output=target,size,used,avail", "/", Quickshell.env("HOME")]
         stdout: StdioCollector {
