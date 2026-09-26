@@ -1,7 +1,7 @@
 // Reemplaza a swaync del todo -- ver Fase C del plan. Reproduce lo que
 // daba swaync/config.json: historial de notificaciones + "limpiar todo",
-// grid de accesos rapidos (wifi/bluetooth/hyprsunset/lock), DND, widget de
-// mpris. Una instancia por pantalla (ver shell.qml), toggle global via
+// grid de accesos rapidos (wifi/bluetooth/hyprsunset/lock) y DND (el
+// reproductor esta en el media hub de la barra, Fase 4 B5). Una instancia por pantalla (ver shell.qml), toggle global via
 // ControlCenterState.qml (bind SUPER+N, ver shell.qml + binds.lua).
 import QtQuick
 import QtQuick.Layouts
@@ -335,10 +335,6 @@ PanelWindow {
                     checked: NotificationState.doNotDisturb
                     onToggled: NotificationState.doNotDisturb = !NotificationState.doNotDisturb
                 }
-            }
-
-            Mpris {
-                Layout.alignment: Qt.AlignHCenter
             }
 
             Flickable {

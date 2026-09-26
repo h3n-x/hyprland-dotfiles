@@ -42,6 +42,7 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 | Portapapeles | panel de Quickshell (`SUPER + SHIFT + V`) sobre cliphist + wl-clip-persist |
 | Color picker | hyprpicker |
 | Selector de emoji | panel de Quickshell (`SUPER + .`), datos Unicode/CLDR en español e inglés |
+| Multimedia | media hub de Quickshell (pill de la barra + teclas multimedia) |
 | Spotify | spicetify + spicetify-marketplace (ver `spicetify/`) |
 | Visualizador de audio | cava (colores dinamicos, ver seccion cava abajo) |
 | System info / fetch | fastfetch (ver `fastfetch/`) |
@@ -61,7 +62,7 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 sudo pacman -S --needed satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
   qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd noto-fonts-emoji python-pillow wtype \
-  gvfs tumbler thunar network-manager-applet blueman pavucontrol playerctl brightnessctl \
+  gvfs tumbler thunar network-manager-applet blueman pavucontrol brightnessctl \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
   matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono ttf-material-symbols-variable \
   yazi tdf fd imagemagick 7zip resvg cava fastfetch pacman-contrib \
@@ -307,8 +308,8 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   aparece como toast). `ControlCenter.qml` reproduce lo que daba
   `swaync/config.json`: historial con "limpiar todo", grid de accesos
   rápidos (wifi/bluetooth/hyprsunset -- este último sin servicio nativo,
-  se chequea con `pgrep` al abrir el panel/lock), y el widget de mpris
-  (reusa `Mpris.qml` tal cual). `SUPER+N`/`SUPER+SHIFT+N` (ver
+  se chequea con `pgrep` al abrir el panel/lock) y DND; el reproductor
+  esta en el media hub de la barra. `SUPER+N`/`SUPER+SHIFT+N` (ver
   `binds.lua`) reemplazan a `swaync-client -t -sw`/`-C`.
 - **OSD** (`modules/Osd.qml` + `OsdState.qml`): popup temporal
   (icono + barra de nivel) para volumen/mic/brillo, reemplaza a los
@@ -378,6 +379,19 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   cancela, `Supr` cierra la ventana elegida. Solo se capturan ventanas de al
   menos 24x24 (con muchas ventanas en un workspace algunas quedan con tamano
   negativo y capturarlas tumbaba el shell); las demas muestran el icono.
+- **Media hub** (`MediaState.qml`, `modules/MediaCard.qml`, `MediaDropdown.qml`,
+  `Mpris.qml`): la pill de la barra muestra el titulo y el estado (ecualizador
+  sonando, pausa en pausa); clic izquierdo abre el hub, clic central pausa.
+  El hub tiene la portada como protagonista (con un halo de sus propios
+  colores), titulo/artista/album, progreso con busqueda (clic o arrastre),
+  cinco controles fijos (lo que el reproductor no admite queda atenuado y
+  dice por que) y chips para elegir reproductor cuando hay mas de uno. Al
+  cambiar de cancion hay una transicion corta; con "reducir movimiento" es
+  instantanea. Teclado: `Espacio`, flechas (-/+10 s), `Esc`. Las teclas
+  multimedia (`binds.lua`) usan el mismo reproductor via
+  `qs -c dotshell ipc call media next|previous|playPause`, tambien con la
+  pantalla bloqueada. Sin actividad con el hub cerrado. Se ignoran los
+  reproductores "proxy" (playerctld) para no duplicar.
 - **Binds** (`binds.lua`): `SUPER+SHIFT+B` muestra/oculta la barra
   (`qs -c dotshell ipc call bar toggle`, afecta a todas las pantallas a la
   vez via el singleton `BarVisibility.qml`) y
@@ -717,6 +731,7 @@ efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
 | `SUPER + SHIFT + C` | Color picker |
 | `SUPER + .` | Selector de emoji (Enter escribe, Ctrl+Enter copia, Ctrl+T tono de piel) |
 | `SUPER + SHIFT + V` | Historial de portapapeles (busqueda, vista previa de texto/imagenes, no guarda datos sensibles) |
+| Teclas multimedia | Reproducir/pausa, siguiente, anterior del reproductor del media hub (tambien con la pantalla bloqueada) |
 | `SUPER + SHIFT + W` | Galeria de wallpapers (vista previa, opciones de color; recolorea todo con matugen) |
 | `SUPER + SHIFT + Z` | Deshacer el ultimo cambio de tema |
 | `Print` / `SUPER+Print` / `SUPER+SHIFT+Print` | Captura completa / region / ventana |

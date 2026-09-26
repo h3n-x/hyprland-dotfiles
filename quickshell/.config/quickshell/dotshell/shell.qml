@@ -175,6 +175,30 @@ ShellRoot {
         }
     }
 
+    // Media hub (Fase 4 B5): las teclas multimedia (binds.lua) actuan sobre el
+    // mismo reproductor que la pill y el hub (MediaState.active).
+    IpcHandler {
+        target: "media"
+        function playPause(): void {
+            MediaState.togglePlaying();
+        }
+        function next(): void {
+            MediaState.next();
+        }
+        function previous(): void {
+            MediaState.previous();
+        }
+        function open(): void {
+            MediaState.openHub("");
+        }
+        function close(): void {
+            MediaState.closeHub();
+        }
+        function toggle(): void {
+            MediaState.toggleHub("");
+        }
+    }
+
     IpcHandler {
         target: "gallery"
         function toggle(): void {

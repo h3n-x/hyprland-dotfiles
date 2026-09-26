@@ -60,7 +60,7 @@ PanelWindow {
             // Accion unica: la pill entera responde al hover (Q2 = A).
             hovered: mprisModule.hovered
             pressed: mprisModule.pressed
-            Mpris { id: mprisModule; Layout.alignment: Qt.AlignVCenter }
+            Mpris { id: mprisModule; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
         }
 
         Item { Layout.fillWidth: true }

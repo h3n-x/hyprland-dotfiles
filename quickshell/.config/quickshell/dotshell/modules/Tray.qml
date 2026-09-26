@@ -22,10 +22,9 @@ Row {
     // RowLayout (a diferencia de un Row/Column comun).
     visible: root.filteredItems.length > 0
 
-    // Las apps con un reproductor MPRIS activo ya muestran su icono al
-    // lado del titulo en Mpris.qml (ver Bar.qml) -- no hace falta
-    // duplicarlas aca (tipico: Spotify aparece en las dos bandejas a la
-    // vez si no se filtra). Match difuso por nombre (desktopEntry vs. id
+    // Las apps con un reproductor MPRIS activo ya tienen la pill multimedia
+    // y el media hub (Mpris.qml, MediaCard.qml) -- no hace falta duplicarlas
+    // aca (tipico: Spotify aparece tambien en la bandeja si no se filtra). Match difuso por nombre (desktopEntry vs. id
     // del tray item) porque no hay una forma directa de correlacionar un
     // SystemTrayItem con un MprisPlayer -- son dos protocolos DBus
     // distintos sin campo en comun.

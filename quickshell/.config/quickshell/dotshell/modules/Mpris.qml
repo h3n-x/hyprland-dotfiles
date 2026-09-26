@@ -1,15 +1,18 @@
-// Reemplaza a waybar/modules/mpris.jsonc. Solo se muestra si hay un
-// reproductor MPRIS activo (Spotify via spicetify, navegador, etc.).
-// Presentacion neutra: mismo icono Material Symbols para cualquier
-// reproductor, sin iconos dependientes de la app (desktop entry).
+// Pill multimedia de la barra: la vista compacta del media hub (Fase 4 B5).
+// Solo se muestra si hay un reproductor MPRIS; muestra el mismo reproductor
+// que el hub y las teclas multimedia (MediaState.active). Clic izquierdo abre
+// el hub (MediaDropdown), clic central pausa/reanuda. Presentacion neutra:
+// mismo icono Material Symbols para cualquier reproductor, sin iconos de la
+// app (desktop entry).
 import QtQuick
 import QtQuick.Layouts
-import ".." // Colors.qml, Tokens.qml
-import Quickshell.Services.Mpris
+import ".." // Colors.qml, Tokens.qml, MediaState.qml
 
 Item {
     id: root
-    readonly property var player: Mpris.players.values[0] ?? null
+    // Barra que contiene la pill (para anclar el desplegable).
+    property var panelWindow: null
+    readonly property var player: MediaState.active
     // Condicion de datos para el Pill contenedor (ver Bar.qml). No usar
     // "visible" para eso: en QML visible es la visibilidad EFECTIVA -- si el
     // Pill arranca oculto (la lista de reproductores llega unos ms despues
@@ -25,31 +28,50 @@ Item {
     // tienen alturas distintas, y Row no deja usar Layout.alignment /
     // anchors por hijo para centrarlos -- ver el mismo problema que se
     // encontro y se corrigio en Volume.qml.
+    // Estado sin animaciones permanentes: sonando = ecualizador en el color
+    // primario y titulo pleno; en pausa = icono de pausa y titulo atenuado.
+    // Al cambiar de estado, un unico pulso corto; al cambiar de cancion, el
+    // titulo se funde. Titulo con ancho maximo y "..." (no estira la barra).
+    readonly property bool playing: !!root.player && root.player.isPlaying
+    readonly property string title: root.player ? (root.player.trackTitle || "Sin título") : ""
+    onPlayingChanged: if (Tokens.motion.scale > 0) pulse.restart()
+    onTitleChanged: if (Tokens.motion.scale > 0) titleFade.restart()
+
     RowLayout {
         id: row
         spacing: Tokens.gap.inline
 
         Icon {
+            id: stateIcon
             Layout.alignment: Qt.AlignVCenter
-            name: "music_note"
-            size: Tokens.icon.sm
-        }
-
-        Icon {
-            Layout.alignment: Qt.AlignVCenter
-            name: root.player && root.player.isPlaying ? "play_arrow" : "pause"
+            name: root.playing ? "equalizer" : "pause"
             filled: true
             size: Tokens.icon.sm
+            color: root.playing ? Colors.m3primary : Colors.m3onSurfaceVariant
+            Behavior on color { ColorAnimation { duration: Tokens.motion.short } }
+            SequentialAnimation {
+                id: pulse
+                NumberAnimation { target: stateIcon; property: "scale"; to: 1.25; duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard }
+                NumberAnimation { target: stateIcon; property: "scale"; to: 1; duration: Tokens.motion.short; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeEnter }
+            }
         }
 
         Text {
+            id: titleText
             Layout.alignment: Qt.AlignVCenter
-            color: Colors.m3onSurface
+            Layout.maximumWidth: 240
+            color: root.playing ? Colors.m3onSurface : Colors.m3onSurfaceVariant
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.body
             font.weight: Tokens.weight.medium
+            elide: Text.ElideRight
             // Solo el titulo -- sin artista, a pedido del usuario.
-            text: root.player ? (root.player.trackTitle || "Unknown Title") : ""
+            text: root.title
+            Behavior on color { ColorAnimation { duration: Tokens.motion.short } }
+            SequentialAnimation {
+                id: titleFade
+                NumberAnimation { target: titleText; property: "opacity"; from: 0.2; to: 1; duration: Tokens.motion.medium; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeEnter }
+            }
         }
     }
 
@@ -61,7 +83,16 @@ Item {
         id: hoverArea
         anchors.fill: parent
         hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
         cursorShape: Qt.PointingHandCursor
-        onClicked: if (root.player && root.player.canTogglePlaying) root.player.togglePlaying()
+        onClicked: (mouse) => {
+            if (mouse.button === Qt.MiddleButton) MediaState.togglePlaying();
+            else if (root.panelWindow && root.panelWindow.screen) MediaState.toggleHub(root.panelWindow.screen.name);
+        }
+    }
+
+    MediaDropdown {
+        anchorItem: root.parent ? root.parent : root
+        panelWindow: root.panelWindow
     }
 }
