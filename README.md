@@ -37,8 +37,9 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 | Wallpaper | hyprpaper |
 | Filtro de luz azul | hyprsunset |
 | Polkit | hyprpolkitagent |
-| Capturas | grim + slurp + satty |
-| Grabacion | wf-recorder |
+| Capturas | grim + slurp (pantalla congelada con hyprpicker) + satty, vista previa de Quickshell |
+| Grabacion | wf-recorder con VA-API (Radeon), pill de Quickshell |
+| Visor / reproductor | Loupe / mpv (apps por defecto de imagenes y video) |
 | Portapapeles | panel de Quickshell (`SUPER + SHIFT + V`) sobre cliphist + wl-clip-persist |
 | Color picker | hyprpicker |
 | Selector de emoji | panel de Quickshell (`SUPER + .`), datos Unicode/CLDR en español e inglés |
@@ -65,7 +66,7 @@ sudo pacman -S --needed satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
   qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd noto-fonts-emoji python-pillow wtype \
   gvfs tumbler thunar network-manager-applet blueman pavucontrol brightnessctl \
-  jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
+  jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder mpv loupe \
   matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono ttf-material-symbols-variable \
   yazi tdf fd imagemagick 7zip resvg cava fastfetch pacman-contrib \
   dust duf procs tealdeer glow xh zellij plymouth \
@@ -423,6 +424,17 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   reproductor, `Espacio`, flechas (-/+10 s), `N`/`P`. Cerrado no corre nada
   (ni muestreo del equipo ni seguimiento de ventanas); todo respeta "reducir
   movimiento".
+- **Capturas y grabacion** (`CaptureState.qml`, `modules/CapturePreview.qml`,
+  `modules/RecordingPill.qml`; scripts `screenshot`, `record`,
+  `capture-select`): tras cada captura la zona destella, la imagen vuela a
+  una tarjeta abajo a la derecha (6 s, en pausa con el puntero encima) con
+  Anotar (satty sobre el mismo archivo), copiar, copiar la ruta, abrir,
+  carpeta (Yazi con el archivo elegido) y papelera con Deshacer; doble clic en
+  la miniatura = Anotar / Reproducir. La region se elige con la pantalla
+  congelada y las ventanas como destino. Mientras se graba, una pill en la
+  barra (tiempo, clic para parar) y marcas en las esquinas de la zona. Graba
+  con VA-API en la Radeon (`LIBVA_DRIVER_NAME=radeonsi` solo para
+  wf-recorder).
 - **Binds** (`binds.lua`): `SUPER+SHIFT+B` muestra/oculta la barra
   (`qs -c dotshell ipc call bar toggle`, afecta a todas las pantallas a la
   vez via el singleton `BarVisibility.qml`) y
@@ -766,7 +778,7 @@ efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
 | Teclas multimedia | Reproducir/pausa, siguiente, anterior del reproductor (el de la pill y el dashboard; tambien con la pantalla bloqueada) |
 | `SUPER + SHIFT + W` | Galeria de wallpapers (vista previa, opciones de color; recolorea todo con matugen) |
 | `SUPER + SHIFT + Z` | Deshacer el ultimo cambio de tema |
-| `Print` / `SUPER+Print` / `SUPER+SHIFT+Print` | Captura completa / region / ventana |
-| `SUPER + ALT + R` | Grabar pantalla (toggle) |
+| `Print` / `SUPER+Print` / `SUPER+SHIFT+Print` | Captura del monitor enfocado / region / ventana |
+| `SUPER + ALT + R` / `SUPER + ALT + SHIFT + R` | Grabar una zona / el monitor enfocado (la misma tecla o la pill paran) |
 
 Ver `hypr/.config/hypr/modules/binds.lua` para la lista completa.

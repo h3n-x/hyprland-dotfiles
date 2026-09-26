@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Capturas de pantalla: full | region | window
-# Las 3 copian directo al portapapeles (wl-copy), sin pasar por un editor --
-# si queres anotar (flechas/blur/texto) antes de copiar, satty sigue
-# instalado y configurado (ver matugen/.config/matugen/templates/satty.toml):
-# corre `satty --filename <captura> --output-filename <captura> --copy-to-clipboard`
-# a mano sobre el archivo ya guardado en ~/Pictures/Screenshots.
-# Requiere: grim, slurp, wl-clipboard, libnotify
+# Capturas de pantalla: full | region | window (Fase 4 B8).
+#   full    el monitor enfocado
+#   region  pantalla congelada mientras se elige (como hyprshot --freeze), con
+#           las ventanas como destinos (capture-select)
+#   window  la ventana activa
+# Guarda en ~/Pictures/Screenshots, copia la imagen al portapapeles y se la
+# pasa a Quickshell (vista previa: anotar con satty, copiar, abrir, carpeta,
+# papelera). Sin la shell, la captura igual queda guardada y copiada.
+# Requiere: grim, slurp, hyprpicker, wl-clipboard, jq
 set -euo pipefail
 
 DIR="$HOME/Pictures/Screenshots"
@@ -13,24 +15,39 @@ mkdir -p "$DIR"
 FILE="$DIR/$(date +%Y-%m-%d_%H-%M-%S).png"
 MODE="${1:-region}"
 
-notify() { notify-send -a Screenshot -i "$FILE" "$@"; }
+# Congelar la pantalla mientras se elige (hyprpicker sin lupa); grim captura
+# esa imagen congelada, asi menus y tooltips quedan como estaban.
+FREEZE=""
+unfreeze() { if [[ -n $FREEZE ]]; then kill "$FREEZE" 2>/dev/null || true; FREEZE=""; fi; }
+trap unfreeze EXIT
 
+# -l 1: compresion minima del PNG (pantalla completa 317 ms contra 858 ms,
+# +9 % de tamano).
+EXTRA=""
 case "$MODE" in
-  full)
-    grim "$FILE"
-    wl-copy < "$FILE"
-    notify "Captura completa" "Guardada y copiada al portapapeles"
-    ;;
-  window)
-    ACTIVE_BOX=$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
-    grim -g "$ACTIVE_BOX" "$FILE"
-    wl-copy < "$FILE"
-    notify "Captura de ventana" "Guardada y copiada al portapapeles"
-    ;;
-  region|*)
-    GEOM=$(slurp -d) || exit 0 # cancelado por el usuario
-    grim -g "$GEOM" "$FILE"
-    wl-copy < "$FILE"
-    notify "Captura de region" "Guardada y copiada al portapapeles"
-    ;;
+    full)
+        read -r MON GEOM < <(hyprctl -j monitors | jq -r '.[] | select(.focused) | "\(.name) \(.x),\(.y) \((.width / .scale) | floor)x\((.height / .scale) | floor)"')
+        grim -l 1 -o "$MON" "$FILE"
+        EXTRA="$MON"
+        ;;
+    window)
+        IFS=$'\t' read -r GEOM EXTRA < <(hyprctl -j activewindow | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])\t\(.class)"')
+        [[ $GEOM == *null* ]] && exit 0 # sin ventana activa
+        grim -l 1 -g "$GEOM" "$FILE"
+        ;;
+    region)
+        hyprpicker -r -z >/dev/null 2>&1 &
+        FREEZE=$!
+        sleep 0.1
+        GEOM=$("$(dirname "$0")/capture-select") || exit 0 # cancelado (Esc)
+        grim -l 1 -g "$GEOM" "$FILE"
+        unfreeze
+        ;;
+    *)
+        echo "uso: screenshot full|region|window" >&2
+        exit 2
+        ;;
 esac
+
+wl-copy -t image/png < "$FILE"
+qs -c dotshell ipc call capture preview "$FILE" "$MODE" "$GEOM" "$(stat -c %s "$FILE")" "$EXTRA" >/dev/null 2>&1 || true

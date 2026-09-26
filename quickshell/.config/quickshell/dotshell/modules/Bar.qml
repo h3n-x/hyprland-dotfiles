@@ -73,6 +73,9 @@ PanelWindow {
 
         Item { Layout.fillWidth: true }
 
+        // Solo mientras se graba (y un momento al terminar), Fase 4 B8.
+        RecordingPill { Layout.alignment: Qt.AlignVCenter }
+
         Pill {
             Layout.alignment: Qt.AlignVCenter
             spacing: Tokens.space.md

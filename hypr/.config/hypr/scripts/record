@@ -1,20 +1,126 @@
 #!/usr/bin/env bash
-# Grabacion de pantalla con wf-recorder: toggle on/off con la region elegida.
-# Uso: record toggle
+# Grabacion de pantalla con wf-recorder (Fase 4 B8).
+#   record toggle [region|full]   empieza (zona elegida o monitor enfocado) o para
+#   record stop
+# Estado en $XDG_RUNTIME_DIR/dotfiles/recording.json ({pid, file, started, mode,
+# region, monitor}) mientras graba: lo lee Quickshell (pill de la barra con el
+# tiempo, marcas en las esquinas de la zona). El proceso que empieza la
+# grabacion espera a wf-recorder y la cierra siempre el mismo, pare como pare
+# (stop, la pill o un error): borra el estado, genera la miniatura y le pasa
+# el video a la vista previa de capturas.
+#
+# Codifica con VA-API en la Radeon (h264_vaapi, qp 24, tope 60 fps): ~7 % de un
+# nucleo contra 263-322 % de x264 por software, calidad equivalente (SSIM) y
+# ~1,7x el tamano. LIBVA_DRIVER_NAME=radeonsi solo para este proceso: la sesion
+# lo fija en nvidia (env.lua) y con ese driver la Radeon no codifica. Sin nodo
+# amdgpu (otra maquina) queda x264, el valor por defecto de wf-recorder.
+# Requiere: wf-recorder, slurp, jq, ffmpeg
 set -euo pipefail
 
 DIR="$HOME/Videos/Recordings"
-mkdir -p "$DIR"
-PIDFILE="/tmp/wf-recorder-$USER.pid"
+STATE_DIR="${XDG_RUNTIME_DIR:-/run/user/$UID}/dotfiles"
+STATE="$STATE_DIR/recording.json"
+LOG="$STATE_DIR/recording.log"
+THUMBS="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/captures"
+mkdir -p "$DIR" "$STATE_DIR"
 
-if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-    kill -INT "$(cat "$PIDFILE")"
-    rm -f "$PIDFILE"
-    notify-send -a Recording "Grabacion detenida" "Guardada en $DIR"
-else
-    GEOM=$(slurp -d) || exit 0
-    FILE="$DIR/$(date +%Y-%m-%d_%H-%M-%S).mp4"
-    wf-recorder -g "$GEOM" -f "$FILE" &
-    echo $! > "$PIDFILE"
-    notify-send -a Recording "Grabando..." "SUPER+ALT+R para detener"
-fi
+ipc() { qs -c dotshell ipc call capture "$@" >/dev/null 2>&1 || true; }
+
+running_pid() {
+    local pid
+    [[ -f $STATE ]] || return 1
+    pid=$(jq -r '.pid // empty' "$STATE" 2>/dev/null) || return 1
+    [[ -n $pid ]] && kill -0 "$pid" 2>/dev/null && echo "$pid"
+}
+
+# Nodo de render de la GPU amdgpu (la integrada en esta laptop).
+amd_node() {
+    local n
+    for n in /sys/class/drm/renderD*; do
+        if [[ $(basename "$(readlink -f "$n/device/driver")") == amdgpu ]]; then
+            echo "/dev/dri/$(basename "$n")"
+            return 0
+        fi
+    done
+    return 1
+}
+
+start() {
+    local mode="${1:-region}" geom mon="" file node pid started ms thumb t enc=()
+    case "$mode" in
+        full)
+            read -r mon geom < <(hyprctl -j monitors | jq -r '.[] | select(.focused) | "\(.name) \(.x),\(.y) \((.width / .scale) | floor)x\((.height / .scale) | floor)"')
+            ;;
+        region)
+            geom=$("$(dirname "$0")/capture-select") || exit 0 # cancelado (Esc)
+            ;;
+        *)
+            echo "uso: record toggle [region|full] | stop" >&2
+            exit 2
+            ;;
+    esac
+    file="$DIR/$(date +%Y-%m-%d_%H-%M-%S).mp4"
+    if node=$(amd_node); then
+        enc=(-c h264_vaapi -d "$node" -p qp=24 -r 60)
+        export LIBVA_DRIVER_NAME=radeonsi
+    fi
+    started=$(date +%s%3N)
+    if [[ -n $mon ]]; then
+        wf-recorder -o "$mon" "${enc[@]}" -f "$file" >"$LOG" 2>&1 < /dev/null &
+    else
+        wf-recorder -g "$geom" "${enc[@]}" -f "$file" >"$LOG" 2>&1 < /dev/null &
+    fi
+    pid=$!
+    jq -n --argjson pid "$pid" --arg file "$file" --argjson started "$started" \
+        --arg mode "$mode" --arg region "$geom" --arg monitor "$mon" \
+        '{pid: $pid, file: $file, started: $started, mode: $mode, region: $region, monitor: $monitor}' > "$STATE.tmp"
+    mv "$STATE.tmp" "$STATE"
+    ipc refresh
+
+    wait "$pid" || true
+    ms=$(( $(date +%s%3N) - started ))
+    rm -f "$STATE"
+    ipc refresh
+    # Sin video (wf-recorder no pudo arrancar: permiso de captura, codec).
+    if [[ ! -s $file ]]; then
+        rm -f "$file"
+        ipc recorded error 0
+        exit 1
+    fi
+    ipc recorded ok "$ms"
+    # Miniatura para la vista previa (y un futuro historial); las de videos que
+    # ya no existen se borran.
+    mkdir -p "$THUMBS"
+    for t in "$THUMBS"/*.jpg; do
+        if [[ -e $t && ! -e "$DIR/$(basename "${t%.jpg}").mp4" ]]; then rm -f "$t"; fi
+    done
+    thumb="$THUMBS/$(basename "${file%.*}").jpg"
+    ffmpeg -v error -y -ss 0.5 -i "$file" -frames:v 1 -vf 'scale=640:-2' "$thumb" < /dev/null || true
+    [[ -s $thumb ]] || ffmpeg -v error -y -i "$file" -frames:v 1 -vf 'scale=640:-2' "$thumb" < /dev/null || true
+    ipc preview "$file" recording "$geom" "$(stat -c %s "$file")" "$ms"
+}
+
+# Parar: solo la senal; el proceso que empezo cierra la grabacion.
+stop() {
+    local pid
+    if pid=$(running_pid); then
+        kill -INT "$pid"
+    elif [[ -f $STATE ]]; then
+        # Estado huerfano (el proceso que grababa ya no esta).
+        rm -f "$STATE"
+        ipc refresh
+    fi
+}
+
+case "${1:-toggle}" in
+    toggle)
+        if running_pid >/dev/null; then stop; else start "${2:-region}"; fi
+        ;;
+    stop)
+        stop
+        ;;
+    *)
+        echo "uso: record toggle [region|full] | stop" >&2
+        exit 2
+        ;;
+esac

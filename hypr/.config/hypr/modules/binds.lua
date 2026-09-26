@@ -53,11 +53,15 @@ hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd(scripts .. "/theme-apply.sh -
 -- Selector de emoji (Quickshell, Fase 4 B3): Enter escribe, Ctrl+Enter copia
 hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("qs -c dotshell ipc call emoji toggle"))
 
--- Capturas y grabacion (ver scripts/screenshot y scripts/record)
+-- Capturas y grabacion (Fase 4 B8, ver scripts/screenshot y scripts/record):
+-- la vista previa y la pill de grabacion son de Quickshell (CaptureState).
+-- Print: monitor enfocado; region con la pantalla congelada; grabar: zona
+-- elegida o monitor enfocado, la misma tecla (o la pill) para parar.
 hl.bind("Print", hl.dsp.exec_cmd(scripts .. "/screenshot full"))
 hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd(scripts .. "/screenshot region"))
 hl.bind(mainMod .. " + SHIFT + Print", hl.dsp.exec_cmd(scripts .. "/screenshot window"))
-hl.bind(mainMod .. " + ALT + R", hl.dsp.exec_cmd(scripts .. "/record toggle"))
+hl.bind(mainMod .. " + ALT + R", hl.dsp.exec_cmd(scripts .. "/record toggle region"))
+hl.bind(mainMod .. " + ALT + SHIFT + R", hl.dsp.exec_cmd(scripts .. "/record toggle full"))
 hl.bind(mainMod .. " + ALT + G", hl.dsp.exec_cmd(scripts .. "/game-mode.sh toggle"))
 
 -- ---------------------------------------------------------------------------

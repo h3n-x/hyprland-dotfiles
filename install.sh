@@ -35,7 +35,7 @@ sudo pacman -S --needed --noconfirm satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
   qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd noto-fonts-emoji python-pillow wtype \
   gvfs tumbler thunar network-manager-applet blueman pavucontrol brightnessctl \
-  jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder \
+  jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder mpv loupe \
   matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono ttf-material-symbols-variable \
   yazi tdf fd imagemagick 7zip resvg cava fastfetch pacman-contrib \
   dust duf procs tealdeer glow xh zellij plymouth \
@@ -78,6 +78,13 @@ fi
 # clone esto. Editalo primero, despues `stow git` a mano.
 stow hypr quickshell kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch
 ok "Stow aplicado (excepto 'git', ver nota al final)."
+
+# Apps por defecto de la vista previa de capturas (Fase 4 B8): Abrir y
+# Reproducir usan xdg-open -- imagenes en Loupe, videos en mpv.
+if command -v xdg-mime >/dev/null 2>&1; then
+  xdg-mime default org.gnome.Loupe.desktop image/png image/jpeg image/webp image/gif
+  xdg-mime default mpv.desktop video/mp4 video/x-matroska video/webm
+fi
 
 # -----------------------------------------------------------------------
 # 3. Primer wallpaper + matugen

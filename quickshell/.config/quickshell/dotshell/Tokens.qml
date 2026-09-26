@@ -195,6 +195,9 @@ QtObject {
         readonly property var easeEnter: [0.23, 1, 0.32, 1, 1, 1]      // easeOutQuint
         readonly property var easeExit: [0.5, 0.5, 0.75, 1, 1, 1]      // almostLinear
         readonly property var easeStandard: [0.33, 1, 0.68, 1, 1, 1]   // easeOutCubic
+        // M3 emphasized decelerate: sale rapido y se posa despacio. Para
+        // recorridos largos con destino (el vuelo de la miniatura, P4 B8).
+        readonly property var easeEmphasized: [0.05, 0.7, 0.1, 1, 1, 1]
 
         // Resorte "easy" de Hyprland (movimiento espacial: pill de workspace,
         // knobs, toasts apilados). Valores fuente de hl.curve(); SpringAnimation

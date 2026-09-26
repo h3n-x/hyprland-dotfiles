@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Elegir una zona de la pantalla para capturar o grabar (Fase 4 B8): slurp con
+# la paleta de matugen (borde y seleccion en primary, fondo velado con scrim,
+# cajas de ventanas en outline) y las ventanas visibles como destinos: un clic
+# en una ventana la toma exacta, arrastrar elige una zona libre.
+# Imprime "x,y wxh" (coordenadas logicas); sale con 1 si se cancela (Esc).
+# Lo usan screenshot y record.
+# Requiere: slurp, jq
+set -euo pipefail
+
+COLORS="${QS_COLORS_JSON:-$HOME/.cache/matugen/quickshell-colors.json}"
+
+# Color de la paleta sin "#" ("primary" -> "ffb7b0"), vacio si no hay JSON.
+color() { jq -r --arg k "$1" '.[$k] // empty' "$COLORS" 2>/dev/null | tr -d '#'; }
+
+# Rectangulos de las ventanas visibles (el workspace activo de cada monitor y
+# el especial si esta abierto).
+windows() {
+    local active
+    active=$(hyprctl -j monitors | jq -c '[.[] | .activeWorkspace.id, (.specialWorkspace.id | select(. != 0))]')
+    hyprctl -j clients | jq -r --argjson a "$active" \
+        '.[] | select(.mapped and (.hidden | not) and (.workspace.id as $w | $a | any(. == $w))) | "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"'
+}
+
+args=(-d -w 2)
+p=$(color primary); s=$(color scrim); o=$(color outline)
+[[ -n $p ]] && args+=(-c "#${p}ff" -s "#${p}24")
+[[ -n $s ]] && args+=(-b "#${s}59")
+[[ -n $o ]] && args+=(-B "#${o}40")
+windows | slurp "${args[@]}"

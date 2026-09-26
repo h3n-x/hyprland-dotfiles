@@ -205,6 +205,27 @@ ShellRoot {
         }
     }
 
+    // Capturas y grabacion (Fase 4 B8): avisos de los scripts screenshot y
+    // record. preview <ruta> <region|window|full|recording> <"x,y wxh">
+    // <bytes> <extra: monitor, clase o duracion en ms>; recorded ok|error <ms>
+    // al terminar una grabacion; refresh relee su estado. "preview" y no
+    // "show": "qs ipc call capture show" choca con el subcomando "qs ipc show".
+    IpcHandler {
+        target: "capture"
+        function preview(path: string, kind: string, region: string, bytes: string, extra: string): void {
+            CaptureState.show(path, kind, region, bytes, extra);
+        }
+        function dismiss(): void {
+            CaptureState.dismiss();
+        }
+        function recorded(result: string, ms: string): void {
+            CaptureState.recorded(result, ms);
+        }
+        function refresh(): void {
+            CaptureState.refresh();
+        }
+    }
+
     IpcHandler {
         target: "gallery"
         function toggle(): void {
@@ -325,6 +346,16 @@ ShellRoot {
         model: Quickshell.screens
 
         WallpaperGallery {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    // Vista previa de capturas y marcas de grabacion (Fase 4 B8).
+    Variants {
+        model: Quickshell.screens
+
+        CapturePreview {
             required property var modelData
             screen: modelData
         }
