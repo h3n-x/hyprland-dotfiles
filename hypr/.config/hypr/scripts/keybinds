@@ -1,0 +1,184 @@
+#!/usr/bin/env python3
+"""Atajos de Hyprland para la guia de atajos (Fase 4 B10), leidos de Hyprland.
+
+    keybinds data       JSON agrupado para Quickshell (KeybindState)
+    keybinds markdown   la tabla de atajos del README (misma agrupacion)
+    keybinds check      falla (exit 1) si un atajo no tiene descripcion valida
+
+La unica fuente es `hyprctl binds -j` (la configuracion viva, submaps
+incluidos): la descripcion sale del { desc = "Grupo · Texto" } de cada
+hl.bind en binds.lua. Nunca se lee binds.lua. Los atajos de una familia
+(misma descripcion) se juntan en una fila: flechas, 1-0, volumen, rueda.
+KEYBINDS_JSON=<archivo> usa ese JSON en vez de hyprctl (pruebas).
+"""
+import json
+import os
+import subprocess
+import sys
+
+SEP = " · "
+MAX_TEXT = 28
+UNDESCRIBED = "Sin descripción"
+
+# Orden e icono (Material Symbols) de los grupos; "mode": atajos de un submap.
+GROUPS = [
+    ("Shell", "dashboard"), ("Programas", "apps"), ("Sistema", "power_settings_new"),
+    ("Ventanas", "select_window"), ("Escritorios", "view_quilt"), ("Capturas", "screenshot_region"),
+    ("Tema", "palette"), ("Multimedia", "music_note"), ("Modo cambiar tamaño", "open_in_full"),
+]
+MODS = [(64, "Super"), (4, "Ctrl"), (8, "Alt"), (1, "Shift")]
+
+# Etiqueta de cada tecla: texto, o "@icono" (Material Symbols); "words" para Markdown.
+KEYS = {
+    "return": "Intro", "escape": "Esc", "tab": "Tab", "period": ".", "slash": "/", "comma": ",",
+    "print": "Impr", "space": "Espacio", "backspace": "Retroceso", "delete": "Supr",
+    "mouse:272": "Clic izq.", "mouse:273": "Clic der.", "control_l": "Ctrl izq.", "alt_l": "Alt izq.",
+    "left": "@arrow_left", "right": "@arrow_right", "up": "@arrow_drop_up", "down": "@arrow_drop_down",
+    "xf86audioraisevolume": "@volume_up", "xf86audiolowervolume": "@volume_down",
+    "xf86audiomute": "@volume_off", "xf86audiomicmute": "@mic_off",
+    "xf86monbrightnessup": "@brightness_high", "xf86monbrightnessdown": "@brightness_low",
+    "xf86audioplay": "@play_pause", "xf86audiopause": "@play_pause",
+    "xf86audionext": "@skip_next", "xf86audioprev": "@skip_previous",
+}
+WORDS = {
+    "@arrows": "Flechas", "@arrow_left": "←", "@arrow_right": "→", "@arrow_drop_up": "↑", "@arrow_drop_down": "↓",
+    "@volume_up": "Subir volumen", "@volume_down": "Bajar volumen", "@volume_off": "Silencio",
+    "@mic_off": "Micrófono", "@brightness_high": "Subir brillo", "@brightness_low": "Bajar brillo",
+    "@play_pause": "Reproducir/Pausa", "@skip_next": "Siguiente", "@skip_previous": "Anterior",
+}
+# Orden de lectura dentro de una familia (anterior antes que siguiente, subir antes que bajar).
+ORDER = ["@arrow_left", "@arrow_right", "@arrow_drop_up", "@arrow_drop_down", "@volume_up", "@volume_down",
+         "@brightness_high", "@brightness_low", "@skip_previous", "@skip_next"]
+
+
+def load():
+    path = os.environ.get("KEYBINDS_JSON")
+    if path:
+        with open(path) as f:
+            return json.load(f)
+    out = subprocess.run(["hyprctl", "binds", "-j"], capture_output=True, text=True, check=True).stdout
+    return json.loads(out)
+
+
+def mods_of(mask):
+    return [name for bit, name in MODS if mask & bit]
+
+
+def label(key):
+    k = key.lower()
+    if k in KEYS:
+        return KEYS[k]
+    return key.upper() if len(key) == 1 else key
+
+
+def family_keys(keys):
+    """Teclas de una familia (mismos modificadores) -> etiquetas, ya juntas."""
+    low = {k.lower() for k in keys}
+    if low == {"left", "right", "up", "down"}:
+        return ["@arrows"]
+    if low == {str(d) for d in range(10)}:
+        return ["1 … 0"]
+    if low == {"mouse_down", "mouse_up"}:
+        return ["Rueda"]
+    labels = []
+    for k in keys:
+        lab = label(k)
+        if lab not in labels:
+            labels.append(lab)
+    return sorted(labels, key=lambda x: ORDER.index(x) if x in ORDER else -1)
+
+
+def split_desc(desc):
+    if SEP in desc:
+        group, text = desc.split(SEP, 1)
+        return group.strip(), text.strip()
+    return None, desc.strip()
+
+
+def problems(binds):
+    """Atajos sin descripcion valida: sin desc, sin grupo o texto demasiado largo."""
+    out = []
+    for b in binds:
+        desc = b.get("description", "") if b.get("has_description") else ""
+        combo = " + ".join(mods_of(b["modmask"]) + [b["key"]]) + (f" (submap {b['submap']})" if b.get("submap") else "")
+        group, text = split_desc(desc)
+        if not desc:
+            out.append(f"{combo}: sin descripción")
+        elif not group:
+            out.append(f"{combo}: falta el grupo (\"Grupo{SEP}Texto\"): {desc!r}")
+        elif len(text) > MAX_TEXT:
+            out.append(f"{combo}: texto de {len(text)} caracteres (máximo {MAX_TEXT}): {text!r}")
+    return out
+
+
+def grouped(binds):
+    items = {}   # (grupo, texto, submap) -> {mods: [teclas]} en orden de aparicion
+    order = []
+    for b in binds:
+        desc = b.get("description", "") if b.get("has_description") else ""
+        group, text = split_desc(desc)
+        if not desc:
+            group, text = UNDESCRIBED, " + ".join(mods_of(b["modmask"]) + [label(b["key"])])
+        elif not group:
+            group = UNDESCRIBED
+        key = (group, text, b.get("submap", ""))
+        if key not in items:
+            items[key] = {}
+            order.append(key)
+        items[key].setdefault(tuple(mods_of(b["modmask"])), []).append(b["key"])
+    known = [g for g, _ in GROUPS]
+    groups = []
+    for name in known + sorted({k[0] for k in order if k[0] not in known and k[0] != UNDESCRIBED}) + [UNDESCRIBED]:
+        rows = [k for k in order if k[0] == name]
+        if not rows:
+            continue
+        icon = dict(GROUPS).get(name, "help" if name == UNDESCRIBED else "keyboard")
+        groups.append({
+            "name": name, "icon": icon, "mode": any(k[2] for k in rows),
+            "items": [{"text": k[1], "submap": k[2],
+                       "combos": [{"mods": list(m), "keys": family_keys(keys)} for m, keys in items[k].items()]}
+                      for k in rows],
+        })
+    return groups
+
+
+def md_key(lab):
+    return f"`{WORDS.get(lab, lab)}`"
+
+
+def markdown(groups):
+    lines = []
+    for g in groups:
+        lines += [f"**{g['name']}**" + (" (modo: `Super` + `R`, sale con `Esc`/`Intro`)" if g["mode"] else ""), "",
+                  "| Atajo | Acción |", "|---|---|"]
+        for it in g["items"]:
+            combos = " o ".join(" + ".join([md_key(m) for m in c["mods"]] + [" / ".join(md_key(k) for k in c["keys"])])
+                                for c in it["combos"])
+            lines.append(f"| {combos} | {it['text']} |")
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def main():
+    mode = sys.argv[1] if len(sys.argv) > 1 else ""
+    binds = load()
+    if mode == "data":
+        groups = grouped(binds)
+        json.dump({"total": len(binds), "rows": sum(len(g["items"]) for g in groups),
+                   "problems": problems(binds), "groups": groups}, sys.stdout, ensure_ascii=False)
+        print()
+    elif mode == "markdown":
+        sys.stdout.write(markdown(grouped(binds)))
+    elif mode == "check":
+        bad = problems(binds)
+        for p in bad:
+            print(p, file=sys.stderr)
+        print(f"{len(binds)} atajos, {len(bad)} sin descripción válida")
+        sys.exit(1 if bad else 0)
+    else:
+        print("uso: keybinds data|markdown|check", file=sys.stderr)
+        sys.exit(2)
+
+
+if __name__ == "__main__":
+    main()

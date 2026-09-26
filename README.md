@@ -761,38 +761,113 @@ esquema de matugen, iconos Papirus-Dark, estilo Fusion) -- no hace falta
 correr `qt5ct`/`qt6ct` a mano salvo que quieras retocar algo mas (fuente,
 efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
 
-## Atajos principales
+## Atajos
 
-| Atajo | Accion |
+En el sistema: **`SUPER + /`** abre la guia de atajos (buscable, siempre al
+dia). La tabla de abajo se genera desde la misma fuente -- la descripcion de
+cada atajo en `hypr/.config/hypr/modules/binds.lua`, leida de Hyprland -- con
+`hypr/.config/hypr/scripts/keybinds markdown`; no se edita a mano.
+`keybinds check` falla si algun atajo no tiene descripcion.
+
+<!-- keybinds:start (generado: hypr/.config/hypr/scripts/keybinds markdown) -->
+**Shell**
+
+| Atajo | Acción |
 |---|---|
-| `SUPER + Return` | Terminal (kitty) |
-| `SUPER + D` | Launcher (Quickshell) |
-| `SUPER + Tab` | Selector de ventanas (con Super apretado: Tab / Shift+Tab mueven, soltar cambia; Supr cierra) |
-| `SUPER + E` | Explorador de archivos (thunar) |
-| `SUPER + Q` / `SHIFT+Q` | Cerrar / forzar cierre de ventana |
-| `SUPER + V` | Flotar ventana |
-| `SUPER + F` | Fullscreen |
-| `SUPER + SHIFT + P` | Fijar ventana (pin) |
-| `SUPER + G` | Agrupar ventanas |
-| `SUPER + flechas` | Cambiar foco |
-| `SUPER + SHIFT + flechas` | Mover ventana |
-| `SUPER + CTRL + flechas` | Redimensionar (o `SUPER+R` -> submap resize) |
-| `SUPER + [0-9]` / `SHIFT+[0-9]` | Ir a / mover a workspace |
-| `SUPER + S` / `SHIFT+S` | Scratchpad (workspace especial) |
-| `SUPER + ALT + L` | Ciclar layout dwindle/master/scrolling |
-| `SUPER + L` | Bloquear pantalla |
-| `SUPER + M` | Menu de energia y sesion (bloquear/suspender/cerrar sesion/reiniciar/apagar; confirma las tres ultimas) |
-| `SUPER + SHIFT + M` | Cerrar sesion (pide confirmacion) |
-| `SUPER + CTRL + SHIFT + M` | Salida de emergencia de Hyprland (sin confirmar, no depende de Quickshell) |
-| `SUPER + A` | Dashboard (inicio, hoy, sistema, escritorios); unica forma de abrirlo |
-| `SUPER + N` / `SHIFT+N` | Panel de notificaciones / limpiar todo |
-| `SUPER + SHIFT + C` | Color picker |
-| `SUPER + .` | Selector de emoji (Enter escribe, Ctrl+Enter copia, Ctrl+T tono de piel) |
-| `SUPER + SHIFT + V` | Historial de portapapeles (busqueda, vista previa de texto/imagenes, no guarda datos sensibles) |
-| Teclas multimedia | Reproducir/pausa, siguiente, anterior del reproductor (el de la pill y el dashboard; tambien con la pantalla bloqueada) |
-| `SUPER + SHIFT + W` | Galeria de wallpapers (vista previa, opciones de color; recolorea todo con matugen) |
-| `SUPER + SHIFT + Z` | Deshacer el ultimo cambio de tema |
-| `Print` / `SUPER+Print` / `SUPER+SHIFT+Print` | Captura del monitor enfocado / region / ventana |
-| `SUPER + ALT + R` / `SUPER + ALT + SHIFT + R` | Grabar una zona / el monitor enfocado (la misma tecla o la pill paran) |
+| `Super` + `D` | Lanzador de aplicaciones |
+| `Super` + `Tab` o `Super` + `Shift` + `Tab` | Cambiar de ventana |
+| `Super` + `A` | Dashboard |
+| `Super` + `N` | Centro de control |
+| `Super` + `Shift` + `N` | Limpiar notificaciones |
+| `Super` + `Shift` + `B` | Mostrar u ocultar la barra |
+| `Super` + `Ctrl` + `Shift` + `B` | Recargar la shell |
+| `Super` + `Shift` + `V` | Portapapeles |
+| `Super` + `.` | Emoji |
+| `Super` + `/` | Guía de atajos |
 
-Ver `hypr/.config/hypr/modules/binds.lua` para la lista completa.
+**Programas**
+
+| Atajo | Acción |
+|---|---|
+| `Super` + `Intro` | Terminal |
+| `Super` + `E` | Archivos |
+| `Super` + `B` | Navegador |
+| `Super` + `Shift` + `C` | Selector de color |
+
+**Sistema**
+
+| Atajo | Acción |
+|---|---|
+| `Super` + `L` | Bloquear la pantalla |
+| `Super` + `M` | Energía y sesión |
+| `Super` + `Shift` + `M` | Cerrar sesión |
+| `Super` + `Ctrl` + `Shift` + `M` | Salida de emergencia |
+| `Super` + `Alt` + `G` | Modo juego |
+
+**Ventanas**
+
+| Atajo | Acción |
+|---|---|
+| `Super` + `Q` | Cerrar la ventana |
+| `Super` + `Shift` + `Q` | Forzar el cierre |
+| `Super` + `V` | Flotante |
+| `Super` + `F` | Pantalla completa |
+| `Super` + `Shift` + `P` | Fijar en todas partes |
+| `Super` + `C` | Centrar |
+| `Super` + `P` | Pseudomosaico |
+| `Super` + `J` | Alternar la división |
+| `Super` + `G` | Agrupar |
+| `Super` + `Shift` + `G` | Bloquear el grupo |
+| `Super` + `Flechas` | Mover el foco |
+| `Super` + `Shift` + `Flechas` | Mover la ventana |
+| `Super` + `Ctrl` + `Flechas` | Cambiar el tamaño |
+| `Super` + `Clic izq.` / `Ctrl izq.` | Mover con el ratón |
+| `Super` + `Clic der.` / `Alt izq.` | Redimensionar con el ratón |
+| `Super` + `R` | Modo cambiar tamaño |
+
+**Escritorios**
+
+| Atajo | Acción |
+|---|---|
+| `Super` + `1 … 0` | Ir al escritorio |
+| `Super` + `Shift` + `1 … 0` | Mover al escritorio |
+| `Super` + `Rueda` | Recorrer escritorios |
+| `Super` + `S` | Escritorio especial |
+| `Super` + `Shift` + `S` | Mover al especial |
+| `Super` + `Alt` + `L` | Cambiar la distribución |
+
+**Capturas**
+
+| Atajo | Acción |
+|---|---|
+| `Impr` | Capturar el monitor |
+| `Super` + `Impr` | Capturar una región |
+| `Super` + `Shift` + `Impr` | Capturar la ventana |
+| `Super` + `Alt` + `R` | Grabar una zona |
+| `Super` + `Alt` + `Shift` + `R` | Grabar el monitor |
+
+**Tema**
+
+| Atajo | Acción |
+|---|---|
+| `Super` + `Shift` + `W` | Galería de fondos |
+| `Super` + `Shift` + `Z` | Deshacer el último tema |
+
+**Multimedia**
+
+| Atajo | Acción |
+|---|---|
+| `Subir volumen` / `Bajar volumen` | Volumen |
+| `Silencio` | Silenciar |
+| `Micrófono` | Silenciar el micrófono |
+| `Subir brillo` / `Bajar brillo` | Brillo |
+| `Anterior` / `Siguiente` | Pista siguiente o anterior |
+| `Reproducir/Pausa` | Reproducir o pausar |
+
+**Modo cambiar tamaño** (modo: `Super` + `R`, sale con `Esc`/`Intro`)
+
+| Atajo | Acción |
+|---|---|
+| `Flechas` | Cambiar el tamaño |
+| `Esc` / `Intro` | Salir del modo |
+<!-- keybinds:end -->

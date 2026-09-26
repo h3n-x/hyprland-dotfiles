@@ -226,6 +226,21 @@ ShellRoot {
         }
     }
 
+    // Guia de atajos (Fase 4 B10): SUPER+/ (binds.lua) -> toggle, en el
+    // monitor enfocado.
+    IpcHandler {
+        target: "keybinds"
+        function open(): void {
+            KeybindState.open();
+        }
+        function close(): void {
+            KeybindState.close();
+        }
+        function toggle(): void {
+            KeybindState.toggle();
+        }
+    }
+
     IpcHandler {
         target: "gallery"
         function toggle(): void {
@@ -346,6 +361,15 @@ ShellRoot {
         model: Quickshell.screens
 
         WallpaperGallery {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        Keybinds {
             required property var modelData
             screen: modelData
         }
