@@ -19,8 +19,6 @@
 # Requiere: pacman-contrib (checkupdates, paccache), jq, systemd; yay/paru opcional
 set -uo pipefail
 
-SHOTS="$HOME/Pictures/Screenshots"
-RECS="$HOME/Videos/Recordings"
 TRASH="${XDG_DATA_HOME:-$HOME/.local/share}/Trash"
 COREDUMPS=/var/lib/systemd/coredump
 
@@ -122,7 +120,10 @@ updates() {
 
 # ---- data sizes -------------------------------------------------------------------
 sizes() {
-    local reclaim candidates h hc=0
+    local reclaim candidates h hc=0 SHOTS RECS
+    # Carpetas de capturas: capture.* (settings store, Fase 8 B1).
+    SHOTS=$("$(dirname "$0")/settings" get capture.screenshotsDir)
+    RECS=$("$(dirname "$0")/settings" get capture.recordingsDir)
     # "==> finished dry run: 46 candidates (disk space saved: 836.12 MiB)"
     read -r candidates reclaim < <(paccache -d -k2 2>/dev/null | tail -1 |
         sed -nE 's/.*: ([0-9]+) candidates \(disk space saved: ([0-9.]+) ([KMGT]i?B)\).*/\1 \2\3/p' |

@@ -23,7 +23,8 @@ QtObject {
     // Siempre al menos 5 (como el persistent-workspaces de waybar); N = el id
     // mas alto si es mayor. Un slot sin workspace real es un marcador liviano
     // {id, placeholder: true}: enfocarlo lo crea.
-    readonly property int minWorkspaces: 5
+    // bar.minWorkspaces (settings store)
+    readonly property int minWorkspaces: SettingsState.value("bar.minWorkspaces")
     readonly property var slots: {
         const real = Hyprland.workspaces.values.filter(w => w.id > 0);
         const maxId = real.reduce((m, w) => Math.max(m, w.id), 0);

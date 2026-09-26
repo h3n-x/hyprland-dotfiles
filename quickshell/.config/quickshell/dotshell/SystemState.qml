@@ -378,8 +378,11 @@ QtObject {
     readonly property bool hasBattery: root.battery.ready && root.battery.isLaptopBattery
     readonly property real batteryPct: root.hasBattery ? root.battery.percentage : 0
     readonly property bool charging: root.battery.state === UPowerDeviceState.Charging
-    readonly property bool batteryCritical: root.hasBattery && !root.charging && root.batteryPct > 0 && root.batteryPct <= 0.10
-    readonly property bool batteryWarning: root.hasBattery && !root.charging && root.batteryPct > 0.10 && root.batteryPct <= 0.20
+    // Umbrales: system.battery.criticalPct / warnPct (settings store).
+    readonly property real batteryCriticalAt: SettingsState.value("system.battery.criticalPct") / 100
+    readonly property real batteryWarnAt: SettingsState.value("system.battery.warnPct") / 100
+    readonly property bool batteryCritical: root.hasBattery && !root.charging && root.batteryPct > 0 && root.batteryPct <= root.batteryCriticalAt
+    readonly property bool batteryWarning: root.hasBattery && !root.charging && root.batteryPct > root.batteryCriticalAt && root.batteryPct <= root.batteryWarnAt
     readonly property bool batteryFull: root.hasBattery && root.charging && root.batteryPct >= 0.999
     // Enchufado (cargando, cargada o en espera de cargar).
     readonly property bool onAc: root.hasBattery && [UPowerDeviceState.Discharging, UPowerDeviceState.PendingDischarge,

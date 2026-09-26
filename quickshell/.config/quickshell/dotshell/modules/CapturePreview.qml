@@ -497,7 +497,8 @@ Scope {
         // 6 s en pantalla, en pausa con el puntero encima.
         Timer {
             running: win.phase === "card" && win.wanted && !cardOut.running && !cardHover.hovered
-            interval: 6000
+            // capture.cardSeconds (settings store)
+            interval: SettingsState.value("capture.cardSeconds") * 1000
             onTriggered: CaptureState.dismiss()
         }
     }

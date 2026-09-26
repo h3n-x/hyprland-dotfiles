@@ -48,31 +48,26 @@ ShellRoot {
         }
     }
 
-    // Reducir movimiento (D9, M4): `qs -c dotshell ipc call motion reduce`
-    // pone Tokens.motion.scale en 0 (todas las duraciones en 0 y los springs
-    // desactivados); `restore` lo vuelve a 1. PersistentProperties sobrevive
-    // a los reloads (el de "colors" corre en cada cambio de wallpaper), no a
-    // reiniciar el proceso.
-    PersistentProperties {
-        id: motionPrefs
-        reloadableId: "motionPrefs"
-        property bool reduced: false
-    }
+    // Reducir movimiento (D9, M4): la opcion accessibility.reduceMotion
+    // (settings store, Fase 8 B1: sobrevive a reinicios) pone
+    // Tokens.motion.scale en 0 (todas las duraciones en 0 y los springs
+    // desactivados). `qs -c dotshell ipc call motion reduce|restore` la cambia
+    // por el motor, como cualquier otro escritor.
     Binding {
         target: Tokens.motion
         property: "scale"
-        value: motionPrefs.reduced ? 0 : 1
+        value: SettingsState.value("accessibility.reduceMotion") ? 0 : 1
     }
     IpcHandler {
         target: "motion"
         function reduce(): void {
-            motionPrefs.reduced = true;
+            SettingsState.set("accessibility.reduceMotion", true);
         }
         function restore(): void {
-            motionPrefs.reduced = false;
+            SettingsState.set("accessibility.reduceMotion", false);
         }
         function status(): string {
-            return motionPrefs.reduced ? "reduced" : "normal";
+            return SettingsState.value("accessibility.reduceMotion") ? "reduced" : "normal";
         }
     }
 

@@ -80,7 +80,8 @@ Item {
 
     // Al arrancar y cada hora (el mismo chequeo que tenia la pill).
     Timer {
-        interval: 3600000
+        // system.maintenance.checkIntervalMinutes (settings store)
+        interval: SettingsState.value("system.maintenance.checkIntervalMinutes") * 60000
         running: true
         repeat: true
         triggeredOnStart: true
@@ -203,6 +204,8 @@ Item {
         const out = [];
         const q = root.quick, u = root.updates, s = root.sizes;
         const GiB = 1073741824;
+        // Umbrales: system.maintenance.* (settings store).
+        const opt = k => SettingsState.value("system.maintenance." + k);
 
         if (q && q.reboot) {
             out.push({ id: "reboot", sev: 3, metrics: { count: 1 },
@@ -215,8 +218,8 @@ Item {
 
         const disk = SystemState.storage.length ? SystemState.storage[0] : null;
         const diskFrac = disk && disk.size > 0 ? disk.used / disk.size : 0;
-        if (diskFrac > 0.8) {
-            out.push({ id: "disk", sev: diskFrac > 0.9 ? 3 : 2, metrics: { bytes: disk.avail },
+        if (diskFrac > opt("diskWarnPct") / 100) {
+            out.push({ id: "disk", sev: diskFrac > opt("diskCriticalPct") / 100 ? 3 : 2, metrics: { bytes: disk.avail },
                 sentence: "El disco está al " + Math.round(diskFrac * 100) + " %.",
                 why: "Quedan " + root.gb(disk.avail) + " libres; revisa la papelera y las cachés.",
                 advice: "liberar espacio en disco", action: "", actionLabel: "" });
@@ -247,25 +250,25 @@ Item {
                     advice: "", action: "unit-log", actionLabel: "Ver registro" });
         }
 
-        if (s && s.trash.bytes > GiB)
-            out.push({ id: "trash", sev: s.trash.bytes > 10 * GiB ? 2 : 1, metrics: { bytes: s.trash.bytes, count: s.trash.items },
+        if (s && s.trash.bytes > opt("trashRecommendGiB") * GiB)
+            out.push({ id: "trash", sev: s.trash.bytes > opt("trashWarnGiB") * GiB ? 2 : 1, metrics: { bytes: s.trash.bytes, count: s.trash.items },
                 sentence: "La papelera ocupa " + root.gb(s.trash.bytes) + ".",
                 why: "Vaciarla libera ese espacio; no se puede deshacer.",
                 advice: "vaciar la papelera", action: "trash", actionLabel: "Vaciar…" });
 
-        if (q && q.coredumps.bytes > 256 * 1048576) {
+        if (q && q.coredumps.bytes > opt("coredumpRecommendMiB") * 1048576) {
             const src = q.coredumps.sources.filter(x => x.stored > 0);
             const stored = src.reduce((a, x) => a + x.stored, 0);
             const top = src.slice(0, 2).map(x => x.exe === "xdg-desktop-portal-hyprland" ? "el portal de escritorio falló " + x.count + " veces"
                                                                                            : x.exe + " (" + x.stored + ")");
-            out.push({ id: "coredumps", sev: q.coredumps.bytes > GiB ? 2 : 1, metrics: { bytes: q.coredumps.bytes, count: stored }, sources: src,
+            out.push({ id: "coredumps", sev: q.coredumps.bytes > opt("coredumpWarnGiB") * GiB ? 2 : 1, metrics: { bytes: q.coredumps.bytes, count: stored }, sources: src,
                 sentence: "Se detectaron " + root.plural(stored, "volcado de error", "volcados de error") + " que ocupan " + root.gb(q.coredumps.bytes) + ".",
                 why: top.length ? "Casi todos son de " + top.join("; ") + "." : "",
                 advice: "limpiar los volcados de error", action: "coredumps", actionLabel: "Limpiar…" });
         }
 
         if (u && root.updateCount > 0) {
-            const stale = q && q.lastUpgrade && (Date.now() / 1000 - q.lastUpgrade) > 14 * 86400;
+            const stale = q && q.lastUpgrade && (Date.now() / 1000 - q.lastUpgrade) > opt("staleUpgradeDays") * 86400;
             const parts = [];
             if (u.repo.length) parts.push(u.aur.length ? u.repo.length + " del repositorio" : "Todas del repositorio");
             if (u.aur.length) parts.push(u.repo.length ? u.aur.length + " de AUR" : "Todas de AUR");
@@ -281,7 +284,7 @@ Item {
 
         if (s) {
             const cache = s.pkgCache.reclaimBytes + s.helperCacheBytes;
-            if (cache > 2 * GiB)
+            if (cache > opt("packageCacheGiB") * GiB)
                 out.push({ id: "pkgcache", sev: 1, metrics: { bytes: cache },
                     sentence: "Se pueden liberar " + root.gb(cache) + " en cachés de paquetes.",
                     why: root.gb(s.pkgCache.reclaimBytes) + " de pacman" + (s.helper ? " y " + root.gb(s.helperCacheBytes) + " de " + s.helper : "") + "; quedan las dos últimas versiones.",
@@ -292,7 +295,7 @@ Item {
                 sentence: "Hay " + root.plural(q.orphans.length, "paquete que ya nada usa", "paquetes que ya nada usa") + ".",
                 why: "Revisa la lista antes: algunas herramientas de compilación aparecen aunque las uses a mano.",
                 advice: "quitar " + root.plural(q.orphans.length, "paquete sin uso", "paquetes sin uso"), action: "orphans", actionLabel: "Revisar…" });
-        if (q && q.journalBytes > GiB)
+        if (q && q.journalBytes > opt("journalGiB") * GiB)
             out.push({ id: "journal", sev: 1, metrics: { bytes: q.journalBytes },
                 sentence: "El diario del sistema ocupa " + root.gb(q.journalBytes) + ".",
                 why: "Se puede reducir a 200 MB; se borran los registros más viejos.",
@@ -304,7 +307,7 @@ Item {
                 advice: "revisar los .pacnew", action: "", actionLabel: "" });
         if (s) {
             const cap = s.captures.screenshots.bytes + s.captures.recordings.bytes;
-            if (cap > 5 * GiB)
+            if (cap > opt("capturesGiB") * GiB)
                 out.push({ id: "captures", sev: 1, metrics: { bytes: cap },
                     sentence: "Tus capturas ocupan " + root.gb(cap) + ".",
                     why: s.captures.screenshots.count + " imágenes y " + s.captures.recordings.count + " grabaciones; revisa las antiguas.",

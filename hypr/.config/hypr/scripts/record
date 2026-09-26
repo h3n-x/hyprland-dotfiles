@@ -9,7 +9,8 @@
 # (stop, la pill o un error): borra el estado, genera la miniatura y le pasa
 # el video a la vista previa de capturas.
 #
-# Codifica con VA-API en la Radeon (h264_vaapi, qp 24, tope 60 fps): ~7 % de un
+# Codifica con VA-API en la Radeon (h264_vaapi, qp segun capture.recordingQuality —
+# equilibrada = qp 24 —, tope 60 fps): ~7 % de un
 # nucleo contra 263-322 % de x264 por software, calidad equivalente (SSIM) y
 # ~1,7x el tamano. LIBVA_DRIVER_NAME=radeonsi solo para este proceso: la sesion
 # lo fija en nvidia (env.lua) y con ese driver la Radeon no codifica. Sin nodo
@@ -17,7 +18,9 @@
 # Requiere: wf-recorder, slurp, jq, ffmpeg
 set -euo pipefail
 
-DIR="$HOME/Videos/Recordings"
+# Carpeta y calidad: capture.recordingsDir, capture.recordingQuality (settings store).
+SETTINGS="$(dirname "$0")/settings"
+DIR=$("$SETTINGS" get capture.recordingsDir) || exit 1
 STATE_DIR="${XDG_RUNTIME_DIR:-/run/user/$UID}/dotfiles"
 STATE="$STATE_DIR/recording.json"
 LOG="$STATE_DIR/recording.log"
@@ -61,7 +64,13 @@ start() {
     esac
     file="$DIR/$(date +%Y-%m-%d_%H-%M-%S).mp4"
     if node=$(amd_node); then
-        enc=(-c h264_vaapi -d "$node" -p qp=24 -r 60)
+        # high = qp 20, balanced = qp 24, small = qp 28
+        case $("$SETTINGS" get capture.recordingQuality) in
+            high) qp=20 ;;
+            small) qp=28 ;;
+            *) qp=24 ;;
+        esac
+        enc=(-c h264_vaapi -d "$node" -p "qp=$qp" -r 60)
         export LIBVA_DRIVER_NAME=radeonsi
     fi
     started=$(date +%s%3N)

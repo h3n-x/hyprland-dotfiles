@@ -10,7 +10,7 @@ import Quickshell
 import Quickshell.Widgets
 import Quickshell.Wayland
 import Quickshell.Services.Notifications
-import ".." // Colors.qml, Tokens.qml, NotificationState.qml, AppInfo.qml
+import ".." // Colors.qml, Tokens.qml, NotificationState.qml, AppInfo.qml, SettingsState.qml
 
 PanelWindow {
     id: toastWindow
@@ -105,7 +105,7 @@ PanelWindow {
 
                 Timer {
                     running: !toast.critical
-                    interval: toast.modelData.expireTimeout > 0 ? toast.modelData.expireTimeout * 1000 : 5000
+                    interval: toast.modelData.expireTimeout > 0 ? toast.modelData.expireTimeout * 1000 : SettingsState.value("notifications.defaultSeconds") * 1000
                     onTriggered: toast.leave("expire")
                 }
 

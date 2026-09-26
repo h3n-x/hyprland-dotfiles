@@ -83,7 +83,8 @@ QtObject {
         }
     }
     property Timer periodic: Timer {
-        interval: 30 * 60 * 1000
+        // dashboard.weatherRefreshMinutes (settings store)
+        interval: SettingsState.value("dashboard.weatherRefreshMinutes") * 60 * 1000
         repeat: true
         running: root.configured
         onTriggered: root.refresh()

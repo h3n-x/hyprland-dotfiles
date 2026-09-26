@@ -16,18 +16,17 @@ QtObject {
     readonly property string script: Quickshell.env("KEYBINDS_SCRIPT") || (Quickshell.env("HOME") + "/.config/hypr/scripts/keybinds")
 
     // ---- Opciones ---------------------------------------------------------------------------
-    // Entradas del futuro settings store (P8.1), editables desde la pagina
-    // Atajos del centro de configuracion (P10.11): "keybinds.<nombre>". Hasta
-    // entonces viven solo aca, con su valor por defecto. La tecla que abre la
-    // guia es un atajo mas (binds.lua); cambiarla pasara por los overrides de
-    // Hyprland (P10.3), no por la shell.
+    // Del settings store (Fase 8 B1), claves keybinds.* del esquema; las
+    // editara la pagina Atajos del centro de configuracion (P10.11). La tecla
+    // que abre la guia es un atajo mas (binds.lua); cambiarla pasara por los
+    // overrides de Hyprland (P10.3), no por la shell.
     component Options: QtObject {
         // 0 = automatico segun el ancho de la pantalla.
-        property int columns: 0
+        readonly property int columns: SettingsState.value("keybinds.columns")
         // "words" (Super, Ctrl, Alt, Shift) o "symbols" (iconos).
-        property string modifierStyle: "words"
+        readonly property string modifierStyle: SettingsState.value("keybinds.modifierStyle")
         // Mostrar los atajos de los modos (submaps: "Modo cambiar tamaño").
-        property bool showModes: true
+        readonly property bool showModes: SettingsState.value("keybinds.showModes")
     }
     readonly property Options options: Options {}
 

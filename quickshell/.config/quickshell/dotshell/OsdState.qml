@@ -23,7 +23,8 @@ QtObject {
     }
 
     property Timer hideTimer: Timer {
-        interval: 1500
+        // appearance.osdSeconds (settings store)
+        interval: SettingsState.value("appearance.osdSeconds") * 1000
         onTriggered: root.visible = false
     }
 }

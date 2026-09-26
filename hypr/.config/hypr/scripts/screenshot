@@ -10,7 +10,8 @@
 # Requiere: grim, slurp, hyprpicker, wl-clipboard, jq
 set -euo pipefail
 
-DIR="$HOME/Pictures/Screenshots"
+# Carpeta: capture.screenshotsDir (settings store, Fase 8 B1).
+DIR=$("$(dirname "$0")/settings" get capture.screenshotsDir) || exit 1
 mkdir -p "$DIR"
 FILE="$DIR/$(date +%Y-%m-%d_%H-%M-%S).png"
 MODE="${1:-region}"

@@ -1,0 +1,160 @@
+{
+  "version": 1,
+  "categories": {
+    "appearance":    { "label": "Apariencia",       "icon": "palette",           "order": 10 },
+    "accessibility": { "label": "Accesibilidad",    "icon": "accessibility",     "order": 20 },
+    "bar":           { "label": "Barra",            "icon": "toolbar",           "order": 30 },
+    "dashboard":     { "label": "Dashboard",        "icon": "dashboard",         "order": 40 },
+    "capture":       { "label": "Capturas",         "icon": "screenshot_region", "order": 50 },
+    "media":         { "label": "Multimedia",       "icon": "music_note",        "order": 60 },
+    "notifications": { "label": "Notificaciones",   "icon": "notifications",     "order": 70 },
+    "system":        { "label": "Sistema",          "icon": "settings",          "order": 80 },
+    "lock":          { "label": "Bloqueo e inicio", "icon": "lock",              "order": 90 },
+    "keybinds":      { "label": "Atajos",           "icon": "keyboard",          "order": 100 }
+  },
+  "keys": {
+    "appearance.osdSeconds": {
+      "type": "number", "default": 1.5, "min": 0.5, "max": 10, "step": 0.5, "unit": "s",
+      "category": "appearance", "section": "Indicadores", "order": 10,
+      "label": "Duración del indicador de volumen y brillo",
+      "keywords": ["osd", "volumen", "brillo"], "apply": "live"
+    },
+    "accessibility.reduceMotion": {
+      "type": "bool", "default": false,
+      "category": "accessibility", "section": "Movimiento", "order": 10,
+      "label": "Reducir movimiento",
+      "description": "Sin animaciones ni transiciones en toda la shell.",
+      "keywords": ["animaciones", "transiciones", "mareo"], "apply": "live"
+    },
+    "bar.minWorkspaces": {
+      "type": "int", "default": 5, "min": 1, "max": 10,
+      "category": "bar", "section": "Escritorios", "order": 10,
+      "label": "Escritorios que se muestran siempre",
+      "description": "Cuántos escritorios aparecen en la barra aunque estén vacíos.",
+      "keywords": ["workspaces"], "apply": "live"
+    },
+    "dashboard.weatherRefreshMinutes": {
+      "type": "int", "default": 30, "min": 10, "max": 180, "step": 5, "unit": "min",
+      "category": "dashboard", "section": "Hoy", "order": 10,
+      "label": "Actualizar el clima cada",
+      "description": "Cada consulta va a Open-Meteo; más tiempo, menos peticiones.",
+      "keywords": ["clima", "tiempo", "open-meteo"], "apply": "live"
+    },
+    "capture.cardSeconds": {
+      "type": "int", "default": 6, "min": 2, "max": 30, "unit": "s",
+      "category": "capture", "section": "Vista previa", "order": 10,
+      "label": "Duración de la tarjeta",
+      "description": "Tiempo que la tarjeta de una captura queda en pantalla (se pausa con el puntero encima).",
+      "apply": "live"
+    },
+    "capture.screenshotsDir": {
+      "type": "path", "kind": "dir", "default": "~/Pictures/Screenshots",
+      "category": "capture", "section": "Carpetas", "order": 20,
+      "label": "Carpeta de capturas", "apply": "next-use"
+    },
+    "capture.recordingsDir": {
+      "type": "path", "kind": "dir", "default": "~/Videos/Recordings",
+      "category": "capture", "section": "Carpetas", "order": 30,
+      "label": "Carpeta de grabaciones", "apply": "next-use"
+    },
+    "capture.recordingQuality": {
+      "type": "enum", "default": "balanced",
+      "values": { "high": "Alta (archivos más grandes)", "balanced": "Equilibrada", "small": "Archivos pequeños" },
+      "category": "capture", "section": "Grabación", "order": 40,
+      "label": "Calidad de grabación",
+      "description": "Con la codificación por hardware: alta = qp 20, equilibrada = qp 24, pequeños = qp 28.",
+      "apply": "next-use"
+    },
+    "notifications.defaultSeconds": {
+      "type": "int", "default": 5, "min": 2, "max": 30, "unit": "s",
+      "category": "notifications", "section": "Avisos", "order": 10,
+      "label": "Duración de los avisos",
+      "description": "Para las notificaciones que no indican su propia duración.",
+      "apply": "live"
+    },
+    "system.battery.warnPct": {
+      "type": "int", "default": 20, "min": 5, "max": 50, "unit": "%",
+      "category": "system", "section": "Batería", "order": 10,
+      "label": "Aviso de batería baja", "apply": "live"
+    },
+    "system.battery.criticalPct": {
+      "type": "int", "default": 10, "min": 3, "max": 30, "unit": "%",
+      "category": "system", "section": "Batería", "order": 20,
+      "label": "Aviso de batería crítica", "apply": "live"
+    },
+    "system.maintenance.checkIntervalMinutes": {
+      "type": "int", "default": 60, "min": 15, "max": 1440, "step": 15, "unit": "min",
+      "category": "system", "section": "Mantenimiento", "order": 10,
+      "label": "Revisar el sistema cada",
+      "description": "Actualizaciones y estado del sistema; también se revisa después de cada operación de pacman.",
+      "apply": "live"
+    },
+    "system.maintenance.staleUpgradeDays": {
+      "type": "int", "default": 14, "min": 1, "max": 90, "unit": "días",
+      "category": "system", "section": "Mantenimiento", "order": 20,
+      "label": "Advertir si no se actualiza en", "advanced": true, "apply": "live"
+    },
+    "system.maintenance.diskWarnPct": {
+      "type": "int", "default": 80, "min": 50, "max": 99, "unit": "%",
+      "category": "system", "section": "Mantenimiento", "order": 30,
+      "label": "Advertencia de disco lleno", "advanced": true, "apply": "live"
+    },
+    "system.maintenance.diskCriticalPct": {
+      "type": "int", "default": 90, "min": 60, "max": 99, "unit": "%",
+      "category": "system", "section": "Mantenimiento", "order": 40,
+      "label": "Disco lleno: acción importante", "advanced": true, "apply": "live"
+    },
+    "system.maintenance.trashRecommendGiB": {
+      "type": "number", "default": 1, "min": 0.1, "max": 100, "unit": "GiB",
+      "category": "system", "section": "Mantenimiento", "order": 50,
+      "label": "Recomendar vaciar la papelera desde", "advanced": true, "apply": "live"
+    },
+    "system.maintenance.trashWarnGiB": {
+      "type": "number", "default": 10, "min": 0.5, "max": 500, "unit": "GiB",
+      "category": "system", "section": "Mantenimiento", "order": 60,
+      "label": "Advertir por la papelera desde", "advanced": true, "apply": "live"
+    },
+    "system.maintenance.coredumpRecommendMiB": {
+      "type": "int", "default": 256, "min": 16, "max": 10240, "unit": "MiB",
+      "category": "system", "section": "Mantenimiento", "order": 70,
+      "label": "Recomendar limpiar volcados desde", "advanced": true, "apply": "live"
+    },
+    "system.maintenance.coredumpWarnGiB": {
+      "type": "number", "default": 1, "min": 0.1, "max": 100, "unit": "GiB",
+      "category": "system", "section": "Mantenimiento", "order": 80,
+      "label": "Advertir por los volcados desde", "advanced": true, "apply": "live"
+    },
+    "system.maintenance.packageCacheGiB": {
+      "type": "number", "default": 2, "min": 0.1, "max": 100, "unit": "GiB",
+      "category": "system", "section": "Mantenimiento", "order": 90,
+      "label": "Recomendar limpiar cachés de paquetes desde", "advanced": true, "apply": "live"
+    },
+    "system.maintenance.journalGiB": {
+      "type": "number", "default": 1, "min": 0.1, "max": 50, "unit": "GiB",
+      "category": "system", "section": "Mantenimiento", "order": 100,
+      "label": "Recomendar reducir el diario desde", "advanced": true, "apply": "live"
+    },
+    "system.maintenance.capturesGiB": {
+      "type": "number", "default": 5, "min": 0.5, "max": 500, "unit": "GiB",
+      "category": "system", "section": "Mantenimiento", "order": 110,
+      "label": "Recomendar revisar capturas desde", "advanced": true, "apply": "live"
+    },
+    "keybinds.columns": {
+      "type": "int", "default": 0, "min": 0, "max": 6,
+      "category": "keybinds", "section": "Guía de atajos", "order": 10,
+      "label": "Columnas de la guía",
+      "description": "0 = según el ancho de la pantalla.", "apply": "live"
+    },
+    "keybinds.modifierStyle": {
+      "type": "enum", "default": "words",
+      "values": { "words": "Palabras (Super, Ctrl, Alt, Shift)", "symbols": "Símbolos" },
+      "category": "keybinds", "section": "Guía de atajos", "order": 20,
+      "label": "Modificadores", "apply": "live"
+    },
+    "keybinds.showModes": {
+      "type": "bool", "default": true,
+      "category": "keybinds", "section": "Guía de atajos", "order": 30,
+      "label": "Mostrar los modos (cambiar tamaño)", "apply": "live"
+    }
+  }
+}

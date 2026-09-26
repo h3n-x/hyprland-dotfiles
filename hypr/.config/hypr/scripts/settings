@@ -1,0 +1,358 @@
+#!/usr/bin/env bash
+# Opciones del ecosistema (Fase 8 B1, P8.1): la unica implementacion de las
+# reglas (tipos, rangos, migraciones, cuarentena, escritura).
+#
+#   settings get <clave>            valor efectivo (rapido: jq sobre la cache)
+#   settings set <clave> <json>     valida y guarda (un valor igual al de fabrica
+#                                   se borra: "modificado" = la clave existe)
+#   settings reset <clave>          vuelve al valor de fabrica
+#   settings reset-category <cat>   todas las claves de una categoria
+#   settings dump                   regenera la cache efectiva y la imprime
+#   settings check                  valida el esquema (y resume el archivo del usuario)
+#   settings keys                   claves del esquema (drift check)
+#   settings path                   rutas en uso
+#
+# Archivos (clases, ver ARCHITECTURE):
+#   esquema   dotshell/data/settings.schema.json      SOURCE: defaults y metadatos
+#   usuario   ~/.config/dotfiles/settings.json        solo lo que el usuario cambio
+#   efectivo  ~/.cache/dotfiles/settings.effective.json  CACHE: todo resuelto
+# Nadie lee settings.json directamente: la shell (SettingsState) y los scripts
+# leen la cache efectiva; todo lo que escribe pasa por aca. Un valor invalido
+# no se aplica ni se borra (cuarentena, queda en "problems"). Sin secretos.
+# Pruebas: SETTINGS_SCHEMA, SETTINGS_MIGRATIONS, SETTINGS_FILE,
+# SETTINGS_EFFECTIVE, SETTINGS_LOCK.
+set -uo pipefail
+
+SCHEMA=${SETTINGS_SCHEMA:-$HOME/.config/quickshell/dotshell/data/settings.schema.json}
+MIGRATIONS=${SETTINGS_MIGRATIONS:-$(dirname "$SCHEMA")/settings.migrations.json}
+USER_FILE=${SETTINGS_FILE:-$HOME/.config/dotfiles/settings.json}
+EFFECTIVE=${SETTINGS_EFFECTIVE:-${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/settings.effective.json}
+LOCK=${SETTINGS_LOCK:-${XDG_RUNTIME_DIR:-/tmp}/dotfiles/settings.lock}
+export SCHEMA MIGRATIONS USER_FILE EFFECTIVE LOCK
+
+# La cache vale si es mas nueva que todo lo que la produce.
+fresh() {
+    [[ -f $EFFECTIVE ]] || return 1
+    local f
+    for f in "$SCHEMA" "$MIGRATIONS" "$USER_FILE"; do
+        [[ -e $f && $f -nt $EFFECTIVE ]] && return 1
+    done
+    return 0
+}
+
+engine() {
+    python3 - "$@" <<'PY'
+import datetime, fcntl, json, os, re, sys, tempfile
+
+SCHEMA = os.environ["SCHEMA"]; MIGRATIONS = os.environ["MIGRATIONS"]
+USER_FILE = os.environ["USER_FILE"]; EFFECTIVE = os.environ["EFFECTIVE"]; LOCK = os.environ["LOCK"]
+TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color"}
+APPLY = {"live", "next-use", "reload-shell", "relogin", "reboot"}
+SCOPES = {"user", "login", "lock"}
+
+
+def die(msg, code=2):
+    print(msg, file=sys.stderr)
+    sys.exit(code)
+
+
+def load_json(path, default):
+    try:
+        with open(path) as f:
+            return json.load(f), None
+    except FileNotFoundError:
+        return default, None
+    except (OSError, ValueError) as e:
+        return default, str(e)
+
+
+def schema():
+    s, err = load_json(SCHEMA, None)
+    if s is None:
+        die(f"esquema ilegible: {err or 'no existe'} ({SCHEMA})", 1)
+    return s
+
+
+def schema_problems(s):
+    """Errores del esquema mismo (check): tipos, categorias, prefijos, defaults."""
+    out = []
+    cats = s.get("categories", {})
+    if not isinstance(s.get("version"), int):
+        out.append("version: falta o no es un entero")
+    for key, m in s.get("keys", {}).items():
+        t = m.get("type")
+        if t not in TYPES:
+            out.append(f"{key}: tipo desconocido {t!r}")
+            continue
+        cat = m.get("category")
+        if cat not in cats:
+            out.append(f"{key}: categoria desconocida {cat!r}")
+        elif not key.startswith(cat + "."):
+            out.append(f"{key}: el prefijo no coincide con la categoria {cat!r}")
+        if not m.get("label"):
+            out.append(f"{key}: falta label")
+        if m.get("apply", "live") not in APPLY:
+            out.append(f"{key}: apply desconocido {m.get('apply')!r}")
+        if m.get("scope", "user") not in SCOPES:
+            out.append(f"{key}: scope desconocido {m.get('scope')!r}")
+        if t == "enum" and not isinstance(m.get("values"), dict):
+            out.append(f"{key}: enum sin values")
+        if "min" in m and "max" in m and m["min"] > m["max"]:
+            out.append(f"{key}: min > max")
+        if "default" not in m:
+            out.append(f"{key}: falta default")
+        else:
+            ok, _, why = validate(m, m["default"])
+            if not ok:
+                out.append(f"{key}: default invalido ({why})")
+    return out
+
+
+def validate(m, v):
+    """(ok, valor efectivo, motivo) segun el tipo y los limites del esquema."""
+    t = m["type"]
+    def rng(x):
+        if "min" in m and x < m["min"]:
+            return f"menor que {m['min']}"
+        if "max" in m and x > m["max"]:
+            return f"mayor que {m['max']}"
+        return None
+    if t == "bool":
+        return (True, v, None) if isinstance(v, bool) else (False, None, "no es verdadero/falso")
+    if t == "int":
+        if isinstance(v, bool) or not isinstance(v, int):
+            return False, None, "no es un entero"
+        r = rng(v)
+        return (False, None, r) if r else (True, v, None)
+    if t == "number":
+        if isinstance(v, bool) or not isinstance(v, (int, float)):
+            return False, None, "no es un número"
+        r = rng(v)
+        return (False, None, r) if r else (True, v, None)
+    if t == "string":
+        if not isinstance(v, str):
+            return False, None, "no es texto"
+        if "maxLength" in m and len(v) > m["maxLength"]:
+            return False, None, f"más de {m['maxLength']} caracteres"
+        if "pattern" in m and not re.fullmatch(m["pattern"], v):
+            return False, None, "formato no válido"
+        return True, v, None
+    if t == "enum":
+        return (True, v, None) if isinstance(v, str) and v in m["values"] else (False, None, f"no es una de: {', '.join(m['values'])}")
+    if t == "path":
+        if not isinstance(v, str) or not v:
+            return False, None, "no es una ruta"
+        p = os.path.expanduser(os.path.expandvars(v))
+        return (True, p, None) if os.path.isabs(p) else (False, None, "la ruta no es absoluta")
+    if t == "list":
+        if not isinstance(v, list):
+            return False, None, "no es una lista"
+        if "maxItems" in m and len(v) > m["maxItems"]:
+            return False, None, f"más de {m['maxItems']} elementos"
+        item = dict(m.get("items", {"type": "string"}))
+        out = []
+        for x in v:
+            ok, val, why = validate(item, x)
+            if not ok:
+                return False, None, f"elemento no válido ({why})"
+            out.append(val)
+        return True, out, None
+    if t == "color":
+        if isinstance(v, str) and (re.fullmatch(r"#[0-9a-fA-F]{6}", v) or re.fullmatch(r"[a-z][A-Za-z]*", v)):
+            return True, v, None
+        return False, None, "no es #rrggbb ni un rol de color"
+    return False, None, "tipo desconocido"
+
+
+def migrate(user, s):
+    """Aplica las migraciones pendientes (datos en settings.migrations.json)."""
+    migs, err = load_json(MIGRATIONS, [])
+    notes = []
+    if err:
+        notes.append({"key": None, "reason": f"migraciones ilegibles: {err}"})
+        migs = []
+    version = user.get("version", 0) if isinstance(user.get("version", 0), int) else 0
+    values = user.get("values", {})
+    for mg in sorted(migs, key=lambda x: x.get("to", 0)):
+        if version >= mg.get("to", 0):
+            continue
+        for old, new in mg.get("rename", {}).items():
+            if old in values and new not in values:
+                values[new] = values.pop(old)
+        for key, conv in mg.get("convert", {}).items():
+            if key in values and "map" in conv and values[key] in conv["map"]:
+                values[key] = conv["map"][values[key]]
+        version = mg["to"]
+    user["values"] = values
+    user["version"] = max(version, user.get("version", 0) if isinstance(user.get("version"), int) else 0)
+    if user["version"] > s["version"]:
+        notes.append({"key": None, "reason": f"el archivo es de una versión más nueva ({user['version']}) que el esquema ({s['version']})"})
+    return user, notes
+
+
+def read_user(s):
+    raw, err = load_json(USER_FILE, {})
+    problems = []
+    broken = False
+    if err:
+        broken = True
+        problems.append({"key": None, "reason": f"archivo ilegible, se usan los valores de fábrica: {err}"})
+        raw = {}
+    if not isinstance(raw, dict) or not isinstance(raw.get("values", {}), dict):
+        broken = True
+        problems.append({"key": None, "reason": "el archivo no tiene la forma {version, values}"})
+        raw = {}
+    raw.setdefault("values", {})
+    user, notes = migrate(raw, s)
+    return user, problems + notes, broken
+
+
+def effective(s, user, problems):
+    keys = s["keys"]
+    values, modified = {}, []
+    for key, m in keys.items():
+        _, values[key], _ = validate(m, m["default"])
+    for key, v in user["values"].items():
+        if key not in keys:
+            problems.append({"key": key, "value": v, "reason": "clave desconocida (se conserva, no se aplica)"})
+            continue
+        ok, val, why = validate(keys[key], v)
+        if ok:
+            values[key] = val
+            if v != keys[key]["default"]:
+                modified.append(key)
+        else:
+            problems.append({"key": key, "value": v, "reason": f"{why} (se usa el valor de fábrica)"})
+    return {"schemaVersion": s["version"], "values": values, "modified": sorted(modified), "problems": problems}
+
+
+def atomic_write(path, text):
+    d = os.path.dirname(path)
+    os.makedirs(d, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=d, prefix=".tmp-")
+    with os.fdopen(fd, "w") as f:
+        f.write(text)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)
+
+
+def dump(quiet=False):
+    s = schema()
+    user, problems, _ = read_user(s)
+    eff = effective(s, user, problems)
+    text = json.dumps(eff, ensure_ascii=False, indent=1, sort_keys=True) + "\n"
+    old, _ = load_json(EFFECTIVE, None)
+    if old == eff:
+        os.utime(EFFECTIVE)   # mismo contenido: solo marca que esta al dia
+    else:
+        atomic_write(EFFECTIVE, text)
+    if not quiet:
+        sys.stdout.write(text)
+
+
+def locked(fn):
+    os.makedirs(os.path.dirname(LOCK), exist_ok=True)
+    with open(LOCK, "w") as lk:
+        fcntl.flock(lk, fcntl.LOCK_EX)
+        return fn()
+
+
+def write_user(change):
+    """Relee bajo el lock, aplica el cambio y escribe (nunca los valores ajenos)."""
+    s = schema()
+    def run():
+        user, _, broken = read_user(s)
+        if broken and os.path.exists(USER_FILE):
+            stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            os.replace(USER_FILE, f"{USER_FILE}.broken-{stamp}")
+        change(s, user["values"])
+        out = {"version": max(s["version"], user.get("version", 0)), "values": dict(sorted(user["values"].items()))}
+        atomic_write(USER_FILE, json.dumps(out, ensure_ascii=False, indent=2) + "\n")
+        dump(quiet=True)
+    locked(run)
+
+
+def cmd_set(key, text):
+    s = schema()
+    if key not in s["keys"]:
+        die(f"clave desconocida: {key}")
+    try:
+        value = json.loads(text)
+    except ValueError:
+        value = text            # texto suelto: settings set capture.screenshotsDir ~/Capturas
+    m = s["keys"][key]
+    ok, _, why = validate(m, value)
+    if not ok:
+        die(f"{key}: {why}; no se guardó")
+    def change(s, values):
+        if value == m["default"]:
+            values.pop(key, None)
+        else:
+            values[key] = value
+    write_user(change)
+
+
+def cmd_reset(key):
+    write_user(lambda s, values: values.pop(key, None))
+
+
+def cmd_reset_category(cat):
+    s = schema()
+    if cat not in s.get("categories", {}):
+        die(f"categoría desconocida: {cat}")
+    def change(s, values):
+        for k in [k for k in values if k.startswith(cat + ".")]:
+            values.pop(k)
+    write_user(change)
+
+
+def cmd_check():
+    s = schema()
+    errs = schema_problems(s)
+    for e in errs:
+        print(e, file=sys.stderr)
+    user, problems, _ = read_user(s)
+    eff = effective(s, user, problems)
+    print(f"{len(s['keys'])} claves en {len(s.get('categories', {}))} categorías; esquema: {len(errs)} errores; "
+          f"archivo del usuario: {len(eff['modified'])} cambiadas, {len(eff['problems'])} problemas")
+    for p in eff["problems"]:
+        print(f"  problema: {p.get('key')}: {p['reason']}")
+    sys.exit(1 if errs else 0)
+
+
+args = sys.argv[1:]
+cmd = args[0] if args else ""
+if cmd == "dump":
+    dump()
+elif cmd == "set" and len(args) == 3:
+    cmd_set(args[1], args[2])
+elif cmd == "reset" and len(args) == 2:
+    cmd_reset(args[1])
+elif cmd == "reset-category" and len(args) == 2:
+    cmd_reset_category(args[1])
+elif cmd == "check":
+    cmd_check()
+elif cmd == "keys":
+    print("\n".join(sorted(schema()["keys"])))
+else:
+    die("uso: settings get|set|reset|reset-category|dump|check|keys|path")
+PY
+}
+
+case "${1:-}" in
+    get)
+        [[ -n ${2:-} ]] || { echo "uso: settings get <clave>" >&2; exit 2; }
+        fresh || engine dump >/dev/null || exit 1
+        # Texto tal cual; lo demas en JSON (true, 6, 1.5, [..]). Clave desconocida: exit 2.
+        jq -r --arg k "$2" 'if (.values | has($k)) then .values[$k] | (if type == "string" then . else tojson end)
+                            else error("clave desconocida") end' "$EFFECTIVE" 2>/dev/null ||
+            { echo "clave desconocida: $2" >&2; exit 2; }
+        ;;
+    path)
+        printf 'esquema     %s\nmigraciones %s\nusuario     %s\nefectivo    %s\nlock        %s\n' "$SCHEMA" "$MIGRATIONS" "$USER_FILE" "$EFFECTIVE" "$LOCK"
+        ;;
+    *)
+        engine "$@"
+        ;;
+esac
