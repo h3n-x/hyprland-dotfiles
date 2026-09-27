@@ -79,7 +79,7 @@ PanelWindow {
                 level: 3
                 translucent: true
                 radius: Tokens.radius.lg
-                border.color: toast.critical ? Colors.m3error : Colors.m3outlineVariant
+                border.color: toast.critical ? Colors.danger : Colors.divider
 
                 // Entrada al aparecer; al cerrarlo (click o timer) primero anima
                 // la salida y recien despues se descarta la notificacion. Si la
@@ -136,7 +136,7 @@ PanelWindow {
                             Layout.fillWidth: true
                             Layout.alignment: Qt.AlignVCenter
                             text: toast.modelData.summary
-                            color: Colors.m3onSurface
+                            color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                             font.weight: Tokens.weight.semibold
@@ -148,7 +148,7 @@ PanelWindow {
                         visible: !!toast.modelData.body
                         Layout.fillWidth: true
                         text: toast.modelData.body
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
                         wrapMode: Text.WordWrap
@@ -172,19 +172,19 @@ PanelWindow {
                                 implicitWidth: actionLabel.implicitWidth + Tokens.pad.pillH * 2
                                 implicitHeight: Tokens.pill.height
                                 radius: Tokens.radius.pill(height)
-                                color: Colors.m3secondaryContainer
+                                color: Colors.accentAltContainer
 
                                 StateLayer {
                                     hovered: actionMouse.containsMouse
                                     pressed: actionMouse.pressed
-                                    contentColor: Colors.m3onSecondaryContainer
+                                    contentColor: Colors.textOnAccentAltContainer
                                 }
 
                                 Text {
                                     id: actionLabel
                                     anchors.centerIn: parent
                                     text: actionBtn.modelData.text
-                                    color: Colors.m3onSecondaryContainer
+                                    color: Colors.textOnAccentAltContainer
                                     font.family: Tokens.font.ui
                                     font.pixelSize: Tokens.type.label
                                     font.weight: Tokens.weight.medium

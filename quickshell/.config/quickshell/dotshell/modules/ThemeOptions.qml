@@ -52,12 +52,12 @@ ColumnLayout {
         // Relleno algo menor que el de los chips de etiquetas: los cinco entran en una fila.
         implicitWidth: chipRow.implicitWidth + (Tokens.space.xs + Tokens.space.hair) * 2
         radius: Tokens.radius.pill(height)
-        color: chip.selected ? Colors.m3secondaryContainer : "transparent"
-        border.color: chip.selected ? "transparent" : Colors.m3outlineVariant
+        color: chip.selected ? Colors.accentAltContainer : "transparent"
+        border.color: chip.selected ? "transparent" : Colors.divider
         StateLayer {
             hovered: chipMouse.containsMouse
             pressed: chipMouse.pressed
-            contentColor: chip.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+            contentColor: chip.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
         }
         Row {
             id: chipRow
@@ -66,7 +66,7 @@ ColumnLayout {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: chip.text
-                color: chip.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                color: chip.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
                 font.weight: chip.selected ? Tokens.weight.semibold : Tokens.weight.regular
@@ -75,7 +75,7 @@ ColumnLayout {
                 visible: chip.trailingIcon !== ""
                 name: chip.trailingIcon
                 size: Tokens.icon.sm
-                color: chip.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                color: chip.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
             }
         }
         MouseArea {
@@ -91,7 +91,7 @@ ColumnLayout {
         Layout.fillWidth: true
         Text {
             text: "ESTE WALLPAPER"
-            color: Colors.m3onSurfaceVariant
+            color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
             font.weight: Tokens.weight.semibold
@@ -101,7 +101,7 @@ ColumnLayout {
         Text {
             visible: !!root.override
             text: "Personalizado ·"
-            color: Colors.m3onSurfaceVariant
+            color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
         }
@@ -111,16 +111,16 @@ ColumnLayout {
             implicitWidth: resetRow.implicitWidth + Tokens.space.xs * 2
             radius: Tokens.radius.sm
             color: "transparent"
-            StateLayer { hovered: resetMouse.containsMouse; pressed: resetMouse.pressed; contentColor: Colors.m3primary }
+            StateLayer { hovered: resetMouse.containsMouse; pressed: resetMouse.pressed; contentColor: Colors.accent }
             Row {
                 id: resetRow
                 anchors.centerIn: parent
                 spacing: Tokens.space.hair
-                Icon { name: "restart_alt"; size: Tokens.icon.sm; color: Colors.m3primary }
+                Icon { name: "restart_alt"; size: Tokens.icon.sm; color: Colors.accent }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Restablecer"
-                    color: Colors.m3primary
+                    color: Colors.accent
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption
                     font.weight: Tokens.weight.semibold
@@ -140,14 +140,14 @@ ColumnLayout {
         Layout.fillWidth: true
         Text {
             text: "Color base"
-            color: Colors.m3onSurface
+            color: Colors.text
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.label
         }
         Item { Layout.fillWidth: true }
         Text {
             text: root.noColor ? "sin color claro en la imagen" : (root.seed === root.candidates[0] ? "dominante" : "elegido")
-            color: Colors.m3onSurfaceVariant
+            color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
         }
@@ -168,13 +168,13 @@ ColumnLayout {
                     width: sw.width; height: sw.width; radius: width / 2
                     color: "transparent"
                     border.width: sw.sel ? 2 : 0
-                    border.color: Colors.m3primary
+                    border.color: Colors.accent
                 }
                 Rectangle {
                     x: sw.sel ? 4 : 0; y: x
                     width: sw.width - (sw.sel ? 8 : 0); height: width; radius: width / 2
                     color: sw.modelData
-                    border.color: Qt.alpha(Colors.m3onSurface, 0.15)
+                    border.color: Colors.tint(Colors.text, Tokens.tint.track)
                     scale: swMouse.containsMouse && !sw.sel ? 1.08 : 1
                     Behavior on scale { NumberAnimation { duration: Tokens.motion.fast } }
                 }
@@ -183,7 +183,7 @@ ColumnLayout {
                     visible: !root.noColor && sw.index === 0
                     x: (sw.width - width) / 2; y: sw.width + 3
                     width: 4; height: 4; radius: 2
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                 }
                 MouseArea {
                     id: swMouse
@@ -199,7 +199,7 @@ ColumnLayout {
     Text {
         Layout.topMargin: Tokens.space.hair
         text: "Esquema"
-        color: Colors.m3onSurface
+        color: Colors.text
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label
     }

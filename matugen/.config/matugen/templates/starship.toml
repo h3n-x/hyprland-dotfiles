@@ -61,6 +61,6 @@ format = "[ 󱦟 $duration ]($style)"
 min_time = 2000
 
 [character]
-success_symbol = "[❯](bold fg:#{{colors.primary.default.hex_stripped}})"
-error_symbol = "[❯](bold fg:#{{colors.error.default.hex_stripped}})"
+success_symbol = "[❯](bold fg:#{{status.success.default.hex_stripped}})"
+error_symbol = "[❯](bold fg:#{{status.error.default.hex_stripped}})"
 vimcmd_symbol = "[❮](bold fg:#{{colors.secondary.default.hex_stripped}})"

@@ -183,14 +183,14 @@ OverlayWindow {
                                 Layout.fillWidth: true
                                 implicitHeight: 36
                                 radius: Tokens.radius.md
-                                color: tab.on ? Colors.m3secondaryContainer : "transparent"
+                                color: tab.on ? Colors.accentAltContainer : "transparent"
                                 Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
                                 StateLayer { hovered: tabMouse.containsMouse; pressed: tabMouse.pressed }
                                 Icon {
                                     anchors.centerIn: parent
                                     name: tab.modelData.icon
                                     filled: tab.on
-                                    color: tab.on ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                                    color: tab.on ? Colors.textOnAccentAltContainer : Colors.textMuted
                                 }
                                 MouseArea {
                                     id: tabMouse
@@ -215,7 +215,7 @@ OverlayWindow {
                     width: picker.cellSize
                     height: picker.cellSize
                     radius: Tokens.radius.md
-                    color: cell.selected ? Colors.m3secondaryContainer : "transparent"
+                    color: cell.selected ? Colors.accentAltContainer : "transparent"
                     StateLayer { hovered: cellMouse.containsMouse; pressed: cellMouse.pressed }
                     // Imagen si ya estan generadas; si no (o si falta), texto.
                     Image {
@@ -251,7 +251,7 @@ OverlayWindow {
                     Rectangle {
                         implicitHeight: 64
                         radius: Tokens.radius.md
-                        color: Colors.m3surfaceContainerHighest
+                        color: Colors.surfaceHighest
                         RowLayout {
                             anchors.fill: parent
                             anchors.leftMargin: Tokens.space.md
@@ -280,7 +280,7 @@ OverlayWindow {
                                 Text {
                                     Layout.fillWidth: true
                                     text: content.current ? content.current.n : ""
-                                    color: Colors.m3onSurface
+                                    color: Colors.text
                                     font.family: Tokens.font.ui
                                     font.pixelSize: Tokens.type.body
                                     font.weight: Tokens.weight.semibold
@@ -289,7 +289,7 @@ OverlayWindow {
                                 Text {
                                     Layout.fillWidth: true
                                     text: content.current ? [content.current.en].concat(content.current.k || []).join(" · ") : ""
-                                    color: Colors.m3onSurfaceVariant
+                                    color: Colors.textMuted
                                     font.family: Tokens.font.ui
                                     font.pixelSize: Tokens.type.caption
                                     elide: Text.ElideRight
@@ -300,7 +300,7 @@ OverlayWindow {
                             // los admite (el tono igual queda elegido para los demas).
                             Text {
                                 text: window.toneNames[EmojiState.tone] + (content.current && !content.current.t ? " · sin tonos" : "")
-                                color: Colors.m3onSurfaceVariant
+                                color: Colors.textMuted
                                 font.family: Tokens.font.ui
                                 font.pixelSize: Tokens.type.caption
                             }
@@ -320,7 +320,7 @@ OverlayWindow {
                                             radius: width / 2
                                             color: "transparent"
                                             border.width: 2
-                                            border.color: Colors.m3primary
+                                            border.color: Colors.accent
                                             visible: dot.on
                                         }
                                         Rectangle {

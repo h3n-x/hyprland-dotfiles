@@ -136,7 +136,7 @@ OverlayWindow {
         implicitHeight: hintText.implicitHeight + Tokens.space.hair * 2
         radius: Tokens.radius.sm
         color: "transparent"
-        border.color: Qt.alpha(hint.fg, 0.4)
+        border.color: Colors.tint(hint.fg, Tokens.tint.hairline)
         Text {
             id: hintText
             anchors.centerIn: parent
@@ -178,13 +178,13 @@ OverlayWindow {
                     implicitWidth: 112
                     implicitHeight: 116
                     radius: Tokens.radius.lg
-                    color: tile.selected ? Colors.m3secondaryContainer : "transparent"
+                    color: tile.selected ? Colors.accentAltContainer : "transparent"
                     Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
 
                     StateLayer {
                         hovered: tileMouse.containsMouse
                         pressed: tileMouse.pressed
-                        contentColor: tile.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                        contentColor: tile.selected ? Colors.textOnAccentAltContainer : Colors.text
                     }
 
                     ColumnLayout {
@@ -195,12 +195,12 @@ OverlayWindow {
                             name: tile.modelData.icon
                             size: Tokens.icon.xl
                             filled: tile.selected
-                            color: tile.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                            color: tile.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                         }
                         Text {
                             Layout.alignment: Qt.AlignHCenter
                             text: tile.modelData.label
-                            color: tile.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            color: tile.selected ? Colors.textOnAccentAltContainer : Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                             font.weight: tile.selected ? Tokens.weight.semibold : Tokens.weight.medium
@@ -208,7 +208,7 @@ OverlayWindow {
                         KeyHint {
                             Layout.alignment: Qt.AlignHCenter
                             text: tile.modelData.key
-                            fg: tile.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                            fg: tile.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                         }
                     }
 
@@ -235,19 +235,19 @@ OverlayWindow {
                 implicitWidth: 56
                 implicitHeight: 56
                 radius: width / 2
-                color: Colors.m3errorContainer
+                color: Colors.dangerContainer
                 Icon {
                     anchors.centerIn: parent
                     name: window.confirmAction ? window.confirmAction.icon : ""
                     size: Tokens.icon.lg
                     filled: true
-                    color: Colors.m3onErrorContainer
+                    color: Colors.textOnDangerContainer
                 }
             }
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 text: window.confirming ? window.confirmText[window.confirming][0] : ""
-                color: Colors.m3onSurface
+                color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.title
                 font.weight: Tokens.weight.semibold
@@ -255,7 +255,7 @@ OverlayWindow {
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 text: window.confirming ? window.confirmText[window.confirming][1] : ""
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
             }
@@ -270,7 +270,7 @@ OverlayWindow {
                     implicitHeight: Tokens.row.height
                     radius: Tokens.radius.pill(height)
                     color: "transparent"
-                    border.color: Colors.m3outlineVariant
+                    border.color: Colors.divider
                     StateLayer { hovered: cancelMouse.containsMouse; pressed: cancelMouse.pressed }
                     Row {
                         id: cancelRow
@@ -279,11 +279,11 @@ OverlayWindow {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: "Cancelar"
-                            color: Colors.m3onSurface
+                            color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                         }
-                        KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Esc"; fg: Colors.m3onSurfaceVariant }
+                        KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Esc"; fg: Colors.textMuted }
                     }
                     MouseArea {
                         id: cancelMouse
@@ -298,8 +298,8 @@ OverlayWindow {
                     implicitWidth: okRow.implicitWidth + Tokens.space.lg * 2
                     implicitHeight: Tokens.row.height
                     radius: Tokens.radius.pill(height)
-                    color: Colors.m3error
-                    StateLayer { hovered: okMouse.containsMouse; pressed: okMouse.pressed; contentColor: Colors.m3onError }
+                    color: Colors.danger
+                    StateLayer { hovered: okMouse.containsMouse; pressed: okMouse.pressed; contentColor: Colors.textOnDanger }
                     Row {
                         id: okRow
                         anchors.centerIn: parent
@@ -308,17 +308,17 @@ OverlayWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             name: window.confirmAction ? window.confirmAction.icon : ""
                             size: Tokens.icon.sm
-                            color: Colors.m3onError
+                            color: Colors.textOnDanger
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: window.confirming ? window.confirmText[window.confirming][2] : ""
-                            color: Colors.m3onError
+                            color: Colors.textOnDanger
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                             font.weight: Tokens.weight.semibold
                         }
-                        KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Enter"; fg: Colors.m3onError }
+                        KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Enter"; fg: Colors.textOnDanger }
                     }
                     MouseArea {
                         id: okMouse

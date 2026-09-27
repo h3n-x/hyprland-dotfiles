@@ -33,7 +33,7 @@ ColumnLayout {
 
     Text {
         text: "TODOS LOS WALLPAPERS"
-        color: Colors.m3onSurfaceVariant
+        color: Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.caption
         font.weight: Tokens.weight.semibold
@@ -44,7 +44,7 @@ ColumnLayout {
         Layout.fillWidth: true
         Text {
             text: "Esquema predeterminado"
-            color: Colors.m3onSurface
+            color: Colors.text
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.label
         }
@@ -53,8 +53,8 @@ ColumnLayout {
             implicitHeight: Tokens.pill.height - Tokens.space.xs
             implicitWidth: pickRow.implicitWidth + Tokens.space.md * 2
             radius: Tokens.radius.pill(height)
-            color: root.listOpen ? Colors.m3secondaryContainer : "transparent"
-            border.color: root.listOpen ? "transparent" : Colors.m3outlineVariant
+            color: root.listOpen ? Colors.accentAltContainer : "transparent"
+            border.color: root.listOpen ? "transparent" : Colors.divider
             StateLayer { hovered: pickMouse.containsMouse; pressed: pickMouse.pressed }
             Row {
                 id: pickRow
@@ -63,14 +63,14 @@ ColumnLayout {
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.nameOf(root.scheme)
-                    color: root.listOpen ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                    color: root.listOpen ? Colors.textOnAccentAltContainer : Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label
                 }
                 Icon {
                     name: root.listOpen ? "arrow_drop_up" : "arrow_drop_down"
                     size: Tokens.icon.sm
-                    color: root.listOpen ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                    color: root.listOpen ? Colors.textOnAccentAltContainer : Colors.textMuted
                 }
             }
             MouseArea {
@@ -96,7 +96,7 @@ ColumnLayout {
                 width: parent.width
                 height: Tokens.row.height - Tokens.space.xs
                 radius: Tokens.radius.sm
-                color: opt.sel ? Colors.m3secondaryContainer : "transparent"
+                color: opt.sel ? Colors.accentAltContainer : "transparent"
                 StateLayer { hovered: optMouse.containsMouse; pressed: optMouse.pressed }
                 Row {
                     anchors.left: parent.left
@@ -107,12 +107,12 @@ ColumnLayout {
                         name: "check"
                         size: Tokens.icon.sm
                         opacity: opt.sel ? 1 : 0
-                        color: Colors.m3onSecondaryContainer
+                        color: Colors.textOnAccentAltContainer
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: opt.modelData[1]
-                        color: opt.sel ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                        color: opt.sel ? Colors.textOnAccentAltContainer : Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
                     }
@@ -133,7 +133,7 @@ ColumnLayout {
 
     Text {
         text: "Contraste"
-        color: Colors.m3onSurface
+        color: Colors.text
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label
     }
@@ -143,7 +143,7 @@ ColumnLayout {
         implicitHeight: Tokens.pill.height + Tokens.space.xs
         radius: Tokens.radius.pill(height)
         color: "transparent"
-        border.color: Colors.m3outlineVariant
+        border.color: Colors.divider
         RowLayout {
             anchors.fill: parent
             anchors.margins: 3
@@ -160,22 +160,22 @@ ColumnLayout {
                     Rectangle {
                         anchors.fill: parent
                         radius: Tokens.radius.pill(height)
-                        color: seg.sel ? Colors.m3secondaryContainer : "transparent"
+                        color: seg.sel ? Colors.accentAltContainer : "transparent"
                         StateLayer {
                             radius: parent.radius
                             hovered: segMouse.containsMouse
                             pressed: segMouse.pressed
-                            contentColor: seg.sel ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                            contentColor: seg.sel ? Colors.textOnAccentAltContainer : Colors.textMuted
                         }
                     }
                     Row {
                         anchors.centerIn: parent
                         spacing: Tokens.space.hair
-                        Icon { visible: seg.sel; name: "check"; size: Tokens.icon.sm; color: Colors.m3onSecondaryContainer }
+                        Icon { visible: seg.sel; name: "check"; size: Tokens.icon.sm; color: Colors.textOnAccentAltContainer }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: seg.modelData[1]
-                            color: seg.sel ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                            color: seg.sel ? Colors.textOnAccentAltContainer : Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                             font.weight: seg.sel ? Tokens.weight.semibold : Tokens.weight.regular
@@ -196,7 +196,7 @@ ColumnLayout {
     Text {
         Layout.fillWidth: true
         text: "Se usan en el próximo cambio de tema."
-        color: Colors.m3onSurfaceVariant
+        color: Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.caption
         wrapMode: Text.WordWrap

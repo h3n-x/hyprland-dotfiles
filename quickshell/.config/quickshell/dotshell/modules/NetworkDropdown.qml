@@ -117,7 +117,7 @@ PopupWindow {
 
                     Text {
                         text: "Wi-Fi"
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.title
                         font.weight: Tokens.weight.semibold
@@ -137,7 +137,7 @@ PopupWindow {
                 Layout.fillWidth: true
                 implicitHeight: Tokens.row.height
                 radius: Tokens.radius.sm
-                color: Colors.m3secondaryContainer
+                color: Colors.accentAltContainer
 
                 RowLayout {
                     anchors.fill: parent
@@ -145,10 +145,10 @@ PopupWindow {
                     anchors.rightMargin: Tokens.space.md
                     spacing: Tokens.gap.inline
 
-                    Icon { name: "lan"; filled: true; color: Colors.m3onSecondaryContainer }
+                    Icon { name: "lan"; filled: true; color: Colors.textOnAccentAltContainer }
                     Text {
                         text: "Ethernet conectado"
-                        color: Colors.m3onSecondaryContainer
+                        color: Colors.textOnAccentAltContainer
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
                         font.weight: Tokens.weight.medium
@@ -183,7 +183,7 @@ PopupWindow {
                     radius: Tokens.radius.sm
                     // Fila seleccionada (conectada / por defecto) en secondary
                     // container (decision C3); el hover lo da la StateLayer.
-                    color: netRow.selected ? Colors.m3secondaryContainer : "transparent"
+                    color: netRow.selected ? Colors.accentAltContainer : "transparent"
                     Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
                     StateLayer { hovered: netMouse.containsMouse; pressed: netMouse.pressed }
@@ -200,12 +200,12 @@ PopupWindow {
                                 return s > 0.75 ? "signal_wifi_4_bar" : s > 0.5 ? "network_wifi_3_bar" : s > 0.25 ? "network_wifi_2_bar" : "network_wifi_1_bar";
                             }
                             filled: netRow.selected
-                            color: netRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            color: netRow.selected ? Colors.textOnAccentAltContainer : Colors.text
                         }
 
                         Text {
                             text: row.modelData.name
-                            color: netRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            color: netRow.selected ? Colors.textOnAccentAltContainer : Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                             font.weight: netRow.selected ? Tokens.weight.medium : Tokens.weight.regular
@@ -217,7 +217,7 @@ PopupWindow {
                             visible: netRow.selected
                             name: "check"
                             size: Tokens.icon.sm
-                            color: Colors.m3onSecondaryContainer
+                            color: Colors.textOnAccentAltContainer
                         }
                     }
 
@@ -237,8 +237,8 @@ PopupWindow {
                         Layout.fillWidth: true
                         implicitHeight: Tokens.row.height
                         radius: Tokens.radius.sm
-                        color: Colors.m3surfaceContainerLowest
-                        border.color: pskField.activeFocus ? Colors.m3primary : Colors.m3outline
+                        color: Colors.surfaceLowest
+                        border.color: pskField.activeFocus ? Colors.accent : Colors.border
                         border.width: 1
 
                         TextInput {
@@ -247,7 +247,7 @@ PopupWindow {
                             anchors.leftMargin: Tokens.space.md
                             anchors.rightMargin: Tokens.space.md
                             verticalAlignment: TextInput.AlignVCenter
-                            color: Colors.m3onSurface
+                            color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                             echoMode: TextInput.Password
@@ -265,7 +265,7 @@ PopupWindow {
                             anchors.leftMargin: Tokens.space.md
                             anchors.verticalCenter: parent.verticalCenter
                             text: "Contraseña, Enter para conectar"
-                            color: Colors.m3onSurfaceVariant
+                            color: Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                         }

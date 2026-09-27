@@ -107,14 +107,14 @@ Item {
         radius: Tokens.radius.sm
         color: "transparent"
         border.width: 1
-        border.color: Colors.m3outlineVariant
-        StateLayer { hovered: tbMouse.containsMouse; pressed: tbMouse.pressed; contentColor: tb.danger ? Colors.m3error : Colors.m3onSurface }
+        border.color: Colors.divider
+        StateLayer { hovered: tbMouse.containsMouse; pressed: tbMouse.pressed; contentColor: tb.danger ? Colors.danger : Colors.text }
         Row {
             id: tbRow
             anchors.centerIn: parent
             spacing: Tokens.space.xs
-            Icon { visible: !!tb.icon; anchors.verticalCenter: parent.verticalCenter; name: tb.icon; size: Tokens.icon.sm; color: tb.danger ? Colors.m3error : Colors.m3onSurfaceVariant }
-            Text { anchors.verticalCenter: parent.verticalCenter; text: tb.label; color: tb.danger ? Colors.m3error : Colors.m3onSurfaceVariant; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium }
+            Icon { visible: !!tb.icon; anchors.verticalCenter: parent.verticalCenter; name: tb.icon; size: Tokens.icon.sm; color: tb.danger ? Colors.danger : Colors.textMuted }
+            Text { anchors.verticalCenter: parent.verticalCenter; text: tb.label; color: tb.danger ? Colors.danger : Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium }
         }
         MouseArea {
             id: tbMouse
@@ -144,7 +144,7 @@ Item {
                 name: wv.desc ? wv.desc.icon : ""
                 size: 48
                 filled: true
-                color: wv.cur && wv.cur.is_day === 1 ? Colors.m3primary : Colors.m3tertiary
+                color: wv.cur && wv.cur.is_day === 1 ? Colors.accent : Colors.decor
             }
             ColumnLayout {
                 Layout.fillWidth: true
@@ -154,7 +154,7 @@ Item {
                     spacing: Tokens.space.md
                     Text {
                         text: wv.cur ? WeatherState.temp(wv.cur.temperature_2m) : ""
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.displayLarge
                         font.weight: Tokens.weight.semibold
@@ -163,7 +163,7 @@ Item {
                     Text {
                         Layout.alignment: Qt.AlignBaseline
                         text: wv.desc ? wv.desc.text : ""
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.title
                         font.weight: Tokens.weight.medium
@@ -174,7 +174,7 @@ Item {
                     Layout.fillWidth: true
                     text: wv.sentence
                     wrapMode: Text.WordWrap
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
                 }
@@ -182,7 +182,7 @@ Item {
                 RowLayout {
                     visible: !!wv.d && ["cached", "error", "stale"].indexOf(wv.status) >= 0
                     spacing: Tokens.space.xs
-                    readonly property color tint: wv.status === "error" ? Colors.m3error : wv.status === "cached" ? Colors.m3tertiary : Colors.m3outline
+                    readonly property color tint: wv.status === "error" ? Colors.danger : wv.status === "cached" ? Colors.textMuted : Colors.border
                     Icon { name: wv.status === "cached" ? "cloud_off" : wv.status === "error" ? "warning" : "history"; size: Tokens.icon.sm; color: parent.tint }
                     Text {
                         text: wv.status === "cached" ? "Sin conexión · datos guardados " + WeatherState.ago(wv.now - WeatherState.fetchedAt)
@@ -216,14 +216,14 @@ Item {
                 Layout.alignment: Qt.AlignHCenter
                 name: wv.status === "offline" ? "cloud_off" : wv.status === "failed" ? "warning" : "sync"
                 size: Tokens.icon.xl
-                color: wv.status === "failed" ? Colors.m3error : wv.status === "offline" ? Colors.m3tertiary : Colors.m3onSurfaceVariant
+                color: wv.status === "failed" ? Colors.danger : Colors.textMuted
             }
             Text {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 text: wv.status === "offline" ? "Sin conexión" : wv.status === "failed" ? "No se pudo consultar el clima" : "Consultando el clima…"
-                color: Colors.m3onSurface
+                color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.title
                 font.weight: Tokens.weight.semibold
@@ -235,7 +235,7 @@ Item {
                 wrapMode: Text.WordWrap
                 text: wv.status === "offline" ? "No hay red o Open-Meteo no responde. Se reintenta en unos minutos."
                     : "Open-Meteo respondió con un error" + (WeatherState.lastError ? " (" + WeatherState.lastError.detail + ")" : "") + "."
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
             }
@@ -268,11 +268,11 @@ Item {
                             required property var modelData
                             Layout.preferredWidth: hoursCol.width / Math.max(1, wv.hours.length)
                             spacing: 3
-                            Text { Layout.alignment: Qt.AlignHCenter; text: modelData.label; color: Colors.m3outline; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
-                            Icon { Layout.alignment: Qt.AlignHCenter; name: WeatherState.describe(modelData.code, modelData.day).icon; size: Tokens.icon.lg; color: Colors.m3onSurfaceVariant }
-                            Text { Layout.alignment: Qt.AlignHCenter; text: WeatherState.temp(modelData.t); color: Colors.m3onSurface; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.body; font.weight: Tokens.weight.medium; font.features: Tokens.tabularNumbers }
+                            Text { Layout.alignment: Qt.AlignHCenter; text: modelData.label; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
+                            Icon { Layout.alignment: Qt.AlignHCenter; name: WeatherState.describe(modelData.code, modelData.day).icon; size: Tokens.icon.lg; color: Colors.textMuted }
+                            Text { Layout.alignment: Qt.AlignHCenter; text: WeatherState.temp(modelData.t); color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.body; font.weight: Tokens.weight.medium; font.features: Tokens.tabularNumbers }
                             // Lluvia: solo si es probable.
-                            Text { Layout.alignment: Qt.AlignHCenter; text: modelData.rain >= 30 ? modelData.rain + " %" : " "; color: Colors.m3tertiary; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
+                            Text { Layout.alignment: Qt.AlignHCenter; text: modelData.rain >= 30 ? modelData.rain + " %" : " "; color: Colors.decor; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
                         }
                     }
                 }
@@ -297,15 +297,15 @@ Item {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 28
                         spacing: Tokens.space.md
-                        Text { Layout.preferredWidth: 44; text: modelData.label; color: Colors.m3onSurface; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium }
-                        Icon { name: WeatherState.describe(modelData.code, true).icon; size: Tokens.icon.md; color: Colors.m3onSurfaceVariant }
-                        Text { Layout.preferredWidth: 40; text: modelData.rain >= 30 ? modelData.rain + " %" : ""; color: Colors.m3tertiary; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
-                        Text { Layout.preferredWidth: 36; horizontalAlignment: Text.AlignRight; text: WeatherState.temp(modelData.min); color: Colors.m3outline; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.features: Tokens.tabularNumbers }
+                        Text { Layout.preferredWidth: 44; text: modelData.label; color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium }
+                        Icon { name: WeatherState.describe(modelData.code, true).icon; size: Tokens.icon.md; color: Colors.textMuted }
+                        Text { Layout.preferredWidth: 40; text: modelData.rain >= 30 ? modelData.rain + " %" : ""; color: Colors.decor; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
+                        Text { Layout.preferredWidth: 36; horizontalAlignment: Text.AlignRight; text: WeatherState.temp(modelData.min); color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.features: Tokens.tabularNumbers }
                         Item {
                             Layout.fillWidth: true
                             implicitHeight: 4
                             readonly property real span: Math.max(1, wv.weekMax - wv.weekMin)
-                            Rectangle { anchors.fill: parent; radius: 2; color: Qt.alpha(Colors.m3onSurfaceVariant, 0.16) }
+                            Rectangle { anchors.fill: parent; radius: 2; color: Colors.tint(Colors.textMuted, Tokens.tint.track) }
                             Rectangle {
                                 x: (modelData.min - wv.weekMin) / parent.span * parent.width
                                 width: Math.max(4, (modelData.max - modelData.min) / parent.span * parent.width)
@@ -313,12 +313,12 @@ Item {
                                 radius: 2
                                 gradient: Gradient {
                                     orientation: Gradient.Horizontal
-                                    GradientStop { position: 0; color: Colors.m3secondary }
-                                    GradientStop { position: 1; color: Colors.m3primary }
+                                    GradientStop { position: 0; color: Colors.accentAlt }
+                                    GradientStop { position: 1; color: Colors.accent }
                                 }
                             }
                         }
-                        Text { Layout.preferredWidth: 36; text: WeatherState.temp(modelData.max); color: Colors.m3onSurface; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium; font.features: Tokens.tabularNumbers }
+                        Text { Layout.preferredWidth: 36; text: WeatherState.temp(modelData.max); color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium; font.features: Tokens.tabularNumbers }
                     }
                 }
             }
@@ -350,14 +350,14 @@ Item {
             Layout.topMargin: Tokens.space.sm
             name: "partly_cloudy_day"
             size: 48
-            color: Colors.m3onSurfaceVariant
+            color: Colors.textMuted
         }
         Text {
             Layout.fillWidth: true
             horizontalAlignment: WeatherState.configured ? Text.AlignLeft : Text.AlignHCenter
             wrapMode: Text.WordWrap
             text: WeatherState.configured ? "Cambiar la ubicación" : "Elige tu ciudad para ver el clima"
-            color: Colors.m3onSurface
+            color: Colors.text
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.title
             font.weight: Tokens.weight.semibold
@@ -368,17 +368,17 @@ Item {
             Layout.fillWidth: true
             implicitHeight: curRow.implicitHeight + Tokens.space.sm * 2
             radius: Tokens.radius.md
-            color: Colors.m3surfaceContainerHighest
+            color: Colors.surfaceHighest
             RowLayout {
                 id: curRow
                 anchors.fill: parent
                 anchors.margins: Tokens.space.sm
                 spacing: Tokens.space.sm
-                Icon { name: "place"; size: Tokens.icon.sm; color: Colors.m3primary }
+                Icon { name: "place"; size: Tokens.icon.sm; color: Colors.accent }
                 Column {
                     Layout.fillWidth: true
-                    Text { text: "Ubicación actual"; color: Colors.m3outline; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
-                    Text { width: parent.width; text: WeatherState.location ? WeatherState.location.name + (WeatherState.location.detail ? " · " + WeatherState.location.detail : "") : ""; color: Colors.m3onSurface; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium; elide: Text.ElideRight }
+                    Text { text: "Ubicación actual"; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
+                    Text { width: parent.width; text: WeatherState.location ? WeatherState.location.name + (WeatherState.location.detail ? " · " + WeatherState.location.detail : "") : ""; color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium; elide: Text.ElideRight }
                 }
                 TextButton { label: "Quitar"; icon: "delete"; danger: true; onClicked: { WeatherState.clearLocation(); wv.picking = false; } }
             }
@@ -388,7 +388,7 @@ Item {
             horizontalAlignment: WeatherState.configured ? Text.AlignLeft : Text.AlignHCenter
             wrapMode: Text.WordWrap
             text: "Se guarda solo en este equipo. Se consulta Open-Meteo con coordenadas aproximadas (≈ 10 km) cada 30 minutos; sin ubicación no se consulta nada."
-            color: Colors.m3onSurfaceVariant
+            color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
         }
@@ -397,10 +397,10 @@ Item {
             Layout.fillWidth: true
             implicitHeight: Tokens.row.heightLarge - 4
             radius: Tokens.radius.md
-            color: Colors.m3surfaceContainerHighest
+            color: Colors.surfaceHighest
             border.width: 1
-            border.color: field.activeFocus ? Colors.m3primary : Colors.m3outlineVariant
-            Icon { id: searchIcon; anchors.left: parent.left; anchors.leftMargin: Tokens.space.sm; anchors.verticalCenter: parent.verticalCenter; name: "search"; size: Tokens.icon.sm; color: Colors.m3onSurfaceVariant }
+            border.color: field.activeFocus ? Colors.accent : Colors.divider
+            Icon { id: searchIcon; anchors.left: parent.left; anchors.leftMargin: Tokens.space.sm; anchors.verticalCenter: parent.verticalCenter; name: "search"; size: Tokens.icon.sm; color: Colors.textMuted }
             TextInput {
                 id: field
                 objectName: "weatherSearch"
@@ -408,9 +408,9 @@ Item {
                 anchors.leftMargin: Tokens.space.sm * 2 + searchIcon.width
                 anchors.rightMargin: Tokens.space.sm
                 verticalAlignment: TextInput.AlignVCenter
-                color: Colors.m3onSurface
-                selectionColor: Colors.m3primary
-                selectedTextColor: Colors.m3onPrimary
+                color: Colors.text
+                selectionColor: Colors.accent
+                selectedTextColor: Colors.textOnAccent
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
                 clip: true
@@ -430,7 +430,7 @@ Item {
                 anchors.left: field.left
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Buscar ciudad…"
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
             }
@@ -441,7 +441,7 @@ Item {
             visible: WeatherState.searching || WeatherState.searchFailed || (field.text.trim().length >= 2 && !WeatherState.searching && WeatherState.searchResults.length === 0)
             Layout.fillWidth: true
             text: WeatherState.searching ? "Buscando…" : WeatherState.searchFailed ? "No se pudo buscar (¿sin conexión?)" : "Sin resultados"
-            color: Colors.m3onSurfaceVariant
+            color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
         }
@@ -454,14 +454,14 @@ Item {
                 Layout.fillWidth: true
                 implicitHeight: 44
                 radius: Tokens.radius.md
-                color: res.index === 0 ? Colors.m3secondaryContainer : "transparent"
+                color: res.index === 0 ? Colors.accentAltContainer : "transparent"
                 StateLayer { hovered: resMouse.containsMouse; pressed: resMouse.pressed }
                 Column {
                     anchors.verticalCenter: parent.verticalCenter
                     x: Tokens.space.md
                     width: parent.width - Tokens.space.md * 2
-                    Text { width: parent.width; text: res.modelData.name; color: res.index === 0 ? Colors.m3onSecondaryContainer : Colors.m3onSurface; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.body; font.weight: Tokens.weight.medium; elide: Text.ElideRight }
-                    Text { width: parent.width; text: res.modelData.detail; color: res.index === 0 ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; elide: Text.ElideRight }
+                    Text { width: parent.width; text: res.modelData.name; color: res.index === 0 ? Colors.textOnAccentAltContainer : Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.body; font.weight: Tokens.weight.medium; elide: Text.ElideRight }
+                    Text { width: parent.width; text: res.modelData.detail; color: res.index === 0 ? Colors.textOnAccentAltContainer : Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; elide: Text.ElideRight }
                 }
                 MouseArea {
                     id: resMouse

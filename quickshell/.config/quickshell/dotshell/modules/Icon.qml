@@ -17,7 +17,7 @@ Text {
     property int weight: Tokens.weight.regular
 
     text: name
-    color: Colors.m3onSurface
+    color: Colors.text
     font.family: Tokens.font.icon
     font.pixelSize: size
     font.variableAxes: Tokens.icon.axes(filled, weight, size)

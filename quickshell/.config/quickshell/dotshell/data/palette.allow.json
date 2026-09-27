@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "literals": [
+    { "file": "modules/Emoji.qml", "anchor": "readonly property var toneColors:",
+      "reason": "Muestras de los tonos de piel de Unicode: representan el emoji, no el tema.", "approved": "2026-09-26 (P8.7 §3.7)" },
+    { "file": "modules/CapturePreview.qml", "anchor": "Qt.alpha(\"white\"",
+      "reason": "Destello de la captura: imita el flash de una camara, no es un color de la interfaz.", "approved": "2026-09-26 (P8.7 §3.7)" },
+    { "file": "modules/DashboardHome.qml", "anchor": "return Qt.rgba(home.lerp(",
+      "reason": "Interpolacion entre dos colores de la paleta durante una transicion (calcula a partir de alias).", "approved": "2026-09-26 (P8.7 §3.7)" },
+    { "file": "modules/ThemeOptions.qml", "anchor": "readonly property var presets:",
+      "reason": "Semillas que el usuario puede elegir para un wallpaper sin color (B8h): son datos de entrada de matugen, no colores de la interfaz.", "approved": "2026-09-26 (P8.7 §3.7)" }
+  ]
+}

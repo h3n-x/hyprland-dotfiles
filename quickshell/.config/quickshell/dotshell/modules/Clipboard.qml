@@ -336,9 +336,9 @@ OverlayWindow {
         implicitHeight: 28
         implicitWidth: chipRow.implicitWidth + Tokens.space.md * 2
         radius: Tokens.radius.sm
-        color: chip.on ? Colors.m3secondaryContainer : "transparent"
+        color: chip.on ? Colors.accentAltContainer : "transparent"
         border.width: chip.on ? 0 : 1
-        border.color: Colors.m3outlineVariant
+        border.color: Colors.divider
         StateLayer { hovered: chipMouse.containsMouse; pressed: chipMouse.pressed }
         RowLayout {
             id: chipRow
@@ -346,14 +346,14 @@ OverlayWindow {
             spacing: Tokens.space.xs
             Text {
                 text: chip.label
-                color: chip.on ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                color: chip.on ? Colors.textOnAccentAltContainer : Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
                 font.weight: Tokens.weight.medium
             }
             Text {
                 text: chip.count
-                color: chip.on ? Colors.m3onSecondaryContainer : Colors.m3outline
+                color: chip.on ? Colors.textOnAccentAltContainer : Colors.border
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 font.features: Tokens.tabularNumbers
@@ -376,7 +376,7 @@ OverlayWindow {
         implicitHeight: hintText.implicitHeight + Tokens.space.hair * 2
         radius: Tokens.radius.sm
         color: "transparent"
-        border.color: Qt.alpha(hint.fg, 0.4)
+        border.color: Colors.tint(hint.fg, Tokens.tint.hairline)
         Text {
             id: hintText
             anchors.centerIn: parent
@@ -412,17 +412,18 @@ OverlayWindow {
                     Layout.fillWidth: true
                     implicitHeight: 36
                     radius: Tokens.radius.md
-                    color: Colors.m3tertiaryContainer
+                    // Mas privacidad, no un aviso: neutro con icono y texto (D11).
+                    color: Colors.surfaceHighest
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: Tokens.space.md
                         anchors.rightMargin: Tokens.space.md
                         spacing: Tokens.space.sm
-                        Icon { name: "visibility_off"; size: Tokens.icon.sm; color: Colors.m3onTertiaryContainer }
+                        Icon { name: "visibility_off"; size: Tokens.icon.sm; color: Colors.text }
                         Text {
                             Layout.fillWidth: true
                             text: "Historial en pausa: lo que copies ahora no se guarda"
-                            color: Colors.m3onTertiaryContainer
+                            color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                             font.weight: Tokens.weight.medium
@@ -430,7 +431,7 @@ OverlayWindow {
                         }
                         Text {
                             text: "ctrl+p reanudar"
-                            color: Colors.m3onTertiaryContainer
+                            color: Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.caption
                         }
@@ -458,12 +459,12 @@ OverlayWindow {
                         visible: ClipboardState.paused
                         name: "visibility_off"
                         size: Tokens.icon.sm
-                        color: Colors.m3tertiary
+                        color: Colors.textMuted
                     }
                     Text {
                         text: (window.shown.length === window.counts.all ? "" : window.shown.length + " de ")
                             + window.counts.all + " entradas"
-                        color: Colors.m3outline
+                        color: Colors.border
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
                         font.features: Tokens.tabularNumbers
@@ -484,13 +485,13 @@ OverlayWindow {
             width: ListView.view.width
             height: picker.rowHeight - Tokens.space.hair
             radius: Tokens.radius.md
-            color: row.selected ? Colors.m3secondaryContainer : "transparent"
+            color: row.selected ? Colors.accentAltContainer : "transparent"
             Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
 
             StateLayer {
                 hovered: rowMouse.containsMouse
                 pressed: rowMouse.pressed
-                contentColor: row.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                contentColor: row.selected ? Colors.textOnAccentAltContainer : Colors.text
             }
 
             RowLayout {
@@ -505,14 +506,14 @@ OverlayWindow {
                     implicitHeight: Tokens.space.xxl
                     radius: Tokens.radius.sm
                     color: row.e.kind === "color" && !row.hidden ? row.e.text
-                        : (row.selected ? Qt.alpha(Colors.m3onSecondaryContainer, 0.12) : Colors.m3surfaceContainerHighest)
+                        : (row.selected ? Colors.tint(Colors.textOnAccentAltContainer, Tokens.stateLayer.focus) : Colors.surfaceHighest)
                     Icon {
                         anchors.centerIn: parent
                         visible: row.e.kind !== "color" || row.hidden
                         name: row.hidden ? "key" : window.icons[row.e.kind]
                         size: Tokens.icon.sm
-                        color: row.hidden ? Colors.m3tertiary
-                            : (row.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant)
+                        color: row.hidden ? Colors.text
+                            : (row.selected ? Colors.textOnAccentAltContainer : Colors.textMuted)
                     }
                 }
 
@@ -526,7 +527,7 @@ OverlayWindow {
                             : row.e.kind === "binary" ? "Datos binarios"
                             : (row.selected ? Fuzzy.escapeHtml(row.e.text) : Fuzzy.highlight(row.e.text, row.modelData.positions))
                         textFormat: Text.RichText
-                        color: row.selected ? Colors.m3onSecondaryContainer : (row.hidden ? Colors.m3onSurfaceVariant : Colors.m3onSurface)
+                        color: row.selected ? Colors.textOnAccentAltContainer : (row.hidden ? Colors.textMuted : Colors.text)
                         font.family: row.mono && !row.hidden ? Tokens.font.mono : Tokens.font.ui
                         font.features: ({ "liga": 0, "calt": 0 })
                         font.pixelSize: Tokens.type.body
@@ -537,7 +538,7 @@ OverlayWindow {
                     Text {
                         Layout.fillWidth: true
                         text: row.hidden ? "Parece " + Sensitive.label(row.sens) : row.e.meta
-                        color: row.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                        color: row.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
                         elide: Text.ElideRight
@@ -559,9 +560,9 @@ OverlayWindow {
                 id: pane
                 readonly property var p: window.preview
                 radius: Tokens.radius.md
-                color: Colors.m3surfaceContainerLow
+                color: Colors.surfaceLow
                 border.width: 1
-                border.color: Colors.m3outlineVariant
+                border.color: Colors.divider
                 clip: true
 
                 // Imagen (sobre una cuadricula, por las transparencias).
@@ -577,7 +578,7 @@ OverlayWindow {
                             const c = getContext("2d");
                             for (let y = 0; y < height; y += 12)
                                 for (let x = 0; x < width; x += 12) {
-                                    c.fillStyle = ((x + y) / 12) % 2 ? Qt.alpha(Colors.m3onSurface, 0.12) : Qt.alpha(Colors.m3onSurface, 0.05);
+                                    c.fillStyle = ((x + y) / 12) % 2 ? Colors.tint(Colors.text, Tokens.tint.track) : Colors.tint(Colors.text, Tokens.tint.faint);
                                     c.fillRect(x, y, 12, 12);
                                 }
                         }
@@ -599,7 +600,7 @@ OverlayWindow {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: window.current && window.current.kind === "image"
                             ? window.current.w + "×" + window.current.h + " · " + window.current.meta : ""
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
                     }
@@ -615,13 +616,13 @@ OverlayWindow {
                         Layout.alignment: Qt.AlignHCenter
                         name: "visibility_off"
                         size: Tokens.icon.xl
-                        color: Colors.m3tertiary
+                        color: Colors.textMuted
                     }
                     Text {
                         Layout.fillWidth: true
                         horizontalAlignment: Text.AlignHCenter
                         text: "Contenido oculto"
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.title
                         font.weight: Tokens.weight.semibold
@@ -631,7 +632,7 @@ OverlayWindow {
                         horizontalAlignment: Text.AlignHCenter
                         wrapMode: Text.WordWrap
                         text: "Parece " + Sensitive.label(pane.p.sens || "") + ". Se guardó antes del filtro de datos sensibles."
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
                     }
@@ -639,11 +640,11 @@ OverlayWindow {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.topMargin: Tokens.space.xs
                         spacing: Tokens.space.xs
-                        KeyHint { text: "⏎"; fg: Colors.m3onSurfaceVariant }
-                        Text { text: "copiar sin mostrar"; color: Colors.m3onSurfaceVariant; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
+                        KeyHint { text: "⏎"; fg: Colors.textMuted }
+                        Text { text: "copiar sin mostrar"; color: Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
                         Item { implicitWidth: Tokens.space.sm }
-                        KeyHint { text: "ctrl+r"; fg: Colors.m3onSurfaceVariant }
-                        Text { text: "mostrar"; color: Colors.m3onSurfaceVariant; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
+                        KeyHint { text: "ctrl+r"; fg: Colors.textMuted }
+                        Text { text: "mostrar"; color: Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
                     }
                 }
 
@@ -660,7 +661,7 @@ OverlayWindow {
                         radius: Tokens.radius.md
                         color: window.current && window.current.kind === "color" ? window.current.text : "transparent"
                         border.width: 1
-                        border.color: Colors.m3outlineVariant
+                        border.color: Colors.divider
                     }
                     Text {
                         Layout.fillWidth: true
@@ -670,7 +671,7 @@ OverlayWindow {
                         wrapMode: Text.Wrap
                         elide: Text.ElideRight
                         clip: true
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: window.current && (window.current.kind === "text" || window.current.kind === "link") && window.revealedId === ""
                             ? Tokens.font.ui : Tokens.font.mono
                         font.features: ({ "liga": 0, "calt": 0 })
@@ -687,7 +688,7 @@ OverlayWindow {
                             if (window.revealedId) parts.push("ctrl+r ocultar");
                             return parts.join(" · ");
                         }
-                        color: Colors.m3outline
+                        color: Colors.border
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
                         elide: Text.ElideRight
@@ -702,7 +703,7 @@ OverlayWindow {
                     wrapMode: Text.WordWrap
                     text: window.entries.length === 0 ? "Lo que copies aparecerá aquí"
                         : (window.current && window.current.kind === "binary" ? "Sin vista previa" : "")
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
                 }
@@ -734,19 +735,19 @@ OverlayWindow {
                 implicitWidth: 56
                 implicitHeight: 56
                 radius: width / 2
-                color: Colors.m3errorContainer
+                color: Colors.dangerContainer
                 Icon {
                     anchors.centerIn: parent
                     name: "delete_sweep"
                     size: Tokens.icon.lg
                     filled: true
-                    color: Colors.m3onErrorContainer
+                    color: Colors.textOnDangerContainer
                 }
             }
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 text: "¿Vaciar el historial?"
-                color: Colors.m3onSurface
+                color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.title
                 font.weight: Tokens.weight.semibold
@@ -756,7 +757,7 @@ OverlayWindow {
                 horizontalAlignment: Text.AlignHCenter
                 text: "Se borran " + window.counts.all + " entradas" + (window.counts.image ? " (" + window.counts.image + " imágenes)" : "")
                     + ". No se puede deshacer.\nLo que está copiado ahora se mantiene."
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
             }
@@ -770,7 +771,7 @@ OverlayWindow {
                     implicitHeight: Tokens.row.height
                     radius: Tokens.radius.pill(height)
                     color: "transparent"
-                    border.color: Colors.m3outlineVariant
+                    border.color: Colors.divider
                     StateLayer { hovered: cancelMouse.containsMouse; pressed: cancelMouse.pressed }
                     Row {
                         id: cancelRow
@@ -779,11 +780,11 @@ OverlayWindow {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: "Cancelar"
-                            color: Colors.m3onSurface
+                            color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                         }
-                        KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Esc"; fg: Colors.m3onSurfaceVariant }
+                        KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Esc"; fg: Colors.textMuted }
                     }
                     MouseArea {
                         id: cancelMouse
@@ -797,8 +798,8 @@ OverlayWindow {
                     implicitWidth: okRow.implicitWidth + Tokens.space.lg * 2
                     implicitHeight: Tokens.row.height
                     radius: Tokens.radius.pill(height)
-                    color: Colors.m3error
-                    StateLayer { hovered: okMouse.containsMouse; pressed: okMouse.pressed; contentColor: Colors.m3onError }
+                    color: Colors.danger
+                    StateLayer { hovered: okMouse.containsMouse; pressed: okMouse.pressed; contentColor: Colors.textOnDanger }
                     Row {
                         id: okRow
                         anchors.centerIn: parent
@@ -807,17 +808,17 @@ OverlayWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             name: "delete_sweep"
                             size: Tokens.icon.sm
-                            color: Colors.m3onError
+                            color: Colors.textOnDanger
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: "Vaciar"
-                            color: Colors.m3onError
+                            color: Colors.textOnDanger
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                             font.weight: Tokens.weight.semibold
                         }
-                        KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Enter"; fg: Colors.m3onError }
+                        KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Enter"; fg: Colors.textOnDanger }
                     }
                     MouseArea {
                         id: okMouse

@@ -20,12 +20,12 @@ themes {
         fg {{colors.on_surface.default.red}} {{colors.on_surface.default.green}} {{colors.on_surface.default.blue}}
         bg {{colors.surface.default.red}} {{colors.surface.default.green}} {{colors.surface.default.blue}}
         black {{colors.surface_variant.default.red}} {{colors.surface_variant.default.green}} {{colors.surface_variant.default.blue}}
-        red {{colors.error.default.red}} {{colors.error.default.green}} {{colors.error.default.blue}}
-        green {{colors.tertiary.default.red}} {{colors.tertiary.default.green}} {{colors.tertiary.default.blue}}
-        yellow {{colors.tertiary_container.default.red}} {{colors.tertiary_container.default.green}} {{colors.tertiary_container.default.blue}}
+        red {{status.error.default.red}} {{status.error.default.green}} {{status.error.default.blue}}
+        green {{status.success.default.red}} {{status.success.default.green}} {{status.success.default.blue}}
+        yellow {{status.warning.default.red}} {{status.warning.default.green}} {{status.warning.default.blue}}
         blue {{colors.secondary.default.red}} {{colors.secondary.default.green}} {{colors.secondary.default.blue}}
         magenta {{colors.primary.default.red}} {{colors.primary.default.green}} {{colors.primary.default.blue}}
-        orange {{colors.tertiary_container.default.red}} {{colors.tertiary_container.default.green}} {{colors.tertiary_container.default.blue}}
+        orange {{status.warning.default.red}} {{status.warning.default.green}} {{status.warning.default.blue}}
         cyan {{colors.secondary_container.default.red}} {{colors.secondary_container.default.green}} {{colors.secondary_container.default.blue}}
         white {{colors.on_surface.default.red}} {{colors.on_surface.default.green}} {{colors.on_surface.default.blue}}
     }

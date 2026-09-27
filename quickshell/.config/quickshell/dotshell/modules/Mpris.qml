@@ -46,7 +46,7 @@ Item {
             name: root.playing ? "equalizer" : "pause"
             filled: true
             size: Tokens.icon.sm
-            color: root.playing ? Colors.m3primary : Colors.m3onSurfaceVariant
+            color: root.playing ? Colors.accent : Colors.textMuted
             Behavior on color { ColorAnimation { duration: Tokens.motion.short } }
             SequentialAnimation {
                 id: pulse
@@ -59,7 +59,7 @@ Item {
             id: titleText
             Layout.alignment: Qt.AlignVCenter
             Layout.maximumWidth: 240
-            color: root.playing ? Colors.m3onSurface : Colors.m3onSurfaceVariant
+            color: root.playing ? Colors.text : Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.body
             font.weight: Tokens.weight.medium

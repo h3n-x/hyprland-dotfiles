@@ -27,8 +27,8 @@ set -euo pipefail
 usage="uso: generate-grub-assets.sh <primary> <tertiary> <on_primary> <surface_container> <outline_variant> <wallpaper> (colores hex SIN '#')"
 PRIMARY_HEX="${1:?$usage}"
 # tertiary, no secondary: en la paleta Material You de este rice secondary
-# suele quedar muy parecido de tono a primary (btop.theme ya documenta
-# tertiary=verde, un hue bien distinto) -- para que la franja de acento del
+# suele quedar muy parecido de tono a primary, y tertiary tiene un tono
+# distinto (identidad decorativa, no un estado: P8.7) -- para que la franja de acento del
 # item seleccionado se note de verdad hace falta contraste de color real,
 # no solo de luminancia.
 TERTIARY_HEX="${2:?$usage}"

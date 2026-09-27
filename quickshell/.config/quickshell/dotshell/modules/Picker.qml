@@ -111,8 +111,8 @@ Item {
                 Layout.fillWidth: true
                 implicitHeight: Tokens.row.heightLarge
                 radius: Tokens.radius.md
-                color: Colors.m3surfaceContainerHighest
-                border.color: searchField.activeFocus ? Colors.m3primary : Colors.m3outlineVariant
+                color: Colors.surfaceHighest
+                border.color: searchField.activeFocus ? Colors.accent : Colors.divider
                 border.width: 1
                 Behavior on border.color { ColorAnimation { duration: Tokens.motion.fast } }
 
@@ -122,7 +122,7 @@ Item {
                     anchors.leftMargin: Tokens.space.md
                     anchors.verticalCenter: parent.verticalCenter
                     name: "search"
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                 }
 
                 TextInput {
@@ -131,9 +131,9 @@ Item {
                     anchors.leftMargin: Tokens.space.md + searchIcon.width + Tokens.space.sm
                     anchors.rightMargin: Tokens.space.md
                     verticalAlignment: TextInput.AlignVCenter
-                    color: Colors.m3onSurface
-                    selectionColor: Colors.m3primary
-                    selectedTextColor: Colors.m3onPrimary
+                    color: Colors.text
+                    selectionColor: Colors.accent
+                    selectedTextColor: Colors.textOnAccent
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.title
                     clip: true
@@ -171,7 +171,7 @@ Item {
                     anchors.leftMargin: searchField.anchors.leftMargin
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.placeholder
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.title
                 }
@@ -229,7 +229,7 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     text: root.emptyText
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
                 }
@@ -248,7 +248,7 @@ Item {
                 Layout.preferredHeight: root.listHeight
                 verticalAlignment: Text.AlignVCenter
                 text: root.emptyText
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
             }
@@ -264,7 +264,7 @@ Item {
                 id: footerText
                 Layout.alignment: Qt.AlignHCenter
                 text: root.hints
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
             }

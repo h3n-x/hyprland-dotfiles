@@ -217,7 +217,7 @@ Item {
                     radius: parent.radius
                     color: "transparent"
                     border.width: 2
-                    border.color: Colors.m3primary
+                    border.color: Colors.accent
                     opacity: home.focusKey === "today" ? 1 : 0
                     Behavior on opacity { NumberAnimation { duration: Tokens.motion.fast } }
                 }
@@ -237,7 +237,7 @@ Item {
                 k: home.lerp(1, Tokens.type.display / Tokens.type.hero, home.mediaP)
                 Text {
                     text: Qt.formatTime(clock.date, "HH:mm")
-                    color: Colors.m3onSurface
+                    color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.hero
                     font.weight: Tokens.weight.semibold
@@ -253,7 +253,7 @@ Item {
                 Text {
                     text: WeatherState.cap(home.es.standaloneDayName(clock.date.getDay(), Locale.LongFormat)) + ", "
                         + clock.date.getDate() + " de " + home.es.standaloneMonthName(clock.date.getMonth(), Locale.LongFormat)
-                    color: home.mix(Colors.m3onSurface, Colors.m3onSurfaceVariant, home.mediaP)
+                    color: home.mix(Colors.text, Colors.textMuted, home.mediaP)
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.headline
                     font.weight: Tokens.weight.medium
@@ -279,9 +279,9 @@ Item {
                             implicitHeight: 26
                             implicitWidth: chipRow.implicitWidth + Tokens.space.md * 2
                             radius: 13
-                            color: chip.modelData.filled ? Colors.m3secondaryContainer : "transparent"
+                            color: chip.modelData.filled ? Colors.accentAltContainer : "transparent"
                             border.width: chip.modelData.filled ? 0 : 1
-                            border.color: Colors.m3outlineVariant
+                            border.color: Colors.divider
                             Behavior on implicitWidth { enabled: home.active; NumberAnimation { duration: Tokens.motion.short; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
                             clip: true
                             // Un aviso nuevo con el panel abierto entra creciendo.
@@ -301,12 +301,12 @@ Item {
                                     name: chip.modelData.icon
                                     filled: chip.modelData.filled
                                     size: Tokens.icon.sm
-                                    color: chip.modelData.filled ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                                    color: chip.modelData.filled ? Colors.textOnAccentAltContainer : Colors.textMuted
                                 }
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: chip.label
-                                    color: chip.modelData.filled ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                                    color: chip.modelData.filled ? Colors.textOnAccentAltContainer : Colors.textMuted
                                     font.family: Tokens.font.ui
                                     font.pixelSize: Tokens.type.caption
                                     font.weight: Tokens.weight.medium
@@ -340,7 +340,7 @@ Item {
                         Icon {
                             name: wx.desc ? wx.desc.icon : ""
                             size: 40
-                            color: Colors.m3tertiary
+                            color: Colors.decor
                         }
                     }
                     Column {
@@ -349,7 +349,7 @@ Item {
                             k: home.lerp(1, Tokens.type.title / Tokens.type.display, home.mediaP)
                             Text {
                                 text: wx.cur ? WeatherState.temp(wx.cur.temperature_2m) : ""
-                                color: Colors.m3onSurface
+                                color: Colors.text
                                 font.family: Tokens.font.ui
                                 font.pixelSize: Tokens.type.display
                                 font.weight: Tokens.weight.semibold
@@ -359,7 +359,7 @@ Item {
                         Text {
                             visible: !home.narrow || home.mediaP < 0.5
                             text: wx.desc ? wx.desc.text : ""
-                            color: Colors.m3onSurfaceVariant
+                            color: Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                         }
@@ -373,7 +373,7 @@ Item {
                                 const loc = WeatherState.location ? " · " + WeatherState.location.name : "";
                                 return d ? "↑ " + WeatherState.temp(d.temperature_2m_max[0]) + "  ↓ " + WeatherState.temp(d.temperature_2m_min[0]) + loc : loc;
                             }
-                            color: Colors.m3outline
+                            color: Colors.border
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.caption
                         }

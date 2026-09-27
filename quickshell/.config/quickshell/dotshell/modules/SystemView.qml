@@ -61,11 +61,11 @@ ColumnLayout {
             spacing: Tokens.space.xs
             RowLayout {
                 spacing: Tokens.space.sm
-                Icon { name: ins.icon; size: Tokens.icon.sm; color: Colors.m3onSurfaceVariant }
+                Icon { name: ins.icon; size: Tokens.icon.sm; color: Colors.textMuted }
                 Text {
                     Layout.fillWidth: true
                     text: ins.label
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label
                     font.weight: Tokens.weight.semibold
@@ -77,7 +77,7 @@ ColumnLayout {
                 spacing: Tokens.space.xs
                 Text {
                     text: ins.value
-                    color: Colors.m3onSurface
+                    color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.display
                     font.weight: Tokens.weight.semibold
@@ -87,7 +87,7 @@ ColumnLayout {
                     Layout.alignment: Qt.AlignBaseline
                     Layout.fillWidth: true
                     text: ins.unit
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label
                     elide: Text.ElideRight
@@ -95,7 +95,7 @@ ColumnLayout {
             }
             Text {
                 text: ins.word
-                color: ins.level >= 2 ? Colors.m3error : ins.level === 1 ? Colors.m3tertiary : Colors.m3onSurfaceVariant
+                color: ins.level >= 2 ? Colors.danger : ins.level === 1 ? Colors.warning : Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
                 font.weight: Tokens.weight.medium
@@ -110,7 +110,7 @@ ColumnLayout {
             Text {
                 Layout.fillWidth: true
                 text: ins.note
-                color: Colors.m3outline
+                color: Colors.border
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 elide: Text.ElideRight
@@ -132,7 +132,7 @@ ColumnLayout {
         Text {
             Layout.fillWidth: true
             text: view.summary
-            color: Colors.m3onSurfaceVariant
+            color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.body
             elide: Text.ElideRight
@@ -215,8 +215,8 @@ ColumnLayout {
                 RowLayout {
                     Layout.fillWidth: true
                     ZoneTitle { Layout.fillWidth: true; text: "Aplicaciones"; detail: "· lo que más usa ahora" }
-                    Text { text: "CPU"; color: Colors.m3outline; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; Layout.preferredWidth: 44; horizontalAlignment: Text.AlignRight }
-                    Text { text: "Memoria"; color: Colors.m3outline; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; Layout.preferredWidth: 64; horizontalAlignment: Text.AlignRight }
+                    Text { text: "CPU"; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; Layout.preferredWidth: 44; horizontalAlignment: Text.AlignRight }
+                    Text { text: "Memoria"; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; Layout.preferredWidth: 64; horizontalAlignment: Text.AlignRight }
                 }
                 ListView {
                     id: appList
@@ -247,7 +247,7 @@ ColumnLayout {
                         Text {
                             Layout.preferredWidth: 150
                             text: parent.name
-                            color: Colors.m3onSurface
+                            color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                             elide: Text.ElideRight
@@ -256,13 +256,13 @@ ColumnLayout {
                             Layout.fillWidth: true
                             implicitHeight: 3
                             fraction: parent.rel
-                            tint: Qt.alpha(Colors.m3primary, 0.7)
+                            tint: Colors.accentContainer
                         }
                         Text {
                             Layout.preferredWidth: 44
                             horizontalAlignment: Text.AlignRight
                             text: parent.cpu < 0.01 ? (parent.cpu > 0 ? "< 1 %" : "0 %") : (parent.cpu * 100).toFixed(parent.cpu < 0.1 ? 1 : 0).replace(".", ",") + " %"
-                            color: Colors.m3onSurface
+                            color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                             font.features: Tokens.tabularNumbers
@@ -271,7 +271,7 @@ ColumnLayout {
                             Layout.preferredWidth: 64
                             horizontalAlignment: Text.AlignRight
                             text: SystemState.bytes(parent.mem)
-                            color: Colors.m3onSurfaceVariant
+                            color: Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                             font.features: Tokens.tabularNumbers
@@ -303,7 +303,7 @@ ColumnLayout {
                         spacing: Tokens.space.lg
                         visible: NetworkState.connected
                         Repeater {
-                            model: [{ icon: "arrow_downward", v: SystemState.rxRate, c: Colors.m3tertiary }, { icon: "arrow_upward", v: SystemState.txRate, c: Colors.m3secondary }]
+                            model: [{ icon: "arrow_downward", v: SystemState.rxRate, c: Colors.decor }, { icon: "arrow_upward", v: SystemState.txRate, c: Colors.accentAlt }]
                             Row {
                                 required property var modelData
                                 spacing: Tokens.space.xs
@@ -311,7 +311,7 @@ ColumnLayout {
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: SystemState.rate(parent.modelData.v)
-                                    color: Colors.m3onSurface
+                                    color: Colors.text
                                     font.family: Tokens.font.ui
                                     font.pixelSize: Tokens.type.title
                                     font.weight: Tokens.weight.semibold
@@ -342,7 +342,7 @@ ColumnLayout {
                         Text {
                             Layout.fillWidth: true
                             text: SystemState.igpuName
-                            color: Colors.m3onSurface
+                            color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                             elide: Text.ElideRight
@@ -350,7 +350,7 @@ ColumnLayout {
                         Text {
                             text: [isNaN(SystemState.gpuBusy) ? "" : Math.round(SystemState.gpuBusy * 100) + " %",
                                    isNaN(SystemState.gpuTemp) ? "" : Math.round(SystemState.gpuTemp) + "°"].filter(x => x).join(" · ")
-                            color: Colors.m3onSurfaceVariant
+                            color: Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                             font.features: Tokens.tabularNumbers
@@ -361,7 +361,7 @@ ColumnLayout {
                         Layout.fillWidth: true
                         Text {
                             text: SystemState.dgpuName
-                            color: Colors.m3onSurface
+                            color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                         }
@@ -371,7 +371,7 @@ ColumnLayout {
                             readonly property var n: SystemState.nvidia
                             text: !n ? "…" : !n.active ? "En reposo"
                                 : n.processes && n.processes.length ? "Activa · " + n.processes.map(p => AppInfo.name(p.name)).join(", ") : "Activa"
-                            color: gpuZone.dgpuActive ? Colors.m3tertiary : Colors.m3onSurfaceVariant
+                            color: gpuZone.dgpuActive ? Colors.decor : Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                             elide: Text.ElideRight
@@ -393,16 +393,16 @@ ColumnLayout {
             id: maintRow
             width: parent.width
             spacing: Tokens.space.sm
-            Icon { name: "build"; size: Tokens.icon.md; color: Colors.m3onSurfaceVariant }
+            Icon { name: "build"; size: Tokens.icon.md; color: Colors.textMuted }
             Text {
                 Layout.fillWidth: true
                 text: "Mantenimiento · " + MaintenanceState.shortStatus
-                color: Colors.m3onSurface
+                color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
                 elide: Text.ElideRight
             }
-            Icon { name: "chevron_right"; size: Tokens.icon.md; color: Colors.m3onSurfaceVariant }
+            Icon { name: "chevron_right"; size: Tokens.icon.md; color: Colors.textMuted }
         }
     }
 

@@ -47,7 +47,7 @@ ColumnLayout {
 
     // Rol de la paleta candidata (modo oscuro); gris neutro mientras no hay.
     function c(role: string): color {
-        return root.colors && root.colors[role] ? root.colors[role].dark : Colors.m3surfaceContainerHighest;
+        return root.colors && root.colors[role] ? root.colors[role].dark : Colors.surfaceHighest;
     }
 
     spacing: Tokens.space.md
@@ -60,7 +60,7 @@ ColumnLayout {
             Layout.fillWidth: true
             text: root.name
             elide: Text.ElideMiddle
-            color: Colors.m3onSurface
+            color: Colors.text
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.title
             font.weight: Tokens.weight.semibold
@@ -72,16 +72,16 @@ ColumnLayout {
             implicitHeight: Tokens.pill.height - Tokens.space.sm
             implicitWidth: currentRow.implicitWidth + Tokens.space.md
             radius: Tokens.radius.pill(height)
-            color: Colors.m3secondaryContainer
+            color: Colors.accentAltContainer
             Row {
                 id: currentRow
                 anchors.centerIn: parent
                 spacing: Tokens.space.hair
-                Icon { name: "check"; size: Tokens.icon.sm; color: Colors.m3onSecondaryContainer }
+                Icon { name: "check"; size: Tokens.icon.sm; color: Colors.textOnAccentAltContainer }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Actual"
-                    color: Colors.m3onSecondaryContainer
+                    color: Colors.textOnAccentAltContainer
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption
                     font.weight: Tokens.weight.semibold
@@ -95,7 +95,7 @@ ColumnLayout {
         visible: root.appliedAgo !== ""
         Layout.topMargin: -Tokens.space.sm
         text: "Aplicado " + root.appliedAgo
-        color: Colors.m3onSurfaceVariant
+        color: Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.caption
     }
@@ -106,7 +106,7 @@ ColumnLayout {
         Layout.fillWidth: true
         implicitHeight: Math.round(width * 9 / 16)
         radius: Tokens.radius.md
-        color: Colors.m3surfaceContainerHighest
+        color: Colors.surfaceHighest
 
         Image {
             anchors.fill: parent
@@ -207,13 +207,13 @@ ColumnLayout {
                     implicitHeight: Tokens.pill.height
                     radius: Tokens.radius.sm
                     color: root.c(parent.modelData[0])
-                    border.color: Colors.m3outlineVariant
+                    border.color: Colors.divider
                 }
                 Text {
                     Layout.fillWidth: true
                     text: parent.modelData[1]
                     elide: Text.ElideRight
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption
                 }
@@ -234,7 +234,7 @@ ColumnLayout {
                 implicitHeight: Tokens.pill.height - Tokens.space.xs
                 implicitWidth: tagRow.implicitWidth + Tokens.space.sm * 2
                 radius: Tokens.radius.pill(height)
-                color: Colors.m3secondaryContainer
+                color: Colors.accentAltContainer
                 Row {
                     id: tagRow
                     anchors.centerIn: parent
@@ -242,7 +242,7 @@ ColumnLayout {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: tagChip.modelData
-                        color: Colors.m3onSecondaryContainer
+                        color: Colors.textOnAccentAltContainer
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
                         font.weight: Tokens.weight.medium
@@ -256,9 +256,9 @@ ColumnLayout {
                             anchors.fill: parent
                             radius: width / 2
                             color: "transparent"
-                            StateLayer { hovered: rmMouse.containsMouse; pressed: rmMouse.pressed; contentColor: Colors.m3onSecondaryContainer }
+                            StateLayer { hovered: rmMouse.containsMouse; pressed: rmMouse.pressed; contentColor: Colors.textOnAccentAltContainer }
                         }
-                        Icon { anchors.centerIn: parent; name: "close"; size: Tokens.icon.sm; color: Colors.m3onSecondaryContainer }
+                        Icon { anchors.centerIn: parent; name: "close"; size: Tokens.icon.sm; color: Colors.textOnAccentAltContainer }
                         MouseArea {
                             id: rmMouse
                             anchors.fill: parent
@@ -277,7 +277,7 @@ ColumnLayout {
             implicitWidth: Math.max(tagPlaceholder.implicitWidth, tagField.contentWidth) + Tokens.space.md * 2
             radius: Tokens.radius.pill(height)
             color: "transparent"
-            border.color: tagField.activeFocus ? Colors.m3primary : Colors.m3outlineVariant
+            border.color: tagField.activeFocus ? Colors.accent : Colors.divider
             Behavior on border.color { ColorAnimation { duration: Tokens.motion.fast } }
             TextInput {
                 id: tagField
@@ -285,9 +285,9 @@ ColumnLayout {
                 anchors.leftMargin: Tokens.space.md
                 anchors.rightMargin: Tokens.space.md
                 verticalAlignment: TextInput.AlignVCenter
-                color: Colors.m3onSurface
-                selectionColor: Colors.m3primary
-                selectedTextColor: Colors.m3onPrimary
+                color: Colors.text
+                selectionColor: Colors.accent
+                selectedTextColor: Colors.textOnAccent
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
                 maximumLength: 24
@@ -313,7 +313,7 @@ ColumnLayout {
                 anchors.leftMargin: Tokens.space.md
                 anchors.verticalCenter: parent.verticalCenter
                 text: "+ etiqueta  (T)"
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
             }
@@ -349,13 +349,13 @@ ColumnLayout {
             implicitHeight: Tokens.row.height
             radius: Tokens.radius.pill(height)
             color: "transparent"
-            border.color: Colors.m3outlineVariant
+            border.color: Colors.divider
             StateLayer { hovered: favMouse.containsMouse; pressed: favMouse.pressed }
             Icon {
                 anchors.centerIn: parent
                 name: "favorite"
                 filled: root.isFavorite
-                color: root.isFavorite ? Colors.m3primary : Colors.m3onSurfaceVariant
+                color: root.isFavorite ? Colors.accent : Colors.textMuted
             }
             MouseArea {
                 id: favMouse
@@ -374,20 +374,20 @@ ColumnLayout {
             implicitHeight: Tokens.row.height
             radius: Tokens.radius.pill(height)
             color: "transparent"
-            border.color: Colors.m3outlineVariant
+            border.color: Colors.divider
             opacity: root.canUndo ? 1 : Tokens.opacity.disabled
             StateLayer { visible: root.canUndo; hovered: undoMouse.containsMouse; pressed: undoMouse.pressed }
             Row {
                 anchors.centerIn: parent
                 spacing: Tokens.space.xs
                 width: Math.min(implicitWidth, undoBtn.width - Tokens.space.md * 2)
-                Icon { id: undoIcon; name: "undo"; color: Colors.m3onSurfaceVariant }
+                Icon { id: undoIcon; name: "undo"; color: Colors.textMuted }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     width: Math.min(implicitWidth, undoBtn.width - Tokens.space.md * 2 - undoIcon.width - Tokens.space.xs)
                     elide: Text.ElideMiddle
                     text: root.canUndo ? root.undoTarget.replace(/\.[^.]+$/, "") : "Deshacer"
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label
                 }
@@ -408,10 +408,10 @@ ColumnLayout {
             implicitHeight: Tokens.row.height
             radius: Tokens.radius.pill(height)
             color: "transparent"
-            border.color: Colors.m3outlineVariant
+            border.color: Colors.divider
             opacity: root.name ? 1 : Tokens.opacity.disabled
             StateLayer { visible: root.name !== ""; hovered: previewMouse.containsMouse; pressed: previewMouse.pressed }
-            Icon { anchors.centerIn: parent; name: "visibility"; color: Colors.m3onSurfaceVariant }
+            Icon { anchors.centerIn: parent; name: "visibility"; color: Colors.textMuted }
             MouseArea {
                 id: previewMouse
                 anchors.fill: parent
@@ -427,16 +427,16 @@ ColumnLayout {
             Layout.fillWidth: true
             implicitHeight: Tokens.row.height
             radius: Tokens.radius.pill(height)
-            color: Colors.m3primary
-            StateLayer { hovered: applyMouse.containsMouse; pressed: applyMouse.pressed; contentColor: Colors.m3onPrimary }
+            color: Colors.accent
+            StateLayer { hovered: applyMouse.containsMouse; pressed: applyMouse.pressed; contentColor: Colors.textOnAccent }
             Row {
                 anchors.centerIn: parent
                 spacing: Tokens.space.sm
-                Icon { name: "wallpaper"; filled: true; color: Colors.m3onPrimary }
+                Icon { name: "wallpaper"; filled: true; color: Colors.textOnAccent }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Aplicar"
-                    color: Colors.m3onPrimary
+                    color: Colors.textOnAccent
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
                     font.weight: Tokens.weight.semibold

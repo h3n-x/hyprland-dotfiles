@@ -12,7 +12,7 @@ Rectangle {
     id: root
     property bool hovered: false
     property bool pressed: false
-    property color contentColor: Colors.m3onSurface
+    property color contentColor: Colors.text
 
     readonly property real contentWidth: parent ? parent.width : 0
     anchors.centerIn: parent

@@ -11,7 +11,8 @@
 #   theme-apply.sh --tag <wallpaper> add|remove <etiqueta>  (galeria, Fase 3 B4)
 #   theme-apply.sh --undo [--no-notify] [--dry-run]   (tema anterior del historial, B5)
 #   theme-apply.sh --backend quickshell|hyprpaper|status   (quien dibuja el wallpaper, B6)
-#   theme-apply.sh --prefs scheme <tipo>|contrast <0..1>|reset   (valores globales, B8a)
+#   theme-apply.sh --prefs scheme <tipo>|contrast <0..1>|reset   (valores globales, B8a;
+#                  guardados en el almacen de opciones: appearance.scheme/contrast, P8.7)
 #   theme-apply.sh --override <wallpaper> seed <#hex>|scheme <tipo>|reset   (excepcion por wallpaper, B8a;
 #                  "default" en seed o scheme quita solo ese campo, B8b)
 #
@@ -39,10 +40,10 @@
 #
 # Color base (Fase 3 B8a, KI-L12): matugen propone hasta 4 colores semilla por
 # imagen; se usa el DOMINANTE (el primero de su ranking, con el filtro de
-# reduccion gaussian, estable ante el decodificador) en vez del mas saturado,
-# y el esquema scheme-content por defecto. Opciones efectivas de cada aplicacion
-# = excepcion del wallpaper (semilla, esquema) > preferencias globales (esquema,
-# contraste) > estos valores. La semilla sale de los candidatos que guarda
+# reduccion gaussian, estable ante el decodificador) en vez del mas saturado.
+# Opciones efectivas de cada aplicacion = excepcion del wallpaper (semilla,
+# esquema) > opciones globales appearance.scheme/appearance.contrast del
+# almacen (P8.7; sus valores de fabrica viven en el esquema de opciones). La semilla sale de los candidatos que guarda
 # wallpaper-cache.sh (o se calcula si el archivo no esta en la cache). Todo se
 # resuelve al PEDIR y viaja en el pedido y el historial: deshacer restaura el
 # tema exacto. Entradas viejas sin semilla ("legacy") se aplican como antes
@@ -77,15 +78,20 @@ DRY_DELAY="${THEME_DRY_DELAY:-1}"
 
 CACHE_DIR="${WALLPAPER_CACHE_DIR:-$HOME/.cache/dotfiles/wallpapers}"
 CACHE_INDEX="$CACHE_DIR/palettes.json"
-# Mismos valores por defecto que wallpaper-cache.sh (la vista previa usa su paleta).
-DEFAULT_SCHEME="scheme-content"
-DEFAULT_CONTRAST="0"
+# Opciones globales de color: las lee y escribe solo el motor de opciones.
+SETTINGS="$SCRIPTS_DIR/settings"
+# Colores de estado fijos (P8.7): palette status los deja en el JSON que
+# importan las dos configs de matugen (import_json_files) antes de cada corrida.
+PALETTE="$SCRIPTS_DIR/palette"
+COLORS_JSON="${XDG_CACHE_HOME:-$HOME/.cache}/matugen/quickshell-colors.json"
 RULE="dominante"
 # Color de respaldo de matugen: si es el unico candidato, la imagen no tiene un
 # color claro y la semilla puede ser cualquier color (colores predefinidos, B8h).
 MATUGEN_FALLBACK="#4285f4"
 
-SCHEMES="scheme-content scheme-expressive scheme-fidelity scheme-fruit-salad scheme-monochrome scheme-neutral scheme-rainbow scheme-tonal-spot scheme-vibrant scheme-smart"
+# Esquemas validos: los del esquema de opciones (una sola lista).
+SCHEMES="$(jq -r '.keys["appearance.scheme"].values | keys | join(" ")' \
+  "${SETTINGS_SCHEMA:-$HOME/.config/quickshell/dotshell/data/settings.schema.json}" 2>/dev/null)"
 
 mkdir -p "$STATE_DIR" "$LOG_DIR"
 
@@ -124,7 +130,7 @@ _init_state() {
     ($wp | if . == "" then null else {wallpaper: ., scheme: null, contrast: null,
       mode: "dark", applied_at: $now, source: "inicial"} end) as $cur
     | {version: 1, current: $cur, history: (if $cur then [$cur] else [] end),
-       favorites: [], tags: {}, prefs: {scheme: null, contrast: null}}' > "$STATE.tmp" \
+       favorites: [], tags: {}, prefs: {}}' > "$STATE.tmp" \
     && mv "$STATE.tmp" "$STATE"
 }
 
@@ -180,14 +186,13 @@ candidates_of() { # wallpaper -> una semilla por linea, la dominante primero
     | sed 's/\x1b\[[0-9;]*m//g' | grep -oE '\] [0-9]+: #[0-9a-fA-F]{6}' | awk '{print tolower($3)}'
 }
 
-# Opciones efectivas: argumento > excepcion del wallpaper > preferencia global > defecto.
+# Opciones efectivas: argumento > excepcion del wallpaper > opcion global.
 resolve_opts() { # wallpaper scheme contrast seed -> "scheme contrast seed"
   local wp="$1" scheme="$2" contrast="$3" seed="$4" ov
-  ov="$(jq -c --arg wp "$wp" '{o: (.overrides[$wp] // {}), p: (.prefs // {})}' "$STATE" 2>/dev/null || echo '{"o":{},"p":{}}')"
-  [ -n "$scheme" ] || scheme="$(jq -r '.o.scheme // .p.scheme // empty' <<< "$ov")"
-  [ -n "$scheme" ] || scheme="$DEFAULT_SCHEME"
-  [ -n "$contrast" ] || contrast="$(jq -r '.p.contrast // empty' <<< "$ov")"
-  [ -n "$contrast" ] || contrast="$DEFAULT_CONTRAST"
+  ov="$(jq -c --arg wp "$wp" '.overrides[$wp] // {}' "$STATE" 2>/dev/null || echo '{}')"
+  [ -n "$scheme" ] || scheme="$(jq -r '.scheme // empty' <<< "$ov")"
+  [ -n "$scheme" ] || scheme="$("$SETTINGS" get appearance.scheme)"
+  [ -n "$contrast" ] || contrast="$("$SETTINGS" get appearance.contrast)"
   [ -n "$seed" ] || seed="$(jq -r '.o.seed // empty' <<< "$ov")"
   [ -n "$seed" ] || seed="$(candidates_of "$wp" | head -1)"
   [ -n "$seed" ] || seed="$MATUGEN_FALLBACK"
@@ -238,14 +243,18 @@ EOF
     run magick "$src" -gravity center -resize 512x512^ -extent 512x512 "$HOME/.face" >/dev/null 2>&1
   fi
 
-  # 4. Paleta y plantillas, con las opciones ya resueltas al pedir (B8a).
+  # 4. Paleta y plantillas, con las opciones ya resueltas al pedir (B8a). Antes,
+  #    los colores de estado fijos para este contraste (P8.7); sin ellos matugen
+  #    no puede renderizar (import_json_files).
   local args
   mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast" "$seed" "$rule")
   if [ "$DRY" = true ]; then
+    log "  dry: palette status --contrast ${contrast:-0} --write"
     log "  dry: matugen ${args[*]}"
     sleep "$DRY_DELAY"
     rc=0
   elif command -v matugen >/dev/null 2>&1; then
+    "$PALETTE" status --contrast "${contrast:-0}" --write 2>> "$LOG"
     matugen "${args[@]}" >/dev/null 2>&1
     rc=$?
   else
@@ -257,6 +266,12 @@ EOF
   # viejo, y un destino intermedio de varios deshacer seguidos volvia a
   # entrar arriba al terminar de aplicarse.
   log "listo: matugen rc=$rc en $(( ($(date +%s%N) - t0) / 1000000 )) ms"
+
+  # 5. Validacion del sistema de color sobre la paleta nueva (P8.7): solo queda
+  #    en el log, nunca frena una aplicacion.
+  if [ "$DRY" != true ] && [ "$rc" = 0 ]; then
+    "$PALETTE" check --palette "$COLORS_JSON" --quiet 2>&1 | sed 's/^/  palette: /' >> "$LOG"
+  fi
 
   # 6. Temas de arranque/login, diferidos.
   [ "$no_system" = true ] || schedule_system "$wp" "$scheme" "$contrast" "$seed" "$rule"
@@ -310,10 +325,12 @@ run_system() { # token esperado ("" = el que haya pendiente)
   t0=$(date +%s%N)
   log "sistema: aplicar $wp$([ "$DRY" = true ] && echo " [dry-run]")"
   if [ "$DRY" = true ]; then
+    log "  dry: palette status --contrast ${contrast:-0} --write"
     log "  dry: matugen -c $SYSTEM_CFG ${args[*]}"
     log "  dry: sudo -n /usr/local/bin/sync-sddm-theme"
     rc=0
   else
+    "$PALETTE" status --contrast "${contrast:-0}" --write 2>> "$LOG"
     matugen -c "$SYSTEM_CFG" "${args[@]}" >/dev/null 2>&1
     rc=$?
     # SDDM despues de escribir sus 9 archivos (KI-C2); Plymouth y GRUB
@@ -527,22 +544,19 @@ refresh_cache() {
 }
 if [ "${1:-}" = "--prefs" ]; then
   [ $# -ge 2 ] || usage
-  init_state
   case "$2" in
     scheme)
       [ $# -eq 3 ] || usage
-      [[ " $SCHEMES " == *" $3 "* ]] || die "esquema desconocido: $3"
-      _set_prefs() { jq --arg v "$3" '.prefs = ((.prefs // {}) + {scheme: $v})' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
+      "$SETTINGS" set appearance.scheme "\"$3\"" >/dev/null || die "no se pudo guardar el esquema" ;;
     contrast)
       [ $# -eq 3 ] || usage
-      # Sin valores negativos (decision B8d): 0 estandar .. 1 maximo.
-      awk -v c="$3" 'BEGIN { exit !(c ~ /^[0-9]*\.?[0-9]+$/ && c >= 0 && c <= 1) }' || die "contraste fuera de rango (0..1): $3"
-      _set_prefs() { jq --argjson v "$3" '.prefs = ((.prefs // {}) + {contrast: $v})' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
+      # Rango (0..1, decision B8d) y tipo los valida el motor con el esquema.
+      [[ "$3" =~ ^[0-9]*\.?[0-9]+$ ]] || die "contraste no numerico: $3"
+      "$SETTINGS" set appearance.contrast "$3" >/dev/null || die "contraste fuera de rango (0..1): $3" ;;
     reset)
-      _set_prefs() { jq '.prefs = ((.prefs // {}) + {scheme: null, contrast: null})' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
+      "$SETTINGS" reset appearance.scheme >/dev/null && "$SETTINGS" reset appearance.contrast >/dev/null ;;
     *) die "prefs: usar scheme <tipo>|contrast <0..1>|reset" ;;
   esac
-  with_state_lock _set_prefs "$@"
   log "prefs: ${*:2}"
   refresh_cache
   exit 0

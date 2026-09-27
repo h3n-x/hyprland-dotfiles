@@ -17,7 +17,7 @@ ColumnLayout {
     spacing: Tokens.space.sm
 
     function levelColor(level: int): color {
-        return level >= 2 ? Colors.m3error : level === 1 ? Colors.m3tertiary : Colors.m3primary;
+        return level >= 2 ? Colors.danger : level === 1 ? Colors.warning : Colors.accent;
     }
 
     component Meter: ColumnLayout {
@@ -32,13 +32,13 @@ ColumnLayout {
             Text {
                 Layout.fillWidth: true
                 text: meter.label
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
             }
             Text {
                 text: meter.value
-                color: meter.level > 0 ? glance.levelColor(meter.level) : Colors.m3onSurface
+                color: meter.level > 0 ? glance.levelColor(meter.level) : Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
                 font.weight: Tokens.weight.semibold

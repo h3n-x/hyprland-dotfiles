@@ -58,7 +58,7 @@ PanelWindow {
     // Sin imagen o si no se puede leer: color de fondo de la paleta, nunca
     // negro. Transparente hasta que la primera imagen termino de entrar: al
     // volver de hyprpaper se sigue viendo el suyo debajo durante el fundido.
-    color: root.painted ? Colors.m3surface : "transparent"
+    color: root.painted ? Colors.background : "transparent"
 
     WlrLayershell.layer: WlrLayer.Background
     WlrLayershell.namespace: "quickshell-wallpaper"

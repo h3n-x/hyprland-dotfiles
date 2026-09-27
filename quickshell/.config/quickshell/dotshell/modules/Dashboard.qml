@@ -242,7 +242,7 @@ DropdownPanel {
                 width: panel.lerp(panel.origin.width, stack.width, panel.viewP)
                 height: panel.lerp(panel.origin.height, panel.detailHeight, panel.viewP)
                 radius: Tokens.radius.md
-                color: Qt.alpha(Colors.m3surfaceContainerHighest, 0.55)
+                color: Colors.tint(Colors.surfaceHighest, Tokens.tint.well)
                 opacity: panel.viewP < 0.7 ? 1 : 1 - (panel.viewP - 0.7) / 0.3
             }
 
@@ -264,9 +264,9 @@ DropdownPanel {
                         implicitWidth: 36
                         implicitHeight: 36
                         radius: 18
-                        color: Qt.alpha(Colors.m3onSurface, 0.06)
+                        color: Colors.tint(Colors.text, Tokens.tint.faint)
                         StateLayer { hovered: backMouse.containsMouse; pressed: backMouse.pressed }
-                        Icon { anchors.centerIn: parent; name: "arrow_back"; size: Tokens.icon.md; color: Colors.m3onSurface }
+                        Icon { anchors.centerIn: parent; name: "arrow_back"; size: Tokens.icon.md; color: Colors.text }
                         MouseArea {
                             id: backMouse
                             anchors.fill: parent
@@ -277,7 +277,7 @@ DropdownPanel {
                     }
                     Text {
                         text: panel.detail ? panel.titles[panel.detail] : ""
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.title
                         font.weight: Tokens.weight.semibold
@@ -285,7 +285,7 @@ DropdownPanel {
                     Text {
                         Layout.fillWidth: true
                         text: panel.subtitle
-                        color: Colors.m3outline
+                        color: Colors.border
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
                         elide: Text.ElideRight
@@ -302,7 +302,7 @@ DropdownPanel {
                                 width: here ? 18 : 6
                                 height: 6
                                 radius: 3
-                                color: here ? Colors.m3primary : Colors.m3outlineVariant
+                                color: here ? Colors.accent : Colors.divider
                                 Behavior on width { NumberAnimation { duration: Tokens.motion.short; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
                             }
                         }
@@ -361,6 +361,6 @@ DropdownPanel {
         width: 3
         height: scroller.visibleArea.heightRatio * scroller.height
         radius: 1.5
-        color: Colors.m3outline
+        color: Colors.border
     }
 }

@@ -102,6 +102,9 @@ if [ -z "$seed" ]; then
   magick -size 1920x1080 gradient:'#1a1a2e-#8b5cf6' "$seed"
 fi
 
+# Colores de estado fijos (P8.7): las dos configs de matugen los importan
+# (import_json_files); sin este archivo matugen no renderiza.
+~/.config/hypr/scripts/palette status --write
 matugen image "$seed" --prefer saturation
 # Temas de arranque/login (SDDM, Plymouth, GRUB) van en una config aparte
 # (Fase 3 B2); su sync con sudo solo funciona tras el setup del README.

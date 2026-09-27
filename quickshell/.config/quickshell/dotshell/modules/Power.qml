@@ -13,19 +13,19 @@ Rectangle {
     implicitWidth: Tokens.pill.height
     implicitHeight: Tokens.pill.height
     radius: Tokens.radius.pill(height)
-    color: Colors.m3surfaceContainerLow
+    color: Colors.surfaceLow
 
     StateLayer {
         hovered: mouseArea.containsMouse
         pressed: mouseArea.pressed
-        contentColor: Colors.m3primary
+        contentColor: Colors.accent
     }
 
     Icon {
         id: label
         anchors.centerIn: parent
         name: "power_settings_new"
-        color: Colors.m3primary
+        color: Colors.accent
     }
 
     MouseArea {

@@ -253,7 +253,7 @@ PanelWindow {
     // Velo sobre el escritorio.
     Rectangle {
         anchors.fill: parent
-        color: Colors.m3scrim
+        color: Colors.scrim
         opacity: Tokens.opacity.scrim * presence.progress
     }
 
@@ -307,8 +307,10 @@ PanelWindow {
                     anchors.right: parent.right
                     anchors.top: parent.top
                     anchors.margins: Tokens.space.lg
-                    scheme: (ThemeState.prefs && ThemeState.prefs.scheme) || "scheme-content"
-                    contrast: (ThemeState.prefs && ThemeState.prefs.contrast) || 0
+                    // Opciones globales del almacen (P8.7); se guardan con
+                    // theme-apply.sh --prefs, que ademas recalcula las paletas.
+                    scheme: SettingsState.value("appearance.scheme")
+                    contrast: SettingsState.value("appearance.contrast")
                     onSchemeChosen: (scheme) => window.setPref("scheme", scheme)
                     onContrastChosen: (contrast) => window.setPref("contrast", String(contrast))
                 }
@@ -334,8 +336,8 @@ PanelWindow {
                         Layout.fillWidth: true
                         implicitHeight: Tokens.row.height
                         radius: Tokens.radius.md
-                        color: Colors.m3surfaceContainerHighest
-                        border.color: searchField.activeFocus ? Colors.m3primary : Colors.m3outlineVariant
+                        color: Colors.surfaceHighest
+                        border.color: searchField.activeFocus ? Colors.accent : Colors.divider
                         Behavior on border.color { ColorAnimation { duration: Tokens.motion.fast } }
 
                         Icon {
@@ -344,7 +346,7 @@ PanelWindow {
                             anchors.leftMargin: Tokens.space.md
                             anchors.verticalCenter: parent.verticalCenter
                             name: "search"
-                            color: Colors.m3onSurfaceVariant
+                            color: Colors.textMuted
                         }
                         TextInput {
                             id: searchField
@@ -352,9 +354,9 @@ PanelWindow {
                             anchors.leftMargin: Tokens.space.md + searchIcon.width + Tokens.space.sm
                             anchors.rightMargin: Tokens.space.md
                             verticalAlignment: TextInput.AlignVCenter
-                            color: Colors.m3onSurface
-                            selectionColor: Colors.m3primary
-                            selectedTextColor: Colors.m3onPrimary
+                            color: Colors.text
+                            selectionColor: Colors.accent
+                            selectedTextColor: Colors.textOnAccent
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                             clip: true
@@ -376,7 +378,7 @@ PanelWindow {
                             anchors.leftMargin: searchField.anchors.leftMargin
                             anchors.verticalCenter: parent.verticalCenter
                             text: "Buscar por nombre o etiqueta  ( / )"
-                            color: Colors.m3onSurfaceVariant
+                            color: Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                         }
@@ -399,13 +401,13 @@ PanelWindow {
                             implicitHeight: Tokens.row.height
                             implicitWidth: chipRow.implicitWidth + Tokens.pad.pillH * 2
                             radius: Tokens.radius.sm
-                            color: chip.selected ? Colors.m3secondaryContainer : "transparent"
-                            border.color: chip.selected ? Colors.m3secondaryContainer : Colors.m3outlineVariant
+                            color: chip.selected ? Colors.accentAltContainer : "transparent"
+                            border.color: chip.selected ? Colors.accentAltContainer : Colors.divider
                             Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
                             StateLayer {
                                 hovered: chipMouse.containsMouse
                                 pressed: chipMouse.pressed
-                                contentColor: chip.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                                contentColor: chip.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                             }
                             Row {
                                 id: chipRow
@@ -416,12 +418,12 @@ PanelWindow {
                                     name: chip.modelData[2]
                                     filled: chip.selected
                                     size: Tokens.icon.sm
-                                    color: chip.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                                    color: chip.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                                 }
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: chip.modelData[0]
-                                    color: chip.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                                    color: chip.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                                     font.family: Tokens.font.ui
                                     font.pixelSize: Tokens.type.label
                                     font.weight: chip.selected ? Tokens.weight.semibold : Tokens.weight.medium
@@ -455,13 +457,13 @@ PanelWindow {
                         implicitHeight: Tokens.row.height
                         implicitWidth: globalRow.implicitWidth + Tokens.pad.pillH * 2
                         radius: Tokens.radius.sm
-                        color: window.showGlobals ? Colors.m3secondaryContainer : "transparent"
-                        border.color: window.showGlobals ? Colors.m3secondaryContainer : Colors.m3outlineVariant
+                        color: window.showGlobals ? Colors.accentAltContainer : "transparent"
+                        border.color: window.showGlobals ? Colors.accentAltContainer : Colors.divider
                         Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
                         StateLayer {
                             hovered: globalMouse.containsMouse
                             pressed: globalMouse.pressed
-                            contentColor: window.showGlobals ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                            contentColor: window.showGlobals ? Colors.textOnAccentAltContainer : Colors.textMuted
                         }
                         Row {
                             id: globalRow
@@ -470,12 +472,12 @@ PanelWindow {
                             Icon {
                                 name: "tune"
                                 size: Tokens.icon.sm
-                                color: window.showGlobals ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                                color: window.showGlobals ? Colors.textOnAccentAltContainer : Colors.textMuted
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: "Tema global"
-                                color: window.showGlobals ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                                color: window.showGlobals ? Colors.textOnAccentAltContainer : Colors.textMuted
                                 font.family: Tokens.font.ui
                                 font.pixelSize: Tokens.type.label
                                 font.weight: window.showGlobals ? Tokens.weight.semibold : Tokens.weight.medium
@@ -509,19 +511,19 @@ PanelWindow {
                         height: Tokens.pill.height
                         width: tagFilterText.implicitWidth + Tokens.pad.pillH * 2
                         radius: Tokens.radius.sm
-                        color: tagFilter.selected ? Colors.m3secondaryContainer : "transparent"
-                        border.color: tagFilter.selected ? Colors.m3secondaryContainer : Colors.m3outlineVariant
+                        color: tagFilter.selected ? Colors.accentAltContainer : "transparent"
+                        border.color: tagFilter.selected ? Colors.accentAltContainer : Colors.divider
                         Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
                         StateLayer {
                             hovered: tagFilterMouse.containsMouse
                             pressed: tagFilterMouse.pressed
-                            contentColor: tagFilter.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                            contentColor: tagFilter.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                         }
                         Text {
                             id: tagFilterText
                             anchors.centerIn: parent
                             text: tagFilter.modelData.tag + "  " + tagFilter.modelData.count
-                            color: tagFilter.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                            color: tagFilter.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                             font.weight: tagFilter.selected ? Tokens.weight.semibold : Tokens.weight.medium
@@ -593,7 +595,7 @@ PanelWindow {
                             anchors.fill: parent
                             anchors.margins: Tokens.space.xs
                             radius: Tokens.radius.md
-                            color: Colors.m3surfaceContainerHighest
+                            color: Colors.surfaceHighest
 
                             Image {
                                 anchors.fill: parent
@@ -612,16 +614,16 @@ PanelWindow {
                                 implicitHeight: Tokens.icon.md
                                 implicitWidth: badgeRow.implicitWidth + Tokens.space.sm
                                 radius: Tokens.radius.pill(height)
-                                color: Colors.m3primary
+                                color: Colors.accent
                                 Row {
                                     id: badgeRow
                                     anchors.centerIn: parent
                                     spacing: Tokens.space.hair
-                                    Icon { name: "check"; size: Tokens.icon.sm; color: Colors.m3onPrimary }
+                                    Icon { name: "check"; size: Tokens.icon.sm; color: Colors.textOnAccent }
                                     Text {
                                         anchors.verticalCenter: parent.verticalCenter
                                         text: "Actual"
-                                        color: Colors.m3onPrimary
+                                        color: Colors.textOnAccent
                                         font.family: Tokens.font.ui
                                         font.pixelSize: Tokens.type.caption
                                         font.weight: Tokens.weight.semibold
@@ -634,8 +636,8 @@ PanelWindow {
                                 visible: ThemeState.isFavorite(cell.path)
                                 anchors { right: parent.right; top: parent.top; margins: Tokens.space.xs }
                                 width: Tokens.icon.md; height: width; radius: width / 2
-                                color: Colors.m3surfaceContainerHigh
-                                Icon { anchors.centerIn: parent; name: "favorite"; filled: true; size: Tokens.icon.sm; color: Colors.m3primary }
+                                color: Colors.surfaceHigh
+                                Icon { anchors.centerIn: parent; name: "favorite"; filled: true; size: Tokens.icon.sm; color: Colors.accent }
                             }
                         }
 
@@ -645,7 +647,7 @@ PanelWindow {
                             radius: Tokens.radius.md
                             color: "transparent"
                             border.width: cell.selected ? 2 : 0
-                            border.color: Colors.m3primary
+                            border.color: Colors.accent
                         }
 
                         MouseArea {
@@ -671,7 +673,7 @@ PanelWindow {
                         text: window.query || window.activeTag ? "Sin resultados"
                             : window.onlyRecent && window.recentNames.length === 0 ? "Todavia no hay historial"
                             : window.onlyFavorites ? "Todavia no hay favoritos (F para marcar)" : "Sin resultados"
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
                     }
@@ -681,7 +683,7 @@ PanelWindow {
                     Layout.fillWidth: true
                     text: window.filtered.length + " de " + window.names.length + " wallpapers   ·   ↑↓←→ mover   ⏎ aplicar   espacio vista previa   F favorito   T etiqueta   / buscar   esc cerrar"
                     elide: Text.ElideRight
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption
                 }

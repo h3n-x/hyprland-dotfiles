@@ -48,7 +48,7 @@ Item {
         let result = "";
         for (let i = 0; i < text.length; i++) {
             const ch = escapeHtml(text[i]);
-            result += posSet.has(i) ? ("<b style=\"color:" + Colors.m3primary + "\">" + ch + "</b>") : ch;
+            result += posSet.has(i) ? ("<b style=\"color:" + Colors.accent + "\">" + ch + "</b>") : ch;
         }
         return result;
     }

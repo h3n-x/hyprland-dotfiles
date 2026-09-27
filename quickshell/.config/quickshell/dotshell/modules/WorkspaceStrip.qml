@@ -109,7 +109,7 @@ ColumnLayout {
             radius: Tokens.radius.sm + 3
             color: "transparent"
             border.width: 2
-            border.color: Colors.m3primary
+            border.color: Colors.accent
             opacity: strip.chosenId && strip.slots[strip.focusedIndex] && strip.slots[strip.focusedIndex].id !== strip.chosenId ? 0.3 : 1
             Behavior on x {
                 enabled: strip.live && Tokens.motion.scale > 0

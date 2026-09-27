@@ -1,6 +1,6 @@
 # Generado por matugen -- no editar a mano, editar templates/btop.theme
-# Mismo mapeo semantico que el resto del rice: tertiary=verde, tertiary_container=
-# amarillo, error=rojo (gradientes tipo semaforo de uso), primary=acento principal.
+# Tabla semantica comun (P8.7, principio 23): estado = success/warning (fijos,
+# `palette status`) y error; identidad = primary/secondary/tertiary.
 
 theme[main_bg]="{{colors.surface.default.hex}}"
 theme[main_fg]="{{colors.on_surface.default.hex}}"
@@ -23,34 +23,34 @@ theme[net_box]="{{colors.outline.default.hex}}"
 theme[proc_box]="{{colors.outline.default.hex}}"
 theme[div_line]="{{colors.outline_variant.default.hex}}"
 
-# Gradientes "semaforo" (bajo uso -> alto uso)
-theme[cpu_start]="{{colors.tertiary.default.hex}}"
-theme[cpu_mid]="{{colors.tertiary_container.default.hex}}"
-theme[cpu_end]="{{colors.error.default.hex}}"
+# Gradientes de estado (bajo uso -> alto uso): success -> warning -> error
+theme[cpu_start]="{{status.success.default.hex}}"
+theme[cpu_mid]="{{status.warning.default.hex}}"
+theme[cpu_end]="{{status.error.default.hex}}"
 
-theme[free_start]="{{colors.error.default.hex}}"
-theme[free_mid]="{{colors.tertiary_container.default.hex}}"
-theme[free_end]="{{colors.tertiary.default.hex}}"
+theme[free_start]="{{status.error.default.hex}}"
+theme[free_mid]="{{status.warning.default.hex}}"
+theme[free_end]="{{status.success.default.hex}}"
 
-theme[cached_start]="{{colors.tertiary.default.hex}}"
-theme[cached_mid]="{{colors.tertiary_container.default.hex}}"
-theme[cached_end]="{{colors.error.default.hex}}"
+theme[cached_start]="{{status.success.default.hex}}"
+theme[cached_mid]="{{status.warning.default.hex}}"
+theme[cached_end]="{{status.error.default.hex}}"
 
-theme[available_start]="{{colors.error.default.hex}}"
-theme[available_mid]="{{colors.tertiary_container.default.hex}}"
-theme[available_end]="{{colors.tertiary.default.hex}}"
+theme[available_start]="{{status.error.default.hex}}"
+theme[available_mid]="{{status.warning.default.hex}}"
+theme[available_end]="{{status.success.default.hex}}"
 
-theme[used_start]="{{colors.tertiary.default.hex}}"
-theme[used_mid]="{{colors.tertiary_container.default.hex}}"
-theme[used_end]="{{colors.error.default.hex}}"
+theme[used_start]="{{status.success.default.hex}}"
+theme[used_mid]="{{status.warning.default.hex}}"
+theme[used_end]="{{status.error.default.hex}}"
 
-theme[download_start]="{{colors.tertiary.default.hex}}"
-theme[download_mid]="{{colors.tertiary_container.default.hex}}"
-theme[download_end]="{{colors.error.default.hex}}"
+theme[download_start]="{{status.success.default.hex}}"
+theme[download_mid]="{{status.warning.default.hex}}"
+theme[download_end]="{{status.error.default.hex}}"
 
-theme[upload_start]="{{colors.tertiary.default.hex}}"
-theme[upload_mid]="{{colors.tertiary_container.default.hex}}"
-theme[upload_end]="{{colors.error.default.hex}}"
+theme[upload_start]="{{status.success.default.hex}}"
+theme[upload_mid]="{{status.warning.default.hex}}"
+theme[upload_end]="{{status.error.default.hex}}"
 
 theme[process_start]="{{colors.primary.default.hex}}"
 theme[process_mid]="{{colors.secondary.default.hex}}"

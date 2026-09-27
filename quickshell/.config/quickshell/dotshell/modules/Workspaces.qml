@@ -61,8 +61,8 @@ Item {
                 size: label.isEmpty || label.isUrgent ? Tokens.icon.md : Tokens.icon.sm
                 width: Tokens.icon.md
                 height: Tokens.icon.md
-                color: label.isUrgent ? Colors.m3error
-                    : Colors.m3onSurfaceVariant
+                color: label.isUrgent ? Colors.danger
+                    : Colors.textMuted
 
                 // Cada workspace es un boton propio (Q2 = A).
                 HoverHalo { hovered: slotMouse.containsMouse; pressed: slotMouse.pressed }
@@ -87,7 +87,7 @@ Item {
         visible: root.focusedIndex >= 0
         name: "radio_button_checked"
         filled: true
-        color: Colors.m3primary
+        color: Colors.accent
         width: Tokens.icon.md
         height: Tokens.icon.md
         x: Math.max(0, root.focusedIndex) * root.pitch

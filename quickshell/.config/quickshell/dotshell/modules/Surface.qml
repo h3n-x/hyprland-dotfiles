@@ -24,10 +24,10 @@ Rectangle {
     readonly property var shadowSpec: Tokens.elevationShadow[root.level] ?? null
     // Alcance de la sombra fuera de la tarjeta: desenfoque + desplazamiento.
     readonly property int shadowMargin: root.shadowEnabled && root.shadowSpec ? root.shadowSpec.blur + root.shadowSpec.offsetY : 0
-    readonly property color baseColor: root.level >= 3 ? Colors.m3surfaceContainerHigh : Colors.m3surfaceContainer
+    readonly property color baseColor: root.level >= 3 ? Colors.surfaceHigh : Colors.surface
 
-    color: root.translucent ? Qt.alpha(root.baseColor, Tokens.opacity.surface) : root.baseColor
-    border.color: Colors.m3outlineVariant
+    color: root.translucent ? Colors.tint(root.baseColor, Tokens.opacity.surface) : root.baseColor
+    border.color: Colors.divider
     border.width: 1
 
     // MultiEffect: shadowBlur es relativo a blurMax, de ahi blur / 32.
@@ -38,6 +38,6 @@ Rectangle {
         shadowBlur: root.shadowSpec ? root.shadowSpec.blur / 32 : 0
         shadowVerticalOffset: root.shadowSpec ? root.shadowSpec.offsetY : 0
         shadowOpacity: root.shadowSpec ? root.shadowSpec.opacity : 0
-        shadowColor: Colors.m3shadow
+        shadowColor: Colors.shadow
     }
 }

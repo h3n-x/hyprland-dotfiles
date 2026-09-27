@@ -1,5 +1,5 @@
 // Barra fina de nivel (Fase 4 B7): Inicio y Sistema. Color segun la gravedad
-// (0 primario, 1 terciario, 2 error). Solo se desliza cuando el valor cambia
+// (0 acento, 1 warning, 2 danger; los dos ultimos fijos, P8.7). Solo se desliza cuando el valor cambia
 // de verdad (5 puntos o mas): las variaciones chicas de cada muestra se
 // aplican sin animar, para que nada se mueva todo el tiempo.
 import QtQuick
@@ -9,7 +9,7 @@ Item {
     id: bar
     property real fraction: 0
     property int level: 0
-    property color tint: bar.level >= 2 ? Colors.m3error : bar.level === 1 ? Colors.m3tertiary : Colors.m3primary
+    property color tint: bar.level >= 2 ? Colors.danger : bar.level === 1 ? Colors.warning : Colors.accent
     implicitHeight: 4
 
     property real shown: 0
@@ -36,7 +36,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: height / 2
-        color: Qt.alpha(Colors.m3onSurfaceVariant, 0.16)
+        color: Colors.tint(Colors.textMuted, Tokens.tint.track)
     }
     Rectangle {
         width: parent.width * bar.shown

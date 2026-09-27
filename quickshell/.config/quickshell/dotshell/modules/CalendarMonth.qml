@@ -54,7 +54,7 @@ Item {
         radius: width / 2
         color: "transparent"
         StateLayer { hovered: navMouse.containsMouse; pressed: navMouse.pressed }
-        Icon { anchors.centerIn: parent; name: nav.icon; size: Tokens.icon.md; color: Colors.m3onSurfaceVariant }
+        Icon { anchors.centerIn: parent; name: nav.icon; size: Tokens.icon.md; color: Colors.textMuted }
         MouseArea {
             id: navMouse
             anchors.fill: parent
@@ -74,7 +74,7 @@ Item {
             Text {
                 Layout.fillWidth: true
                 text: WeatherState.cap(card.es.standaloneMonthName(card.month, Locale.LongFormat)) + " " + card.year
-                color: Colors.m3onSurface
+                color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.title
                 font.weight: Tokens.weight.semibold
@@ -87,14 +87,14 @@ Item {
                 radius: Tokens.radius.sm
                 color: "transparent"
                 border.width: 1
-                border.color: Colors.m3outlineVariant
+                border.color: Colors.divider
                 StateLayer { hovered: todayMouse.containsMouse; pressed: todayMouse.pressed }
                 Row {
                     id: todayRow
                     anchors.centerIn: parent
                     spacing: Tokens.space.xs
-                    Icon { anchors.verticalCenter: parent.verticalCenter; name: "today"; size: Tokens.icon.sm; color: Colors.m3onSurfaceVariant }
-                    Text { anchors.verticalCenter: parent.verticalCenter; text: "Hoy"; color: Colors.m3onSurfaceVariant; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label }
+                    Icon { anchors.verticalCenter: parent.verticalCenter; name: "today"; size: Tokens.icon.sm; color: Colors.textMuted }
+                    Text { anchors.verticalCenter: parent.verticalCenter; text: "Hoy"; color: Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label }
                 }
                 MouseArea {
                     id: todayMouse
@@ -115,7 +115,7 @@ Item {
                 required property var model
                 text: WeatherState.cap(model.shortName.replace(".", "")).slice(0, 2)
                 horizontalAlignment: Text.AlignHCenter
-                color: Colors.m3outline
+                color: Colors.border
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 font.weight: Tokens.weight.medium
@@ -144,12 +144,12 @@ Item {
                     height: card.cell - 6
                     radius: width / 2
                     visible: day.isToday
-                    color: Colors.m3primary
+                    color: Colors.accent
                 }
                 Text {
                     anchors.centerIn: parent
                     text: day.model.day
-                    color: day.isToday ? Colors.m3onPrimary : (day.inMonth ? Colors.m3onSurface : Colors.m3outline)
+                    color: day.isToday ? Colors.textOnAccent : (day.inMonth ? Colors.text : Colors.border)
                     opacity: day.inMonth || day.isToday ? 1 : 0.6
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body

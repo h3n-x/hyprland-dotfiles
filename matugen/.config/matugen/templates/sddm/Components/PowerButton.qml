@@ -14,12 +14,12 @@ Item {
       source: Qt.resolvedUrl("../icons/power.svg")
       height: height
       width: width
-      color: "{{colors.on_error.default.hex}}"
+      color: "{{status.on_error.default.hex}}"
     }
     background: Rectangle {
       id: powerButtonBackground
       radius: 8
-      color: "{{colors.error.default.hex}}"
+      color: "{{status.error.default.hex}}"
     }
     states: [
       State {
@@ -27,7 +27,7 @@ Item {
         when: powerButton.hovered
         PropertyChanges {
           target: powerButtonBackground
-          color: "{{colors.error_container.default.hex}}"
+          color: "{{status.error_container.default.hex}}"
         }
       }
     ]

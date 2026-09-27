@@ -136,7 +136,7 @@ Scope {
             z: 2
             color: Qt.alpha("white", win.cap && win.cap.kind === "full" ? 0.15 : 0.22)
             border.width: win.cap && win.cap.kind === "full" ? 0 : 2
-            border.color: Colors.m3primary
+            border.color: Colors.accent
             opacity: 0
         }
 
@@ -158,7 +158,7 @@ Scope {
                 radius: flyerClip.radius
                 blur: Tokens.shadow.lg.blur
                 offset.y: Tokens.shadow.lg.offsetY
-                color: Qt.alpha(Colors.m3shadow, Tokens.shadow.lg.opacity * flyer.t)
+                color: Colors.tint(Colors.shadow, Tokens.shadow.lg.opacity * flyer.t)
             }
             ClippingRectangle {
                 id: flyerClip
@@ -315,7 +315,7 @@ Scope {
                             width: 28
                             height: 28
                             radius: 14
-                            color: Qt.alpha(Colors.m3surfaceContainerHighest, 0.92)
+                            color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
                             StateLayer { hovered: closeMouse.containsMouse; pressed: closeMouse.pressed }
                             Icon {
                                 anchors.centerIn: parent
@@ -342,7 +342,7 @@ Scope {
                             : card.trashed ? "Movida a la papelera"
                             : card.hint !== "" ? card.hint
                             : card.details
-                        color: meta.accent ? Colors.m3primary : Colors.m3onSurfaceVariant
+                        color: meta.accent ? Colors.accent : Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
                         font.weight: meta.accent ? Tokens.weight.medium : Tokens.weight.regular
@@ -362,8 +362,8 @@ Scope {
                             implicitHeight: 36
                             implicitWidth: mainRow.implicitWidth + 28
                             radius: Tokens.radius.pill(height)
-                            color: Colors.m3primary
-                            StateLayer { hovered: mainMouse.containsMouse; pressed: mainMouse.pressed; contentColor: Colors.m3onPrimary }
+                            color: Colors.accent
+                            StateLayer { hovered: mainMouse.containsMouse; pressed: mainMouse.pressed; contentColor: Colors.textOnAccent }
                             Row {
                                 id: mainRow
                                 anchors.centerIn: parent
@@ -373,12 +373,12 @@ Scope {
                                     name: mainBtn.icon
                                     filled: true
                                     size: Tokens.icon.sm
-                                    color: Colors.m3onPrimary
+                                    color: Colors.textOnAccent
                                 }
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: mainBtn.label
-                                    color: Colors.m3onPrimary
+                                    color: Colors.textOnAccent
                                     font.family: Tokens.font.ui
                                     font.pixelSize: Tokens.type.label
                                     font.weight: Tokens.weight.semibold
@@ -421,18 +421,19 @@ Scope {
                                 radius: 18
                                 enabled: !card.trashed
                                 opacity: iconBtn.enabled ? 1 : Tokens.opacity.disabled
-                                color: iconBtn.done ? Colors.m3secondaryContainer : "transparent"
+                                // Hecho (copiado): resultado = success (P8.7).
+                                color: iconBtn.done ? Colors.successContainer : "transparent"
                                 StateLayer {
                                     hovered: iconMouse.containsMouse
                                     pressed: iconMouse.pressed
-                                    contentColor: iconBtn.danger ? Colors.m3error : Colors.m3onSurfaceVariant
+                                    contentColor: iconBtn.danger ? Colors.danger : Colors.textMuted
                                 }
                                 Icon {
                                     anchors.centerIn: parent
                                     name: iconBtn.done ? "check" : iconBtn.modelData.icon
                                     filled: iconBtn.done
                                     size: Tokens.icon.md
-                                    color: iconBtn.danger ? Colors.m3error : iconBtn.done ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                                    color: iconBtn.danger ? Colors.danger : iconBtn.done ? Colors.textOnSuccessContainer : Colors.textMuted
                                 }
                                 MouseArea {
                                     id: iconMouse
@@ -553,7 +554,7 @@ Scope {
                     width: marks.thick + 2
                     height: corner.height + 2
                     radius: 2
-                    color: Qt.alpha(Colors.m3scrim, 0.6)
+                    color: Colors.tint(Colors.scrim, Tokens.opacity.scrimImage)
                 }
                 Rectangle {
                     x: -1
@@ -561,21 +562,21 @@ Scope {
                     width: corner.width + 2
                     height: marks.thick + 2
                     radius: 2
-                    color: Qt.alpha(Colors.m3scrim, 0.6)
+                    color: Colors.tint(Colors.scrim, Tokens.opacity.scrimImage)
                 }
                 Rectangle {
                     x: corner.isRight ? corner.width - marks.thick : 0
                     width: marks.thick
                     height: corner.height
                     radius: 1.5
-                    color: Colors.m3error
+                    color: Colors.danger
                 }
                 Rectangle {
                     y: corner.isBottom ? corner.height - marks.thick : 0
                     width: corner.width
                     height: marks.thick
                     radius: 1.5
-                    color: Colors.m3error
+                    color: Colors.danger
                 }
             }
         }

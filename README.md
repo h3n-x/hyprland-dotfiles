@@ -218,8 +218,9 @@ el repo, solo el template en `matugen/.config/matugen/templates/cava.conf`)
 config. `background`/`foreground` quedan en `'default'` para que se vea el
 fondo con blur de la terminal detras (mismo mecanismo que
 `background_opacity` en `kitty.conf`) en vez de un fondo solido, y el
-gradiente reutiliza el mismo esquema "semaforo" verde -> amarillo -> rojo
-que ya usa `btop.theme` (grave -> agudo en vez de bajo -> alto uso). Si
+gradiente grave -> agudo usa solo colores de identidad del wallpaper
+(tertiary -> secondary -> primary): es decorativo, asi que no lleva colores
+de estado (ver "Colores de estado" mas abajo). Si
 cava ya esta corriendo, el `post_hook` del template le manda `SIGUSR2` para
 recargar solo los colores (sin reiniciar el analisis de audio) en cada
 cambio de wallpaper.
@@ -280,13 +281,21 @@ La barra (`quickshell/.config/quickshell/dotshell/`) esta escrita en QML
 sobre [Quickshell](https://quickshell.org) en vez de Waybar -- se lanza
 con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo.
 
-- **Colores**: `matugen/.config/matugen/templates/quickshell-colors.qml`
-  genera `Colors.qml` (`pragma Singleton`) en cada cambio de wallpaper,
-  mismo mapeo de roles Material You que usa el resto del rice. `pragma
-  Singleton` no dispara el auto-reload de Quickshell cuando el archivo lo
-  reescribe un proceso externo (probado en vivo) -- el `post_hook` del
-  template llama a `qs -c dotshell ipc call colors reload`, que si
-  recarga al instante (un `IpcHandler` en `shell.qml`).
+- **Colores**: matugen escribe `~/.cache/matugen/quickshell-colors.json`
+  (plantilla `templates/quickshell-colors.json`) y `Colors.qml` lo lee y lo
+  sigue solo, con transicion. `Colors.qml` es una `SemanticPalette`
+  (`SemanticPalette.qml`, la unica capa semantica): los modulos usan alias
+  con significado (`Colors.accent`, `Colors.warning`, `Colors.textMuted`...)
+  y nunca los roles crudos de Material You.
+- **Colores de estado** (Fase 8, P8.7): `danger`, `warning` y `success` son
+  fijos -- no cambian con el wallpaper, el esquema ni el contraste, solo
+  con el modo claro/oscuro. Los genera `hypr/.config/hypr/scripts/palette
+  status` (semillas en `dotshell/data/palette.rules.json`) y `theme-apply.sh`
+  los deja en `~/.cache/matugen/status.json` antes de cada matugen, que los
+  importa para todas las plantillas (kitty, btop, nvim, zellij...: el verde,
+  amarillo y rojo de la terminal son siempre los mismos). `palette check`
+  valida el sistema de color (contrastes, colores fijos, colores literales en
+  el QML, tabla semantica de las plantillas).
 - **Estructura**: `shell.qml` (entry point + los `IpcHandler` de abajo),
   `modules/Bar.qml` (`PanelWindow`, una instancia por pantalla via
   `Variants` sobre `Quickshell.screens`), `modules/Pill.qml` (contenedor

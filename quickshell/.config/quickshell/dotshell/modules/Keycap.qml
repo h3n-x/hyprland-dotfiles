@@ -20,9 +20,9 @@ Rectangle {
     implicitHeight: 24
     implicitWidth: cap.isIcon ? iconRow.implicitWidth + Tokens.space.sm + 2 : Math.max(cap.implicitHeight, text.implicitWidth + Tokens.space.md)
     radius: Tokens.radius.xs + 2
-    color: Colors.m3surfaceContainerHighest
+    color: Colors.surfaceHighest
     border.width: 1
-    border.color: Colors.m3outlineVariant
+    border.color: Colors.divider
 
     Accessible.role: Accessible.StaticText
     Accessible.name: cap.spoken || cap.label
@@ -34,7 +34,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         height: 2
         radius: cap.radius
-        color: Colors.m3outlineVariant
+        color: Colors.divider
     }
     Text {
         id: text
@@ -42,7 +42,7 @@ Rectangle {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -1
         text: cap.label
-        color: Colors.m3onSurface
+        color: Colors.text
         // Una o dos letras en monoespaciada (Q, 1 … 0); palabras en la de interfaz.
         font.family: cap.label.length <= 2 ? Tokens.font.mono : Tokens.font.ui
         font.pixelSize: Tokens.type.caption

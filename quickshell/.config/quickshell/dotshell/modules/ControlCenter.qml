@@ -99,7 +99,7 @@ PanelWindow {
 
                 Text {
                     text: "Notificaciones"
-                    color: Colors.m3onSurface
+                    color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.title
                     font.weight: Tokens.weight.semibold
@@ -116,14 +116,14 @@ PanelWindow {
                     StateLayer {
                         hovered: clearMouse.containsMouse
                         pressed: clearMouse.pressed
-                        contentColor: Colors.m3primary
+                        contentColor: Colors.accent
                     }
 
                     Text {
                         id: clearLabel
                         anchors.centerIn: parent
                         text: "Limpiar todo"
-                        color: Colors.m3primary
+                        color: Colors.accent
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
                         font.weight: Tokens.weight.medium
@@ -191,12 +191,12 @@ PanelWindow {
                         id: profBtn
                         required property var modelData
                         readonly property bool selected: PowerProfileState.current === profBtn.modelData.id
-                        readonly property color contentColor: profBtn.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                        readonly property color contentColor: profBtn.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                         Layout.fillWidth: true
                         implicitHeight: Tokens.pill.height
                         radius: Tokens.radius.sm
-                        color: profBtn.selected ? Colors.m3secondaryContainer : "transparent"
-                        border.color: profBtn.selected ? Colors.m3secondaryContainer : Colors.m3outlineVariant
+                        color: profBtn.selected ? Colors.accentAltContainer : "transparent"
+                        border.color: profBtn.selected ? Colors.accentAltContainer : Colors.divider
                         Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
                         Behavior on border.color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
                         border.width: 1
@@ -244,7 +244,7 @@ PanelWindow {
 
                 Text {
                     text: "No molestar"
-                    color: Colors.m3onSurface
+                    color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
                     Layout.fillWidth: true
@@ -272,7 +272,7 @@ PanelWindow {
                         visible: NotificationState.server.trackedNotifications.values.length === 0
                         Layout.leftMargin: Tokens.space.xs
                         text: "Sin notificaciones"
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
                     }
@@ -286,7 +286,7 @@ PanelWindow {
                             Layout.fillWidth: true
                             implicitHeight: histContent.implicitHeight + Tokens.space.md * 2
                             radius: Tokens.radius.md
-                            color: Colors.m3surfaceContainerHigh
+                            color: Colors.surfaceHigh
 
                             ColumnLayout {
                                 id: histContent
@@ -300,7 +300,7 @@ PanelWindow {
 
                                     Text {
                                         text: histItem.modelData.summary
-                                        color: Colors.m3onSurface
+                                        color: Colors.text
                                         font.family: Tokens.font.ui
                                         font.pixelSize: Tokens.type.body
                                         font.weight: Tokens.weight.semibold
@@ -321,7 +321,7 @@ PanelWindow {
                                             StateLayer {
                                                 hovered: dismissMouse.containsMouse
                                                 pressed: dismissMouse.pressed
-                                                contentColor: Colors.m3onSurfaceVariant
+                                                contentColor: Colors.textMuted
                                             }
                                         }
 
@@ -329,7 +329,7 @@ PanelWindow {
                                             anchors.centerIn: parent
                                             name: "close"
                                             size: Tokens.icon.sm
-                                            color: Colors.m3onSurfaceVariant
+                                            color: Colors.textMuted
                                         }
 
                                         MouseArea {
@@ -345,7 +345,7 @@ PanelWindow {
                                 Text {
                                     visible: !!histItem.modelData.body
                                     text: histItem.modelData.body
-                                    color: Colors.m3onSurfaceVariant
+                                    color: Colors.textMuted
                                     font.family: Tokens.font.ui
                                     font.pixelSize: Tokens.type.label
                                     wrapMode: Text.WordWrap

@@ -79,7 +79,7 @@ OverlayWindow {
             component T: Text {
                 property int size: Tokens.type.body
                 property int wt: Tokens.weight.regular
-                color: Colors.m3onSurface
+                color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: size
                 font.weight: wt
@@ -113,12 +113,12 @@ OverlayWindow {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: Tokens.space.md
-                        Icon { name: "keyboard"; size: Tokens.icon.lg; color: Colors.m3primary }
+                        Icon { name: "keyboard"; size: Tokens.icon.lg; color: Colors.accent }
                         T { text: "Atajos"; size: Tokens.type.headline; wt: Tokens.weight.semibold }
                         T {
                             Layout.fillWidth: true
                             size: Tokens.type.label
-                            color: Colors.m3outline
+                            color: Colors.border
                             text: !KeybindState.data ? "Leyendo los atajos de Hyprland…"
                                 : KeybindState.query ? (KeybindState.shownCount === 1 ? "1 resultado" : KeybindState.shownCount + " resultados")
                                 : KeybindState.total + " atajos · leídos de Hyprland al abrir"
@@ -153,7 +153,7 @@ OverlayWindow {
                             width: 3
                             height: scroller.visibleArea.heightRatio * scroller.height
                             radius: 1.5
-                            color: Colors.m3outline
+                            color: Colors.border
                             opacity: 0.6
                         }
 
@@ -185,15 +185,15 @@ OverlayWindow {
                                                 RowLayout {
                                                     Layout.fillWidth: true
                                                     spacing: Tokens.space.sm
-                                                    Icon { name: zone.modelData.icon; size: Tokens.icon.sm; color: Colors.m3primary }
-                                                    T { text: zone.modelData.name; size: Tokens.type.label; wt: Tokens.weight.semibold; color: Colors.m3onSurfaceVariant }
+                                                    Icon { name: zone.modelData.icon; size: Tokens.icon.sm; color: Colors.accent }
+                                                    T { text: zone.modelData.name; size: Tokens.type.label; wt: Tokens.weight.semibold; color: Colors.textMuted }
                                                     T {
                                                         visible: zone.modelData.mode
                                                         Layout.fillWidth: true
                                                         horizontalAlignment: Text.AlignRight
                                                         text: "un modo"
                                                         size: Tokens.type.caption
-                                                        color: Colors.m3outline
+                                                        color: Colors.border
                                                     }
                                                 }
                                                 Repeater {
@@ -226,7 +226,7 @@ OverlayWindow {
                                                                         anchors.verticalCenter: parent.verticalCenter
                                                                         text: "o"
                                                                         size: Tokens.type.caption
-                                                                        color: Colors.m3outline
+                                                                        color: Colors.border
                                                                         rightPadding: 2
                                                                     }
                                                                     Repeater {
@@ -255,13 +255,13 @@ OverlayWindow {
                         visible: !!KeybindState.data && KeybindState.shownCount === 0
                         Layout.alignment: Qt.AlignHCenter
                         text: "Ningún atajo coincide con «" + KeybindState.query + "»"
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                     }
                     T {
                         Layout.alignment: Qt.AlignHCenter
                         text: "Escribe para buscar · Esc cierra · las descripciones salen de binds.lua"
                         size: Tokens.type.caption
-                        color: Colors.m3outline
+                        color: Colors.border
                     }
                 }
             }

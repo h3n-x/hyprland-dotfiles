@@ -177,7 +177,7 @@ Item {
             id: face
             anchors.fill: parent
             radius: ctl.big ? Tokens.radius.lg : width / 2
-            color: ctl.big ? Colors.m3primary : (ctl.on ? Colors.m3secondaryContainer : "transparent")
+            color: ctl.big ? Colors.accent : (ctl.on ? Colors.accentAltContainer : "transparent")
             opacity: ctl.usable ? 1 : 0.35
             scale: ctlMouse.pressed && ctl.usable ? 0.92 : 1
             Behavior on scale { NumberAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
@@ -187,14 +187,14 @@ Item {
             StateLayer {
                 hovered: ctlMouse.containsMouse && ctl.usable
                 pressed: ctlMouse.pressed && ctl.usable
-                contentColor: ctl.big ? Colors.m3onPrimary : Colors.m3onSurface
+                contentColor: ctl.big ? Colors.textOnAccent : Colors.text
             }
             Icon {
                 anchors.centerIn: parent
                 name: ctl.icon
                 filled: ctl.big || ctl.on
                 size: ctl.big ? Tokens.icon.lg : Tokens.icon.md
-                color: ctl.big ? Colors.m3onPrimary : (ctl.on ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant)
+                color: ctl.big ? Colors.textOnAccent : (ctl.on ? Colors.textOnAccentAltContainer : Colors.textMuted)
                 opacity: ctl.altIcon && ctl.showAlt ? 0 : 1
                 scale: ctl.altIcon && ctl.showAlt ? 0.6 : 1
                 Behavior on opacity { NumberAnimation { duration: Tokens.motion.short } }
@@ -206,7 +206,7 @@ Item {
                 name: ctl.altIcon
                 filled: true
                 size: ctl.big ? Tokens.icon.lg : Tokens.icon.md
-                color: ctl.big ? Colors.m3onPrimary : Colors.m3onSurfaceVariant
+                color: ctl.big ? Colors.textOnAccent : Colors.textMuted
                 opacity: ctl.showAlt ? 1 : 0
                 scale: ctl.showAlt ? 1 : 0.6
                 Behavior on opacity { NumberAnimation { duration: Tokens.motion.short } }
@@ -262,7 +262,7 @@ Item {
         }
         Rectangle {
             anchors.fill: parent
-            color: Colors.m3surfaceContainerHigh
+            color: Colors.surfaceHigh
         }
         Repeater {
             model: [artA, artB]
@@ -284,9 +284,9 @@ Item {
             anchors.fill: parent
             gradient: Gradient {
                 orientation: Gradient.Horizontal
-                GradientStop { position: 0.0; color: Qt.alpha(Colors.m3surfaceContainerHigh, 0.3) }
-                GradientStop { position: 0.3; color: Qt.alpha(Colors.m3surfaceContainerHigh, 0.86) }
-                GradientStop { position: 1.0; color: Qt.alpha(Colors.m3surfaceContainerHigh, 0.94) }
+                GradientStop { position: 0.0; color: Colors.tint(Colors.surfaceHigh, Tokens.opacity.scrimImage / 2) }
+                GradientStop { position: 0.3; color: Colors.tint(Colors.surfaceHigh, Tokens.tint.overlay) }
+                GradientStop { position: 1.0; color: Colors.tint(Colors.surfaceHigh, Tokens.tint.overlay) }
             }
         }
     }
@@ -362,7 +362,7 @@ Item {
         Rectangle {
             anchors.fill: parent
             radius: Tokens.radius.lg
-            color: Colors.m3surfaceContainerHighest
+            color: Colors.surfaceHighest
             layer.enabled: true
             layer.effect: MultiEffect {
                 maskEnabled: true
@@ -374,7 +374,7 @@ Item {
                 visible: !cover.hasArt
                 name: "music_note"
                 size: Tokens.icon.xl
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
             }
             Image {
                 id: artA
@@ -410,7 +410,7 @@ Item {
             radius: Tokens.radius.lg
             color: "transparent"
             border.width: 1
-            border.color: Colors.m3outlineVariant
+            border.color: Colors.divider
         }
     }
 
@@ -432,14 +432,14 @@ Item {
                 name: hero.player && hero.player.isPlaying ? "equalizer" : "pause"
                 filled: true
                 size: Tokens.icon.sm
-                color: hero.player && hero.player.isPlaying ? Colors.m3primary : Colors.m3onSurfaceVariant
+                color: hero.player && hero.player.isPlaying ? Colors.accent : Colors.textMuted
                 Behavior on color { ColorAnimation { duration: Tokens.motion.short } }
             }
             Text {
                 Layout.fillWidth: true
                 visible: MediaState.players.length <= 1
                 text: hero.playerName
-                color: hero.player && hero.player.isPlaying ? Colors.m3primary : Colors.m3onSurfaceVariant
+                color: hero.player && hero.player.isPlaying ? Colors.accent : Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 font.weight: Tokens.weight.semibold
@@ -458,16 +458,16 @@ Item {
                         implicitHeight: 26
                         implicitWidth: chipText.implicitWidth + Tokens.space.md * 2
                         radius: 13
-                        color: chip.on ? Colors.m3secondaryContainer : "transparent"
+                        color: chip.on ? Colors.accentAltContainer : "transparent"
                         border.width: chip.on ? 0 : 1
-                        border.color: Colors.m3outlineVariant
+                        border.color: Colors.divider
                         Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
                         StateLayer { hovered: chipMouse.containsMouse; pressed: chipMouse.pressed }
                         Text {
                             id: chipText
                             anchors.centerIn: parent
                             text: MediaState.nameOf(chip.modelData)
-                            color: chip.on ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                            color: chip.on ? Colors.textOnAccentAltContainer : Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.caption
                             font.weight: Tokens.weight.medium
@@ -496,7 +496,7 @@ Item {
                 id: titleText
                 Layout.fillWidth: true
                 text: hero.shownTitle
-                color: Colors.m3onSurface
+                color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.displayLarge
                 font.weight: Tokens.weight.semibold
@@ -507,7 +507,7 @@ Item {
                 visible: !!hero.shownArtist
                 Layout.fillWidth: true
                 text: hero.shownArtist
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.headline
                 elide: Text.ElideRight
@@ -517,7 +517,7 @@ Item {
                 visible: !!hero.shownAlbum
                 Layout.fillWidth: true
                 text: hero.shownAlbum
-                color: Colors.m3outline
+                color: Colors.border
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
                 elide: Text.ElideRight
@@ -540,14 +540,14 @@ Item {
                 width: parent.width
                 height: 4
                 radius: 2
-                color: Qt.alpha(Colors.m3onSurfaceVariant, 0.2)
+                color: Colors.tint(Colors.textMuted, Tokens.tint.track)
             }
             Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width * Math.max(0, Math.min(1, track.frac))
                 height: 4
                 radius: 2
-                color: Colors.m3primary
+                color: Colors.accent
             }
             Rectangle {
                 visible: hero.canSeek
@@ -556,7 +556,7 @@ Item {
                 width: seekMouse.pressed ? 18 : (seekMouse.containsMouse ? 16 : 14)
                 height: width
                 radius: width / 2
-                color: Colors.m3primary
+                color: Colors.accent
                 Behavior on width { NumberAnimation { duration: Tokens.motion.fast } }
             }
             MouseArea {
@@ -586,7 +586,7 @@ Item {
             Layout.fillWidth: true
             Text {
                 text: hero.fmt(track.frac * (hero.player ? hero.player.length : 0))
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 font.features: Tokens.tabularNumbers
@@ -595,14 +595,14 @@ Item {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 text: hero.hint || (hero.canSeek ? "" : "sin búsqueda")
-                color: hero.hint ? Colors.m3onSurfaceVariant : Colors.m3outline
+                color: hero.hint ? Colors.textMuted : Colors.border
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 elide: Text.ElideRight
             }
             Text {
                 text: hero.fmt(hero.player ? hero.player.length : 0)
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 font.features: Tokens.tabularNumbers
@@ -616,12 +616,12 @@ Item {
             Icon {
                 name: "sensors"
                 size: Tokens.icon.sm
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
             }
             Text {
                 Layout.fillWidth: true
                 text: hero.hint || "Sin duración · el reproductor no informa el progreso"
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 elide: Text.ElideRight

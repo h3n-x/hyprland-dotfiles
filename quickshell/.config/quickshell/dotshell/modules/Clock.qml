@@ -33,11 +33,11 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             name: "schedule"
             size: Tokens.icon.sm
-            color: Colors.m3onSurfaceVariant
+            color: Colors.textMuted
         }
         Text {
             Layout.alignment: Qt.AlignVCenter
-            color: Colors.m3onSurface
+            color: Colors.text
             font.family: Tokens.font.ui
             // type.title (D2): el reloj recupera el enfasis con tamano, no con un Bold.
             font.pixelSize: Tokens.type.title
@@ -54,12 +54,12 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 name: root.cur ? WeatherState.describe(root.cur.weather_code, root.cur.is_day === 1).icon : ""
                 size: Tokens.icon.sm
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
             }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.cur ? WeatherState.temp(root.cur.temperature_2m) : ""
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
                 font.features: Tokens.tabularNumbers

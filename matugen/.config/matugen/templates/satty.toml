@@ -14,6 +14,6 @@ palette = [
     "{{colors.primary.default.hex}}ff",
     "{{colors.secondary.default.hex}}ff",
     "{{colors.tertiary.default.hex}}ff",
-    "{{colors.error.default.hex}}ff",
+    "{{status.error.default.hex}}ff",
     "{{colors.on_surface.default.hex}}ff",
 ]

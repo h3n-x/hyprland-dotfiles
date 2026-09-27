@@ -210,9 +210,9 @@ OverlayWindow {
                         anchors.fill: parent
                         anchors.margins: Tokens.space.xs
                         radius: Tokens.radius.lg
-                        color: card.selected ? Colors.m3secondaryContainer : "transparent"
+                        color: card.selected ? Colors.accentAltContainer : "transparent"
                         border.width: card.selected ? 2 : 0
-                        border.color: Colors.m3primary
+                        border.color: Colors.accent
                         Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
 
                         StateLayer { hovered: cardMouse.containsMouse; pressed: cardMouse.pressed }
@@ -227,7 +227,7 @@ OverlayWindow {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 radius: Tokens.radius.md
-                                color: Colors.m3surfaceContainerHighest
+                                color: Colors.surfaceHighest
                                 clip: true
 
                                 WindowPreview {
@@ -247,12 +247,12 @@ OverlayWindow {
                                     width: badge.implicitWidth + Tokens.space.sm * 2
                                     height: 22
                                     radius: 11
-                                    color: card.modelData.urgent ? Colors.m3error : Colors.m3primaryContainer
+                                    color: card.modelData.urgent ? Colors.danger : Colors.accentContainer
                                     Text {
                                         id: badge
                                         anchors.centerIn: parent
                                         text: card.modelData.ws + (window.multiMonitor ? " · " + card.modelData.monitor : "")
-                                        color: card.modelData.urgent ? Colors.m3onError : Colors.m3onPrimaryContainer
+                                        color: card.modelData.urgent ? Colors.textOnDanger : Colors.textOnAccentContainer
                                         font.family: Tokens.font.ui
                                         font.pixelSize: Tokens.type.caption
                                         font.weight: Tokens.weight.semibold
@@ -270,7 +270,7 @@ OverlayWindow {
                                 Text {
                                     Layout.fillWidth: true
                                     text: card.modelData.title
-                                    color: card.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                                    color: card.selected ? Colors.textOnAccentAltContainer : Colors.text
                                     font.family: Tokens.font.ui
                                     font.pixelSize: Tokens.type.label
                                     font.weight: card.selected ? Tokens.weight.semibold : Tokens.weight.medium

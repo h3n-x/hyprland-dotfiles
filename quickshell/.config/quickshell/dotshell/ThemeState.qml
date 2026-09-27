@@ -21,6 +21,8 @@ Item {
     readonly property var history: adapter.history
     readonly property var favorites: adapter.favorites
     readonly property var tags: adapter.tags
+    // Solo el backend del wallpaper; esquema y contraste globales viven en el
+    // almacen de opciones (appearance.*, P8.7).
     readonly property var prefs: adapter.prefs
     // Excepciones por wallpaper (Fase 3 B8b): ruta -> {seed, scheme}.
     readonly property var overrides: adapter.overrides

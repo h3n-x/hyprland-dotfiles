@@ -18,9 +18,9 @@ Rectangle {
     implicitWidth: 36
     implicitHeight: 20
     radius: Tokens.radius.pill(height)
-    color: checked ? Colors.m3primary : Colors.m3surfaceContainerHighest
+    color: checked ? Colors.accent : Colors.surfaceHighest
     border.width: checked ? 0 : 1
-    border.color: Colors.m3outline
+    border.color: Colors.border
 
     Behavior on color {
         ColorAnimation {
@@ -43,7 +43,7 @@ Rectangle {
         StateLayer {
             hovered: mouse.containsMouse
             pressed: mouse.pressed
-            contentColor: root.checked ? Colors.m3primary : Colors.m3onSurface
+            contentColor: root.checked ? Colors.accent : Colors.text
         }
     }
 
@@ -54,7 +54,7 @@ Rectangle {
         radius: Tokens.radius.pill(height)
         anchors.verticalCenter: parent.verticalCenter
         x: root.checked ? root.width - width - 2 : 2
-        color: root.checked ? Colors.m3onPrimary : Colors.m3outline
+        color: root.checked ? Colors.textOnAccent : Colors.border
         // Un spring no tiene duracion que escalar: con movimiento reducido
         // (Tokens.motion.scale 0) el knob salta directo.
         Behavior on x {

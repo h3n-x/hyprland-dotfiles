@@ -68,10 +68,10 @@ PanelWindow {
         implicitHeight: Tokens.row.height
         radius: Tokens.radius.pill(height)
         color: "transparent"
-        border.color: Colors.m3outlineVariant
+        border.color: Colors.divider
         opacity: btn.enabled ? 1 : Tokens.opacity.disabled
         StateLayer { visible: btn.enabled; hovered: btnMouse.containsMouse; pressed: btnMouse.pressed }
-        Icon { anchors.centerIn: parent; name: btn.icon; color: Colors.m3onSurfaceVariant }
+        Icon { anchors.centerIn: parent; name: btn.icon; color: Colors.textMuted }
         MouseArea {
             id: btnMouse
             anchors.fill: parent
@@ -89,7 +89,7 @@ PanelWindow {
         implicitHeight: hintText.implicitHeight + Tokens.space.hair * 2
         radius: Tokens.radius.sm
         color: "transparent"
-        border.color: Qt.alpha(hint.fg, 0.4)
+        border.color: Colors.tint(hint.fg, Tokens.tint.hairline)
         Text {
             id: hintText
             anchors.centerIn: parent
@@ -130,20 +130,20 @@ PanelWindow {
                 implicitWidth: Tokens.row.height
                 implicitHeight: Tokens.row.height
                 radius: width / 2
-                color: Colors.m3primaryContainer
-                Icon { anchors.centerIn: parent; name: "visibility"; filled: true; color: Colors.m3onPrimaryContainer }
+                color: Colors.accentContainer
+                Icon { anchors.centerIn: parent; name: "visibility"; filled: true; color: Colors.textOnAccentContainer }
             }
             Column {
                 Layout.preferredWidth: Math.max(implicitWidth, Tokens.panel.widthSm * 0.5)
                 Text {
                     text: "Vista previa · " + (ThemePreview.index + 1) + " de " + ThemePreview.names.length
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption
                 }
                 Text {
                     text: ThemePreview.name.replace(/\.[^.]+$/, "")
-                    color: Colors.m3onSurface
+                    color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
                     font.weight: Tokens.weight.semibold
@@ -167,7 +167,7 @@ PanelWindow {
                 implicitHeight: Tokens.row.height
                 radius: Tokens.radius.pill(height)
                 color: "transparent"
-                border.color: Colors.m3outlineVariant
+                border.color: Colors.divider
                 StateLayer { hovered: cancelMouse.containsMouse; pressed: cancelMouse.pressed }
                 Row {
                     id: cancelRow
@@ -176,11 +176,11 @@ PanelWindow {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: "Cancelar"
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
                     }
-                    KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Esc"; fg: Colors.m3onSurfaceVariant }
+                    KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Esc"; fg: Colors.textMuted }
                 }
                 MouseArea {
                     id: cancelMouse
@@ -195,22 +195,22 @@ PanelWindow {
                 implicitWidth: applyRow.implicitWidth + Tokens.space.lg * 2
                 implicitHeight: Tokens.row.height
                 radius: Tokens.radius.pill(height)
-                color: Colors.m3primary
-                StateLayer { hovered: applyMouse.containsMouse; pressed: applyMouse.pressed; contentColor: Colors.m3onPrimary }
+                color: Colors.accent
+                StateLayer { hovered: applyMouse.containsMouse; pressed: applyMouse.pressed; contentColor: Colors.textOnAccent }
                 Row {
                     id: applyRow
                     anchors.centerIn: parent
                     spacing: Tokens.space.sm
-                    Icon { name: "wallpaper"; filled: true; color: Colors.m3onPrimary }
+                    Icon { name: "wallpaper"; filled: true; color: Colors.textOnAccent }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: "Aplicar"
-                        color: Colors.m3onPrimary
+                        color: Colors.textOnAccent
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
                         font.weight: Tokens.weight.semibold
                     }
-                    KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Enter"; fg: Colors.m3onPrimary }
+                    KeyHint { anchors.verticalCenter: parent.verticalCenter; text: "Enter"; fg: Colors.textOnAccent }
                 }
                 MouseArea {
                     id: applyMouse

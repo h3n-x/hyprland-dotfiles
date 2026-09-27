@@ -1,0 +1,536 @@
+#!/usr/bin/env bash
+# Paleta del sistema de diseno (Fase 8 B2, P8.7): colores de estado fijos y la
+# validacion obligatoria del sistema de color (palette check).
+#
+#   palette status [--mode dark|light] [--contrast C] [--write]
+#       Colores de estado (error, warning, success y sus contenedores): semillas
+#       de palette.rules.json por scheme-fidelity, SIEMPRE con el contraste fijo
+#       de las reglas. Solo cambian con el modo: nunca con el wallpaper, el
+#       esquema, el contraste elegido ni un acento (principio 23; a contraste
+#       alto warning y error convergian). Imprime el JSON que importan las
+#       plantillas de matugen ({{status.warning.default.hex}}; C va a
+#       {{theme.contrast}}, solo informativo); --write lo deja en
+#       ~/.cache/matugen/status.json (import_json_files de config*.toml).
+#   palette check [--palette F]... [--samples] [--code] [--templates] [--all] [--quiet]
+#       PC-P pares de contraste, PC-S invariantes de estado (sobre una paleta
+#       generada: el JSON de Quickshell o muestras de los wallpapers del
+#       historial), PC-Q reglas del QML, PC-T tabla semantica de las plantillas,
+#       PC-A lista de literales permitidos. Sin opciones: --all (sin muestras).
+#       Salida 0 limpio, 1 fallos, 2 error interno. Los AVISO no fallan.
+#
+# Datos (SOURCE): dotshell/data/palette.rules.json (semillas, umbrales, pares,
+# tabla de plantillas) y palette.allow.json (literales justificados). Los alias
+# y su rol salen de dotshell/SemanticPalette.qml (unica fuente).
+# Pruebas: PALETTE_DATA, PALETTE_QML, PALETTE_TEMPLATES, PALETTE_STATUS_OUT,
+# PALETTE_STATE (historial de wallpapers para --samples).
+set -uo pipefail
+
+export PALETTE_DATA=${PALETTE_DATA:-$HOME/.config/quickshell/dotshell/data}
+export PALETTE_QML=${PALETTE_QML:-$HOME/.config/quickshell/dotshell}
+export PALETTE_TEMPLATES=${PALETTE_TEMPLATES:-$HOME/.config/matugen/templates}
+export PALETTE_STATUS_OUT=${PALETTE_STATUS_OUT:-${XDG_CACHE_HOME:-$HOME/.cache}/matugen/status.json}
+export PALETTE_STATE=${PALETTE_STATE:-$HOME/.local/state/dotfiles/wallpapers.json}
+export PALETTE_TMP=${XDG_RUNTIME_DIR:-/tmp}/dotfiles-palette
+PALETTE_BIN=$(dirname "$(readlink -f "$0")")
+export PALETTE_BIN
+mkdir -p "$PALETTE_TMP"
+
+python3 - "$@" <<'PY'
+import glob, json, math, os, re, subprocess, sys
+
+DATA = os.environ["PALETTE_DATA"]; QML = os.environ["PALETTE_QML"]; TEMPLATES = os.environ["PALETTE_TEMPLATES"]
+STATUS_OUT = os.environ["PALETTE_STATUS_OUT"]; STATE = os.environ["PALETTE_STATE"]; TMP = os.environ["PALETTE_TMP"]
+STATUS_ROLES = ["error", "on_error", "error_container", "on_error_container",
+                "warning", "on_warning", "warning_container", "on_warning_container",
+                "success", "on_success", "success_container", "on_success_container"]
+
+
+def die(msg):
+    print(f"palette: {msg}", file=sys.stderr)
+    sys.exit(2)
+
+
+def load(path):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (OSError, ValueError) as e:
+        die(f"no se pudo leer {path}: {e}")
+
+
+RULES = load(os.path.join(DATA, "palette.rules.json"))
+
+
+# ---- Color --------------------------------------------------------------------------------------
+def rgb(x):
+    x = x.lstrip("#")
+    return [int(x[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+
+
+def lin(c):
+    return [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in c]
+
+
+def lum(x):
+    c = lin(rgb(x))
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+
+def ratio(a, b):
+    A, B = sorted([lum(a), lum(b)], reverse=True)
+    return (A + 0.05) / (B + 0.05)
+
+
+def mix(a, b, t):  # a sobre b con opacidad t
+    ca, cb = rgb(a), rgb(b)
+    return "#" + "".join("%02x" % round(255 * (x * t + y * (1 - t))) for x, y in zip(ca, cb))
+
+
+def oklab(c):  # c lineal
+    r, g, b = c
+    l = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b) ** (1 / 3)
+    m = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b) ** (1 / 3)
+    s = (0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b) ** (1 / 3)
+    return (0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+            1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+            0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s)
+
+
+def hue(x):
+    _, a, b = oklab(lin(rgb(x)))
+    return math.degrees(math.atan2(b, a)) % 360
+
+
+def dhue(a, b):
+    d = abs(hue(a) - hue(b)) % 360
+    return min(d, 360 - d)
+
+
+def delta_e(ca, cb):  # sobre colores lineales, x100
+    return 100 * math.dist(oklab(ca), oklab(cb))
+
+
+# Machado et al. 2009, severidad 1 (RGB lineal).
+CVD = {
+    "deuteranopia": [[0.367322, 0.860646, -0.227968], [0.280085, 0.672501, 0.047413], [-0.011820, 0.042940, 0.968881]],
+    "protanopia": [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216], [-0.003882, -0.048116, 1.051998]],
+    "tritanopia": [[1.255528, -0.076749, -0.178779], [-0.078411, 0.930809, 0.147602], [0.004733, 0.691367, 0.303900]],
+}
+
+
+def sim(c, m):
+    return [max(0.0, min(1.0, sum(m[i][j] * c[j] for j in range(3)))) for i in range(3)]
+
+
+def cvd_min(a, b):
+    la, lb = lin(rgb(a)), lin(rgb(b))
+    return min((delta_e(sim(la, m), sim(lb, m)), k) for k, m in CVD.items())
+
+
+# ---- Estado (palette status) ----------------------------------------------------------------------
+_STATUS = {}
+
+
+def status_table():
+    """Roles de estado en oscuro y claro: {modo: {rol: hex}} (contraste fijo)."""
+    if _STATUS:
+        return _STATUS
+    st = RULES["status"]
+    contrast = st["contrast"]
+    cfg = os.path.join(TMP, "status.toml")
+    body = "[config]\n[config.custom_colors]\n" + "".join(
+        f'{k} = {{ color = "{v}", blend = false }}\n' for k, v in st["seeds"].items()) + "[templates]\n"
+    if not os.path.exists(cfg) or open(cfg).read() != body:
+        with open(cfg + ".tmp", "w") as f:
+            f.write(body)
+        os.replace(cfg + ".tmp", cfg)
+    seed = next(iter(st["seeds"].values()))
+    r = subprocess.run(["matugen", "-c", cfg, "color", "hex", seed, "-t", st["scheme"], "--contrast", str(contrast),
+                        "--dry-run", "-j", "hex", "-q"], capture_output=True, text=True, stdin=subprocess.DEVNULL)
+    try:
+        colors = json.loads(r.stdout)["colors"]
+        _STATUS.update({m: {k: colors[k][m]["color"].lower() for k in STATUS_ROLES} for m in ("dark", "light")})
+        return _STATUS
+    except (ValueError, KeyError):
+        die("matugen no devolvio la familia de estado: " + r.stderr.strip()[:200])
+
+
+def fmt(h):
+    c = h.lstrip("#")
+    return {"hex": "#" + c, "hex_stripped": c, "red": str(int(c[0:2], 16)), "green": str(int(c[2:4], 16)),
+            "blue": str(int(c[4:6], 16))}
+
+
+def cmd_status(args):
+    mode, contrast, write = "dark", 0.0, False
+    it = iter(args)
+    for a in it:
+        if a == "--mode":
+            mode = next(it, "")
+        elif a == "--contrast":
+            try:
+                contrast = float(next(it, ""))
+            except ValueError:
+                die("--contrast necesita un numero")
+        elif a == "--write":
+            write = True
+        else:
+            die(f"opcion desconocida: {a}")
+    if mode not in ("dark", "light"):
+        die("--mode: dark o light")
+    if not -1 <= contrast <= 1:
+        die("--contrast fuera de -1..1")
+    t = status_table()[mode]
+    out = {"status": {k: {"default": fmt(v)} for k, v in t.items()},
+           "theme": {"mode": mode, "contrast": contrast}}
+    text = json.dumps(out, separators=(",", ":"))
+    if write:
+        os.makedirs(os.path.dirname(STATUS_OUT), exist_ok=True)
+        with open(STATUS_OUT + ".tmp", "w") as f:
+            f.write(text + "\n")
+        os.replace(STATUS_OUT + ".tmp", STATUS_OUT)
+    else:
+        print(text)
+
+
+# ---- Alias (unica fuente: SemanticPalette.qml) --------------------------------------------------
+M3_TO_JSON = {"m3" + k.split("_")[0] + "".join(p.capitalize() for p in k.split("_")[1:]): k for k in [
+    "surface", "surface_container_lowest", "surface_container_low", "surface_container", "surface_container_high",
+    "surface_container_highest", "on_surface", "on_surface_variant", "outline", "outline_variant", "primary",
+    "on_primary", "primary_container", "on_primary_container", "secondary", "on_secondary", "secondary_container",
+    "on_secondary_container", "tertiary", "on_tertiary", "tertiary_container", "on_tertiary_container", "error",
+    "on_error", "error_container", "on_error_container", "shadow", "scrim"]}
+M3_TO_JSON.update({"status" + "".join(p.capitalize() for p in k.split("_")): k for k in STATUS_ROLES})
+
+ALIAS_RE = re.compile(r"^\s*readonly property color (\w+): (?:root\.highContrast \? root\.(\w+) : )?root\.(\w+)\s*$")
+
+
+def aliases():
+    """alias -> (rol normal, rol en alto contraste) en nombres del JSON de la paleta."""
+    path = os.path.join(QML, RULES["qml"]["semanticFile"])
+    out = {}
+    for line in open(path):
+        m = ALIAS_RE.match(line)
+        if m and m.group(3) in M3_TO_JSON:
+            hc = M3_TO_JSON.get(m.group(2)) if m.group(2) else None
+            normal = M3_TO_JSON[m.group(3)]
+            out[m.group(1)] = (normal, hc or normal)
+    return out
+
+
+# ---- Hallazgos ------------------------------------------------------------------------------------
+class Report:
+    def __init__(self, quiet):
+        self.fail, self.notice, self.quiet, self.seen = 0, 0, quiet, set()
+
+    def add(self, level, rule, where, msg):
+        key = (level, rule, where, msg)
+        if key in self.seen:
+            return
+        self.seen.add(key)
+        if level == "FALLO":
+            self.fail += 1
+        else:
+            self.notice += 1
+        if not self.quiet or level == "FALLO":
+            print(f"{level} {rule} {where}: {msg}")
+
+
+def palette_values(pal, al, hc):
+    """alias -> hex para una paleta plana (claves del JSON de Quickshell)."""
+    out = {}
+    for a, (normal, high) in al.items():
+        k = high if hc else normal
+        if k in pal:
+            out[a] = pal[k]
+    return out
+
+
+def check_palette(rep, pal, label, al):
+    th = RULES["thresholds"]
+    mins = {"text": th["text"], "large": th["large"], "ui": th["ui"]}
+    for hc in (False, True):
+        v = palette_values(pal, al, hc)
+        tag = label + (" +altoContraste" if hc else "")
+        for p in RULES["pairs"]:
+            fgs = p["fg"] if isinstance(p["fg"], list) else [p["fg"]]
+            need = mins[p["min"]]
+            if hc and p["min"] == "text" and p["fg"] in ("text", "textMuted"):
+                need = th["highContrastText"]
+            for fg in fgs:
+                for bg in p["bg"]:
+                    if fg not in v or bg not in v:
+                        rep.add("FALLO", "PC-P0", tag, f"falta el alias {fg if fg not in v else bg}")
+                        continue
+                    r = ratio(v[fg], v[bg])
+                    if r + 1e-9 < need:
+                        # outline_variant/divider y contraste 0: ya decorativos; el resto falla.
+                        rep.add("FALLO", "PC-P1", tag, f"{p['id']}: {fg} sobre {bg} = {r:.2f} (< {need})")
+        # Piso de transparencia: texto secundario sobre la superficie translucida,
+        # con el peor fondo posible detras (blanco en oscuro, negro en claro).
+        fl = RULES["floor"]
+        dark = lum(v.get("background", "#000000")) < 0.2
+        worst = "#ffffff" if dark else "#000000"
+        comp = mix(v[fl["bg"]], worst, th["surfaceFloor"])
+        r = ratio(v[fl["fg"]], comp)
+        if r + 1e-9 < mins[fl["min"]]:
+            rep.add("FALLO", "PC-P2", tag, f"piso de transparencia {th['surfaceFloor']}: {fl['fg']} = {r:.2f}")
+    check_status(rep, pal, label)
+
+
+def check_status(rep, pal, label):
+    th = RULES["thresholds"]
+    for k in ("warning", "success", "error", "primary"):
+        if k not in pal:
+            rep.add("FALLO", "PC-S0", label, f"la paleta no tiene {k}")
+            return
+    w, s, e, acc = pal["warning"], pal["success"], pal["error"], pal["primary"]
+    # S1: valores exactos de la familia fija para el modo de la paleta.
+    mode = pal.get("mode")
+    if mode in ("dark", "light"):
+        ref = status_table()[mode]
+        for k in STATUS_ROLES:
+            if pal.get(k, "").lower() != ref[k]:
+                rep.add("FALLO", "PC-S1", label, f"{k} = {pal.get(k)} (el sistema fija {ref[k]} en {mode})")
+    else:
+        rep.add("AVISO", "PC-S1", label, "sin modo: no se compara con la familia fija")
+    # S2: familias de tono.
+    for k, rng in (("error", th["dangerHue"]), ("warning", th["warningHue"]), ("success", th["successHue"])):
+        h = hue(pal[k])
+        if not rng[0] <= h <= rng[1]:
+            rep.add("FALLO", "PC-S2", label, f"{k} fuera de su familia: tono {h:.0f} (esperado {rng[0]}-{rng[1]})")
+    # S3: separacion warning/error y success/otros.
+    if dhue(w, e) < th["warningDangerHue"]:
+        rep.add("FALLO", "PC-S3", label, f"warning y error a {dhue(w, e):.0f} grados (< {th['warningDangerHue']})")
+    de = delta_e(lin(rgb(w)), lin(rgb(e)))
+    if de < th["warningDangerDeltaE"]:
+        rep.add("FALLO", "PC-S3", label, f"warning y error: dE {de:.1f} (< {th['warningDangerDeltaE']})")
+    for a, b in (("success", "error"), ("success", "warning")):
+        if dhue(pal[a], pal[b]) < th["statusHue"]:
+            rep.add("FALLO", "PC-S3", label, f"{a} y {b} a {dhue(pal[a], pal[b]):.0f} grados")
+    c, kind = cvd_min(w, e)
+    if c < th["cvdDeltaE"]:
+        rep.add("FALLO", "PC-S4", label, f"warning/error indistinguibles con {kind}: dE {c:.1f}")
+    # S5: el acento del wallpaper coincide con un estado (identidad y significado
+    # no se confunden por la forma: C4). Solo aviso.
+    for k in ("warning", "success", "error"):
+        d = delta_e(lin(rgb(acc)), lin(rgb(pal[k])))
+        if d < th["accentNoticeDeltaE"]:
+            rep.add("AVISO", "PC-S5", label, f"el acento del wallpaper coincide con {k} (dE {d:.1f}); el estado se distingue por icono/texto")
+
+
+def samples():
+    """Paletas de los wallpapers del historial: esquema/contraste efectivos y extremos."""
+    try:
+        st = json.load(open(STATE))
+    except (OSError, ValueError):
+        return []
+    wps = []
+    for h in st.get("history", []):
+        wp = h.get("wallpaper")
+        if wp and wp not in wps and os.path.exists(wp):
+            wps.append(wp)
+    wps = wps[:12]
+    # El esquema que eligio el usuario (appearance.scheme); PALETTE_SCHEME en pruebas.
+    scheme = os.environ.get("PALETTE_SCHEME") or subprocess.run(
+        [os.path.join(os.environ["PALETTE_BIN"], "settings"), "get", "appearance.scheme"],
+        capture_output=True, text=True).stdout.strip() or "scheme-content"
+    cfg = os.path.join(TMP, "empty.toml")
+    if not os.path.exists(cfg):
+        open(cfg, "w").write("[config]\n[templates]\n")
+    out = []
+    stt = status_table()
+    for contrast in (0.0, 0.33, 0.66, 1.0):
+        for wp in wps:
+            r = subprocess.run(["matugen", "-c", cfg, "image", wp, "-t", scheme, "--contrast", str(contrast), "-r",
+                                "gaussian", "--prefer", "saturation", "--dry-run", "-j", "hex", "-q"],
+                               capture_output=True, text=True, stdin=subprocess.DEVNULL)
+            try:
+                colors = json.loads(r.stdout)["colors"]
+            except (ValueError, KeyError):
+                continue
+            for mode in ("dark", "light"):
+                pal = {k: v[mode]["color"].lower() for k, v in colors.items()}
+                pal.update(stt[mode])
+                pal.update({"mode": mode, "contrast": contrast})
+                out.append((f"{os.path.basename(wp)}/{scheme}/{mode}/c{contrast:g}", pal))
+    return out
+
+
+# ---- QML ------------------------------------------------------------------------------------------
+NAMED = ("white|black|red|green|blue|yellow|orange|purple|violet|gray|grey|pink|cyan|magenta|brown|lime|navy|"
+         "teal|silver|gold|maroon|olive|aqua|fuchsia|indigo|crimson|coral|salmon|khaki|beige|ivory|lavender")
+LITERAL_RE = re.compile(r'"#[0-9a-fA-F]{3,8}"|\bQt\.(rgba|hsla|hsva|lighter|darker|tint)\s*\(|"(?:' + NAMED + r')"')
+COLORS_RE = re.compile(r"\bColors\.(\w+)")
+
+
+def allow():
+    return load(os.path.join(DATA, "palette.allow.json")).get("literals", [])
+
+
+def qml_files():
+    fs = sorted(glob.glob(os.path.join(QML, "*.qml")) + glob.glob(os.path.join(QML, "modules", "*.qml")))
+    return [f for f in fs if os.path.basename(f) not in ("probe_shell.qml",)]
+
+
+def check_code(rep):
+    q = RULES["qml"]
+    al = aliases()
+    known = set(al) | {"tint", "reload", "ready", "image", "textDisabled", "highContrast", "disabledOpacity"}
+    ident = set(q["identity"])
+    state_re = re.compile(q["stateWords"], re.I)
+    allowed = allow()
+    used = {i: 0 for i in range(len(allowed))}
+    for f in qml_files():
+        rel = os.path.relpath(f, QML)
+        base = os.path.basename(f)
+        for n, line in enumerate(open(f), 1):
+            code = line.split("//", 1)[0] if not line.lstrip().startswith("//") else ""
+            if not code.strip():
+                continue
+            where = f"{rel}:{n}"
+            # Q1 literales (salvo los permitidos).
+            if LITERAL_RE.search(code):
+                hit = [i for i, a in enumerate(allowed) if a["file"] == rel and a["anchor"] in line]
+                if hit:
+                    for i in hit:
+                        used[i] += 1
+                elif base != q["semanticFile"] and base != "Colors.qml":
+                    rep.add("FALLO", "PC-Q1", where, "color literal fuera de la arquitectura: " + code.strip()[:90])
+            # Q2 roles crudos.
+            if base not in q["m3Allowed"] and re.search(r"\bColors\.(m3|status)\w+", code):
+                rep.add("FALLO", "PC-Q2", where, "rol de paleta directo (usar un alias de SemanticPalette)")
+            # Q3 alfa a mano: Qt.alpha fuera de la paleta, o tint sin un valor de Tokens.
+            if base not in q["alphaAllowed"] and "Qt.alpha(" in code:
+                hit = [i for i, a in enumerate(allowed) if a["file"] == rel and a["anchor"] in line]
+                if hit:
+                    for i in hit:
+                        used[i] += 1
+                else:
+                    rep.add("FALLO", "PC-Q3", where, "Qt.alpha a mano (usar Colors.tint con un token)")
+            for m in re.finditer(r"Colors\.tint\(([^;]*)", code):
+                args = m.group(1)
+                if "Tokens." not in args:
+                    rep.add("FALLO", "PC-Q3", where, "Colors.tint sin un valor de Tokens")
+            # Q4 un color de identidad elegido por un estado (principio 23): la
+            # condicion de un ?: o de un if/return nombra un estado y el color
+            # que elige cuando se cumple es de identidad.
+            names = COLORS_RE.findall(code)
+            picks = [(m.group(1), m.group(2)) for m in re.finditer(r"([^?:]+)\?\s*Colors\.(\w+)", code)]
+            picks += [(m.group(1), m.group(2)) for m in re.finditer(r"if\s*\(([^)]*)\)\s*return\s+Colors\.(\w+)", code)]
+            if any(x in ident and state_re.search(COLORS_RE.sub("", cond)) for cond, x in picks):
+                hit = [i for i, a in enumerate(allowed) if a["file"] == rel and a["anchor"] in line and a.get("rule") == "PC-Q4"]
+                if hit:
+                    for i in hit:
+                        used[i] += 1
+                else:
+                    rep.add("FALLO", "PC-Q4", where, "un estado elige un color de identidad: " + code.strip()[:90])
+            # Q5 paletas locales solo donde la arquitectura lo permite.
+            if "LocalPalette" in code and rel not in q["localAccentConsumers"]:
+                rep.add("FALLO", "PC-Q5", where, "LocalPalette fuera de los elementos permitidos")
+            # Q6 alias inexistente.
+            if base not in q["m3Allowed"]:
+                for x in names:
+                    if x not in known and not x.startswith(("m3", "status")):
+                        rep.add("FALLO", "PC-Q6", where, f"Colors.{x} no existe en SemanticPalette")
+    # PC-A permitidos vencidos.
+    for i, a in enumerate(allowed):
+        if not used[i]:
+            rep.add("FALLO", "PC-A1", a["file"], f"literal permitido que ya no existe: {a['anchor']!r}")
+
+
+# ---- Plantillas -------------------------------------------------------------------------------------
+TPL_LITERAL = re.compile(r"(?<![{\w])#[0-9a-fA-F]{6}\b")
+
+
+def check_templates(rep):
+    rows = RULES["templates"]
+    by_file = {}
+    for r in rows:
+        by_file.setdefault(r["file"], []).append(r)
+    for f, rs in by_file.items():
+        path = os.path.join(TEMPLATES, f)
+        try:
+            lines = open(path).read().splitlines()
+        except OSError:
+            rep.add("FALLO", "PC-T0", f, "plantilla no encontrada")
+            continue
+        for r in rs:
+            roles = r["role"] if isinstance(r["role"], list) else [r["role"]]
+            hits = [(n, l) for n, l in enumerate(lines, 1) if re.search(r["line"], l)]
+            if not hits:
+                rep.add("FALLO", "PC-T1", f, f"no hay linea para {r['line']}")
+            for n, l in hits:
+                refs = re.findall(r"\{\{\s*((?:colors|status)\.\w+)", l)
+                if not refs or any(x not in roles for x in refs):
+                    rep.add("FALLO", "PC-T2", f"{f}:{n}", f"se esperaba {' o '.join(roles)}: {l.strip()[:80]}")
+    # T4: el error sale de palette status, nunca de la paleta del esquema.
+    err_re = re.compile(r"\{\{\s*colors\.(on_)?error(_container)?\.")
+    for path in sorted(glob.glob(os.path.join(TEMPLATES, "**", "*"), recursive=True)):
+        if os.path.isdir(path):
+            continue
+        for n, l in enumerate(open(path, errors="replace").read().splitlines(), 1):
+            if err_re.search(l):
+                rep.add("FALLO", "PC-T4", f"{os.path.relpath(path, TEMPLATES)}:{n}", "colors.error* (usar status.error*)")
+    for path in sorted(glob.glob(os.path.join(TEMPLATES, "**", "*"), recursive=True)):
+        if os.path.isdir(path):
+            continue
+        rel = os.path.relpath(path, TEMPLATES)
+        try:
+            text = open(path, errors="replace").read()
+        except OSError:
+            continue
+        for n, l in enumerate(text.splitlines(), 1):
+            if TPL_LITERAL.search(re.sub(r"\{\{.*?\}\}", "", l)) and not l.lstrip().startswith(("#", "//", "--", "/*", "*")):
+                rep.add("FALLO", "PC-T3", f"{rel}:{n}", "color literal en una plantilla: " + l.strip()[:80])
+
+
+# ---- Entrada --------------------------------------------------------------------------------------
+def cmd_check(args):
+    pals, do_samples, do_code, do_tpl, quiet = [], False, False, False, False
+    it = iter(args)
+    for a in it:
+        if a == "--palette":
+            pals.append(next(it, ""))
+        elif a == "--samples":
+            do_samples = True
+        elif a == "--code":
+            do_code = True
+        elif a == "--templates":
+            do_tpl = True
+        elif a == "--all":
+            do_code = do_tpl = True
+        elif a == "--quiet":
+            quiet = True
+        else:
+            die(f"opcion desconocida: {a}")
+    if not (pals or do_samples or do_code or do_tpl):
+        do_code = do_tpl = True
+    rep = Report(quiet)
+    al = aliases()
+    if not al:
+        die("no se encontraron alias en SemanticPalette.qml")
+    for p in pals:
+        check_palette(rep, load(p), os.path.basename(p), al)
+    n = 0
+    if do_samples:
+        for label, pal in samples():
+            check_palette(rep, pal, label, al)
+            n += 1
+    if do_code:
+        check_code(rep)
+    if do_tpl:
+        check_templates(rep)
+    extra = f" · {n} muestras" if do_samples else ""
+    print(f"palette check: {rep.fail} fallos · {rep.notice} avisos{extra}")
+    sys.exit(1 if rep.fail else 0)
+
+
+cmd = sys.argv[1] if len(sys.argv) > 1 else ""
+if cmd == "status":
+    cmd_status(sys.argv[2:])
+elif cmd == "check":
+    cmd_check(sys.argv[2:])
+else:
+    die("uso: palette status [--mode M] [--contrast C] [--write] | palette check [--palette F] [--samples] [--code] [--templates] [--all] [--quiet]")
+PY

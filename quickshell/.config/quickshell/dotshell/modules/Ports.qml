@@ -66,14 +66,14 @@ Item {
         Icon {
             name: "cable"
             filled: root.portCount > 0
-            color: root.portCount > 0 ? Colors.m3primary : Colors.m3onSurface
+            color: root.portCount > 0 ? Colors.accent : Colors.text
             Layout.alignment: Qt.AlignVCenter
         }
 
         Text {
             visible: root.portCount > 0
             text: root.portCount.toString()
-            color: Colors.m3onSurface
+            color: Colors.text
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
             font.weight: Tokens.weight.semibold

@@ -13,12 +13,12 @@ Rectangle {
 
     // Toggle activo en primary_container, inactivo en el contenedor mas alto
     // (decision C3); icono relleno = activo (I4).
-    readonly property color contentColor: root.active ? Colors.m3onPrimaryContainer : Colors.m3onSurface
+    readonly property color contentColor: root.active ? Colors.textOnAccentContainer : Colors.text
 
     Layout.fillWidth: true
     implicitHeight: Tokens.row.heightLarge
     radius: Tokens.radius.md
-    color: root.active ? Colors.m3primaryContainer : Colors.m3surfaceContainerHighest
+    color: root.active ? Colors.accentContainer : Colors.surfaceHighest
     // Cambio de estado animado (guia 3.6.1).
     Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 

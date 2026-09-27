@@ -14,7 +14,7 @@
 # Color base (Fase 3 B8a): por cada imagen se guardan sus candidatos a semilla
 # ("candidates", el dominante primero; filtro gaussian, como theme-apply.sh) y
 # la paleta se calcula con las opciones EFECTIVAS de ese wallpaper (excepcion >
-# preferencias globales de wallpapers.json > scheme-content / contraste 0) a
+# opciones globales appearance.scheme/contrast del almacen, P8.7) a
 # partir de la semilla (`matugen color`, ~10 ms): la vista previa muestra lo
 # mismo que dara aplicar. "opts" guarda con que opciones se calculo; si cambian
 # (theme-apply.sh --prefs/--override) se recalcula solo la paleta.
@@ -70,6 +70,7 @@ fi
 run_once() {
 WALLPAPERS_DIR="$WALLPAPERS_DIR" CACHE_DIR="$CACHE_DIR" JOBS="$JOBS" FORCE="$FORCE" EMPTY_CFG="$EMPTY_CFG" \
 NOTIFY="${WALLPAPER_CACHE_NOTIFY:-1}" QT_FORMATS_DIR="${QT_IMAGEFORMATS_DIR:-/usr/lib/qt6/plugins/imageformats}" \
+SETTINGS="$(dirname "$(readlink -f "$0")")/settings" \
 STATE_FILE="${THEME_STATE_DIR:-$HOME/.local/state/dotfiles}/wallpapers.json" \
 python3 - <<'PY'
 import glob, json, os, re, shutil, subprocess, sys, time
@@ -128,14 +129,21 @@ def stale(name):
     return (force or e is None or e.get("mtime") != int(st.st_mtime) or e.get("size") != st.st_size
             or not os.path.exists(thumb_path(name)))
 
-# Opciones efectivas (mismos valores por defecto que theme-apply.sh).
-DEFAULT_SCHEME, DEFAULT_CONTRAST = "scheme-content", 0
+# Opciones efectivas, como theme-apply.sh: excepcion del wallpaper > opciones
+# globales del almacen (appearance.scheme/contrast, P8.7).
+def setting(key):
+    r = subprocess.run([os.environ["SETTINGS"], "get", key], capture_output=True, text=True)
+    return r.stdout.strip()
+SCHEME = setting("appearance.scheme") or "scheme-content"
+try:
+    CONTRAST = float(setting("appearance.contrast") or 0)
+except ValueError:
+    CONTRAST = 0
 try:
     with open(os.environ["STATE_FILE"]) as f:
         state = json.load(f)
 except (OSError, ValueError):
     state = {}
-prefs = state.get("prefs") or {}
 overrides = state.get("overrides") or {}
 
 def effective(name):
@@ -145,8 +153,7 @@ def effective(name):
     seed = o.get("seed") or (cands[0] if cands else None)
     if not seed:
         return None
-    return {"seed": seed.lower(), "scheme": o.get("scheme") or prefs.get("scheme") or DEFAULT_SCHEME,
-            "contrast": prefs.get("contrast") if prefs.get("contrast") is not None else DEFAULT_CONTRAST}
+    return {"seed": seed.lower(), "scheme": o.get("scheme") or SCHEME, "contrast": CONTRAST}
 
 def build_thumb(name):
     src = os.path.join(walls, name)

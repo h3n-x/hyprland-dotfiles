@@ -20,7 +20,7 @@ Rectangle {
     implicitWidth: row.implicitWidth + horizontalPadding * 2
     implicitHeight: Tokens.pill.height
     radius: Tokens.radius.pill(height)
-    color: Colors.m3surfaceContainerLow
+    color: Colors.surfaceLow
 
     // Hover de la pill entera, solo para pills de accion unica (Clock, Mpris;
     // decision Q2 = A). En las de varios botones cada control lleva su propio

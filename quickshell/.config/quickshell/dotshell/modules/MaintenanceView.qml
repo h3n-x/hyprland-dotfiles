@@ -67,7 +67,7 @@ ColumnLayout {
     component T: Text {
         property int size: Tokens.type.body
         property int wt: Tokens.weight.regular
-        color: Colors.m3onSurface
+        color: Colors.text
         font.family: Tokens.font.ui
         font.pixelSize: size
         font.weight: wt
@@ -86,51 +86,27 @@ ColumnLayout {
         implicitHeight: 32
         implicitWidth: btnRow.implicitWidth + Tokens.space.lg + Tokens.space.xs
         radius: Tokens.radius.pill(height)
-        color: btn.main ? Colors.m3primary : "transparent"
+        color: btn.main ? Colors.accent : "transparent"
         border.width: btn.main ? 0 : 1
-        border.color: Colors.m3outlineVariant
-        StateLayer { hovered: btnMouse.containsMouse; pressed: btnMouse.pressed; contentColor: btn.main ? Colors.m3onPrimary : Colors.m3onSurface }
+        border.color: Colors.divider
+        StateLayer { hovered: btnMouse.containsMouse; pressed: btnMouse.pressed; contentColor: btn.main ? Colors.textOnAccent : Colors.text }
         Row {
             id: btnRow
             anchors.centerIn: parent
             spacing: Tokens.space.xs + 2
             Icon { anchors.verticalCenter: parent.verticalCenter; visible: btn.icon !== ""; name: btn.icon; size: Tokens.icon.sm; filled: btn.main
-                color: btn.main ? Colors.m3onPrimary : Colors.m3onSurfaceVariant }
+                color: btn.main ? Colors.textOnAccent : Colors.textMuted }
             T { anchors.verticalCenter: parent.verticalCenter; text: btn.label; size: Tokens.type.label; wt: Tokens.weight.semibold; wrapMode: Text.NoWrap
-                color: btn.main ? Colors.m3onPrimary : Colors.m3onSurfaceVariant }
+                color: btn.main ? Colors.textOnAccent : Colors.textMuted }
         }
         MouseArea { id: btnMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: btn.clicked() }
-    }
-    // Severidad: el peso visual crece con ella (la recomendacion con contorno
-    // es mas callada que la advertencia rellena).
-    component Sev: Rectangle {
-        id: sev
-        property int level: 1
-        readonly property var spec: [
-            { l: "Información", i: "info", bg: "transparent", fg: Colors.m3onSurfaceVariant },
-            { l: "Recomendación", i: "lightbulb", bg: "transparent", fg: Colors.m3primary },
-            { l: "Advertencia", i: "warning", bg: Colors.m3tertiaryContainer, fg: Colors.m3onTertiaryContainer },
-            { l: "Acción importante", i: "priority_high", bg: Colors.m3errorContainer, fg: Colors.m3onErrorContainer }][sev.level]
-        implicitHeight: 24
-        implicitWidth: sevRow.implicitWidth + Tokens.space.lg
-        radius: Tokens.radius.pill(height)
-        color: sev.spec.bg
-        border.width: sev.level <= 1 ? 1 : 0
-        border.color: Colors.m3outlineVariant
-        Row {
-            id: sevRow
-            anchors.centerIn: parent
-            spacing: Tokens.space.xs
-            Icon { anchors.verticalCenter: parent.verticalCenter; name: sev.spec.i; size: 14; filled: true; color: sev.spec.fg }
-            T { anchors.verticalCenter: parent.verticalCenter; text: sev.spec.l; size: Tokens.type.caption; wt: Tokens.weight.semibold; color: sev.spec.fg; wrapMode: Text.NoWrap }
-        }
     }
     component SectionTitle: T {
         Layout.topMargin: Tokens.space.xs
         Layout.leftMargin: Tokens.space.xs
         size: Tokens.type.label
         wt: Tokens.weight.semibold
-        color: Colors.m3onSurfaceVariant
+        color: Colors.textMuted
     }
 
     // Una fila: severidad, frase, por que, accion, desplegar; detalle debajo.
@@ -159,12 +135,12 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Tokens.space.md
-                Sev { level: row.item.sev; Layout.alignment: Qt.AlignTop; Layout.topMargin: 1 }
+                StatusBadge { level: row.item.sev; Layout.alignment: Qt.AlignTop; Layout.topMargin: 1 }
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 2
                     T { Layout.fillWidth: true; text: row.item.sentence; wt: Tokens.weight.semibold }
-                    T { Layout.fillWidth: true; visible: !!row.item.why; text: row.item.why; size: Tokens.type.label; color: Colors.m3onSurfaceVariant }
+                    T { Layout.fillWidth: true; visible: !!row.item.why; text: row.item.why; size: Tokens.type.label; color: Colors.textMuted }
                 }
                 Btn {
                     visible: !!row.item.action && row.item.action !== "unit-log"
@@ -173,7 +149,7 @@ ColumnLayout {
                     icon: row.item.action === "reboot" ? "restart_alt" : row.item.action === "captures" ? "folder_open" : "terminal"
                     onClicked: view.run(row.item)
                 }
-                Icon { Layout.alignment: Qt.AlignVCenter; name: row.open_ ? "expand_less" : "expand_more"; color: Colors.m3onSurfaceVariant }
+                Icon { Layout.alignment: Qt.AlignVCenter; name: row.open_ ? "expand_less" : "expand_more"; color: Colors.textMuted }
             }
 
             // ---- Detalle (solo desplegado) ----
@@ -195,7 +171,7 @@ ColumnLayout {
                             height: 24
                             width: pkgText.implicitWidth + Tokens.space.md
                             radius: Tokens.radius.xs
-                            color: Qt.alpha(Colors.m3surface, 0.6)
+                            color: Colors.tint(Colors.background, Tokens.tint.well)
                             T {
                                 id: pkgText
                                 anchors.centerIn: parent
@@ -210,7 +186,7 @@ ColumnLayout {
                         visible: !!row.item.packages && row.item.packages.length > 30
                         text: row.item.packages ? "y " + (row.item.packages.length - 30) + " más" : ""
                         size: Tokens.type.caption
-                        color: Colors.m3outline
+                        color: Colors.border
                     }
                 }
 
@@ -227,7 +203,7 @@ ColumnLayout {
                             spacing: 0
                             T { Layout.fillWidth: true; text: unitRow.modelData.name; font.family: Tokens.font.mono; size: Tokens.type.label; wrapMode: Text.NoWrap }
                             T { Layout.fillWidth: true; text: unitRow.modelData.description + (unitRow.modelData.lastLog ? " — " + unitRow.modelData.lastLog : "")
-                                size: Tokens.type.caption; color: Colors.m3outline; maximumLineCount: 2 }
+                                size: Tokens.type.caption; color: Colors.border; maximumLineCount: 2 }
                         }
                         Btn { label: "Ver registro"; icon: "article"
                             onClicked: MaintenanceState.act("unit-log", unitRow.modelData.name, unitRow.modelData.scope === "user" ? "user" : "") }
@@ -243,7 +219,7 @@ ColumnLayout {
                         required property var modelData
                         Layout.fillWidth: true
                         T { Layout.fillWidth: true; text: srcRow.modelData.exe; font.family: Tokens.font.mono; size: Tokens.type.label; wrapMode: Text.NoWrap }
-                        T { text: "desde el " + Qt.formatDate(new Date(srcRow.modelData.first * 1000), "dd/MM"); size: Tokens.type.caption; color: Colors.m3outline }
+                        T { text: "desde el " + Qt.formatDate(new Date(srcRow.modelData.first * 1000), "dd/MM"); size: Tokens.type.caption; color: Colors.border }
                         T { Layout.preferredWidth: 96; horizontalAlignment: Text.AlignRight; size: Tokens.type.label; wt: Tokens.weight.medium
                             text: MaintenanceState.plural(srcRow.modelData.stored, "volcado", "volcados") }
                     }
@@ -261,14 +237,14 @@ ColumnLayout {
                     visible: !!row.plan
                     implicitHeight: planCol.implicitHeight + Tokens.space.md
                     radius: Tokens.radius.sm
-                    color: Qt.alpha(Colors.m3surface, 0.6)
+                    color: Colors.tint(Colors.background, Tokens.tint.well)
                     Column {
                         id: planCol
                         x: Tokens.space.md
                         y: Tokens.space.sm
                         width: parent.width - 2 * Tokens.space.md
                         spacing: 2
-                        T { width: parent.width; text: row.plan ? row.plan.why : ""; size: Tokens.type.label; color: Colors.m3onSurfaceVariant }
+                        T { width: parent.width; text: row.plan ? row.plan.why : ""; size: Tokens.type.label; color: Colors.textMuted }
                         Repeater {
                             model: row.plan ? row.plan.commands : []
                             T { required property string modelData; text: modelData; font.family: Tokens.font.mono; size: Tokens.type.label; wrapMode: Text.NoWrap }
@@ -302,7 +278,10 @@ ColumnLayout {
                     width: 12
                     height: 12
                     radius: 6
-                    color: MaintenanceState.worst >= 3 ? Colors.m3error : MaintenanceState.worst === 2 ? Colors.m3tertiary : Colors.m3primary
+                    // Veredicto (N7): nada o solo informacion = success; recomendaciones =
+                    // neutro; advertencia y accion importante con sus colores fijos.
+                    color: MaintenanceState.worst >= 3 ? Colors.danger : MaintenanceState.worst === 2 ? Colors.warning
+                        : MaintenanceState.worst === 1 ? Colors.textMuted : Colors.success
                     Behavior on color { ColorAnimation { duration: Tokens.motion.short } }
                 }
                 T {
@@ -319,7 +298,7 @@ ColumnLayout {
                 Layout.leftMargin: 20
                 visible: !!MaintenanceState.recommendation
                 text: MaintenanceState.recommendation
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
             }
         }
         Btn {
@@ -348,8 +327,8 @@ ColumnLayout {
         Layout.leftMargin: Tokens.space.xs
         visible: !!MaintenanceState.okLine
         spacing: Tokens.space.sm
-        Icon { name: "check_circle"; filled: true; size: Tokens.icon.sm; color: Colors.m3primary }
-        T { Layout.fillWidth: true; text: MaintenanceState.okLine; size: Tokens.type.label; color: Colors.m3onSurfaceVariant }
+        Icon { name: "check_circle"; filled: true; size: Tokens.icon.sm; color: Colors.accent }
+        T { Layout.fillWidth: true; text: MaintenanceState.okLine; size: Tokens.type.label; color: Colors.textMuted }
     }
     // Informacion: filas discretas, con detalle al desplegar
     Repeater {
@@ -364,18 +343,18 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Tokens.space.sm
-                Icon { name: "info"; size: Tokens.icon.sm; color: Colors.m3outline }
-                T { Layout.fillWidth: true; text: infoRow.modelData.sentence; size: Tokens.type.label; color: Colors.m3outline }
+                Icon { name: "info"; size: Tokens.icon.sm; color: Colors.border }
+                T { Layout.fillWidth: true; text: infoRow.modelData.sentence; size: Tokens.type.label; color: Colors.border }
                 T {
                     visible: !!infoRow.modelData.units
                     text: infoRow.open_ ? "Menos" : "Ver"
                     size: Tokens.type.label
                     wt: Tokens.weight.semibold
-                    color: Colors.m3primary
+                    color: Colors.accent
                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: view.toggle(infoRow.modelData.id) }
                 }
             }
-            T { visible: infoRow.open_; Layout.leftMargin: 24; Layout.fillWidth: true; text: infoRow.modelData.why; size: Tokens.type.caption; color: Colors.m3outline }
+            T { visible: infoRow.open_; Layout.leftMargin: 24; Layout.fillWidth: true; text: infoRow.modelData.why; size: Tokens.type.caption; color: Colors.border }
             Repeater {
                 model: infoRow.open_ && infoRow.modelData.units ? infoRow.modelData.units : []
                 RowLayout {
@@ -383,7 +362,7 @@ ColumnLayout {
                     required property var modelData
                     Layout.leftMargin: 24
                     Layout.fillWidth: true
-                    T { Layout.fillWidth: true; text: infoUnit.modelData.name; font.family: Tokens.font.mono; size: Tokens.type.caption; color: Colors.m3onSurfaceVariant; wrapMode: Text.NoWrap }
+                    T { Layout.fillWidth: true; text: infoUnit.modelData.name; font.family: Tokens.font.mono; size: Tokens.type.caption; color: Colors.textMuted; wrapMode: Text.NoWrap }
                     Btn { label: "Ver registro"; icon: "article"
                         onClicked: MaintenanceState.act("unit-log", infoUnit.modelData.name, infoUnit.modelData.scope === "user" ? "user" : "") }
                     Btn { label: "Ocultar"; icon: "visibility_off"; onClicked: MaintenanceState.ignoreUnit(infoUnit.modelData.name) }
@@ -397,14 +376,14 @@ ColumnLayout {
         Layout.leftMargin: Tokens.space.xs
         visible: MaintenanceState.ignoredUnits.length > 0
         spacing: Tokens.space.sm
-        Icon { name: "visibility_off"; size: Tokens.icon.sm; color: Colors.m3outline }
-        T { Layout.fillWidth: true; size: Tokens.type.label; color: Colors.m3outline
+        Icon { name: "visibility_off"; size: Tokens.icon.sm; color: Colors.border }
+        T { Layout.fillWidth: true; size: Tokens.type.label; color: Colors.border
             text: "Ocultaste " + MaintenanceState.plural(MaintenanceState.ignoredUnits.length, "servicio", "servicios") + "." }
         T {
             text: "Mostrar"
             size: Tokens.type.label
             wt: Tokens.weight.semibold
-            color: Colors.m3primary
+            color: Colors.accent
             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                 onClicked: { for (const n of MaintenanceState.ignoredUnits.slice()) MaintenanceState.restoreUnit(n); } }
         }

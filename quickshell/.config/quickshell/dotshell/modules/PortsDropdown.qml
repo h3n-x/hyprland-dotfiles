@@ -101,7 +101,7 @@ PopupWindow {
 
                     Text {
                         text: popup.filterMode === "dev" ? "Puertos Dev / HTB" : "Todos los puertos"
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.title
                         font.weight: Tokens.weight.semibold
@@ -116,7 +116,7 @@ PopupWindow {
                             }
                             return count + " sockets en el sistema";
                         }
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
                         Layout.fillWidth: true
@@ -136,7 +136,7 @@ PopupWindow {
                         anchors.centerIn: parent
                         name: "filter_list"
                         filled: false
-                        color: popup.filterMode === "dev" ? Colors.m3primary : Colors.m3onSurfaceVariant
+                        color: popup.filterMode === "dev" ? Colors.accent : Colors.textMuted
                     }
 
                     MouseArea {
@@ -159,7 +159,7 @@ PopupWindow {
                         anchors.centerIn: parent
                         name: "refresh"
                         filled: false
-                        color: Colors.m3onSurface
+                        color: Colors.text
                     }
 
                     MouseArea {
@@ -177,7 +177,7 @@ PopupWindow {
                 Layout.topMargin: Tokens.space.xs
                 Layout.bottomMargin: Tokens.space.xs
                 implicitHeight: 1
-                color: Colors.m3outlineVariant
+                color: Colors.divider
             }
 
             Item {
@@ -193,13 +193,13 @@ PopupWindow {
                     Icon {
                         name: "link_off"
                         size: Tokens.icon.lg
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                         Layout.alignment: Qt.AlignHCenter
                     }
 
                     Text {
                         text: popup.filterMode === "dev" ? "Sin servidores Dev ni listeners HTB" : "No hay puertos en escucha"
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
                         Layout.alignment: Qt.AlignHCenter
@@ -208,7 +208,7 @@ PopupWindow {
                     Text {
                         visible: popup.filterMode === "dev"
                         text: "(Node, Python, Netcat, Chisel, Docker, etc.)"
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
                         Layout.alignment: Qt.AlignHCenter
@@ -239,7 +239,7 @@ PopupWindow {
                             Layout.fillWidth: true
                             implicitHeight: Tokens.row.heightLarge
                             radius: Tokens.radius.sm
-                            color: Colors.m3surfaceContainerLow
+                            color: Colors.surfaceLow
 
                             StateLayer { hovered: rowMouse.containsMouse }
 
@@ -255,13 +255,13 @@ PopupWindow {
                                     implicitWidth: protoText.implicitWidth + Tokens.space.sm * 2
                                     implicitHeight: 20
                                     radius: Tokens.radius.xs
-                                    color: tcp ? Colors.m3secondaryContainer : Colors.m3tertiaryContainer
+                                    color: tcp ? Colors.accentAltContainer : Colors.decorContainer
 
                                     Text {
                                         id: protoText
                                         anchors.centerIn: parent
                                         text: portRow.modelData.proto
-                                        color: parent.tcp ? Colors.m3onSecondaryContainer : Colors.m3onTertiaryContainer
+                                        color: parent.tcp ? Colors.textOnAccentAltContainer : Colors.textOnDecorContainer
                                         font.family: Tokens.font.ui
                                         font.pixelSize: Tokens.type.caption
                                         font.weight: Tokens.weight.semibold
@@ -277,7 +277,7 @@ PopupWindow {
 
                                         Text {
                                             text: ":" + portRow.modelData.port
-                                            color: Colors.m3onSurface
+                                            color: Colors.text
                                             font.family: Tokens.font.mono
                                             font.pixelSize: Tokens.type.body
                                             font.weight: Tokens.weight.semibold
@@ -285,7 +285,7 @@ PopupWindow {
 
                                         Text {
                                             text: "(" + portRow.modelData.host + ")"
-                                            color: Colors.m3onSurfaceVariant
+                                            color: Colors.textMuted
                                             font.family: Tokens.font.mono
                                             font.pixelSize: Tokens.type.caption
                                             elide: Text.ElideRight
@@ -298,7 +298,7 @@ PopupWindow {
                                             const pid = portRow.modelData.pid ? " [PID " + portRow.modelData.pid + "]" : "";
                                             return p + pid;
                                         }
-                                        color: Colors.m3onSurfaceVariant
+                                        color: Colors.textMuted
                                         font.family: Tokens.font.ui
                                         font.pixelSize: Tokens.type.caption
                                         elide: Text.ElideRight
@@ -316,12 +316,12 @@ PopupWindow {
                                     radius: Tokens.radius.pill(height)
                                     color: "transparent"
 
-                                    StateLayer { hovered: closeMouse.containsMouse; pressed: closeMouse.pressed; contentColor: Colors.m3error }
+                                    StateLayer { hovered: closeMouse.containsMouse; pressed: closeMouse.pressed; contentColor: Colors.danger }
 
                                     Icon {
                                         anchors.centerIn: parent
                                         name: "cancel"
-                                        color: closeMouse.containsMouse ? Colors.m3error : Colors.m3onSurfaceVariant
+                                        color: closeMouse.containsMouse ? Colors.danger : Colors.textMuted
                                     }
 
                                     MouseArea {

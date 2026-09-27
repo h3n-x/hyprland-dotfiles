@@ -13,7 +13,7 @@ RowLayout {
 
     Text {
         text: title.text
-        color: Colors.m3onSurfaceVariant
+        color: Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label
         font.weight: Tokens.weight.semibold
@@ -21,7 +21,7 @@ RowLayout {
     Text {
         Layout.fillWidth: true
         text: title.detail
-        color: Colors.m3outline
+        color: Colors.border
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label
         elide: Text.ElideRight
@@ -30,6 +30,6 @@ RowLayout {
         visible: title.opens
         name: "chevron_right"
         size: Tokens.icon.sm
-        color: Colors.m3outline
+        color: Colors.border
     }
 }

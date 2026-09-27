@@ -70,13 +70,13 @@ PanelWindow {
                 implicitWidth: 128
                 implicitHeight: Tokens.space.xs
                 radius: Tokens.radius.pill(height)
-                color: Colors.m3secondaryContainer
+                color: Colors.accentAltContainer
 
                 Rectangle {
                     width: parent.width * Math.max(0, Math.min(1, OsdState.value))
                     height: parent.height
                     radius: parent.radius
-                    color: Colors.m3primary
+                    color: Colors.accent
                     // Solo mientras ya esta abierto: al aparecer, el valor nuevo
                     // se escribe antes de abrir y no anima desde el anterior.
                     Behavior on width {
@@ -92,7 +92,7 @@ PanelWindow {
                 Layout.alignment: Qt.AlignVCenter
                 Layout.minimumWidth: widest.width
                 text: OsdState.label
-                color: Colors.m3onSurface
+                color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.headline
                 font.weight: Tokens.weight.medium

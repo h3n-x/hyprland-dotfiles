@@ -113,7 +113,7 @@ PopupWindow {
 
                 Text {
                     text: popup.currentItem ? (popup.currentItem.title || popup.currentItem.id || "Aplicación") : ""
-                    color: Colors.m3onSurface
+                    color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.title
                     font.weight: Tokens.weight.semibold
@@ -127,7 +127,7 @@ PopupWindow {
                 Layout.topMargin: Tokens.space.xs
                 Layout.bottomMargin: Tokens.space.xs
                 implicitHeight: 1
-                color: Colors.m3outlineVariant
+                color: Colors.divider
             }
 
             Rectangle {
@@ -136,7 +136,7 @@ PopupWindow {
                 radius: Tokens.radius.sm
                 color: "transparent"
 
-                StateLayer { hovered: openMouse.containsMouse; pressed: openMouse.pressed; contentColor: Colors.m3onSurface }
+                StateLayer { hovered: openMouse.containsMouse; pressed: openMouse.pressed; contentColor: Colors.text }
 
                 RowLayout {
                     anchors.fill: parent
@@ -144,11 +144,11 @@ PopupWindow {
                     anchors.rightMargin: Tokens.space.md
                     spacing: Tokens.gap.inline
 
-                    Icon { name: "open_in_new"; color: Colors.m3onSurface }
+                    Icon { name: "open_in_new"; color: Colors.text }
 
                     Text {
                         text: "Abrir ventana"
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
                         font.weight: Tokens.weight.regular
@@ -173,7 +173,7 @@ PopupWindow {
                 radius: Tokens.radius.sm
                 color: "transparent"
 
-                StateLayer { hovered: stopMouse.containsMouse; pressed: stopMouse.pressed; contentColor: Colors.m3error }
+                StateLayer { hovered: stopMouse.containsMouse; pressed: stopMouse.pressed; contentColor: Colors.danger }
 
                 RowLayout {
                     anchors.fill: parent
@@ -181,11 +181,11 @@ PopupWindow {
                     anchors.rightMargin: Tokens.space.md
                     spacing: Tokens.gap.inline
 
-                    Icon { name: "stop_circle"; color: Colors.m3error }
+                    Icon { name: "stop_circle"; color: Colors.danger }
 
                     Text {
                         text: "Detener aplicación"
-                        color: Colors.m3error
+                        color: Colors.danger
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
                         font.weight: Tokens.weight.medium
@@ -215,7 +215,7 @@ PopupWindow {
                 radius: Tokens.radius.sm
                 color: "transparent"
 
-                StateLayer { hovered: nativeMouse.containsMouse; pressed: nativeMouse.pressed; contentColor: Colors.m3onSurface }
+                StateLayer { hovered: nativeMouse.containsMouse; pressed: nativeMouse.pressed; contentColor: Colors.text }
 
                 RowLayout {
                     anchors.fill: parent
@@ -223,11 +223,11 @@ PopupWindow {
                     anchors.rightMargin: Tokens.space.md
                     spacing: Tokens.gap.inline
 
-                    Icon { name: "menu"; color: Colors.m3onSurface }
+                    Icon { name: "menu"; color: Colors.text }
 
                     Text {
                         text: "Menú contextual nativo"
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
                         font.weight: Tokens.weight.regular

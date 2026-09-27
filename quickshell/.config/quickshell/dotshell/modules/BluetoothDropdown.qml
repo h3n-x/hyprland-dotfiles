@@ -122,7 +122,7 @@ PopupWindow {
 
                     Text {
                         text: "Bluetooth"
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.title
                         font.weight: Tokens.weight.semibold
@@ -134,7 +134,7 @@ PopupWindow {
                 Text {
                     visible: !!popup.adapter && popup.adapter.discovering
                     text: "Buscando..."
-                    color: Colors.m3onSurfaceVariant
+                    color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption
                 }
@@ -150,7 +150,7 @@ PopupWindow {
                 Layout.leftMargin: Tokens.space.md
                 Layout.bottomMargin: Tokens.space.xs
                 text: "Sin dispositivos"
-                color: Colors.m3onSurfaceVariant
+                color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
             }
@@ -167,7 +167,7 @@ PopupWindow {
                     radius: Tokens.radius.sm
                     // Fila seleccionada (conectada / por defecto) en secondary
                     // container (decision C3); el hover lo da la StateLayer.
-                    color: deviceRow.selected ? Colors.m3secondaryContainer : "transparent"
+                    color: deviceRow.selected ? Colors.accentAltContainer : "transparent"
                     Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
                     StateLayer { hovered: btMouse.containsMouse; pressed: btMouse.pressed }
@@ -181,12 +181,12 @@ PopupWindow {
                         Icon {
                             name: deviceRow.modelData.connected ? "bluetooth_connected" : "bluetooth"
                             filled: deviceRow.selected
-                            color: deviceRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            color: deviceRow.selected ? Colors.textOnAccentAltContainer : Colors.text
                         }
 
                         Text {
                             text: deviceRow.modelData.name
-                            color: deviceRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            color: deviceRow.selected ? Colors.textOnAccentAltContainer : Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                             font.weight: deviceRow.selected ? Tokens.weight.medium : Tokens.weight.regular
@@ -197,7 +197,7 @@ PopupWindow {
                         Text {
                             visible: deviceRow.modelData.batteryAvailable
                             text: Math.round(deviceRow.modelData.battery * 100) + "%"
-                            color: deviceRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                            color: deviceRow.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.caption
                             font.features: Tokens.tabularNumbers

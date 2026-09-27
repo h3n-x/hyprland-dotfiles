@@ -17,6 +17,11 @@
 # ============================================================================
 
 [config]
+# Colores de estado fijos (P8.7): theme-apply.sh los escribe con `palette
+# status --write` antes de cada corrida; las plantillas los leen como
+# {{status.warning.default.hex}} y {{theme.contrast}}. Solo cambian con el
+# modo: nunca con el wallpaper, el esquema ni el contraste (principio 23).
+import_json_files = ["~/.cache/matugen/status.json"]
 
 [templates.sddm-main]
 input_path = "~/.config/matugen/templates/sddm/Main.qml"

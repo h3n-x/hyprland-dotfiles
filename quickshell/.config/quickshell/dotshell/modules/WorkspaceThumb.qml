@@ -68,7 +68,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            color: Colors.m3surfaceContainerLowest
+            color: Colors.surfaceLowest
         }
         Image {
             anchors.fill: parent
@@ -82,7 +82,7 @@ Item {
         // Vacio: el fondo velado, para que no compita con los que tienen ventanas.
         Rectangle {
             anchors.fill: parent
-            color: Qt.alpha(Colors.m3scrim, thumb.empty ? 0.68 : 0.08)
+            color: Colors.tint(Colors.scrim, thumb.empty ? Tokens.opacity.scrimImage : Tokens.tint.faint)
             Behavior on color { ColorAnimation { duration: Tokens.motion.short } }
         }
 
@@ -92,7 +92,7 @@ Item {
             y: Tokens.bar.marginTop * thumb.k
             width: parent.width - 2 * Tokens.bar.marginSide * thumb.k
             height: Math.max(3, Tokens.pill.height * thumb.k)
-            readonly property color pill: Qt.alpha(Colors.m3surfaceContainerLow, 0.9)
+            readonly property color pill: Colors.tint(Colors.surfaceLow, Tokens.tint.overlay)
             Rectangle { width: parent.width * 0.2; height: parent.height; radius: height / 2; color: parent.pill }
             Rectangle { anchors.horizontalCenter: parent.horizontalCenter; width: parent.width * 0.09; height: parent.height; radius: height / 2; color: parent.pill }
             Rectangle { anchors.right: parent.right; width: parent.width * 0.26; height: parent.height; radius: height / 2; color: parent.pill }
@@ -107,8 +107,8 @@ Item {
                 readonly property real bw: Math.max(1, thumb.deco.border * thumb.k)
                 readonly property real r: Math.max(2, thumb.deco.rounding * thumb.k)
                 readonly property var borderColors: win.modelData.focused
-                    ? (thumb.deco.active.length ? thumb.deco.active : [Colors.m3primary])
-                    : (thumb.deco.inactive.length ? thumb.deco.inactive : [Colors.m3outlineVariant])
+                    ? (thumb.deco.active.length ? thumb.deco.active : [Colors.accent])
+                    : (thumb.deco.inactive.length ? thumb.deco.inactive : [Colors.divider])
                 x: win.modelData.x * thumb.k
                 y: win.modelData.y * thumb.k
                 width: win.modelData.w * thumb.k
@@ -138,7 +138,7 @@ Item {
                     anchors.fill: parent
                     anchors.margins: win.bw
                     radius: Math.max(1, win.r - win.bw)
-                    color: win.modelData.focused ? Colors.m3surfaceContainerHigh : Qt.alpha(Colors.m3surfaceContainer, 0.94)
+                    color: win.modelData.focused ? Colors.surfaceHigh : Colors.tint(Colors.surface, Tokens.tint.overlay)
                     // Con captura: recortada a las esquinas de la ventana.
                     layer.enabled: thumb.detailed
                     layer.effect: MultiEffect {
@@ -187,16 +187,16 @@ Item {
                         width: thumb.detailed ? 22 : 14
                         height: width
                         radius: width / 2
-                        color: Colors.m3primary
-                        Icon { anchors.centerIn: parent; name: "equalizer"; filled: true; size: parent.width - 6; color: Colors.m3onPrimary }
+                        color: Colors.accent
+                        Icon { anchors.centerIn: parent; name: "equalizer"; filled: true; size: parent.width - 6; color: Colors.textOnAccent }
                     }
                     Rectangle {
                         visible: thumb.detailed && win.modelData.history === 1
                         width: 22
                         height: 22
                         radius: 11
-                        color: Qt.alpha(Colors.m3surfaceContainerHighest, 0.92)
-                        Icon { anchors.centerIn: parent; name: "history"; size: 16; color: Colors.m3onSurfaceVariant }
+                        color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
+                        Icon { anchors.centerIn: parent; name: "history"; size: 16; color: Colors.textMuted }
                     }
                 }
                 // Titulo al pasar el mouse (vista Escritorios).
@@ -208,7 +208,7 @@ Item {
                     anchors.margins: win.bw + 2
                     height: winTitle.implicitHeight + 8
                     radius: Tokens.radius.xs
-                    color: Qt.alpha(Colors.m3surfaceContainerHighest, 0.94)
+                    color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
                     Text {
                         id: winTitle
                         anchors.fill: parent
@@ -216,7 +216,7 @@ Item {
                         anchors.rightMargin: 6
                         verticalAlignment: Text.AlignVCenter
                         text: win.modelData.title
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
                         elide: Text.ElideRight
@@ -238,13 +238,13 @@ Item {
             visible: thumb.empty
             name: "add"
             size: Tokens.icon.sm
-            color: Colors.m3onSurface
+            color: Colors.text
         }
 
         // Seleccion del teclado: la misma capa de estado que el foco en M3.
         Rectangle {
             anchors.fill: parent
-            color: Colors.m3onSurface
+            color: Colors.text
             opacity: thumb.selected ? Tokens.stateLayer.focus * 1.6 : 0
             Behavior on opacity { NumberAnimation { duration: Tokens.motion.fast } }
         }
@@ -252,7 +252,7 @@ Item {
         // Elegido otro workspace: este se apaga con un velo del color de la superficie.
         Rectangle {
             anchors.fill: parent
-            color: Qt.alpha(Colors.m3surfaceContainer, 0.72)
+            color: Colors.tint(Colors.surface, Tokens.tint.veil)
             opacity: thumb.veiled ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: Tokens.motion.short } }
         }
@@ -276,12 +276,12 @@ Item {
         width: 16
         height: 16
         radius: 8
-        color: Qt.alpha(Colors.m3surfaceContainerHighest, 0.9)
+        color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
         opacity: thumb.veiled ? 0.4 : 1
         Text {
             anchors.centerIn: parent
             text: thumb.wsId
-            color: Colors.m3onSurfaceVariant
+            color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: 10
             font.weight: Tokens.weight.semibold
@@ -296,7 +296,7 @@ Item {
         width: 8
         height: 8
         radius: 4
-        color: Colors.m3error
+        color: Colors.danger
     }
 
     // Clic en el fondo: el workspace (debajo de las ventanas, que en la vista

@@ -24,7 +24,7 @@ Item {
         id: label
         name: root.active ? "visibility" : "visibility_off"
         filled: root.active
-        color: root.active ? Colors.m3primary : Colors.m3onSurface
+        color: root.active ? Colors.accent : Colors.text
     }
 
     // Hover por control (P2.4, Q2 = A).

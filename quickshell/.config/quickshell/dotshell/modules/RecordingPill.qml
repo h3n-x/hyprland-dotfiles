@@ -16,7 +16,8 @@ Pill {
     readonly property bool failed: pill.result === "error"
 
     visible: pill.recording || pill.result !== ""
-    color: pill.saved ? Colors.m3primaryContainer : pill.failed ? Colors.m3errorContainer : Colors.m3surfaceContainerLow
+    // Resultado (P8.7): guardado = success, error = danger (fijos); grabando, neutro con el punto danger (N6).
+    color: pill.saved ? Colors.successContainer : pill.failed ? Colors.dangerContainer : Colors.surfaceLow
     hovered: mouse.containsMouse && pill.recording
     pressed: mouse.pressed && pill.recording
 
@@ -36,7 +37,7 @@ Pill {
             width: 10
             height: 10
             radius: 5
-            color: Colors.m3error
+            color: Colors.danger
             // Late con el segundo: lleno en los pares, 45 % en los impares. Sin
             // fundido a proposito: 100 ms de fundido por segundo costaban 2,3 %
             // de un nucleo; el cambio seco, 0,3 % (medido en la sonda B8).
@@ -51,7 +52,7 @@ Pill {
             radius: width / 2
             color: "transparent"
             border.width: 2
-            border.color: Colors.m3error
+            border.color: Colors.danger
             opacity: 0
             ParallelAnimation {
                 id: pulse
@@ -65,7 +66,7 @@ Pill {
             name: pill.failed ? "error" : pill.saved ? "check_circle" : "hourglass_top"
             filled: true
             size: Tokens.icon.sm
-            color: pill.failed ? Colors.m3onErrorContainer : pill.saved ? Colors.m3onPrimaryContainer : Colors.m3onSurfaceVariant
+            color: pill.failed ? Colors.textOnDangerContainer : pill.saved ? Colors.textOnSuccessContainer : Colors.textMuted
         }
     }
 
@@ -75,7 +76,7 @@ Pill {
             : pill.saved ? "Guardada · " + pill.clock(Math.round(CaptureState.recordedMs / 1000))
             : pill.result === "stopping" ? "Guardando…"
             : pill.clock(CaptureState.elapsed)
-        color: pill.failed ? Colors.m3onErrorContainer : pill.saved ? Colors.m3onPrimaryContainer : Colors.m3onSurface
+        color: pill.failed ? Colors.textOnDangerContainer : pill.saved ? Colors.textOnSuccessContainer : Colors.text
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.body
         font.weight: Tokens.weight.medium

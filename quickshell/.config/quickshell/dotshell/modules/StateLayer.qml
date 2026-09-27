@@ -4,7 +4,7 @@
 // diferencia de un color de hover fijo. Se pone como hijo del elemento y
 // recibe el estado del MouseArea del padre:
 //
-//   Rectangle { radius: Tokens.radius.sm; color: Colors.m3surfaceContainerLow
+//   Rectangle { radius: Tokens.radius.sm; color: Colors.surfaceLow
 //       StateLayer { hovered: ma.containsMouse; pressed: ma.pressed }
 //       MouseArea { id: ma; anchors.fill: parent; hoverEnabled: true } }
 import QtQuick
@@ -16,7 +16,7 @@ Rectangle {
     property bool pressed: false
     property bool focused: false
     // Color del contenido del elemento (texto/icono), no del fondo.
-    property color contentColor: Colors.m3onSurface
+    property color contentColor: Colors.text
 
     anchors.fill: parent
     radius: parent && parent.radius !== undefined ? parent.radius : 0

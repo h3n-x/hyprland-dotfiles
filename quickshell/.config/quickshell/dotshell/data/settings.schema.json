@@ -19,6 +19,38 @@
       "label": "Duración del indicador de volumen y brillo",
       "keywords": ["osd", "volumen", "brillo"], "apply": "live"
     },
+    "appearance.scheme": {
+      "type": "enum", "default": "scheme-content",
+      "values": { "scheme-content": "Contenido", "scheme-tonal-spot": "Tonal", "scheme-vibrant": "Vibrante",
+                  "scheme-expressive": "Expresivo", "scheme-fidelity": "Fidelidad", "scheme-neutral": "Neutro",
+                  "scheme-monochrome": "Monocromo", "scheme-rainbow": "Arcoíris", "scheme-fruit-salad": "Macedonia" },
+      "category": "appearance", "section": "Color", "order": 20,
+      "label": "Esquema de color de todos los wallpapers",
+      "description": "Cómo se arma la paleta a partir del wallpaper; cada wallpaper puede tener su excepción. No cambia los colores de estado.",
+      "keywords": ["matugen", "paleta", "tema"], "apply": "next-use"
+    },
+    "appearance.contrast": {
+      "type": "number", "default": 0, "min": 0, "max": 1, "presets": [0, 0.33, 0.66, 1],
+      "category": "appearance", "section": "Color", "order": 30,
+      "label": "Contraste",
+      "description": "0 = estándar de Material; más contraste separa más textos y fondos (también los colores de estado).",
+      "keywords": ["legibilidad", "tema"], "apply": "next-use"
+    },
+    "appearance.transparency": {
+      "type": "enum", "default": "normal",
+      "values": { "normal": "Normal", "reduced": "Reducida", "off": "Sin transparencia" },
+      "category": "appearance", "section": "Superficies", "order": 40,
+      "label": "Transparencia de los paneles",
+      "description": "Nunca baja del mínimo legible sobre el wallpaper.",
+      "keywords": ["opacidad", "blur", "translucidez"], "apply": "live"
+    },
+    "accessibility.highContrast": {
+      "type": "bool", "default": false,
+      "category": "accessibility", "section": "Color", "order": 20,
+      "label": "Alto contraste",
+      "description": "Textos secundarios y bordes con el contraste de los principales; paneles opacos.",
+      "keywords": ["legibilidad", "contraste", "baja visión"], "apply": "live"
+    },
     "accessibility.reduceMotion": {
       "type": "bool", "default": false,
       "category": "accessibility", "section": "Movimiento", "order": 10,

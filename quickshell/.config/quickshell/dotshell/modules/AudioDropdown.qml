@@ -117,7 +117,7 @@ PopupWindow {
 
                     Text {
                         text: "Dispositivos de audio"
-                        color: Colors.m3onSurface
+                        color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.title
                         font.weight: Tokens.weight.semibold
@@ -126,7 +126,7 @@ PopupWindow {
                     }
                     Text {
                         text: "Salidas y micrófonos (PipeWire)"
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
                         Layout.fillWidth: true
@@ -146,7 +146,7 @@ PopupWindow {
                         anchors.centerIn: parent
                         name: "refresh"
                         filled: false
-                        color: Colors.m3onSurface
+                        color: Colors.text
                     }
 
                     MouseArea {
@@ -164,12 +164,12 @@ PopupWindow {
                 Layout.topMargin: Tokens.space.xs
                 Layout.bottomMargin: Tokens.space.xs
                 implicitHeight: 1
-                color: Colors.m3outlineVariant
+                color: Colors.divider
             }
 
             Text {
                 text: "SALIDA (ALTAVOCES / AURICULARES)"
-                color: Colors.m3primary
+                color: Colors.accent
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 font.weight: Tokens.weight.semibold
@@ -190,7 +190,7 @@ PopupWindow {
                     radius: Tokens.radius.sm
                     // Fila seleccionada (conectada / por defecto) en secondary
                     // container (decision C3); el hover lo da la StateLayer.
-                    color: sinkRow.selected ? Colors.m3secondaryContainer : "transparent"
+                    color: sinkRow.selected ? Colors.accentAltContainer : "transparent"
                     Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
                     StateLayer { hovered: sinkMouse.containsMouse; pressed: sinkMouse.pressed }
@@ -204,12 +204,12 @@ PopupWindow {
                         Icon {
                             name: sinkRow.modelData.name.toLowerCase().includes("headphone") ? "headphones" : "speaker"
                             filled: sinkRow.selected
-                            color: sinkRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            color: sinkRow.selected ? Colors.textOnAccentAltContainer : Colors.text
                         }
 
                         Text {
                             text: sinkRow.modelData.name
-                            color: sinkRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            color: sinkRow.selected ? Colors.textOnAccentAltContainer : Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                             font.weight: sinkRow.selected ? Tokens.weight.medium : Tokens.weight.regular
@@ -221,7 +221,7 @@ PopupWindow {
                             visible: sinkRow.selected
                             name: "check"
                             size: Tokens.icon.sm
-                            color: Colors.m3onSecondaryContainer
+                            color: Colors.textOnAccentAltContainer
                         }
                     }
 
@@ -243,12 +243,12 @@ PopupWindow {
                 Layout.topMargin: Tokens.space.xs
                 Layout.bottomMargin: Tokens.space.xs
                 implicitHeight: 1
-                color: Colors.m3outlineVariant
+                color: Colors.divider
             }
 
             Text {
                 text: "ENTRADA (MICRÓFONO)"
-                color: Colors.m3tertiary
+                color: Colors.decor
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 font.weight: Tokens.weight.semibold
@@ -269,7 +269,7 @@ PopupWindow {
                     radius: Tokens.radius.sm
                     // Fila seleccionada (conectada / por defecto) en secondary
                     // container (decision C3); el hover lo da la StateLayer.
-                    color: srcRow.selected ? Colors.m3secondaryContainer : "transparent"
+                    color: srcRow.selected ? Colors.accentAltContainer : "transparent"
                     Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
                     StateLayer { hovered: srcMouse.containsMouse; pressed: srcMouse.pressed }
@@ -283,12 +283,12 @@ PopupWindow {
                         Icon {
                             name: "mic"
                             filled: srcRow.selected
-                            color: srcRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            color: srcRow.selected ? Colors.textOnAccentAltContainer : Colors.text
                         }
 
                         Text {
                             text: srcRow.modelData.name
-                            color: srcRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                            color: srcRow.selected ? Colors.textOnAccentAltContainer : Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
                             font.weight: srcRow.selected ? Tokens.weight.medium : Tokens.weight.regular
@@ -300,7 +300,7 @@ PopupWindow {
                             visible: srcRow.selected
                             name: "check"
                             size: Tokens.icon.sm
-                            color: Colors.m3onSecondaryContainer
+                            color: Colors.textOnAccentAltContainer
                         }
                     }
 

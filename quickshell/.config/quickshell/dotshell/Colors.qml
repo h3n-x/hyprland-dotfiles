@@ -1,4 +1,5 @@
-// Colores de la shell (ColorStore, Fase 3 B1). Archivo fuente, no generado.
+// Colores de la shell (ColorStore, Fase 3 B1; capa semantica, Fase 8 B2).
+// Archivo fuente, no generado.
 //
 // matugen escribe la paleta del wallpaper en ~/.cache/matugen/quickshell-colors.json
 // (plantilla templates/quickshell-colors.json); aca se lee con un FileView que la
@@ -11,15 +12,17 @@
 // (valores por defecto del JsonAdapter) o el ultimo valor bueno (KI-C3). La primera
 // carga no anima.
 //
-// Roles Material 3 con prefijo m3: QML no admite una propiedad onX junto a una
-// propiedad X en el mismo objeto (toma onX como el handler de X), y M3 siempre
-// tiene los dos (surface/onSurface, primary/onPrimary...). Mapa en DESIGN_TOKENS.md.
+// Este singleton ES una SemanticPalette (P8.7): aca solo se alimentan sus roles
+// de entrada (m3* y status*); los modulos usan sus alias (Colors.accent,
+// Colors.warning, Colors.textMuted...), nunca los roles crudos (palette check,
+// PC-Q2). Los colores de estado salen siempre del JSON aplicado, tambien durante
+// la vista previa: no dependen del wallpaper ni del esquema (principio 23).
 pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
 
-Item {
+SemanticPalette {
     id: root
 
     // Relee el JSON a mano (IPC `colors reload` de shell.qml).
@@ -30,7 +33,7 @@ Item {
     // true tras la primera lectura: recien ahi se habilitan las animaciones.
     property bool ready: false
 
-    FileView {
+    property FileView paletteFile: FileView {
         id: file
         // QS_COLORS_JSON: otra paleta para pruebas (segunda instancia de la shell).
         path: Quickshell.env("QS_COLORS_JSON") || (Quickshell.env("HOME") + "/.cache/matugen/quickshell-colors.json")
@@ -40,7 +43,8 @@ Item {
         // Sin JSON todavia (matugen nunca corrio con esta plantilla).
         printErrors: false
 
-        // Paleta de respaldo: la del wallpaper activo al escribir este archivo.
+        // Paleta de respaldo: roles del wallpaper activo al escribir este archivo
+        // y colores de estado fijos (oscuro: `palette status --mode dark`).
         JsonAdapter {
             id: json
             property string surface: "#0f1513"
@@ -65,25 +69,39 @@ Item {
             property string on_tertiary: "#0f3447"
             property string tertiary_container: "#294a5e"
             property string on_tertiary_container: "#c6e7ff"
-            property string error: "#ffb4ab"
-            property string on_error: "#690005"
-            property string error_container: "#93000a"
-            property string on_error_container: "#ffdad6"
-            property string inverse_surface: "#dee4e0"
-            property string inverse_on_surface: "#2b322f"
+            property string error: "#ffb8af"
+            property string on_error: "#4b0002"
+            property string error_container: "#ff5449"
+            property string on_error_container: "#000000"
             property string shadow: "#000000"
+            property string scrim: "#000000"
+            property string warning: "#ffd481"
+            property string on_warning: "#3d2a00"
+            property string warning_container: "#f0b429"
+            property string on_warning_container: "#1f1400"
+            property string success: "#7ddda1"
+            property string on_success: "#002713"
+            property string success_container: "#41a26c"
+            property string on_success_container: "#000000"
+            // Condiciones con las que se genero (tema oscuro hasta P5.5).
+            property string mode: "dark"
+            property real contrast: 0
             // Wallpaper de esta paleta (el que matugen acaba de usar). Lo lee
             // Wallpaper.qml (Fase 3 B6): wallpaper y colores cambian juntos.
             property string image: ""
-            property string scrim: "#000000"
         }
     }
 
     readonly property string image: json.image
+    readonly property string mode: json.mode
+    readonly property real contrast: json.contrast
 
     // Vista previa (Fase 3 B7): mientras hay un candidato, sus colores (de la
     // cache de la galeria) en vez de los del JSON. El JSON se sigue leyendo.
     readonly property var pv: ThemePreview.candidate
+
+    // Alto contraste (accessibility.highContrast): lo aplica SemanticPalette.
+    highContrast: SettingsState.value("accessibility.highContrast") === true
 
     // Cambio de paleta animado (guia de transiciones 3.6.1: dur.theme, ease.standard);
     // instantaneo con movimiento reducido y en la primera carga.
@@ -94,64 +112,76 @@ Item {
         easing.bezierCurve: Tokens.motion.easeStandard
     }
 
-    property color m3surface: root.pv ? root.pv.surface : json.surface
+    m3surface: root.pv ? root.pv.surface : json.surface
     Behavior on m3surface { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3surfaceContainerLowest: root.pv ? root.pv.surface_container_lowest : json.surface_container_lowest
+    m3surfaceContainerLowest: root.pv ? root.pv.surface_container_lowest : json.surface_container_lowest
     Behavior on m3surfaceContainerLowest { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3surfaceContainerLow: root.pv ? root.pv.surface_container_low : json.surface_container_low
+    m3surfaceContainerLow: root.pv ? root.pv.surface_container_low : json.surface_container_low
     Behavior on m3surfaceContainerLow { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3surfaceContainer: root.pv ? root.pv.surface_container : json.surface_container
+    m3surfaceContainer: root.pv ? root.pv.surface_container : json.surface_container
     Behavior on m3surfaceContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3surfaceContainerHigh: root.pv ? root.pv.surface_container_high : json.surface_container_high
+    m3surfaceContainerHigh: root.pv ? root.pv.surface_container_high : json.surface_container_high
     Behavior on m3surfaceContainerHigh { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3surfaceContainerHighest: root.pv ? root.pv.surface_container_highest : json.surface_container_highest
+    m3surfaceContainerHighest: root.pv ? root.pv.surface_container_highest : json.surface_container_highest
     Behavior on m3surfaceContainerHighest { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onSurface: root.pv ? root.pv.on_surface : json.on_surface
+    m3onSurface: root.pv ? root.pv.on_surface : json.on_surface
     Behavior on m3onSurface { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onSurfaceVariant: root.pv ? root.pv.on_surface_variant : json.on_surface_variant
+    m3onSurfaceVariant: root.pv ? root.pv.on_surface_variant : json.on_surface_variant
     Behavior on m3onSurfaceVariant { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3outline: root.pv ? root.pv.outline : json.outline
+    m3outline: root.pv ? root.pv.outline : json.outline
     Behavior on m3outline { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3outlineVariant: root.pv ? root.pv.outline_variant : json.outline_variant
+    m3outlineVariant: root.pv ? root.pv.outline_variant : json.outline_variant
     Behavior on m3outlineVariant { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3primary: root.pv ? root.pv.primary : json.primary
+    m3primary: root.pv ? root.pv.primary : json.primary
     Behavior on m3primary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onPrimary: root.pv ? root.pv.on_primary : json.on_primary
+    m3onPrimary: root.pv ? root.pv.on_primary : json.on_primary
     Behavior on m3onPrimary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3primaryContainer: root.pv ? root.pv.primary_container : json.primary_container
+    m3primaryContainer: root.pv ? root.pv.primary_container : json.primary_container
     Behavior on m3primaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onPrimaryContainer: root.pv ? root.pv.on_primary_container : json.on_primary_container
+    m3onPrimaryContainer: root.pv ? root.pv.on_primary_container : json.on_primary_container
     Behavior on m3onPrimaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3secondary: root.pv ? root.pv.secondary : json.secondary
+    m3secondary: root.pv ? root.pv.secondary : json.secondary
     Behavior on m3secondary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onSecondary: root.pv ? root.pv.on_secondary : json.on_secondary
+    m3onSecondary: root.pv ? root.pv.on_secondary : json.on_secondary
     Behavior on m3onSecondary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3secondaryContainer: root.pv ? root.pv.secondary_container : json.secondary_container
+    m3secondaryContainer: root.pv ? root.pv.secondary_container : json.secondary_container
     Behavior on m3secondaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onSecondaryContainer: root.pv ? root.pv.on_secondary_container : json.on_secondary_container
+    m3onSecondaryContainer: root.pv ? root.pv.on_secondary_container : json.on_secondary_container
     Behavior on m3onSecondaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3tertiary: root.pv ? root.pv.tertiary : json.tertiary
+    m3tertiary: root.pv ? root.pv.tertiary : json.tertiary
     Behavior on m3tertiary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onTertiary: root.pv ? root.pv.on_tertiary : json.on_tertiary
+    m3onTertiary: root.pv ? root.pv.on_tertiary : json.on_tertiary
     Behavior on m3onTertiary { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3tertiaryContainer: root.pv ? root.pv.tertiary_container : json.tertiary_container
+    m3tertiaryContainer: root.pv ? root.pv.tertiary_container : json.tertiary_container
     Behavior on m3tertiaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onTertiaryContainer: root.pv ? root.pv.on_tertiary_container : json.on_tertiary_container
+    m3onTertiaryContainer: root.pv ? root.pv.on_tertiary_container : json.on_tertiary_container
     Behavior on m3onTertiaryContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3error: root.pv ? root.pv.error : json.error
-    Behavior on m3error { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onError: root.pv ? root.pv.on_error : json.on_error
-    Behavior on m3onError { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3errorContainer: root.pv ? root.pv.error_container : json.error_container
-    Behavior on m3errorContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3onErrorContainer: root.pv ? root.pv.on_error_container : json.on_error_container
-    Behavior on m3onErrorContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3inverseSurface: root.pv ? root.pv.inverse_surface : json.inverse_surface
-    Behavior on m3inverseSurface { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3inverseOnSurface: root.pv ? root.pv.inverse_on_surface : json.inverse_on_surface
-    Behavior on m3inverseOnSurface { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3shadow: root.pv ? root.pv.shadow : json.shadow
+    m3shadow: root.pv ? root.pv.shadow : json.shadow
     Behavior on m3shadow { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    property color m3scrim: root.pv ? root.pv.scrim : json.scrim
+    m3scrim: root.pv ? root.pv.scrim : json.scrim
     Behavior on m3scrim { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusError: json.error
+    Behavior on statusError { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusOnError: json.on_error
+    Behavior on statusOnError { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusErrorContainer: json.error_container
+    Behavior on statusErrorContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusOnErrorContainer: json.on_error_container
+    Behavior on statusOnErrorContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusWarning: json.warning
+    Behavior on statusWarning { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusOnWarning: json.on_warning
+    Behavior on statusOnWarning { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusWarningContainer: json.warning_container
+    Behavior on statusWarningContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusOnWarningContainer: json.on_warning_container
+    Behavior on statusOnWarningContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusSuccess: json.success
+    Behavior on statusSuccess { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusOnSuccess: json.on_success
+    Behavior on statusOnSuccess { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusSuccessContainer: json.success_container
+    Behavior on statusSuccessContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
+    statusOnSuccessContainer: json.on_success_container
+    Behavior on statusOnSuccessContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
 }

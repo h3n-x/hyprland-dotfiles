@@ -96,8 +96,8 @@
         "color": "{{colors.on_surface.default.hex}}"
       },
       "error": {
-        "color": "{{colors.on_error.default.hex}}",
-        "background_color": "{{colors.error.default.hex}}"
+        "color": "{{status.on_error.default.hex}}",
+        "background_color": "{{status.error.default.hex}}"
       },
       "comment": {
         "color": "{{colors.outline.default.hex}}"
@@ -130,7 +130,7 @@
         "color": "{{colors.primary.default.hex}}"
       },
       "name_tag": {
-        "color": "{{colors.error.default.hex}}"
+        "color": "{{status.error.default.hex}}"
       },
       "name_attribute": {
         "color": "{{colors.tertiary_container.default.hex}}"
@@ -161,7 +161,7 @@
         "color": "{{colors.secondary_container.default.hex}}"
       },
       "generic_deleted": {
-        "color": "{{colors.error.default.hex}}"
+        "color": "{{status.error.default.hex}}"
       },
       "generic_emph": {
         "italic": true

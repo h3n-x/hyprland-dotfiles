@@ -26,12 +26,12 @@ Item {
         return "battery_" + Math.max(0, Math.min(6, Math.round(root.pct * 6))) + "_bar";
     }
     readonly property color fg: {
-        // Critico = error, aviso = tertiary, cargando = acento (decision P3:
-        // antes cargando y aviso compartian tertiary).
-        if (root.isCritical) return Colors.m3error;
-        if (root.isWarning) return Colors.m3tertiary;
-        if (root.charging) return Colors.m3primary;
-        return Colors.m3onSurface;
+        // Estados con sus colores fijos (P8.7, principio 23): critico = danger,
+        // aviso = warning, cargando = success.
+        if (root.isCritical) return Colors.danger;
+        if (root.isWarning) return Colors.warning;
+        if (root.charging) return Colors.success;
+        return Colors.text;
     }
 
     function notify(summary, urgency, icon) {

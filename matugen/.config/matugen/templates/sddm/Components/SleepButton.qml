@@ -14,11 +14,11 @@ Item {
       source: Qt.resolvedUrl("../icons/sleep.svg")
       height: height
       width: width
-      color: "{{colors.on_error.default.hex}}"
+      color: "{{status.on_error.default.hex}}"
     }
     background: Rectangle {
       id: sleepButtonBg
-      color: "{{colors.error.default.hex}}"
+      color: "{{status.error.default.hex}}"
       radius: 8
     }
     states: [
@@ -27,7 +27,7 @@ Item {
         when: sleepButton.hovered
         PropertyChanges {
           target: sleepButtonBg
-          color: "{{colors.error_container.default.hex}}"
+          color: "{{status.error_container.default.hex}}"
         }
       }
     ]

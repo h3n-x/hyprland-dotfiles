@@ -123,7 +123,7 @@ ColumnLayout {
                         radius: Tokens.radius.sm + 3
                         color: "transparent"
                         border.width: 2
-                        border.color: Colors.m3primary
+                        border.color: Colors.accent
                         scale: thumb.scale
                     }
                 }
@@ -137,12 +137,12 @@ ColumnLayout {
                         implicitWidth: Math.max(22, wsNum.implicitWidth + 12)
                         implicitHeight: 22
                         radius: 11
-                        color: cell.focusedWs ? Colors.m3primary : Colors.m3surfaceContainerHighest
+                        color: cell.focusedWs ? Colors.accent : Colors.surfaceHighest
                         Text {
                             id: wsNum
                             anchors.centerIn: parent
                             text: cell.special ? "S" : cell.modelData.id
-                            color: cell.focusedWs ? Colors.m3onPrimary : Colors.m3onSurfaceVariant
+                            color: cell.focusedWs ? Colors.textOnAccent : Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.caption
                             font.weight: Tokens.weight.semibold
@@ -164,7 +164,7 @@ ColumnLayout {
                         text: cell.special ? "Especial" + (cell.main ? " · " + AppInfo.name(cell.main.cls) : "")
                             : cell.main ? AppInfo.name(cell.main.cls) + (cell.wins.length > 1 ? " y " + (cell.wins.length - 1) + " más" : "")
                             : "Vacío"
-                        color: cell.main ? Colors.m3onSurface : Colors.m3outline
+                        color: cell.main ? Colors.text : Colors.border
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
                         font.weight: cell.focusedWs ? Tokens.weight.semibold : Tokens.weight.regular
@@ -176,22 +176,22 @@ ColumnLayout {
                         name: "error"
                         filled: true
                         size: Tokens.icon.sm
-                        color: Colors.m3error
+                        color: Colors.danger
                     }
                     Icon {
                         visible: cell.wins.some(w => w.fullscreen)
                         name: "fullscreen"
                         size: Tokens.icon.sm
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                     }
                     Row {
                         visible: cell.wins.some(w => w.floating)
                         spacing: 2
-                        Icon { anchors.verticalCenter: parent.verticalCenter; name: "picture_in_picture"; size: Tokens.icon.sm; color: Colors.m3onSurfaceVariant }
+                        Icon { anchors.verticalCenter: parent.verticalCenter; name: "picture_in_picture"; size: Tokens.icon.sm; color: Colors.textMuted }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: cell.wins.filter(w => w.floating).length
-                            color: Colors.m3onSurfaceVariant
+                            color: Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.caption
                         }
@@ -209,7 +209,7 @@ ColumnLayout {
         spacing: Tokens.space.sm
         Text {
             text: view.empties.length === 1 ? "Vacío" : "Vacíos"
-            color: Colors.m3outline
+            color: Colors.border
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.label
         }
@@ -223,17 +223,17 @@ ColumnLayout {
                 radius: 14
                 color: "transparent"
                 border.width: 1
-                border.color: Colors.m3outlineVariant
+                border.color: Colors.divider
                 opacity: view.chosenId && view.chosenId !== chip.modelData.id ? 0.4 : 1
                 StateLayer { hovered: chipMouse.containsMouse; pressed: chipMouse.pressed }
                 Row {
                     anchors.centerIn: parent
                     spacing: 2
-                    Icon { anchors.verticalCenter: parent.verticalCenter; name: "add"; size: 14; color: Colors.m3onSurfaceVariant }
+                    Icon { anchors.verticalCenter: parent.verticalCenter; name: "add"; size: 14; color: Colors.textMuted }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: chip.modelData.id
-                        color: Colors.m3onSurfaceVariant
+                        color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
                         font.weight: Tokens.weight.medium

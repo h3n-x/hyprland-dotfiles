@@ -28,14 +28,14 @@ RowLayout {
         implicitWidth: Math.round(line.textSize / 2)
         implicitHeight: implicitWidth
         radius: implicitWidth / 2
-        color: SystemState.status.level >= 2 ? Colors.m3error : SystemState.status.level === 1 ? Colors.m3tertiary : Colors.m3primary
+        color: SystemState.status.level >= 2 ? Colors.danger : SystemState.status.level === 1 ? Colors.warning : Colors.accent
         Behavior on color { ColorAnimation { duration: Tokens.motion.medium } }
     }
     Text {
         id: label
         Layout.fillWidth: true
         text: line.shownText
-        color: Colors.m3onSurface
+        color: Colors.text
         font.family: Tokens.font.ui
         font.pixelSize: line.textSize
         font.weight: Tokens.weight.semibold

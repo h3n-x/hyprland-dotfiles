@@ -19,7 +19,7 @@ Rectangle {
 
     // Radio anidado: 24 (dashboard) - 12 (su margen) = md.
     radius: Tokens.radius.md
-    color: zone.tinted ? Qt.alpha(Colors.m3surfaceContainerHighest, 0.55) : "transparent"
+    color: zone.tinted ? Colors.tint(Colors.surfaceHighest, Tokens.tint.well) : "transparent"
 
     StateLayer {
         visible: zone.clickable
@@ -45,7 +45,7 @@ Rectangle {
         radius: zone.radius
         color: "transparent"
         border.width: 2
-        border.color: Colors.m3primary
+        border.color: Colors.accent
         opacity: zone.focused ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: Tokens.motion.fast } }
     }

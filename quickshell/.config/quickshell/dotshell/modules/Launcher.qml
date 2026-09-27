@@ -74,13 +74,13 @@ OverlayWindow {
             height: picker.rowHeight - Tokens.space.hair
             radius: Tokens.radius.md
             // Fila seleccionada en secondary_container (C3); el hover lo da la StateLayer.
-            color: appRow.selected ? Colors.m3secondaryContainer : "transparent"
+            color: appRow.selected ? Colors.accentAltContainer : "transparent"
             Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
 
             StateLayer {
                 hovered: rowMouse.containsMouse
                 pressed: rowMouse.pressed
-                contentColor: appRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                contentColor: appRow.selected ? Colors.textOnAccentAltContainer : Colors.text
             }
 
             RowLayout {
@@ -106,7 +106,7 @@ OverlayWindow {
                             ? Fuzzy.escapeHtml(appRow.modelData.entry.name)
                             : Fuzzy.highlight(appRow.modelData.entry.name, appRow.modelData.positions)
                         textFormat: Text.RichText
-                        color: appRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurface
+                        color: appRow.selected ? Colors.textOnAccentAltContainer : Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
                         font.weight: appRow.selected ? Tokens.weight.semibold : Tokens.weight.medium
@@ -117,7 +117,7 @@ OverlayWindow {
                         visible: !!appRow.modelData.entry.genericName
                         Layout.fillWidth: true
                         text: appRow.modelData.entry.genericName
-                        color: appRow.selected ? Colors.m3onSecondaryContainer : Colors.m3onSurfaceVariant
+                        color: appRow.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
                         elide: Text.ElideRight

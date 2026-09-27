@@ -3,8 +3,8 @@
 // inventar valores aca: si falta un token, se agrega primero a la escala y
 // despues a este archivo.
 //
-// Los colores NO van aca: salen de matugen via Colors.qml (generado, no se
-// edita a mano). Este archivo es fuente, escrito a mano, sin valores de paleta.
+// Los colores NO van aca: salen de matugen via Colors.qml (una SemanticPalette,
+// P8.7). Aca solo opacidades y transparencias, sin valores de paleta.
 //
 // Los modulos migran a estos tokens en P1.10; hasta entonces nadie los lee
 // todavia (agregarlo no cambia nada visible).
@@ -139,13 +139,36 @@ QtObject {
     readonly property var elevationShadow: [null, null, shadow.sm, shadow.md, shadow.lg]
 
     component Opacities: QtObject {
-        // Mismo valor que active_opacity de las ventanas y kitty (D6, sujeto
-        // a la prueba de rendimiento del blur en P2.1).
-        readonly property real surface: 0.92
-        readonly property real scrim: 0.40     // fondo de overlays a pantalla completa
-        readonly property real disabled: 0.38  // contenido deshabilitado (M3)
+        // Paneles translucidos sobre el wallpaper. Normal = active_opacity de
+        // las ventanas y kitty (D6). appearance.transparency y el alto contraste
+        // solo la suben; nunca baja de surfaceFloor, el minimo con el que el
+        // texto secundario sigue legible con cualquier wallpaper detras (P8.7 C5,
+        // medido: 5.0:1 a 0.85, 3.6:1 a 0.75).
+        readonly property real surfaceFloor: 0.85
+        readonly property real surface: {
+            if (SettingsState.value("accessibility.highContrast") === true) return 1;
+            const t = SettingsState.value("appearance.transparency");
+            return Math.max(surfaceFloor, t === "off" ? 1 : t === "reduced" ? 0.97 : 0.92);
+        }
+        readonly property real scrim: 0.40       // fondo de overlays a pantalla completa
+        readonly property real scrimImage: 0.60  // velo bajo texto sobre imagenes (miniaturas, portadas)
+        // Contenido deshabilitado (M3). Mismo valor que SemanticPalette.disabledOpacity
+        // (la paleta no importa Tokens: la comparte la superficie de login).
+        readonly property real disabled: 0.38
     }
     readonly property Opacities opacity: Opacities {}
+
+    // Transparencias de color (P8.7): la unica forma de aplicar alfa a un
+    // alias de Colors es Colors.tint(alias, Tokens.tint.x) (palette check, PC-Q3).
+    component Tints: QtObject {
+        readonly property real overlay: 0.92   // controles y chips sobre imagenes
+        readonly property real veil: 0.72      // velo del color de la superficie: lo que queda atras
+        readonly property real well: 0.55      // zonas y huecos dentro de una superficie
+        readonly property real hairline: 0.40  // contornos decorativos finos (teclas de ayuda)
+        readonly property real track: 0.16     // rieles, rellenos y separadores tenues
+        readonly property real faint: 0.06     // fondos apenas visibles
+    }
+    readonly property Tints tint: Tints {}
 
     // Capas de estado M3 (D11): opacidad del color de *contenido* del elemento
     // superpuesta a su fondo. Arregla el hover que hoy no se ve (KI-C12).

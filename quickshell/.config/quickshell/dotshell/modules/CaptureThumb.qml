@@ -50,7 +50,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: Tokens.radius.md
-        color: Qt.alpha(Colors.m3surfaceContainerHighest, 0.55)
+        color: Colors.tint(Colors.surfaceHighest, Tokens.tint.well)
     }
 
     ClippingRectangle {
@@ -81,7 +81,7 @@ Item {
         radius: thumb.imageRadius
         color: "transparent"
         border.width: 1
-        border.color: Colors.m3outlineVariant
+        border.color: Colors.divider
         visible: thumb.imageVisible && thumb.ready
     }
 
@@ -93,7 +93,7 @@ Item {
         height: 24
         width: kindRow.implicitWidth + Tokens.space.lg
         radius: Tokens.radius.pill(height)
-        color: Qt.alpha(Colors.m3surfaceContainerHighest, 0.92)
+        color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
 
         Row {
             id: kindRow
@@ -103,12 +103,12 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 name: thumb.kinds[thumb.kind] ? thumb.kinds[thumb.kind].icon : ""
                 size: Tokens.icon.sm - 2
-                color: Colors.m3primary
+                color: Colors.accent
             }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: thumb.kinds[thumb.kind] ? thumb.kinds[thumb.kind].label : ""
-                color: Colors.m3onSurface
+                color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 font.weight: Tokens.weight.medium
@@ -123,7 +123,7 @@ Item {
         width: 52
         height: 52
         radius: 26
-        color: Qt.alpha(Colors.m3surfaceContainerHighest, 0.9)
+        color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
         Icon {
             anchors.centerIn: parent
             name: "play_arrow"
@@ -139,12 +139,12 @@ Item {
         height: 22
         width: durText.implicitWidth + 14
         radius: Tokens.radius.pill(height)
-        color: Qt.alpha(Colors.m3surfaceContainerHighest, 0.92)
+        color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
         Text {
             id: durText
             anchors.centerIn: parent
             text: thumb.clock(thumb.duration)
-            color: Colors.m3onSurface
+            color: Colors.text
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
             font.weight: Tokens.weight.semibold

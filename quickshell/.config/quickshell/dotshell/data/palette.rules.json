@@ -1,0 +1,367 @@
+{
+  "version": 1,
+  "status": {
+    "scheme": "scheme-fidelity",
+    "contrast": 0.33,
+    "seeds": {
+      "warning": "#F0B429",
+      "success": "#3FA06A"
+    },
+    "note": "danger = error de M3 (igual en todos los esquemas); toda la familia se fija en este contraste: solo cambia con el modo"
+  },
+  "thresholds": {
+    "text": 4.5,
+    "large": 3.0,
+    "ui": 3.0,
+    "highContrastText": 7.0,
+    "surfaceFloor": 0.85,
+    "warningDangerHue": 40,
+    "warningDangerDeltaE": 8,
+    "statusHue": 40,
+    "cvdDeltaE": 2.5,
+    "accentNoticeDeltaE": 3,
+    "dangerHue": [
+      15,
+      40
+    ],
+    "warningHue": [
+      60,
+      100
+    ],
+    "successHue": [
+      130,
+      170
+    ]
+  },
+  "pairs": [
+    {
+      "id": "text",
+      "fg": "text",
+      "bg": [
+        "background",
+        "surfaceLowest",
+        "surfaceLow",
+        "surface",
+        "surfaceHigh",
+        "surfaceHighest"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "textMuted",
+      "fg": "textMuted",
+      "bg": [
+        "background",
+        "surfaceLowest",
+        "surfaceLow",
+        "surface",
+        "surfaceHigh",
+        "surfaceHighest"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "accent",
+      "fg": "textOnAccent",
+      "bg": [
+        "accent"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "accentContainer",
+      "fg": "textOnAccentContainer",
+      "bg": [
+        "accentContainer"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "accentAlt",
+      "fg": "textOnAccentAlt",
+      "bg": [
+        "accentAlt"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "accentAltContainer",
+      "fg": "textOnAccentAltContainer",
+      "bg": [
+        "accentAltContainer"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "decor",
+      "fg": "textOnDecor",
+      "bg": [
+        "decor"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "decorContainer",
+      "fg": "textOnDecorContainer",
+      "bg": [
+        "decorContainer"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "danger",
+      "fg": "textOnDanger",
+      "bg": [
+        "danger"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "dangerContainer",
+      "fg": "textOnDangerContainer",
+      "bg": [
+        "dangerContainer"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "warning",
+      "fg": "textOnWarning",
+      "bg": [
+        "warning"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "warningContainer",
+      "fg": "textOnWarningContainer",
+      "bg": [
+        "warningContainer"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "success",
+      "fg": "textOnSuccess",
+      "bg": [
+        "success"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "successContainer",
+      "fg": "textOnSuccessContainer",
+      "bg": [
+        "successContainer"
+      ],
+      "min": "text"
+    },
+    {
+      "id": "accentText",
+      "fg": "accent",
+      "bg": [
+        "surface",
+        "surfaceHigh"
+      ],
+      "min": "large"
+    },
+    {
+      "id": "statusIcons",
+      "fg": [
+        "danger",
+        "warning",
+        "success"
+      ],
+      "bg": [
+        "surface",
+        "surfaceHigh",
+        "surfaceHighest"
+      ],
+      "min": "ui"
+    },
+    {
+      "id": "focusRing",
+      "fg": "accent",
+      "bg": [
+        "surface",
+        "surfaceHigh",
+        "surfaceHighest"
+      ],
+      "min": "ui"
+    },
+    {
+      "id": "border",
+      "fg": "border",
+      "bg": [
+        "surface",
+        "surfaceHigh"
+      ],
+      "min": "ui"
+    }
+  ],
+  "floor": {
+    "fg": "textMuted",
+    "bg": "surfaceHigh",
+    "min": "text"
+  },
+  "qml": {
+    "semanticFile": "SemanticPalette.qml",
+    "m3Allowed": [
+      "SemanticPalette.qml",
+      "Colors.qml"
+    ],
+    "alphaAllowed": [
+      "SemanticPalette.qml"
+    ],
+    "identity": [
+      "accent",
+      "textOnAccent",
+      "accentContainer",
+      "textOnAccentContainer",
+      "accentAlt",
+      "textOnAccentAlt",
+      "accentAltContainer",
+      "textOnAccentAltContainer",
+      "decor",
+      "textOnDecor",
+      "decorContainer",
+      "textOnDecorContainer"
+    ],
+    "meaning": [
+      "danger",
+      "textOnDanger",
+      "dangerContainer",
+      "textOnDangerContainer",
+      "warning",
+      "textOnWarning",
+      "warningContainer",
+      "textOnWarningContainer",
+      "success",
+      "textOnSuccess",
+      "successContainer",
+      "textOnSuccessContainer"
+    ],
+    "stateWords": "warn|crit|critical|low|error|fail|failed|urgent|stale|danger|healthy|success|severity|sev\\b",
+    "localAccentConsumers": []
+  },
+  "templates": [
+    {
+      "file": "kitty.conf",
+      "line": "^color1\\s",
+      "role": "status.error"
+    },
+    {
+      "file": "kitty.conf",
+      "line": "^color9\\s",
+      "role": "status.error"
+    },
+    {
+      "file": "kitty.conf",
+      "line": "^color2\\s",
+      "role": "status.success"
+    },
+    {
+      "file": "kitty.conf",
+      "line": "^color10\\s",
+      "role": "status.success"
+    },
+    {
+      "file": "kitty.conf",
+      "line": "^color3\\s",
+      "role": "status.warning"
+    },
+    {
+      "file": "kitty.conf",
+      "line": "^color11\\s",
+      "role": "status.warning"
+    },
+    {
+      "file": "zellij-config.kdl",
+      "line": "^\\s*red\\s",
+      "role": "status.error"
+    },
+    {
+      "file": "zellij-config.kdl",
+      "line": "^\\s*green\\s",
+      "role": "status.success"
+    },
+    {
+      "file": "zellij-config.kdl",
+      "line": "^\\s*yellow\\s",
+      "role": "status.warning"
+    },
+    {
+      "file": "zellij-config.kdl",
+      "line": "^\\s*orange\\s",
+      "role": "status.warning"
+    },
+    {
+      "file": "nvim-colors.lua",
+      "line": "base08\\s*=",
+      "role": "status.error"
+    },
+    {
+      "file": "btop.theme",
+      "line": "\\[(cpu|free|cached|available|used|download|upload)_(start|end)\\]",
+      "role": [
+        "status.success",
+        "status.error"
+      ]
+    },
+    {
+      "file": "btop.theme",
+      "line": "\\[(cpu|free|cached|available|used|download|upload)_mid\\]",
+      "role": "status.warning"
+    },
+    {
+      "file": "nvim-colors.lua",
+      "line": "base09\\s*=",
+      "role": "status.warning"
+    },
+    {
+      "file": "nvim-colors.lua",
+      "line": "base0B\\s*=",
+      "role": "status.success"
+    },
+    {
+      "file": "starship.toml",
+      "line": "^success_symbol",
+      "role": "status.success"
+    },
+    {
+      "file": "starship.toml",
+      "line": "^error_symbol",
+      "role": "status.error"
+    },
+    {
+      "file": "yazi-flavor.toml",
+      "line": "^title_warn",
+      "role": "status.warning"
+    },
+    {
+      "file": "yazi-flavor.toml",
+      "line": "^title_error",
+      "role": "status.error"
+    },
+    {
+      "file": "spicetify-color.ini",
+      "line": "^green\\s",
+      "role": "status.success"
+    },
+    {
+      "file": "spicetify-color.ini",
+      "line": "^yellow\\s",
+      "role": "status.warning"
+    },
+    {
+      "file": "spicetify-color.ini",
+      "line": "^red\\s",
+      "role": "status.error"
+    },
+    {
+      "file": "spicetify-color.ini",
+      "line": "^notification-error",
+      "role": "status.error"
+    }
+  ]
+}
