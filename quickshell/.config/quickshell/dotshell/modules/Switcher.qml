@@ -51,25 +51,36 @@ OverlayWindow {
 
     readonly property bool multiMonitor: Quickshell.screens.length > 1
 
-    // La lista llega de DesktopState: se toma la primera respuesta despues
-    // de abrir (el dashboard puede pedir otras mientras tanto; no se pisan).
+    // La lista llega de DesktopState. Mientras el selector se ve sigue sus
+    // eventos (Fase 8 B3, D5): si una ventana se abre o se cierra, la lista se
+    // actualiza y la elegida se conserva por su direccion.
+    property Subscription live: Subscription { demand: DesktopState.live; active: window.shouldShow }
+    function fromDesktop(): var {
+        return DesktopState.windows
+            .slice()
+            .sort((a, b) => a.history - b.history)
+            .map(c => ({
+                address: c.address,
+                title: c.title,
+                cls: c.cls,
+                ws: c.special ? "S" : c.ws,
+                monitor: c.monitor,
+                urgent: c.urgent,
+                focused: c.focused,
+                capturable: c.capturable
+            }));
+    }
     Connections {
         target: DesktopState
         function onUpdated(): void {
-            if (!window.shouldShow || window.loaded) return;
-            window.clients = DesktopState.windows
-                .slice()
-                .sort((a, b) => a.history - b.history)
-                .map(c => ({
-                    address: c.address,
-                    title: c.title,
-                    cls: c.cls,
-                    ws: c.special ? "S" : c.ws,
-                    monitor: c.monitor,
-                    urgent: c.urgent,
-                    focused: c.focused,
-                    capturable: c.capturable
-                }));
+            if (!window.shouldShow) return;
+            if (window.loaded) {
+                const cur = body.item ? body.item.current : null;
+                window.clients = window.fromDesktop();
+                if (body.item && cur) body.item.selectAddress(cur.address);
+                return;
+            }
+            window.clients = window.fromDesktop();
             window.loaded = true;
             // La anterior (o la unica) + los SUPER+TAB que ya llegaron.
             const n = window.clients.length;
@@ -141,6 +152,14 @@ OverlayWindow {
 
             function select(i: int): void {
                 picker.currentIndex = i;
+            }
+            // Tras actualizar la lista: la misma ventana si sigue, si no la
+            // que quedo en su lugar.
+            function selectAddress(address: string): void {
+                const i = content.shown.findIndex(c => c.address === address);
+                const n = content.shown.length;
+                if (i >= 0) picker.currentIndex = i;
+                else if (n > 0) picker.currentIndex = Math.min(picker.currentIndex, n - 1);
             }
             function move(delta: int): void {
                 const n = content.shown.length;

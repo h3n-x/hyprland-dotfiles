@@ -21,11 +21,10 @@ ColumnLayout {
     property bool narrow: false
     spacing: Tokens.space.md
 
-    onActiveChanged: {
-        SystemState.wantDetail(view.active);
-        if (view.active) PowerProfileState.refresh();
-    }
-    Component.onDestruction: if (view.active) SystemState.wantDetail(false)
+    // El detalle (red, graficas, aplicaciones) solo mientras la vista se ve
+    // (Fase 8 B3; se suelta tambien si la vista se destruye).
+    property Subscription detailData: Subscription { demand: SystemState.detail; active: view.active }
+    onActiveChanged: if (view.active) PowerProfileState.refresh()
 
     readonly property var disk: SystemState.storage.length ? SystemState.storage[0] : null
     readonly property real diskFrac: view.disk && view.disk.size > 0 ? view.disk.used / view.disk.size : 0

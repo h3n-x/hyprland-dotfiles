@@ -1,7 +1,15 @@
-// Campo de busqueda (Fase 4 B10): el mismo aspecto que el del Picker
-// (contenedor mas alto, icono, borde primary con foco), como componente
-// propio. keyHandler(event) recibe las teclas antes que el campo (true = la
-// consume).
+// Campo de busqueda (Fase 4 B10; unico de la shell desde la Fase 8 B3, P8.8):
+// lo usan el Picker (lanzador, portapapeles, emoji, ventanas), la guia de
+// atajos, la galeria y la busqueda de ciudad del clima, y lo usara la
+// busqueda global del centro de configuracion (P10).
+//
+// keyHandler(event) recibe cada tecla antes que el texto: true = la consume;
+// false = sigue al campo (las flechas izquierda/derecha mueven el cursor).
+// keyReleaseHandler(event) igual para las teclas soltadas (soltar Super en el
+// selector de ventanas). El campo no decide nada por su cuenta: Enter y Esc
+// son de quien lo usa.
+//
+//   SearchField { placeholder: "Buscar…"; size: "regular"; keyHandler: (e) => … }
 import QtQuick
 import ".." // Colors.qml, Tokens.qml
 
@@ -9,14 +17,19 @@ Rectangle {
     id: box
     property string placeholder: ""
     property var keyHandler: null
+    property var keyReleaseHandler: null
+    // "large": tarjetas de busqueda (Picker, guia). "regular": dentro de una
+    // vista (galeria, clima).
+    property string size: "large"
     property alias text: input.text
     readonly property bool hasFocus: input.activeFocus
+    readonly property bool large: box.size === "large"
 
     function focusInput(): void {
         input.forceActiveFocus();
     }
 
-    implicitHeight: Tokens.row.heightLarge
+    implicitHeight: box.large ? Tokens.row.heightLarge : Tokens.row.height
     radius: Tokens.radius.md
     color: Colors.surfaceHighest
     border.color: input.activeFocus ? Colors.accent : Colors.divider
@@ -41,7 +54,7 @@ Rectangle {
         selectionColor: Colors.accent
         selectedTextColor: Colors.textOnAccent
         font.family: Tokens.font.ui
-        font.pixelSize: Tokens.type.title
+        font.pixelSize: box.large ? Tokens.type.title : Tokens.type.body
         clip: true
         // Cursor fijo (sin parpadeo): el parpadeo de serie repinta la tarjeta
         // entera dos veces por segundo, ~1 % de un nucleo con el panel quieto
@@ -54,7 +67,11 @@ Rectangle {
         Keys.onPressed: (event) => {
             if (box.keyHandler && box.keyHandler(event)) event.accepted = true;
         }
+        Keys.onReleased: (event) => {
+            if (box.keyReleaseHandler && box.keyReleaseHandler(event)) event.accepted = true;
+        }
     }
+    HoverHandler { cursorShape: Qt.IBeamCursor }
     Text {
         visible: input.text.length === 0
         anchors.left: parent.left
@@ -63,6 +80,6 @@ Rectangle {
         text: box.placeholder
         color: Colors.textMuted
         font.family: Tokens.font.ui
-        font.pixelSize: Tokens.type.title
+        font.pixelSize: input.font.pixelSize
     }
 }

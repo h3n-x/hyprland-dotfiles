@@ -46,8 +46,9 @@ DropdownPanel {
         ? panel.scr.height - Tokens.popupTop - Tokens.screenEdge - 2 * panel.padding : 600
     readonly property bool narrow: panel.contentWidth + 2 * panel.padding < 820
 
-    // Pedir datos solo mientras se ve (en pares: mostrar -> soltar).
-    property bool holding: false
+    // Datos solo mientras se ve (Fase 8 B3): estado del equipo y escritorios.
+    property Subscription systemData: Subscription { demand: SystemState.basic; active: panel.active }
+    property Subscription desktopData: Subscription { demand: DesktopState.live; active: panel.active }
     onActiveChanged: {
         // Termino de cerrarse: sin vista montada (se sueltan sus datos y capturas).
         if (!panel.active && panel.detail) {
@@ -56,14 +57,6 @@ DropdownPanel {
             panel.detail = "";
             panel.viewP = 0;
         }
-        if (panel.active === panel.holding) return;
-        panel.holding = panel.active;
-        SystemState.want(panel.active);
-        DesktopState.watch(panel.active);
-    }
-    Component.onDestruction: if (panel.holding) {
-        SystemState.want(false);
-        DesktopState.watch(false);
     }
 
     // ---- Vistas ---------------------------------------------------------------------

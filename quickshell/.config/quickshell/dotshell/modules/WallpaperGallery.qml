@@ -332,60 +332,27 @@ PanelWindow {
                     Layout.fillWidth: true
                     spacing: Tokens.space.sm
 
-                    Rectangle {
+                    SearchField {
+                        id: searchField
                         Layout.fillWidth: true
-                        implicitHeight: Tokens.row.height
-                        radius: Tokens.radius.md
-                        color: Colors.surfaceHighest
-                        border.color: searchField.activeFocus ? Colors.accent : Colors.divider
-                        Behavior on border.color { ColorAnimation { duration: Tokens.motion.fast } }
-
-                        Icon {
-                            id: searchIcon
-                            anchors.left: parent.left
-                            anchors.leftMargin: Tokens.space.md
-                            anchors.verticalCenter: parent.verticalCenter
-                            name: "search"
-                            color: Colors.textMuted
+                        size: "regular"
+                        placeholder: "Buscar por nombre o etiqueta  ( / )"
+                        onTextChanged: {
+                            window.query = searchField.text;
+                            if (searchField.hasFocus) window.jumpPending = false;
+                            grid.currentIndex = 0;
                         }
-                        TextInput {
-                            id: searchField
-                            anchors.fill: parent
-                            anchors.leftMargin: Tokens.space.md + searchIcon.width + Tokens.space.sm
-                            anchors.rightMargin: Tokens.space.md
-                            verticalAlignment: TextInput.AlignVCenter
-                            color: Colors.text
-                            selectionColor: Colors.accent
-                            selectedTextColor: Colors.textOnAccent
-                            font.family: Tokens.font.ui
-                            font.pixelSize: Tokens.type.body
-                            clip: true
-                            onTextChanged: {
-                                window.query = searchField.text;
-                                if (searchField.activeFocus) window.jumpPending = false;
-                                grid.currentIndex = 0;
+                        keyHandler: (event) => {
+                            if (event.key === Qt.Key_Down || event.key === Qt.Key_Return) {
+                                grid.forceActiveFocus();
+                                return true;
                             }
-                            Keys.onDownPressed: grid.forceActiveFocus()
-                            Keys.onReturnPressed: grid.forceActiveFocus()
-                            Keys.onEscapePressed: {
+                            if (event.key === Qt.Key_Escape) {
                                 if (window.showGlobals) window.showGlobals = false;
                                 else GalleryState.visible = false;
+                                return true;
                             }
-                        }
-                        Text {
-                            visible: searchField.text.length === 0
-                            anchors.left: parent.left
-                            anchors.leftMargin: searchField.anchors.leftMargin
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "Buscar por nombre o etiqueta  ( / )"
-                            color: Colors.textMuted
-                            font.family: Tokens.font.ui
-                            font.pixelSize: Tokens.type.body
-                        }
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.IBeamCursor
-                            onClicked: searchField.forceActiveFocus()
+                            return false;
                         }
                     }
 
@@ -576,7 +543,7 @@ PanelWindow {
                             window.startPreview();
                             event.accepted = true;
                         } else if (event.key === Qt.Key_Slash) {
-                            searchField.forceActiveFocus();
+                            searchField.focusInput();
                             event.accepted = true;
                         }
                     }

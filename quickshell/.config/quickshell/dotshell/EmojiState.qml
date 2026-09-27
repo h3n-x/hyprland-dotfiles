@@ -8,8 +8,10 @@
 // escribieron. EMOJI_STATE_FILE cambia el archivo (pruebas).
 //
 // Los datos (data/emoji.json, generado por scripts/emoji-data: 1914 emojis
-// con nombre y claves en espanol e ingles) se leen la primera vez que se abre
-// el panel y quedan en memoria (una sola vez aunque haya varias pantallas).
+// con nombre y claves en espanol e ingles) se leen al abrir el panel (una sola
+// vez aunque haya varias pantallas) y se sueltan 10 minutos despues de
+// cerrarlo (Demand, Fase 8 B3, D3: recupera ≈ 5-6 MB; releerlos cuesta ≈ 60 ms
+// y el panel se abre igual, la rejilla se llena despues).
 //
 // Imagenes (decision B3-g, medido): la rejilla dibuja cada emoji como PNG de
 // ~/.cache/dotfiles/emoji/72 (≈ 6 MB y ≈ 4 ms por tecla, contra ≈ 38 MB y
@@ -34,7 +36,15 @@ QtObject {
     // Datos: [{ e, n, en, g, k, s, w, t }] + byE (emoji -> entrada).
     property var all: []
     property var byE: ({})
-    property bool wanted: false
+    // Quien muestra el panel lo pide con una Subscription (Emoji.qml).
+    property Demand demand: Demand {
+        name: "emoji.data"
+        idleRelease: 10 * 60 * 1000
+        onReleased: {
+            root.all = [];
+            root.byE = ({});
+        }
+    }
     readonly property bool ready: root.all.length > 0
     readonly property string imageDir: Quickshell.env("EMOJI_IMAGE_DIR") || (Quickshell.env("HOME") + "/.cache/dotfiles/emoji/72")
     property bool imagesReady: false
@@ -62,7 +72,7 @@ QtObject {
     }
 
     property FileView data: FileView {
-        path: root.wanted ? Quickshell.shellDir + "/data/emoji.json" : ""
+        path: root.demand.holding ? Quickshell.shellDir + "/data/emoji.json" : ""
         onLoaded: {
             const list = JSON.parse(this.text());
             const by = {};
@@ -84,7 +94,6 @@ QtObject {
     Component.onCompleted: root.images.running = true
 
     function open(): void {
-        root.wanted = true;
         FocusedScreen.request(name => {
             root.screen = name;
             root.visible = true;

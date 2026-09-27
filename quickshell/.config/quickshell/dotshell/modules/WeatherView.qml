@@ -42,7 +42,7 @@ Item {
         if (wv.active) {
             WeatherState.ensureFresh();
             // Primera configuracion: el cursor ya en la busqueda.
-            if (picker.visible) Qt.callLater(() => field.forceActiveFocus());
+            if (picker.visible) Qt.callLater(() => field.focusInput());
         } else {
             wv.picking = false;
         }
@@ -335,7 +335,7 @@ Item {
         onVisibleChanged: if (picker.visible) {
             field.text = "";
             WeatherState.searchResults = [];
-            if (wv.active) field.forceActiveFocus();
+            if (wv.active) field.focusInput();
         }
 
         RowLayout {
@@ -392,49 +392,29 @@ Item {
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
         }
-        // Busqueda.
-        Rectangle {
+        // Busqueda: una consulta al dejar de escribir, no una por tecla.
+        SearchField {
+            id: field
+            objectName: "weatherSearch"
             Layout.fillWidth: true
-            implicitHeight: Tokens.row.heightLarge - 4
-            radius: Tokens.radius.md
-            color: Colors.surfaceHighest
-            border.width: 1
-            border.color: field.activeFocus ? Colors.accent : Colors.divider
-            Icon { id: searchIcon; anchors.left: parent.left; anchors.leftMargin: Tokens.space.sm; anchors.verticalCenter: parent.verticalCenter; name: "search"; size: Tokens.icon.sm; color: Colors.textMuted }
-            TextInput {
-                id: field
-                objectName: "weatherSearch"
-                anchors.fill: parent
-                anchors.leftMargin: Tokens.space.sm * 2 + searchIcon.width
-                anchors.rightMargin: Tokens.space.sm
-                verticalAlignment: TextInput.AlignVCenter
-                color: Colors.text
-                selectionColor: Colors.accent
-                selectedTextColor: Colors.textOnAccent
-                font.family: Tokens.font.ui
-                font.pixelSize: Tokens.type.body
-                clip: true
-                onTextChanged: searchDelay.restart()
-                Keys.onReturnPressed: {
-                    if (!WeatherState.searchResults.length) return;
-                    WeatherState.setLocation(WeatherState.searchResults[0]);
-                    wv.picking = false;
+            size: "regular"
+            placeholder: "Buscar ciudad…"
+            onTextChanged: searchDelay.restart()
+            keyHandler: (event) => {
+                if (event.key === Qt.Key_Return) {
+                    if (WeatherState.searchResults.length) {
+                        WeatherState.setLocation(WeatherState.searchResults[0]);
+                        wv.picking = false;
+                    }
+                    return true;
                 }
-                Keys.onEscapePressed: {
+                if (event.key === Qt.Key_Escape) {
                     if (wv.picking && WeatherState.configured) wv.picking = false;
                     else wv.backRequested();
+                    return true;
                 }
+                return false;
             }
-            Text {
-                visible: field.text.length === 0
-                anchors.left: field.left
-                anchors.verticalCenter: parent.verticalCenter
-                text: "Buscar ciudad…"
-                color: Colors.textMuted
-                font.family: Tokens.font.ui
-                font.pixelSize: Tokens.type.body
-            }
-            // Una busqueda al dejar de escribir, no una por tecla.
             Timer { id: searchDelay; interval: 400; onTriggered: WeatherState.search(field.text) }
         }
         Text {

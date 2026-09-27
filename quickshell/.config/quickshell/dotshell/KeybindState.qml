@@ -4,10 +4,15 @@
 // (hypr/scripts/keybinds), que agrupa lo que devuelve hyprctl binds -j a
 // partir de la descripcion de cada atajo en binds.lua.
 //
-// Se lee al abrir (una llamada corta); cerrado no corre nada.
+// Se lee la primera vez que se abre y se guarda: los atajos solo cambian
+// cuando Hyprland recarga su config (evento configreloaded), que marca los
+// datos como viejos; la siguiente apertura los vuelve a leer (Fase 8 B3; antes
+// se releia en cada apertura y rearmar la lista retrasaba el primer cuadro).
+// Cerrado no corre nada.
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 
 QtObject {
@@ -55,15 +60,38 @@ QtObject {
         if (root.visible) root.close();
         else root.open();
     }
+    // Generacion de la config de Hyprland: sube con cada recarga. Los datos
+    // valen si se leyeron en la generacion actual (una recarga en medio de una
+    // lectura deja los datos como viejos y se vuelve a leer).
+    property int configGen: 0
+    property int readGen: -1
+    property int runningGen: -1
+    readonly property bool stale: root.readGen !== root.configGen
+    // Solo lo necesario: si los datos siguen valiendo, no se lanza nada.
     function refresh(): void {
-        if (!root.proc.running) root.proc.running = true;
+        if (!root.stale && root.data) return;
+        if (root.proc.running) return;
+        root.runningGen = root.configGen;
+        root.proc.running = true;
+    }
+    property Connections hyprEvents: Connections {
+        target: Hyprland
+        function onRawEvent(event: var): void {
+            if (event.name !== "configreloaded") return;
+            root.configGen += 1;
+            // Con la guia abierta, se ve el cambio enseguida.
+            if (root.visible) root.refresh();
+        }
     }
     property Process proc: Process {
         command: [root.script, "data"]
+        // Si Hyprland recargo mientras se leia y la guia sigue abierta, otra vez.
+        onExited: if (root.visible && root.stale) Qt.callLater(root.refresh)
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
                     root.data = JSON.parse(this.text);
+                    root.readGen = root.runningGen;
                 } catch (e) {}
             }
         }

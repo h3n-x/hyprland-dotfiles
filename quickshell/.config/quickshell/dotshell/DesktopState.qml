@@ -8,8 +8,8 @@
 // reactivo). La geometria de las ventanas, los monitores y la decoracion
 // (gaps, rounding, borde y sus colores) no: salen de hyprctl en UNA consulta
 // (~13 ms) cuando alguien la pide -- al abrir el selector o el dashboard -- y,
-// solo mientras el dashboard se ve (watch), otra vez tras cada evento de
-// ventanas (agrupados en 150 ms). Cerrado todo, no corre nada.
+// solo mientras alguno de los dos se ve (Demand live), otra vez tras cada
+// evento de ventanas (agrupados en 150 ms). Cerrado todo, no corre nada.
 pragma Singleton
 import QtQuick
 import Quickshell
@@ -213,13 +213,16 @@ QtObject {
         }
     }
 
-    // ---- Seguimiento mientras el dashboard se ve --------------------------------
-    property int watchers: 0
-    property string lastActive: ""
-    function watch(on: bool): void {
-        root.watchers = Math.max(0, root.watchers + (on ? 1 : -1));
-        if (on) root.refresh();
+    // ---- Seguimiento mientras alguien lo mira (Fase 8 B3) -------------------------
+    // Dashboard y selector de ventanas se suscriben (Subscription): mientras
+    // hay alguien, cada evento de ventanas vuelve a consultar (con 150 ms de
+    // espera). La lista se conserva al soltar: es chica y la proxima apertura
+    // la muestra al instante mientras llega la nueva.
+    property Demand live: Demand {
+        name: "desktop.live"
+        onActiveChanged: if (active) root.refresh()
     }
+    property string lastActive: ""
     // Sin "windowtitlev2": un titulo que cambia seguido (una terminal con una
     // tarea en curso) dispararia una consulta cada 150 ms y no cambia nada
     // de lo que se dibuja. Hyprland tambien repite "activewindowv2" con cada
@@ -235,7 +238,7 @@ QtObject {
                 if (event.data === root.lastActive) return;
                 root.lastActive = event.data;
             }
-            if (root.watchers > 0 && (root.windowEvents.indexOf(event.name) >= 0 || event.name === "configreloaded"))
+            if (root.live.active && (root.windowEvents.indexOf(event.name) >= 0 || event.name === "configreloaded"))
                 debounce.restart();
         }
     }

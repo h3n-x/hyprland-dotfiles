@@ -71,6 +71,16 @@ ShellRoot {
         }
     }
 
+    // Servicios bajo demanda (Fase 8 B3): quien esta pidiendo que. Solo lee
+    // contadores; lo usan las sondas y el diagnostico del centro de
+    // configuracion (P10).
+    IpcHandler {
+        target: "services"
+        function status(): string {
+            return JSON.stringify(Services.status());
+        }
+    }
+
     // SUPER+D (ver binds.lua) -- lanzador de aplicaciones.
     IpcHandler {
         target: "launcher"

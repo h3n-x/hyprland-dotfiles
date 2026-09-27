@@ -52,7 +52,7 @@ Item {
     // Presence de la ventana (apertura/cierre); null = sin animar.
     property var presence: null
 
-    readonly property string query: searchField.text
+    readonly property string query: searchBox.text
     property alias currentIndex: listView.currentIndex
 
     signal accepted(var item)
@@ -60,13 +60,48 @@ Item {
 
     // Al abrir: busqueda vacia, primer elemento, foco en el campo.
     function focusSearch(): void {
-        searchField.forceActiveFocus();
+        searchBox.focusInput();
     }
 
     function reset(): void {
-        searchField.text = "";
+        searchBox.text = "";
         listView.currentIndex = 0;
-        searchField.forceActiveFocus();
+        searchBox.focusInput();
+    }
+
+    // Teclas del selector: primero las de quien lo usa (keyHandler); despues
+    // las propias. En la rejilla izquierda/derecha mueven la seleccion; en la
+    // lista siguen al texto (false).
+    function handleKey(event: var): bool {
+        if (root.keyHandler && root.keyHandler(event)) return true;
+        const grid = root.layout === "grid";
+        switch (event.key) {
+        case Qt.Key_Down:
+            if (grid) gridView.moveCurrentIndexDown();
+            else listView.incrementCurrentIndex();
+            return true;
+        case Qt.Key_Up:
+            if (grid) gridView.moveCurrentIndexUp();
+            else listView.decrementCurrentIndex();
+            return true;
+        case Qt.Key_Left:
+            if (!grid) return false;
+            gridView.moveCurrentIndexLeft();
+            return true;
+        case Qt.Key_Right:
+            if (!grid) return false;
+            gridView.moveCurrentIndexRight();
+            return true;
+        case Qt.Key_Return: {
+            const item = root.model[listView.currentIndex];
+            if (item) root.accepted(item);
+            return true;
+        }
+        case Qt.Key_Escape:
+            root.dismissed();
+            return true;
+        }
+        return false;
     }
 
     readonly property int count: root.model ? root.model.length : 0
@@ -105,76 +140,15 @@ Item {
             anchors.margins: Tokens.space.md
             spacing: Tokens.space.md
 
-            // Campo de busqueda en el contenedor mas alto; foco = borde primary.
-            Rectangle {
+            // El campo de busqueda de la shell (P8.8): todas las teclas pasan
+            // por handleKey antes que el texto.
+            SearchField {
                 id: searchBox
                 Layout.fillWidth: true
-                implicitHeight: Tokens.row.heightLarge
-                radius: Tokens.radius.md
-                color: Colors.surfaceHighest
-                border.color: searchField.activeFocus ? Colors.accent : Colors.divider
-                border.width: 1
-                Behavior on border.color { ColorAnimation { duration: Tokens.motion.fast } }
-
-                Icon {
-                    id: searchIcon
-                    anchors.left: parent.left
-                    anchors.leftMargin: Tokens.space.md
-                    anchors.verticalCenter: parent.verticalCenter
-                    name: "search"
-                    color: Colors.textMuted
-                }
-
-                TextInput {
-                    id: searchField
-                    anchors.fill: parent
-                    anchors.leftMargin: Tokens.space.md + searchIcon.width + Tokens.space.sm
-                    anchors.rightMargin: Tokens.space.md
-                    verticalAlignment: TextInput.AlignVCenter
-                    color: Colors.text
-                    selectionColor: Colors.accent
-                    selectedTextColor: Colors.textOnAccent
-                    font.family: Tokens.font.ui
-                    font.pixelSize: Tokens.type.title
-                    clip: true
-
-                    onTextChanged: listView.currentIndex = 0
-                    Keys.onPressed: (event) => {
-                        if (root.keyHandler && root.keyHandler(event)) event.accepted = true;
-                    }
-                    Keys.onReleased: (event) => {
-                        if (root.keyReleaseHandler && root.keyReleaseHandler(event)) event.accepted = true;
-                    }
-                    Keys.onDownPressed: root.layout === "grid" ? gridView.moveCurrentIndexDown() : listView.incrementCurrentIndex()
-                    Keys.onUpPressed: root.layout === "grid" ? gridView.moveCurrentIndexUp() : listView.decrementCurrentIndex()
-                    // En la rejilla izquierda/derecha mueven la seleccion; en
-                    // la lista siguen moviendo el cursor del texto.
-                    Keys.onLeftPressed: (event) => {
-                        if (root.layout === "grid") gridView.moveCurrentIndexLeft();
-                        else event.accepted = false;
-                    }
-                    Keys.onRightPressed: (event) => {
-                        if (root.layout === "grid") gridView.moveCurrentIndexRight();
-                        else event.accepted = false;
-                    }
-                    Keys.onReturnPressed: (event) => {
-                        if (root.keyHandler && root.keyHandler(event)) return;
-                        const item = root.model[listView.currentIndex];
-                        if (item) root.accepted(item);
-                    }
-                    Keys.onEscapePressed: root.dismissed()
-                }
-
-                Text {
-                    visible: searchField.text.length === 0
-                    anchors.left: parent.left
-                    anchors.leftMargin: searchField.anchors.leftMargin
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.placeholder
-                    color: Colors.textMuted
-                    font.family: Tokens.font.ui
-                    font.pixelSize: Tokens.type.title
-                }
+                placeholder: root.placeholder
+                keyHandler: (event) => root.handleKey(event)
+                keyReleaseHandler: root.keyReleaseHandler
+                onTextChanged: listView.currentIndex = 0
             }
 
             Loader {

@@ -24,6 +24,8 @@ OverlayWindow {
     open: EmojiState.visible
     targetScreen: EmojiState.screen
     onDismissed: EmojiState.close()
+    // Los datos de emoji solo mientras el panel se ve (y 10 min despues, D3).
+    property Subscription emojiData: Subscription { demand: EmojiState.demand; active: window.shouldShow || window.visible }
 
     readonly property var categories: [
         { id: "recent", icon: "schedule", label: "Recientes" },

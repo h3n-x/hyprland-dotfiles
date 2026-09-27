@@ -3,10 +3,13 @@
 // usan el dashboard (Inicio: estado general; vista Sistema: el detalle) y la
 // pill de bateria de la barra (umbrales y avisos).
 //
-// Todo lo que se lee de /proc y /sys, SOLO mientras alguien lo pide:
-//   want(true/false)        Inicio visible: CPU, memoria, temperatura (cada 2 s)
-//   wantDetail(true/false)  vista Sistema: ademas aplicaciones, red, graficas,
-//                           tiempo encendido y (al abrirla) almacenamiento
+// Todo lo que se lee de /proc y /sys, SOLO mientras alguien lo pide (Demand,
+// Fase 8 B3; las vistas se suscriben con Subscription):
+//   basic   dashboard visible: CPU, memoria, temperatura (cada 2 s)
+//   detail  vista Sistema: ademas red, graficas, tiempo encendido, (al abrirla)
+//           almacenamiento y las aplicaciones cada 4 s (D2: a 2 s el orden de
+//           la tabla solo cambiaba por ruido y costaba ~6,5 % de un nucleo)
+//   Al soltar detail se vacian sus datos (lista de aplicaciones, muestras).
 // Cerrado el dashboard no hay temporizador, lecturas ni procesos. La bateria
 // sale de UPower (eventos, sin polling) y esta siempre, porque la barra la
 // muestra. Lo fijo (distro, kernel, modelo de CPU y graficas, rutas de
@@ -21,26 +24,36 @@ QtObject {
     id: root
 
     // ---- Demanda -----------------------------------------------------------------
-    property int demand: 0
-    property int detail: 0
-    function want(on: bool): void {
-        root.demand = Math.max(0, root.demand + (on ? 1 : -1));
-        if (on) root.sample();
+    property Demand basic: Demand {
+        name: "system.basic"
+        onActiveChanged: if (active) root.sample()
     }
-    function wantDetail(on: bool): void {
-        root.detail = Math.max(0, root.detail + (on ? 1 : -1));
-        if (on) {
+    property Demand detail: Demand {
+        name: "system.detail"
+        onActiveChanged: {
+            if (!active) return;
             storageProc.running = true;
             root.dgpuPower = ""; // al entrar se vuelve a preguntar que la usa
+            root.appTick = 0;
             root.sample();
         }
+        onReleased: {
+            root.apps = [];
+            root.procPrev = null;
+            root.netPrev = null;
+            root.rxRate = 0;
+            root.txRate = 0;
+        }
     }
+    readonly property bool sampling: root.basic.active || root.detail.active
     property Timer ticker: Timer {
         interval: 2000
         repeat: true
-        running: root.demand > 0 || root.detail > 0
+        running: root.sampling
         onTriggered: root.sample()
     }
+    // Aplicaciones: una muestra de cada dos (cada 4 s, D2).
+    property int appTick: 0
     function sample(): void {
         if (!root.infoLoaded) {
             if (!infoProc.running) infoProc.running = true;
@@ -49,10 +62,11 @@ QtObject {
         statFile.reload();
         memFile.reload();
         if (root.paths.cpuTemp) tempFile.reload();
-        if (root.detail > 0) {
+        if (root.detail.active) {
             uptimeFile.reload();
             netFile.reload();
-            if (!procsProc.running) procsProc.running = true;
+            if (root.appTick === 0 && !procsProc.running) procsProc.running = true;
+            root.appTick = (root.appTick + 1) % 2;
             if (root.paths.gpuBusy) gpuBusyFile.reload();
             if (root.paths.gpuTemp) gpuTempFile.reload();
             if (root.paths.nvmeTemp) nvmeTempFile.reload();
@@ -119,7 +133,7 @@ QtObject {
                 root.cpuModel = root.cpuModel.replace(/\s*w\/.*$/, "").replace(/^AMD\s+/, "").replace(/\s+\d+-Core Processor$/, "").trim();
                 root.paths = p;
                 root.infoLoaded = true;
-                if (root.demand > 0 || root.detail > 0) root.sample();
+                if (root.sampling) root.sample();
             }
         }
     }
@@ -153,7 +167,7 @@ QtObject {
     }
     property Timer quick: Timer {
         interval: 300
-        onTriggered: if (root.demand > 0 || root.detail > 0) statFile.reload()
+        onTriggered: if (root.sampling) statFile.reload()
     }
 
     // ---- Memoria (/proc/meminfo) -------------------------------------------------
@@ -316,6 +330,8 @@ QtObject {
     property var procPrev: null   // { at, ticks: { pid: ticks } }
     readonly property var shells: ["sh", "bash", "zsh", "fish", "dash", "nu"]
     function groupProcesses(text: string): void {
+        // Una lectura que termina despues de soltar la vista no vuelve a llenar nada.
+        if (!root.detail.active) return;
         const procs = {};
         for (const line of text.split("\n")) {
             const open = line.indexOf(" (");
