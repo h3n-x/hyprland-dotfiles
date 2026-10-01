@@ -775,10 +775,12 @@ efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
 En el sistema: **`SUPER + /`** abre la guia de atajos (buscable, siempre al
 dia). La tabla de abajo se genera desde la misma fuente -- la descripcion de
 cada atajo en `hypr/.config/hypr/modules/binds.lua`, leida de Hyprland -- con
-`hypr/.config/hypr/scripts/keybinds markdown`; no se edita a mano.
-`keybinds check` falla si algun atajo no tiene descripcion.
+`hypr/.config/hypr/scripts/keybinds readme`, que reescribe solo la tabla
+entre los marcadores; no se edita a mano. `keybinds readme --check` avisa si
+quedo desactualizada y `keybinds check` falla si algun atajo no tiene
+descripcion.
 
-<!-- keybinds:start (generado: hypr/.config/hypr/scripts/keybinds markdown) -->
+<!-- keybinds:start (generado: hypr/.config/hypr/scripts/keybinds readme) -->
 **Shell**
 
 | Atajo | Acción |

@@ -2,7 +2,9 @@
 """Atajos de Hyprland para la guia de atajos (Fase 4 B10), leidos de Hyprland.
 
     keybinds data       JSON agrupado para Quickshell (KeybindState)
-    keybinds markdown   la tabla de atajos del README (misma agrupacion)
+    keybinds markdown   la tabla de atajos del README (misma agrupacion), por stdout
+    keybinds readme     reescribe esa tabla en el README, solo entre los marcadores
+    keybinds readme --check   0 al dia, 1 desactualizada (dice que filas), 2 no se puede verificar
     keybinds check      falla (exit 1) si un atajo no tiene descripcion valida
 
 La unica fuente es `hyprctl binds -j` (la configuracion viva, submaps
@@ -10,6 +12,12 @@ incluidos): la descripcion sale del { desc = "Grupo · Texto" } de cada
 hl.bind en binds.lua. Nunca se lee binds.lua. Los atajos de una familia
 (misma descripcion) se juntan en una fila: flechas, 1-0, volumen, rueda.
 KEYBINDS_JSON=<archivo> usa ese JSON en vez de hyprctl (pruebas).
+
+La tabla del README (Fase 8 B7, P8.5) solo la escribe `keybinds readme`:
+reemplaza lo que hay entre <!-- keybinds:start ... --> y <!-- keybinds:end -->
+y nada mas (el resto del README queda igual byte a byte); si ya esta al dia
+no escribe. No corre solo: lo verifica el drift check de la documentacion.
+KEYBINDS_README=<archivo> usa ese README (pruebas).
 """
 import json
 import os
@@ -159,8 +167,58 @@ def markdown(groups):
     return "\n".join(lines).rstrip() + "\n"
 
 
+README = os.environ.get("KEYBINDS_README") or os.path.expanduser("~/Dotfiles/README.md")
+START = "<!-- keybinds:start"
+END = "<!-- keybinds:end -->"
+
+
+def readme(check):
+    """La tabla del README: 0 al dia (o reescrita), 1 desactualizada (--check), 2 no se puede verificar."""
+    try:
+        new = markdown(grouped(load()))
+    except (OSError, ValueError, subprocess.CalledProcessError) as e:
+        print(f"no se puede verificar: sin atajos de Hyprland ({e.__class__.__name__})", file=sys.stderr)
+        return 2
+    path = os.path.realpath(README)
+    try:
+        with open(path, encoding="utf-8") as f:
+            lines = f.read().splitlines(keepends=True)
+    except OSError as e:
+        print(f"no se puede verificar: {e}", file=sys.stderr)
+        return 2
+    starts = [i for i, l in enumerate(lines) if l.startswith(START)]
+    ends = [i for i, l in enumerate(lines) if l.strip() == END]
+    if len(starts) != 1 or len(ends) != 1 or ends[0] < starts[0]:
+        print(f"no se puede verificar: marcadores {START} ... {END} ausentes o repetidos en {path}", file=sys.stderr)
+        return 2
+    s, e = starts[0], ends[0]
+    old = "".join(lines[s + 1:e])
+    if old == new:
+        print("tabla de atajos del README al día")
+        return 0
+    if check:
+        was, now = old.splitlines(), new.splitlines()
+        for row in was:
+            if row and row not in now:
+                print(f"  - {row}")
+        for row in now:
+            if row and row not in was:
+                print(f"  + {row}")
+        print("tabla de atajos del README desactualizada: hypr/.config/hypr/scripts/keybinds readme")
+        return 1
+    tmp = path + ".keybinds-tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write("".join(lines[:s + 1]) + new + "".join(lines[e:]))
+    os.chmod(tmp, os.stat(path).st_mode & 0o7777)
+    os.replace(tmp, path)
+    print(f"tabla de atajos del README actualizada ({sum(1 for r in new.splitlines() if r.startswith('| ') and not r.startswith('| Atajo'))} filas)")
+    return 0
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else ""
+    if mode == "readme":
+        sys.exit(readme("--check" in sys.argv[2:]))
     binds = load()
     if mode == "data":
         groups = grouped(binds)
@@ -176,7 +234,7 @@ def main():
         print(f"{len(binds)} atajos, {len(bad)} sin descripción válida")
         sys.exit(1 if bad else 0)
     else:
-        print("uso: keybinds data|markdown|check", file=sys.stderr)
+        print("uso: keybinds data|markdown|readme [--check]|check", file=sys.stderr)
         sys.exit(2)
 
 
