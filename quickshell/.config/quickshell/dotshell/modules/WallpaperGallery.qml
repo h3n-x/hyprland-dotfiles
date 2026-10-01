@@ -60,7 +60,7 @@ PanelWindow {
     // THEME_SCRIPTS_DIR: otra copia de los scripts para pruebas.
     readonly property string scriptsDir: Quickshell.env("THEME_SCRIPTS_DIR") || (Quickshell.env("HOME") + "/.config/hypr/scripts")
     readonly property string wallpapersDir: Quickshell.env("WALLPAPERS_DIR") || (Quickshell.env("HOME") + "/Pictures/Wallpapers")
-    readonly property string cacheDir: Quickshell.env("WALLPAPER_CACHE_DIR") || (Quickshell.env("HOME") + "/.cache/dotfiles/wallpapers")
+    readonly property string cacheDir: GalleryState.cacheDir
 
     // Solo en el monitor enfocado al abrir (Fase 4 B0, E12).
     readonly property bool shouldShow: GalleryState.visible && (GalleryState.screen === "" || (!!window.screen && window.screen.name === GalleryState.screen))
@@ -76,22 +76,9 @@ PanelWindow {
 
     // ---- Datos -------------------------------------------------------------
 
-    // Indice de la cache: nombre -> {mtime, size, thumb, colors}.
-    property var index: ({})
-    FileView {
-        id: cacheFile
-        path: window.cacheDir + "/palettes.json"
-        watchChanges: true
-        onFileChanged: reload()
-        printErrors: false
-        onLoaded: {
-            try {
-                window.index = JSON.parse(cacheFile.text());
-            } catch (e) {
-                window.index = {};
-            }
-        }
-    }
+    // Indice de la cache (GalleryState, P8.3): solo mientras la galeria se ve.
+    readonly property var index: GalleryState.index
+    property Subscription indexData: Subscription { demand: GalleryState.indexDemand; active: window.shouldShow || window.visible }
 
     readonly property var names: Object.keys(window.index).sort()
     readonly property string currentPath: ThemeState.current ? ThemeState.current.wallpaper : ""

@@ -13,7 +13,12 @@ hl.on("hyprland.start", function()
     -- Waybar Y de swaync (NotificationServer propio, ver
     -- NotificationState.qml -- no pueden convivir dos dueños del mismo
     -- servicio DBus org.freedesktop.Notifications).
-    hl.exec_cmd("qs -c dotshell")
+    -- MALLOC_CONF (Fase 8 B4, P8.3): jemalloc devuelve al sistema la memoria
+    -- liberada al segundo aunque la shell este quieta (hilo de purga). Sin
+    -- esto, lo liberado al cerrar superficies o al recargar se quedaba en el
+    -- proceso: medido -13,6 MB tras 10 rondas de uso y recargas estables
+    -- (126-131 MB en vez de 137-157); CPU en reposo igual.
+    hl.exec_cmd("env MALLOC_CONF=background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:0 qs -c dotshell")
     -- El wallpaper lo dibuja Quickshell (Fase 3 B6); hyprpaper solo si se
     -- eligio como vuelta atras con `theme-apply.sh --backend hyprpaper`.
     hl.exec_cmd("sh -c '[ \"$(~/.config/hypr/scripts/theme-apply.sh --backend status)\" = hyprpaper ] && exec hyprpaper'")
