@@ -1,0 +1,178 @@
+#!/bin/bash
+# Bloquear la pantalla (Fase 9 B1): la unica entrada (S+L, menu de energia,
+# centro de control, hypridle lock_cmd). Lanza el bloqueo de Quickshell
+# (dotshell/lock.qml, una instancia aparte de la shell) y lo vigila:
+#   - desbloqueo correcto ("LOCK-UNLOCKED" en su log) -> termina;
+#   - se cayo con la sesion bloqueada ("LOCK-SECURE" visto) -> lo relanza
+#     (misc:allow_session_lock_restore permite que otro tome el bloqueo);
+#   - no llego a bloquear en LOCK_START_TIMEOUT s (3 s; los bloqueos reales
+#     confirman en 0.2-0.6 s) -> abre YA el hyprlock de emergencia: antes de
+#     bloquear la sesion esta abierta, cada reintento seria tiempo con el
+#     escritorio expuesto (correccion pre-bloqueo, V0-4);
+#   - a la 3a caida (siempre con la sesion ya bloqueada) tambien abre el de
+#     emergencia (config propia sin tema), la ruta de recuperacion probada.
+# misc:allow_session_lock_restore queda APAGADO salvo durante la ventana
+# justa de un relanzamiento o del paso al de emergencia (D4 revisado, V0-7a):
+# encendido, cualquier otro bloqueador podria tomar un bloqueo sano.
+# Un segundo llamado mientras hay un bloqueo en curso no hace nada (flock),
+# salvo con --user (B2): los llamados del usuario (S+L, menu de energia,
+# centro de control) solo pueden ocurrir con la sesion DESBLOQUEADA (S+L no
+# es un atajo locked = true y en el bloqueo no hay nada que tocar), asi que
+# si en ese momento hay un bloqueo "en curso", es un huerfano (V0-7c: otro
+# bloqueador tomo la sesion y Hyprland no le avisa a Quickshell): se detiene
+# (vigilante primero, despues el bloqueo) y se bloquea de nuevo. hypridle
+# llama sin --user: un evento de inactividad con la sesion bloqueada sigue
+# sin hacer nada.
+#
+# `lock --resume` (hypridle after_sleep_cmd, V0-7a): tras reanudar, Hyprland
+# no le devuelve el foco del teclado a la superficie de bloqueo que ya existia
+# (el campo no recibe teclas); una superficie nueva si lo recibe. --resume le
+# pide al vigilante que recree el bloqueo (la sesion sigue bloqueada todo el
+# tiempo): es una ruta propia, NO cuenta como caida ni como emergencia. Sin un
+# bloqueo de Quickshell en curso no hace nada.
+#
+# `lock --emergency` (D12, atajo con locked = true, S+Ctrl+Alt+L): para un
+# bloqueo de Quickshell vivo pero inutilizable (no acepta la contrasena),
+# detiene este vigilante y el bloqueo y abre el hyprlock de emergencia sobre
+# la sesion que sigue bloqueada. Nunca desbloquea: el de emergencia pide la
+# contrasena. Sin un bloqueo de Quickshell en curso no hace nada.
+# Recuperacion a mano desde una TTY: ver README, seccion Bloqueo de pantalla.
+#
+# Pruebas: LOCK_CMD, LOCK_EMERGENCY_CMD, LOCK_RUN_DIR, LOCK_START_TIMEOUT,
+# LOCK_HYPRCTL (otro hyprctl), LOCK_NO_HYPRCTL=1 (no toca Hyprland),
+# LOCK_LOG_TAG.
+set -u
+
+RUN=${LOCK_RUN_DIR:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/dotfiles}
+mkdir -p "$RUN"
+LOCK_CMD=${LOCK_CMD:-qs -p $HOME/.config/quickshell/dotshell/lock.qml}
+EMERGENCY_CMD=${LOCK_EMERGENCY_CMD:-hyprlock --config $HOME/.config/hypr/hyprlock-emergency.conf}
+START_TIMEOUT=${LOCK_START_TIMEOUT:-3}
+LOG="$RUN/lock.log"
+
+note() { logger -t "${LOCK_LOG_TAG:-dotfiles-lock}" -- "$*" 2>/dev/null; echo "lock: $*" >&2; }
+HYPRCTL=${LOCK_HYPRCTL:-hyprctl}
+restore() { # true | false
+  [ "${LOCK_NO_HYPRCTL:-}" = 1 ] && return
+  $HYPRCTL eval "hl.config({ misc = { allow_session_lock_restore = $1 } })" >/dev/null 2>&1
+}
+# El de emergencia en primer plano: la opcion se apaga apenas tomo la sesion.
+emergency() {
+  in_emergency=1
+  restore true
+  $EMERGENCY_CMD &
+  local e=$!
+  echo "$e" >"$RUN/lock.child"
+  sleep 1.5
+  restore false
+  wait "$e"
+  local rc=$?
+  rm -f "$RUN/lock.child"
+  return $rc
+}
+alive() { [ -n "${1:-}" ] && kill -0 "$1" 2>/dev/null; }
+
+stop_previous() { # vigilante primero (que no relance), despues el bloqueo
+  local sup child
+  sup=$(cat "$RUN/lock.pid" 2>/dev/null)
+  child=$(cat "$RUN/lock.child" 2>/dev/null)
+  # Los descendientes del bloqueo tambien: heredan el descriptor del flock.
+  local kids=""
+  alive "$child" && kids=$(pgrep -P "$child")
+  alive "$sup" && kill "$sup"
+  alive "$child" && kill "$child"
+  [ -n "$kids" ] && kill $kids 2>/dev/null
+  sleep 0.3
+  alive "$child" && kill -9 "$child"
+  return 0
+}
+
+if [ "${1:-}" = --resume ]; then
+  sup=$(cat "$RUN/lock.pid" 2>/dev/null)
+  if alive "$sup"; then
+    note "reanudacion: se pide recrear el bloqueo (Hyprland no le devuelve el teclado a la superficie anterior)"
+    kill -USR1 "$sup"
+  fi
+  exit 0
+fi
+
+if [ "${1:-}" = --emergency ]; then
+  sup=$(cat "$RUN/lock.pid" 2>/dev/null)
+  child=$(cat "$RUN/lock.child" 2>/dev/null)
+  alive "$sup" || alive "$child" || { note "emergencia pedida sin un bloqueo de Quickshell en curso: nada que hacer"; exit 0; }
+  note "emergencia pedida: el bloqueo de Quickshell se reemplaza por el hyprlock de emergencia"
+  stop_previous
+  emergency
+  exit $?
+fi
+
+exec 9>"$RUN/lock.flock"
+if ! flock -n 9; then
+  [ "${1:-}" = --user ] || exit 0
+  note "bloqueo pedido por el usuario con otro en curso: es un huerfano (la sesion esta desbloqueada); se limpia y se bloquea de nuevo"
+  stop_previous
+  flock -w 3 9 || { note "no se pudo liberar el bloqueo huerfano"; exit 1; }
+fi
+echo $$ >"$RUN/lock.pid"
+trap 'rm -f "$RUN/lock.pid" "$RUN/lock.child"; [ "${relaunching:-0}" = 1 ] && restore false' EXIT
+trap 'exit 143' TERM INT
+# Reanudacion (--resume): recrear el bloqueo, salvo con el de emergencia en curso.
+refresh=0
+in_emergency=0
+trap 'if [ $in_emergency = 1 ]; then note "reanudacion con el bloqueo de emergencia: lo maneja hyprlock"; else refresh=1; kill "$pid" 2>/dev/null; fi' USR1
+
+failed_starts=0
+crashes=0
+relaunching=0
+while :; do
+  : >"$LOG"
+  $LOCK_CMD >"$LOG" 2>&1 &
+  pid=$!
+  echo "$pid" >"$RUN/lock.child"
+  # Espera la confirmacion del bloqueo; sin ella en START_TIMEOUT s, arranque fallido.
+  secure=0
+  for _ in $(seq $((START_TIMEOUT * 10))); do
+    grep -q "LOCK-SECURE" "$LOG" && { secure=1; [ $relaunching = 1 ] && { restore false; relaunching=0; }; break; }
+    kill -0 "$pid" 2>/dev/null || break
+    sleep 0.1
+  done
+  if [ $secure = 0 ] && [ $refresh = 1 ]; then
+    # --resume mientras el bloqueo arrancaba: se recrea, no es un arranque fallido.
+    wait "$pid" 2>/dev/null
+    refresh=0
+    note "reanudacion durante el arranque: bloqueo recreado (no cuenta como fallo)"
+    restore true
+    relaunching=1
+    continue
+  fi
+  if [ $secure = 0 ]; then
+    kill "$pid" 2>/dev/null
+    wait "$pid" 2>/dev/null
+    failed_starts=$((failed_starts + 1))
+    note "el bloqueo no arranco ($failed_starts)"
+  else
+    wait "$pid"
+    rc=$?
+    # wait vuelve al llegar la senal: se espera a que el bloqueo termine de verdad.
+    while kill -0 "$pid" 2>/dev/null; do wait "$pid"; rc=$?; done
+    grep -q "LOCK-UNLOCKED" "$LOG" && exit 0
+    if [ $refresh = 1 ]; then
+      refresh=0
+      note "reanudacion: bloqueo recreado (no cuenta como caida)"
+      restore true
+      relaunching=1
+      continue
+    fi
+    crashes=$((crashes + 1))
+    note "el bloqueo se cayo con la sesion bloqueada (codigo $rc, caida $crashes)"
+  fi
+  if [ $failed_starts -ge 1 ] || [ $crashes -ge 3 ]; then
+    note "abriendo el bloqueo de emergencia"
+    emergency
+    exit $?
+  fi
+  # Relanzamiento: la opcion se enciende justo antes y se apaga al confirmar.
+  restore true
+  relaunching=1
+  sleep 0.2
+done

@@ -177,7 +177,7 @@ PanelWindow {
                 QuickToggle {
                     icon: "lock"
                     active: false
-                    onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/lock.sh"])
+                    onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/lock", "--user"])
                 }
             }
 

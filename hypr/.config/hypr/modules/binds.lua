@@ -33,7 +33,11 @@ hl.bind(mainMod .. " + SHIFT + TAB", hl.dsp.exec_cmd("qs -c dotshell ipc call sw
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager), { desc = "Programas · Archivos" })
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser), { desc = "Programas · Navegador" })
 
-hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(scripts .. "/lock.sh"), { desc = "Sistema · Bloquear la pantalla" })
+hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(scripts .. "/lock --user"), { desc = "Sistema · Bloquear la pantalla" })
+-- Bloqueo de emergencia (Fase 9 B1, D12): con el bloqueo de Quickshell vivo
+-- pero inutilizable, lo cambia por el hyprlock de emergencia (sigue pidiendo
+-- la contrasena; nunca desbloquea). Sin un bloqueo en curso no hace nada.
+hl.bind(mainMod .. " + CTRL + ALT + L", hl.dsp.exec_cmd(scripts .. "/lock --emergency"), { locked = true, desc = "Sistema · Bloqueo de emergencia" })
 -- Menu de energia y sesion (Quickshell, Fase 4 B1). SUPER+SHIFT+M abre la
 -- confirmacion de cerrar sesion (antes salia al instante).
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("qs -c dotshell ipc call power toggle"), { desc = "Sistema · Energía y sesión" })
@@ -154,7 +158,7 @@ hl.define_submap("resize", function()
 end)
 
 -- ---------------------------------------------------------------------------
--- Multimedia y brillo (funcionan incluso con hyprlock activo -> locked=true)
+-- Multimedia y brillo (funcionan incluso con la sesion bloqueada -> locked=true)
 -- ---------------------------------------------------------------------------
 hl.bind(
 	"XF86AudioRaiseVolume",

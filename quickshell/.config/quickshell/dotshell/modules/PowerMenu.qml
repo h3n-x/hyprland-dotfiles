@@ -36,7 +36,7 @@ OverlayWindow {
         reboot: ["¿Reiniciar el equipo?", "Las aplicaciones se cierran antes de reiniciar.", "Reiniciar"],
         poweroff: ["¿Apagar el equipo?", "Las aplicaciones se cierran antes de apagar.", "Apagar"] })
     readonly property var commands: ({
-        lock: [Quickshell.env("HOME") + "/.config/hypr/scripts/lock.sh"],
+        lock: [Quickshell.env("HOME") + "/.config/hypr/scripts/lock", "--user"],
         suspend: ["systemctl", "suspend"],
         logout: ["hyprshutdown", "-t", "Cerrando sesión..."],
         reboot: ["hyprshutdown", "-t", "Reiniciando...", "-p", "systemctl reboot"],

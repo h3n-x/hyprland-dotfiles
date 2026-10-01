@@ -29,7 +29,7 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 | Launcher | Quickshell (`SUPER+D`, ver seccion Quickshell abajo) |
 | Selector de ventanas | Quickshell (`SUPER+TAB`) |
 | Notificaciones + control center | Quickshell (ver seccion Quickshell abajo) |
-| Lockscreen | Hyprlock |
+| Lockscreen | Quickshell (`dotshell/lock.qml`, vigilado por `scripts/lock`); hyprlock solo de emergencia |
 | Login manager | SDDM (tema propio, ver `sddm/`) |
 | Splash de arranque | Plymouth (colores dinamicos, ver seccion Plymouth abajo) |
 | Menu de arranque | GRUB (theme propio con matugen, ver seccion GRUB abajo) |
@@ -179,9 +179,9 @@ terminal (por ejemplo si Quickshell no esta corriendo):
 ~/.config/hypr/scripts/theme-apply.sh ~/Pictures/Wallpapers/imagen_161.png
 ```
 
-Ademas regenera `~/.face` -- la imagen "de usuario" que dibuja hyprlock
-arriba del reloj de palabras (`image { path = ~/.face }` en
-`hyprlock.conf`) -- como un recorte cuadrado centrado (512x512, via
+Ademas regenera `~/.face` -- la imagen "de usuario" que dibujan la
+pantalla de bloqueo (arriba del campo de contrasena) y Plymouth -- como un
+recorte cuadrado centrado (512x512, via
 `magick`) del mismo wallpaper. No hace falta poner una foto real: el avatar
 del lockscreen cambia solo junto con el resto del theming. Si preferis una
 foto tuya en vez del recorte del wallpaper, sobreescribi `~/.face` a mano
@@ -554,6 +554,56 @@ Si editas `sync-sddm-theme.sh`, hay que repetir el primer `install` para
 que el cambio aplique (la copia en `/usr/local/bin` es la que realmente
 corre, no la del repo).
 
+### Bloqueo de pantalla
+
+El bloqueo es una instancia de Quickshell aparte de la shell
+(`dotshell/lock.qml`): wallpaper difuminado, reloj y fecha del design
+system, avatar (`~/.face`) y el campo de contrasena en todas las pantallas
+(un solo texto compartido). Siempre lo lanza `~/.config/hypr/scripts/lock`,
+que lo vigila:
+
+- `SUPER+L`, el menu de energia y el control center llaman `lock --user`;
+  hypridle (inactividad y antes de suspender) llama `lock`.
+- Si el bloqueo se cae con la sesion bloqueada, se relanza solo; a la
+  tercera caida, o si no llega a bloquear en 3 s, abre el **hyprlock de
+  emergencia** (`hyprlock-emergency.conf`: sin tema ni archivos generados).
+- Al volver de una suspension, hypridle llama `lock --resume`: el bloqueo
+  se recrea (Hyprland no le devuelve el teclado a la superficie anterior).
+- `SUPER+CTRL+ALT+L` (funciona con la sesion bloqueada): si el bloqueo no
+  acepta la contrasena, lo cambia por el hyprlock de emergencia. Nunca
+  desbloquea.
+- La contrasena la verifica PAM con `dotshell/lock/pam/dotfiles-lock`
+  (`pam_unix` + `pam_faillock`: 3 intentos fallidos, 10 min de espera).
+- Registro: `journalctl -t dotfiles-lock`.
+
+#### Recuperacion manual (desde una TTY)
+
+Si `SUPER+CTRL+ALT+L` no alcanza o la pantalla dice "lockscreen died":
+
+1. `Ctrl+Alt+F3` y entrar con tu usuario (pide la contrasena).
+2. **Solo si el bloqueo sigue vivo** (congelado, no "lockscreen died"):
+   `pkill -f "qs -p .*lock.qml"`. Con "lockscreen died" ya no existe: no
+   imprime nada y se puede saltear.
+3. `hyprctl --instance 0 eval 'hl.clear_crashed_lockscreen()'`
+   - `ok`: la sesion quedo desbloqueada.
+   - `error: ... session is not locked`: ya estaba desbloqueada (por
+     ejemplo, el paso 3 ya se habia hecho).
+   - Cualquier otra cosa: pasos 6 y 7.
+4. `Ctrl+Alt+F1`: la sesion, desbloqueada.
+5. Cerrar la TTY: `Ctrl+Alt+F3`, `exit`, `Ctrl+Alt+F1` (si no, queda una
+   sesion abierta en tty3).
+
+Solo si el paso 3 no funciona:
+
+6. `hyprctl --instance 0 eval 'hl.config({ misc = { allow_session_lock_restore = true } })'`
+7. `hyprctl --instance 0 dispatch 'hl.dsp.exec_cmd("hyprlock --config ~/.config/hypr/hyprlock-emergency.conf")'`,
+   `Ctrl+Alt+F1` y la contrasena; despues el paso 5.
+8. Ultimo recurso (cierra la sesion): `loginctl terminate-session <n>`
+   (`loginctl list-sessions` da el numero).
+
+Lo mismo funciona por SSH (sin los cambios de TTY; `exit` cierra la
+sesion SSH).
+
 ### Plymouth (splash de arranque)
 
 Theme "Script" propio (`plymouth/theme/dotfiles-matugen.plymouth`, la
@@ -563,9 +613,9 @@ unica parte estatica -- no lleva colores). Todo lo visual lo genera
 sudo, corre como `post_hook` en cada cambio de wallpaper):
 
 - **Fondo**: el wallpaper activo con blur fuerte + oscurecido + vignette
-  radial (mismo criterio que el blur de `hyprlock.conf`, pero horneado en
+  radial (mismo criterio que el fondo de la pantalla de bloqueo, pero horneado en
   la imagen porque Plymouth Script no tiene filtro de blur propio).
-- **Avatar**: `~/.face` (el mismo recorte cuadrado que usa hyprlock, ver
+- **Avatar**: `~/.face` (el mismo recorte cuadrado que usa la pantalla de bloqueo, ver
   `theme-apply.sh`) recortado en circulo, centrado en el hueco
   transparente que deja el anillo del spinner.
 - **Spinner**: un anillo de 270 grados (24 frames rotando) tenido con
@@ -810,6 +860,7 @@ descripcion.
 | Atajo | Acción |
 |---|---|
 | `Super` + `L` | Bloquear la pantalla |
+| `Super` + `Ctrl` + `Alt` + `L` | Bloqueo de emergencia |
 | `Super` + `M` | Energía y sesión |
 | `Super` + `Shift` + `M` | Cerrar sesión |
 | `Super` + `Ctrl` + `Shift` + `M` | Salida de emergencia |

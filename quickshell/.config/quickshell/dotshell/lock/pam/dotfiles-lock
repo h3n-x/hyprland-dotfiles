@@ -1,0 +1,14 @@
+# PAM del bloqueo de pantalla (Fase 9 B1). Lo carga LockAuth.qml con
+# configDirectory = este directorio: no hace falta nada en /etc ni sudo.
+# Con un directorio propio PAM no resuelve "include system-auth", asi que se
+# repite la parte "auth" de /etc/pam.d/system-auth de Arch: faillock antes y
+# despues de pam_unix, con el mismo contador que el resto del sistema
+# (/run/faillock: 3 intentos en 15 min bloquean 10 min). Si Arch cambia
+# system-auth, revisar esto (drift check).
+auth       required                    pam_faillock.so      preauth
+auth       [success=1 default=bad]     pam_unix.so          try_first_pass nullok
+auth       [default=die]               pam_faillock.so      authfail
+auth       optional                    pam_permit.so
+auth       required                    pam_env.so
+auth       required                    pam_faillock.so      authsucc
+account    required                    pam_unix.so
