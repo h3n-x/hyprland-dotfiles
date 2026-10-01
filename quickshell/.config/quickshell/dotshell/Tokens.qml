@@ -252,6 +252,10 @@ QtObject {
 
     // ---- Tokens de componente (D14) ---------------------------------------
     component BarTokens: QtObject {
+        // Borde de la pantalla donde vive la barra: el unico lugar del que
+        // los popups anclados deducen hacia donde abrirse (AnchoredPanel,
+        // side "auto"). "top" hoy; la barra vertical (P11.3) lo vuelve opcion.
+        readonly property string edge: "top"
         readonly property int height: 40
         property int marginTop
         property int marginSide

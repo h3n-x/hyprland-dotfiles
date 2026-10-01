@@ -2,7 +2,7 @@
 // abre solo con SUPER+A (ningun modulo de la barra lo abre), en el monitor
 // enfocado. Uno por barra, centrado bajo ella; abierto en una sola pantalla a
 // la vez (DashboardState). Una sola
-// superficie (DropdownPanel con radio xl y la entrada larga que el spec
+// superficie (AnchoredPanel con radio xl y la entrada larga que el spec
 // reserva al dashboard) con zonas adentro, no tarjetas.
 //
 // Vistas: Inicio y, desde sus zonas, las de detalle: Hoy (fecha y clima),
@@ -25,9 +25,11 @@ import QtQuick.Layouts
 import Quickshell
 import ".." // Colors.qml, Tokens.qml, DashboardState.qml, SystemState.qml, DesktopState.qml, WeatherState.qml
 
-DropdownPanel {
+AnchoredPanel {
     id: panel
-    alignment: "center"
+    align: "center"
+    // Se desplaza por dentro (sus vistas); el alto lo pone maxBodyHeight.
+    scrollable: false
     padding: Tokens.space.md
     cardRadius: Tokens.radius.xl
     enterDuration: Tokens.motion.long
@@ -35,15 +37,14 @@ DropdownPanel {
     animateHeight: false
 
     readonly property var scr: panel.panelWindow ? panel.panelWindow.screen : null
-    open: DashboardState.visible && !!panel.scr && DashboardState.screen === panel.scr.name
-    onCloseRequested: DashboardState.close()
+    popupId: "dashboard"
     keyHandler: (event) => panel.handleKey(event)
     escapeHandler: () => panel.back()
 
     readonly property int contentWidth: panel.scr
         ? Math.max(640, Math.min(960, panel.scr.width - 2 * Tokens.screenEdge)) - 2 * panel.padding : 640
-    readonly property int maxContentHeight: panel.scr
-        ? panel.scr.height - Tokens.popupTop - Tokens.screenEdge - 2 * panel.padding : 600
+    // Lo que deja la pantalla segun el lado del panel (barra arriba o a un costado).
+    readonly property int maxContentHeight: panel.maxBodyHeight
     readonly property bool narrow: panel.contentWidth + 2 * panel.padding < 820
 
     // Datos solo mientras se ve (Fase 8 B3): estado del equipo y escritorios.

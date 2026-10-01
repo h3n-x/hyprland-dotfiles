@@ -10,24 +10,25 @@ import QtQuick
 
 QtObject {
     id: root
-    property bool visible: false
-    property string screen: ""
+    // Abierto y en que pantalla: de PopupState (Fase 8 B5), donde vive todo
+    // popup anclado (uno solo abierto en la shell).
+    readonly property bool visible: PopupState.isOpen("dashboard", "")
+    readonly property string screen: root.visible ? PopupState.openScreen : ""
     property string view: "home"
     // En el orden de Inicio (de arriba abajo): los puntos de la cabecera.
     readonly property var views: ["home", "today", "system", "workspaces", "maintenance"]
 
     function open(): void {
         FocusedScreen.request(name => {
-            root.screen = name;
             root.view = "home";
-            root.visible = true;
+            PopupState.open("dashboard", name);
         });
     }
     function showView(view: string): void {
         if (root.views.indexOf(view) >= 0) root.view = view;
     }
     function close(): void {
-        root.visible = false;
+        PopupState.close("dashboard");
     }
     function toggle(): void {
         if (root.visible) root.close();

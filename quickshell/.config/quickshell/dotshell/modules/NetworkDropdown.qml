@@ -10,134 +10,166 @@ import Quickshell
 import Quickshell.Networking
 import ".." // Colors.qml, Tokens.qml, NetworkState.qml
 
-PopupWindow {
+AnchoredPanel {
     id: popup
-    required property var anchorItem
-    required property var panelWindow
+    popupId: "network"
+    align: "end"
+    padding: Tokens.pad.card
+    heightCap: 420
     readonly property var wifiDevice: NetworkState.wifiDevice
     readonly property var wiredDevice: NetworkState.wiredDevice
 
-    function toggle() {
-        presence.open = !presence.open;
-    }
-
-    // Apertura/cierre animados (P2.5, guia DESIGN_TOKENS 3.6.1): la ventana
-    // sigue a Presence y queda mapeada mientras el contenido anima la salida.
-    // Si Quickshell cierra el popup por su cuenta (grabFocus, click afuera),
-    // Presence se cierra al instante: Hyprland ya funde el popup al desmapearlo.
-    Presence { id: presence }
-    Connections {
-        target: presence
-        function onShownChanged() {
-            popup.visible = presence.shown;
-        }
-    }
-
-    // Ancho de la tarjeta; la ventana suma el margen de la sombra alrededor
-    // (Surface.shadowMargin) y solo acepta input sobre la tarjeta (mask).
-    readonly property int cardWidth: Tokens.panel.widthMd
-    implicitWidth: popup.cardWidth + card.shadowMargin * 2
-    implicitHeight: Math.min(420, card.implicitHeight) + card.shadowMargin * 2
-    color: "transparent"
-    mask: Region { item: card }
-    grabFocus: true
+    // Ancho del contenido (la tarjeta suma el margen interior).
+    readonly property int contentWidth: Tokens.panel.widthMd - 2 * Tokens.pad.card
 
     // Sin esto la lista de redes solo mostraba la ya conectada -- el
     // dispositivo no escanea activamente por si solo. Igual criterio que
     // "discovering" en BluetoothDropdown.qml: solo mientras el popup esta
     // abierto, no tiene sentido dejarlo escaneando de fondo indefinido.
-    onVisibleChanged: {
-        if (!popup.visible && presence.shown) presence.snapClosed();
-        if (popup.wifiDevice) popup.wifiDevice.scannerEnabled = popup.visible;
+    onActiveChanged: {
+        if (popup.wifiDevice) popup.wifiDevice.scannerEnabled = popup.active;
+        if (!popup.active) popup.showAll = false;
     }
 
-    anchor.window: popup.panelWindow
-    // NO usar mapToItem() aca: es una llamada a funcion, no una property --
-    // el binding no vuelve a evaluar cuando el RowLayout de la barra
-    // termina de acomodar todo (queda pegado a x=0, la posicion antes de
-    // layout). Recorrer la cadena de padres leyendo ".x" en cada uno SI es
-    // reactivo (son properties de verdad), y da el mismo resultado para
-    // una jerarquia sin rotacion/escala como esta.
-    function absoluteX(item) {
-        let x = 0;
-        let cur = item;
-        while (cur && cur !== popup.panelWindow.contentItem) {
-            x += cur.x;
-            cur = cur.parent;
+    // Lista de redes (Fase 8 B5, D6). Antes se reordenaban todos los puntos
+    // de acceso (decenas, con el mismo nombre repetido) en cada cambio de
+    // senal y el Repeater recreaba todas las filas: 30-40 % de CPU con el
+    // panel abierto. Ahora: como mucho una actualizacion cada 2 s y solo con
+    // el panel a la vista; una fila por nombre (la mas fuerte), la conectada
+    // primero; las 12 mas fuertes y "Más redes" para el resto. Las filas se
+    // identifican por nombre: se mueven, entran o salen, no se recrean (el
+    // campo de contraseña sobrevive a un reordenamiento).
+    readonly property int shownLimit: 12
+    property bool showAll: false
+    // nombre -> red de Quickshell (la mas fuerte con ese nombre).
+    property var netByName: ({})
+    property int totalNetworks: 0
+
+    function refreshNetworks(): void {
+        const best = {};
+        for (const n of popup.wifiDevice ? popup.wifiDevice.networks.values : []) {
+            if (!n.name) continue; // redes ocultas: sin nombre que mostrar
+            const b = best[n.name];
+            if (!b || (n.connected && !b.connected) || (n.connected === b.connected && n.signalStrength > b.signalStrength)) best[n.name] = n;
         }
-        return x;
+        const names = Object.keys(best).sort((a, b) => (best[b].connected - best[a].connected) || (best[b].signalStrength - best[a].signalStrength));
+        popup.totalNetworks = names.length;
+        const shown = popup.showAll ? names : names.slice(0, popup.shownLimit);
+        popup.netByName = best;
+        // Sincronizar el modelo en el lugar: mover o insertar lo que cambio y
+        // quitar lo que sobra.
+        for (let i = 0; i < shown.length; i++) {
+            if (i < netModel.count && netModel.get(i).name === shown[i]) continue;
+            let j = i + 1;
+            while (j < netModel.count && netModel.get(j).name !== shown[i]) j++;
+            if (j < netModel.count) netModel.move(j, i, 1);
+            else netModel.insert(i, { name: shown[i] });
+        }
+        if (netModel.count > shown.length) netModel.remove(shown.length, netModel.count - shown.length);
     }
-    anchor.rect.x: {
-        if (!popup.anchorItem || !popup.panelWindow || !popup.panelWindow.contentItem) return 0;
-        const x = popup.absoluteX(popup.anchorItem);
-        return Math.max(0, x - popup.cardWidth + popup.anchorItem.width) - card.shadowMargin;
+    onShowAllChanged: popup.refreshNetworks()
+
+    ListModel { id: netModel }
+    Timer {
+        interval: 2000
+        repeat: true
+        running: popup.active
+        triggeredOnStart: true
+        onTriggered: popup.refreshNetworks()
     }
-    anchor.rect.y: popup.panelWindow ? popup.panelWindow.height - card.shadowMargin : 0
 
-    readonly property var networks: popup.wifiDevice
-        ? popup.wifiDevice.networks.values.slice().sort((a, b) => b.signalStrength - a.signalStrength)
-        : []
+    ColumnLayout {
+        id: layout
+        width: popup.contentWidth
+        spacing: Tokens.space.xs
 
-    // Nivel de elevacion 2: surface_container translucida sobre el blur de
-    // popups de la barra (blur_popups, ver rules.lua) y sombra sm. Radio lg con
-    // inset de 8 para que las filas (radio sm) queden concentricas (Q1).
-    Surface {
-        id: card
-        x: card.shadowMargin
-        y: card.shadowMargin
-        width: popup.cardWidth
-        implicitHeight: layout.implicitHeight + Tokens.pad.card * 2
-        level: 2
-        translucent: true
-        radius: Tokens.radius.lg
-        // Entrada/salida: sube space.sm hacia la barra y crece desde 0.98.
-        opacity: presence.progress
-        scale: presence.contentScale
-        transformOrigin: Item.Top
-        transform: Translate { y: presence.offsetY }
+        // Encabezado con el mismo inset horizontal que el texto de las filas.
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: Tokens.space.md
+            Layout.rightMargin: Tokens.space.xs
+            Layout.topMargin: Tokens.space.xs
+            Layout.bottomMargin: Tokens.space.xs
+            spacing: Tokens.gap.inline
 
-        ColumnLayout {
-            id: layout
-            anchors.fill: parent
-            anchors.margins: Tokens.pad.card
-            spacing: Tokens.space.xs
-
-            // Encabezado con el mismo inset horizontal que el texto de las filas.
-            RowLayout {
+            ColumnLayout {
+                spacing: 0
                 Layout.fillWidth: true
-                Layout.leftMargin: Tokens.space.md
-                Layout.rightMargin: Tokens.space.xs
-                Layout.topMargin: Tokens.space.xs
-                Layout.bottomMargin: Tokens.space.xs
-                spacing: Tokens.gap.inline
 
-                ColumnLayout {
-                    spacing: 0
+                Text {
+                    text: "Wi-Fi"
+                    color: Colors.text
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.title
+                    font.weight: Tokens.weight.semibold
                     Layout.fillWidth: true
-
-                    Text {
-                        text: "Wi-Fi"
-                        color: Colors.text
-                        font.family: Tokens.font.ui
-                        font.pixelSize: Tokens.type.title
-                        font.weight: Tokens.weight.semibold
-                        Layout.fillWidth: true
-                        elide: Text.ElideRight
-                    }
-                }
-
-                Switch {
-                    checked: Networking.wifiEnabled
-                    onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
+                    elide: Text.ElideRight
                 }
             }
 
+            Switch {
+                checked: Networking.wifiEnabled
+                onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
+            }
+        }
+
+        Rectangle {
+            visible: !!(popup.wiredDevice && popup.wiredDevice.connected)
+            Layout.fillWidth: true
+            implicitHeight: Tokens.row.height
+            radius: Tokens.radius.sm
+            color: Colors.accentAltContainer
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: Tokens.space.md
+                anchors.rightMargin: Tokens.space.md
+                spacing: Tokens.gap.inline
+
+                Icon { name: "lan"; filled: true; color: Colors.textOnAccentAltContainer }
+                Text {
+                    text: "Ethernet conectado"
+                    color: Colors.textOnAccentAltContainer
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.body
+                    font.weight: Tokens.weight.medium
+                    Layout.fillWidth: true
+                }
+            }
+        }
+
+        Repeater {
+            model: netModel
+
+            ColumnLayout {
+                id: row
+                required property string name
+                // null si la red desaparecio entre dos actualizaciones.
+                readonly property var net: popup.netByName[row.name] ?? null
+                Layout.fillWidth: true
+                spacing: Tokens.space.xs
+
+                property bool needsPsk: false
+
+                Connections {
+                    target: row.net
+                    function onConnectionFailed(reason) {
+                        row.needsPsk = reason === ConnectionFailReason.NoSecrets;
+                    }
+                }
+
             Rectangle {
-                visible: !!(popup.wiredDevice && popup.wiredDevice.connected)
+                id: netRow
+                readonly property bool selected: !!row.net && row.net.connected
                 Layout.fillWidth: true
                 implicitHeight: Tokens.row.height
                 radius: Tokens.radius.sm
-                color: Colors.accentAltContainer
+                // Fila seleccionada (conectada / por defecto) en secondary
+                // container (decision C3); el hover lo da la StateLayer.
+                color: netRow.selected ? Colors.accentAltContainer : "transparent"
+                Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
+
+                StateLayer { hovered: netMouse.containsMouse; pressed: netMouse.pressed }
 
                 RowLayout {
                     anchors.fill: parent
@@ -145,132 +177,121 @@ PopupWindow {
                     anchors.rightMargin: Tokens.space.md
                     spacing: Tokens.gap.inline
 
-                    Icon { name: "lan"; filled: true; color: Colors.textOnAccentAltContainer }
+                    Icon {
+                        name: {
+                            const s = row.net ? row.net.signalStrength : 0;
+                            return s > 0.75 ? "signal_wifi_4_bar" : s > 0.5 ? "network_wifi_3_bar" : s > 0.25 ? "network_wifi_2_bar" : "network_wifi_1_bar";
+                        }
+                        filled: netRow.selected
+                        color: netRow.selected ? Colors.textOnAccentAltContainer : Colors.text
+                    }
+
                     Text {
-                        text: "Ethernet conectado"
-                        color: Colors.textOnAccentAltContainer
+                        text: row.name
+                        color: netRow.selected ? Colors.textOnAccentAltContainer : Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
-                        font.weight: Tokens.weight.medium
+                        font.weight: netRow.selected ? Tokens.weight.medium : Tokens.weight.regular
                         Layout.fillWidth: true
+                        elide: Text.ElideRight
+                    }
+
+                    Icon {
+                        visible: netRow.selected
+                        name: "check"
+                        size: Tokens.icon.sm
+                        color: Colors.textOnAccentAltContainer
+                    }
+                }
+
+                MouseArea {
+                    id: netMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (row.net && !row.net.connected) row.net.connect();
                     }
                 }
             }
 
-            Repeater {
-                model: popup.networks
-
-                ColumnLayout {
-                    id: row
-                    required property var modelData
-                    Layout.fillWidth: true
-                    spacing: Tokens.space.xs
-
-                    property bool needsPsk: false
-
-                    Connections {
-                        target: row.modelData
-                        function onConnectionFailed(reason) {
-                            row.needsPsk = reason === ConnectionFailReason.NoSecrets;
-                        }
-                    }
-
                 Rectangle {
-                    id: netRow
-                    readonly property bool selected: row.modelData.connected
+                    visible: row.needsPsk
                     Layout.fillWidth: true
                     implicitHeight: Tokens.row.height
                     radius: Tokens.radius.sm
-                    // Fila seleccionada (conectada / por defecto) en secondary
-                    // container (decision C3); el hover lo da la StateLayer.
-                    color: netRow.selected ? Colors.accentAltContainer : "transparent"
-                    Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
+                    color: Colors.surfaceLowest
+                    border.color: pskField.activeFocus ? Colors.accent : Colors.border
+                    border.width: 1
 
-                    StateLayer { hovered: netMouse.containsMouse; pressed: netMouse.pressed }
-
-                    RowLayout {
+                    TextInput {
+                        id: pskField
                         anchors.fill: parent
                         anchors.leftMargin: Tokens.space.md
                         anchors.rightMargin: Tokens.space.md
-                        spacing: Tokens.gap.inline
-
-                        Icon {
-                            name: {
-                                const s = row.modelData.signalStrength;
-                                return s > 0.75 ? "signal_wifi_4_bar" : s > 0.5 ? "network_wifi_3_bar" : s > 0.25 ? "network_wifi_2_bar" : "network_wifi_1_bar";
-                            }
-                            filled: netRow.selected
-                            color: netRow.selected ? Colors.textOnAccentAltContainer : Colors.text
-                        }
-
-                        Text {
-                            text: row.modelData.name
-                            color: netRow.selected ? Colors.textOnAccentAltContainer : Colors.text
-                            font.family: Tokens.font.ui
-                            font.pixelSize: Tokens.type.body
-                            font.weight: netRow.selected ? Tokens.weight.medium : Tokens.weight.regular
-                            Layout.fillWidth: true
-                            elide: Text.ElideRight
-                        }
-
-                        Icon {
-                            visible: netRow.selected
-                            name: "check"
-                            size: Tokens.icon.sm
-                            color: Colors.textOnAccentAltContainer
+                        verticalAlignment: TextInput.AlignVCenter
+                        color: Colors.text
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.body
+                        echoMode: TextInput.Password
+                        clip: true
+                        focus: row.needsPsk
+                        onAccepted: {
+                            if (row.net) row.net.connectWithPsk(pskField.text);
+                            row.needsPsk = false;
                         }
                     }
 
-                    MouseArea {
-                        id: netMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (!row.modelData.connected) row.modelData.connect();
-                        }
+                    Text {
+                        visible: pskField.text.length === 0
+                        anchors.left: parent.left
+                        anchors.leftMargin: Tokens.space.md
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Contraseña, Enter para conectar"
+                        color: Colors.textMuted
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.label
                     }
                 }
+            }
+        }
 
-                    Rectangle {
-                        visible: row.needsPsk
-                        Layout.fillWidth: true
-                        implicitHeight: Tokens.row.height
-                        radius: Tokens.radius.sm
-                        color: Colors.surfaceLowest
-                        border.color: pskField.activeFocus ? Colors.accent : Colors.border
-                        border.width: 1
+        // "Más redes": el resto de la lista (las mas debiles); se pliega al cerrar.
+        Rectangle {
+            visible: popup.totalNetworks > popup.shownLimit
+            Layout.fillWidth: true
+            implicitHeight: Tokens.row.height
+            radius: Tokens.radius.sm
+            color: "transparent"
 
-                        TextInput {
-                            id: pskField
-                            anchors.fill: parent
-                            anchors.leftMargin: Tokens.space.md
-                            anchors.rightMargin: Tokens.space.md
-                            verticalAlignment: TextInput.AlignVCenter
-                            color: Colors.text
-                            font.family: Tokens.font.ui
-                            font.pixelSize: Tokens.type.body
-                            echoMode: TextInput.Password
-                            clip: true
-                            focus: row.needsPsk
-                            onAccepted: {
-                                row.modelData.connectWithPsk(pskField.text);
-                                row.needsPsk = false;
-                            }
-                        }
+            StateLayer { hovered: moreMouse.containsMouse; pressed: moreMouse.pressed }
 
-                        Text {
-                            visible: pskField.text.length === 0
-                            anchors.left: parent.left
-                            anchors.leftMargin: Tokens.space.md
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "Contraseña, Enter para conectar"
-                            color: Colors.textMuted
-                            font.family: Tokens.font.ui
-                            font.pixelSize: Tokens.type.label
-                        }
-                    }
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: Tokens.space.md
+                anchors.rightMargin: Tokens.space.md
+                spacing: Tokens.gap.inline
+
+                Icon {
+                    name: popup.showAll ? "expand_less" : "expand_more"
+                    color: Colors.textMuted
                 }
+                Text {
+                    text: popup.showAll ? "Menos redes" : "Más redes (" + (popup.totalNetworks - popup.shownLimit) + ")"
+                    color: Colors.textMuted
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.body
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
+                }
+            }
+
+            MouseArea {
+                id: moreMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: popup.showAll = !popup.showAll
             }
         }
     }

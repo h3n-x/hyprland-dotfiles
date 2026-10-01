@@ -8,55 +8,15 @@ import Quickshell
 import Quickshell.Bluetooth
 import ".." // Colors.qml, Tokens.qml
 
-PopupWindow {
+AnchoredPanel {
     id: popup
-    required property var anchorItem
-    required property var panelWindow
+    popupId: "bluetooth"
+    align: "end"
+    padding: Tokens.pad.card
+    heightCap: 400
 
-    function toggle() {
-        presence.open = !presence.open;
-    }
-
-    // Apertura/cierre animados (P2.5, guia DESIGN_TOKENS 3.6.1): la ventana
-    // sigue a Presence y queda mapeada mientras el contenido anima la salida.
-    // Si Quickshell cierra el popup por su cuenta (grabFocus, click afuera),
-    // Presence se cierra al instante: Hyprland ya funde el popup al desmapearlo.
-    Presence { id: presence }
-    Connections {
-        target: presence
-        function onShownChanged() {
-            popup.visible = presence.shown;
-        }
-    }
-
-    // Ancho de la tarjeta; la ventana suma el margen de la sombra alrededor
-    // (Surface.shadowMargin) y solo acepta input sobre la tarjeta (mask).
-    readonly property int cardWidth: Tokens.panel.widthSm
-    implicitWidth: popup.cardWidth + card.shadowMargin * 2
-    implicitHeight: Math.min(400, card.implicitHeight) + card.shadowMargin * 2
-    color: "transparent"
-    mask: Region { item: card }
-    grabFocus: true
-
-    anchor.window: popup.panelWindow
-    // Ver el comentario largo en NetworkDropdown.qml: mapToItem() no es
-    // reactivo a cambios de layout, hay que recorrer padres leyendo ".x"
-    // a mano.
-    function absoluteX(item) {
-        let x = 0;
-        let cur = item;
-        while (cur && cur !== popup.panelWindow.contentItem) {
-            x += cur.x;
-            cur = cur.parent;
-        }
-        return x;
-    }
-    anchor.rect.x: {
-        if (!popup.anchorItem || !popup.panelWindow || !popup.panelWindow.contentItem) return 0;
-        const x = popup.absoluteX(popup.anchorItem);
-        return Math.max(0, x - popup.cardWidth + popup.anchorItem.width) - card.shadowMargin;
-    }
-    anchor.rect.y: popup.panelWindow ? popup.panelWindow.height - card.shadowMargin : 0
+    // Ancho del contenido (la tarjeta suma el margen interior).
+    readonly property int contentWidth: Tokens.panel.widthSm - 2 * Tokens.pad.card
 
     readonly property var adapter: Bluetooth.defaultAdapter
     // De-duplicado por MAC: algunos dispositivos (ej. TVs con BR/EDR+LE)
@@ -78,147 +38,126 @@ PopupWindow {
 
     // Escanear solo mientras el popup esta abierto -- no tiene sentido
     // dejar el adaptador escaneando de fondo indefinidamente.
-    onVisibleChanged: {
-        if (!popup.visible && presence.shown) presence.snapClosed();
-        if (popup.adapter) popup.adapter.discovering = popup.visible;
+    onActiveChanged: {
+        if (popup.adapter) popup.adapter.discovering = popup.active;
     }
 
-    // Nivel de elevacion 2: surface_container translucida sobre el blur de
-    // popups de la barra (blur_popups, ver rules.lua) y sombra sm. Radio lg con
-    // inset de 8 para que las filas (radio sm) queden concentricas (Q1).
-    Surface {
-        id: card
-        x: card.shadowMargin
-        y: card.shadowMargin
-        width: popup.cardWidth
-        implicitHeight: layout.implicitHeight + Tokens.pad.card * 2
-        level: 2
-        translucent: true
-        radius: Tokens.radius.lg
-        // Entrada/salida: sube space.sm hacia la barra y crece desde 0.98.
-        opacity: presence.progress
-        scale: presence.contentScale
-        transformOrigin: Item.Top
-        transform: Translate { y: presence.offsetY }
+    ColumnLayout {
+        id: layout
+        width: popup.contentWidth
+        spacing: Tokens.space.xs
 
-        ColumnLayout {
-            id: layout
-            anchors.fill: parent
-            anchors.margins: Tokens.pad.card
-            spacing: Tokens.space.xs
+        // Encabezado con el mismo inset horizontal que el texto de las filas.
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: Tokens.space.md
+            Layout.rightMargin: Tokens.space.xs
+            Layout.topMargin: Tokens.space.xs
+            Layout.bottomMargin: Tokens.space.xs
+            spacing: Tokens.gap.inline
 
-            // Encabezado con el mismo inset horizontal que el texto de las filas.
-            RowLayout {
+            ColumnLayout {
+                spacing: 0
                 Layout.fillWidth: true
-                Layout.leftMargin: Tokens.space.md
-                Layout.rightMargin: Tokens.space.xs
-                Layout.topMargin: Tokens.space.xs
-                Layout.bottomMargin: Tokens.space.xs
-                spacing: Tokens.gap.inline
-
-                ColumnLayout {
-                    spacing: 0
-                    Layout.fillWidth: true
-
-                    Text {
-                        text: "Bluetooth"
-                        color: Colors.text
-                        font.family: Tokens.font.ui
-                        font.pixelSize: Tokens.type.title
-                        font.weight: Tokens.weight.semibold
-                        Layout.fillWidth: true
-                        elide: Text.ElideRight
-                    }
-                }
 
                 Text {
-                    visible: !!popup.adapter && popup.adapter.discovering
-                    text: "Buscando..."
-                    color: Colors.textMuted
+                    text: "Bluetooth"
+                    color: Colors.text
                     font.family: Tokens.font.ui
-                    font.pixelSize: Tokens.type.caption
-                }
-
-                Switch {
-                    checked: !!(popup.adapter && popup.adapter.enabled)
-                    onToggled: if (popup.adapter) popup.adapter.enabled = !popup.adapter.enabled
+                    font.pixelSize: Tokens.type.title
+                    font.weight: Tokens.weight.semibold
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
                 }
             }
 
             Text {
-                visible: popup.devices.length === 0
-                Layout.leftMargin: Tokens.space.md
-                Layout.bottomMargin: Tokens.space.xs
-                text: "Sin dispositivos"
+                visible: !!popup.adapter && popup.adapter.discovering
+                text: "Buscando..."
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
-                font.pixelSize: Tokens.type.body
+                font.pixelSize: Tokens.type.caption
             }
 
-            Repeater {
-                model: popup.devices
+            Switch {
+                checked: !!(popup.adapter && popup.adapter.enabled)
+                onToggled: if (popup.adapter) popup.adapter.enabled = !popup.adapter.enabled
+            }
+        }
 
-                Rectangle {
-                    id: deviceRow
-                    required property var modelData
-                    readonly property bool selected: deviceRow.modelData.connected
-                    Layout.fillWidth: true
-                    implicitHeight: Tokens.row.height
-                    radius: Tokens.radius.sm
-                    // Fila seleccionada (conectada / por defecto) en secondary
-                    // container (decision C3); el hover lo da la StateLayer.
-                    color: deviceRow.selected ? Colors.accentAltContainer : "transparent"
-                    Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
+        Text {
+            visible: popup.devices.length === 0
+            Layout.leftMargin: Tokens.space.md
+            Layout.bottomMargin: Tokens.space.xs
+            text: "Sin dispositivos"
+            color: Colors.textMuted
+            font.family: Tokens.font.ui
+            font.pixelSize: Tokens.type.body
+        }
 
-                    StateLayer { hovered: btMouse.containsMouse; pressed: btMouse.pressed }
+        Repeater {
+            model: popup.devices
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: Tokens.space.md
-                        anchors.rightMargin: Tokens.space.md
-                        spacing: Tokens.gap.inline
+            Rectangle {
+                id: deviceRow
+                required property var modelData
+                readonly property bool selected: deviceRow.modelData.connected
+                Layout.fillWidth: true
+                implicitHeight: Tokens.row.height
+                radius: Tokens.radius.sm
+                // Fila seleccionada (conectada / por defecto) en secondary
+                // container (decision C3); el hover lo da la StateLayer.
+                color: deviceRow.selected ? Colors.accentAltContainer : "transparent"
+                Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
 
-                        Icon {
-                            name: deviceRow.modelData.connected ? "bluetooth_connected" : "bluetooth"
-                            filled: deviceRow.selected
-                            color: deviceRow.selected ? Colors.textOnAccentAltContainer : Colors.text
-                        }
+                StateLayer { hovered: btMouse.containsMouse; pressed: btMouse.pressed }
 
-                        Text {
-                            text: deviceRow.modelData.name
-                            color: deviceRow.selected ? Colors.textOnAccentAltContainer : Colors.text
-                            font.family: Tokens.font.ui
-                            font.pixelSize: Tokens.type.body
-                            font.weight: deviceRow.selected ? Tokens.weight.medium : Tokens.weight.regular
-                            Layout.fillWidth: true
-                            elide: Text.ElideRight
-                        }
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: Tokens.space.md
+                    anchors.rightMargin: Tokens.space.md
+                    spacing: Tokens.gap.inline
 
-                        Text {
-                            visible: deviceRow.modelData.batteryAvailable
-                            text: Math.round(deviceRow.modelData.battery * 100) + "%"
-                            color: deviceRow.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
-                            font.family: Tokens.font.ui
-                            font.pixelSize: Tokens.type.caption
-                            font.features: Tokens.tabularNumbers
-                        }
+                    Icon {
+                        name: deviceRow.modelData.connected ? "bluetooth_connected" : "bluetooth"
+                        filled: deviceRow.selected
+                        color: deviceRow.selected ? Colors.textOnAccentAltContainer : Colors.text
                     }
 
-                    MouseArea {
-                        id: btMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            const d = deviceRow.modelData;
-                            if (d.connected) {
-                                d.disconnect();
-                            } else if (d.paired) {
-                                d.connect();
-                            } else {
-                                d.pair();
-                                d.connect();
-                            }
+                    Text {
+                        text: deviceRow.modelData.name
+                        color: deviceRow.selected ? Colors.textOnAccentAltContainer : Colors.text
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.body
+                        font.weight: deviceRow.selected ? Tokens.weight.medium : Tokens.weight.regular
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
+                    }
+
+                    Text {
+                        visible: deviceRow.modelData.batteryAvailable
+                        text: Math.round(deviceRow.modelData.battery * 100) + "%"
+                        color: deviceRow.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.caption
+                        font.features: Tokens.tabularNumbers
+                    }
+                }
+
+                MouseArea {
+                    id: btMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        const d = deviceRow.modelData;
+                        if (d.connected) {
+                            d.disconnect();
+                        } else if (d.paired) {
+                            d.connect();
+                        } else {
+                            d.pair();
+                            d.connect();
                         }
                     }
                 }

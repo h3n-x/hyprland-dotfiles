@@ -73,11 +73,11 @@ Row {
                 smooth: true
             }
 
+            // Su posicion la pone TrayDropdown.anchorMenu al abrirlo (la misma
+            // politica que los popups anclados, tambien con la barra vertical).
             QsMenuAnchor {
                 id: menuAnchor
                 menu: trayItem.modelData.menu
-                anchor.window: root.panelWindow
-                anchor.rect.y: root.panelWindow.height
             }
 
             // Cada icono es un boton propio (Q2 = A).

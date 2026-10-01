@@ -81,6 +81,18 @@ ShellRoot {
         }
     }
 
+    // Popups anclados (Fase 8 B5): cual esta abierto y donde; cerrarlos.
+    // P8.6 (pantalla completa) usa PopupState.closeAll(pantalla).
+    IpcHandler {
+        target: "popups"
+        function status(): string {
+            return JSON.stringify({ id: PopupState.openId, screen: PopupState.openScreen });
+        }
+        function close(): void {
+            PopupState.closeAll("");
+        }
+    }
+
     // SUPER+D (ver binds.lua) -- lanzador de aplicaciones.
     IpcHandler {
         target: "launcher"
