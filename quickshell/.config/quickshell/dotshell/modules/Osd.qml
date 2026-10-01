@@ -22,6 +22,9 @@ PanelWindow {
     // vacia deja pasar los clicks (antes bloqueaba ese borde de la pantalla
     // mientras se veia).
     WlrLayershell.namespace: "quickshell-panel"
+    // Superficie respuesta (Fase 8 B6): capa Overlay, por encima de una ventana en
+    // pantalla completa (ver FullscreenState).
+    WlrLayershell.layer: WlrLayer.Overlay
     implicitHeight: box.implicitHeight + box.shadowMargin * 2
     margins {
         top: Tokens.popupTop - box.shadowMargin
@@ -65,7 +68,9 @@ PanelWindow {
 
             // Barra de nivel: pista activa en primary, inactiva en
             // secondary_container (slider M3).
+            // Sin barra si el aviso no tiene nivel (valor < 0: grabacion, B6).
             Rectangle {
+                visible: OsdState.value >= 0
                 Layout.alignment: Qt.AlignVCenter
                 implicitWidth: 128
                 implicitHeight: Tokens.space.xs
@@ -90,7 +95,7 @@ PanelWindow {
             // se sube o baja el valor.
             Text {
                 Layout.alignment: Qt.AlignVCenter
-                Layout.minimumWidth: widest.width
+                Layout.minimumWidth: OsdState.value >= 0 ? widest.width : 0
                 text: OsdState.label
                 color: Colors.text
                 font.family: Tokens.font.ui

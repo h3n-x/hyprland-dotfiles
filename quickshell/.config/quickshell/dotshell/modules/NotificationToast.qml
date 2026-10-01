@@ -31,6 +31,16 @@ PanelWindow {
     // acepta input sobre los toasts (mask).
     readonly property int shadowMargin: Tokens.elevationShadow[3].blur + Tokens.elevationShadow[3].offsetY
     WlrLayershell.namespace: "quickshell-panel"
+    // Capa Overlay (Fase 8 B6): por encima de una pantalla completa; que
+    // avisos se ven ahi lo decide FullscreenState al llegar cada uno.
+    WlrLayershell.layer: WlrLayer.Overlay
+    // Nombre fijo de la pantalla: "screen" se vuelve a notificar al mostrar u
+    // ocultar la ventana y leerlo en "toasts" (que decide visible) cerraria
+    // un ciclo.
+    property string screenName: ""
+    onScreenChanged: if (toastWindow.screen && toastWindow.screen.name !== toastWindow.screenName) toastWindow.screenName = toastWindow.screen.name
+    Component.onCompleted: toastWindow.screenName = toastWindow.screen ? toastWindow.screen.name : ""
+    readonly property var toasts: NotificationState.activeToasts.filter(n => NotificationState.shownOn(n, toastWindow.screenName))
     margins {
         top: Tokens.popupTop - toastWindow.shadowMargin
         right: Tokens.screenEdge - toastWindow.shadowMargin
@@ -39,7 +49,7 @@ PanelWindow {
     color: "transparent"
     mask: Region { item: column }
     exclusionMode: ExclusionMode.Ignore
-    visible: NotificationState.activeToasts.length > 0
+    visible: toastWindow.toasts.length > 0
 
     // Column (posicionador) y no ColumnLayout: el layout ubica a los hijos
     // desde C++ y saltea cualquier Behavior on y, asi que el reacomodo no se
@@ -66,7 +76,7 @@ PanelWindow {
             // entero en cada cambio, y con el array el Repeater recreaba todos
             // los toasts (la entrada se repetia y no habia reacomodo). ScriptModel
             // compara los arrays y solo crea o destruye el que cambio.
-            model: ScriptModel { values: NotificationState.activeToasts }
+            model: ScriptModel { values: toastWindow.toasts }
 
             // Nivel de elevacion 3 (surface_container_high translucida sobre
             // blur, sombra md); critica con borde en error.

@@ -26,6 +26,9 @@ PanelWindow {
     // ventana suma el margen de la sombra alrededor de la tarjeta, asi que se
     // corre ese margen hacia afuera y solo acepta input sobre la tarjeta.
     WlrLayershell.namespace: "quickshell-panel"
+    // Superficie invocada (Fase 8 B6): capa Overlay, por encima de una ventana en
+    // pantalla completa (ver FullscreenState).
+    WlrLayershell.layer: WlrLayer.Overlay
     margins {
         top: Tokens.popupTop - card.shadowMargin
         right: Tokens.screenEdge - card.shadowMargin

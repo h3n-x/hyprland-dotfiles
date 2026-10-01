@@ -60,6 +60,10 @@ PopupWindow {
     readonly property var hostWindow: popup.panelWindow
     readonly property var hostScreen: popup.hostWindow ? popup.hostWindow.screen : null
     readonly property string hostScreenName: popup.hostScreen ? popup.hostScreen.name : ""
+    // Tamano de la anfitriona: el declarado si lo tiene (una ventana recien
+    // mapeada todavia no recibio su tamano del compositor, B6), si no el real.
+    readonly property real hostWidth: !popup.hostWindow ? 0 : popup.hostWindow.implicitWidth > 0 ? popup.hostWindow.implicitWidth : popup.hostWindow.width
+    readonly property real hostHeight: !popup.hostWindow ? 0 : popup.hostWindow.implicitHeight > 0 ? popup.hostWindow.implicitHeight : popup.hostWindow.height
     readonly property string resolvedSide: popup.side !== "auto" ? popup.side
         : ({ top: "below", bottom: "above", left: "right", right: "left" })[Tokens.bar.edge] || "below"
     readonly property bool vertical: popup.resolvedSide === "below" || popup.resolvedSide === "above"
@@ -90,10 +94,16 @@ PopupWindow {
             popup.visible = presence.shown;
         }
     }
-    onOpenChanged: {
-        if (popup.open) popup.place();
-        presence.open = popup.open;
-        if (popup.open) keys.forceActiveFocus();
+    // La ventana anfitriona puede mapearse junto con el panel (la franja del
+    // dashboard sobre una pantalla completa, Fase 8 B6): el panel se ancla y
+    // se muestra recien cuando la anfitriona esta en pantalla de verdad; antes
+    // el compositor lo ubicaria con una geometria que todavia no existe.
+    readonly property bool hostReady: !!popup.hostWindow && popup.hostWindow.backingWindowVisible
+    readonly property bool showing: popup.open && popup.hostReady
+    onShowingChanged: {
+        if (popup.showing) popup.place();
+        presence.open = popup.showing;
+        if (popup.showing) keys.forceActiveFocus();
     }
     // Quickshell cierra el popup por su cuenta (clic afuera).
     onVisibleChanged: {
@@ -128,13 +138,13 @@ PopupWindow {
             r = Qt.rect(-sm, -p.y + sm, item.width + 2 * sm, item.height + p.y - sm);
             break;
         case "right":
-            r = Qt.rect(0, -sm, win.width - p.x - sm, item.height + 2 * sm);
+            r = Qt.rect(0, -sm, popup.hostWidth - p.x - sm, item.height + 2 * sm);
             break;
         case "left":
             r = Qt.rect(-p.x + sm, -sm, item.width + p.x - sm, item.height + 2 * sm);
             break;
         default: // below
-            r = Qt.rect(-sm, -sm, item.width + 2 * sm, win.height - p.y);
+            r = Qt.rect(-sm, -sm, item.width + 2 * sm, popup.hostHeight - p.y);
         }
         return r;
     }
@@ -164,7 +174,7 @@ PopupWindow {
     property int heightCap: 0
     readonly property int maxHeight: {
         const h = popup.hostScreen ? popup.hostScreen.height : 720;
-        const used = popup.vertical && popup.hostWindow ? popup.hostWindow.height + Tokens.bar.marginTop : 0;
+        const used = popup.vertical && popup.hostWindow ? popup.hostHeight + Tokens.bar.marginTop : 0;
         const screenMax = h - used - 2 * Tokens.screenEdge;
         return popup.heightCap > 0 ? Math.min(popup.heightCap, screenMax) : screenMax;
     }

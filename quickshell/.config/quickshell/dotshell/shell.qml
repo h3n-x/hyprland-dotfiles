@@ -93,6 +93,19 @@ ShellRoot {
         }
     }
 
+    // Pantalla completa y captura (Fase 8 B6): estado por pantalla y avisos
+    // retenidos.
+    IpcHandler {
+        target: "fullscreen"
+        function status(): string {
+            return JSON.stringify({
+                screens: Quickshell.screens.map(s => ({ name: s.name, fullscreen: FullscreenState.isFullscreen(s.name),
+                    kind: FullscreenState.kind(s.name), capture: FullscreenState.isCapturing(s.name) })),
+                held: FullscreenState.held
+            });
+        }
+    }
+
     // SUPER+D (ver binds.lua) -- lanzador de aplicaciones.
     IpcHandler {
         target: "launcher"

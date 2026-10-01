@@ -7,6 +7,7 @@
 // servidor.
 pragma Singleton
 import QtQuick
+import Quickshell
 import Quickshell.Services.Notifications
 
 QtObject {
@@ -15,12 +16,49 @@ QtObject {
     property bool doNotDisturb: false
     property var activeToasts: []
 
+    // Pantallas donde se ve cada aviso, decididas al llegar (Fase 8 B6):
+    // una pantalla completa o una captura que empieza despues no lo saca de
+    // golpe. Clave: el aviso; valor: [nombres de pantalla].
+    property var placement: new Map()
+
     function showToast(n) {
+        const on = Quickshell.screens.map(s => s.name).filter(name => FullscreenState.allowsToast(n, name));
+        root.placement.set(n, on);
         root.activeToasts = [...root.activeToasts, n];
+    }
+    function shownOn(n, screen) {
+        const on = root.placement.get(n);
+        return !on || on.indexOf(screen) >= 0;
     }
 
     function dismissToast(n) {
+        root.placement.delete(n);
         root.activeToasts = root.activeToasts.filter(x => x !== n);
+    }
+
+    // Aviso nuevo (ya en el historial): toast o retenido.
+    function present(n) {
+        // Con DND activo, la notificacion igual queda en el historial
+        // (tracked=true) pero no aparece como toast temporal.
+        if (root.doNotDisturb) return;
+        // Pantalla completa o captura en todas las pantallas: queda en el
+        // historial y cuenta para el resumen (FullscreenState).
+        if (Quickshell.screens.some(s => FullscreenState.allowsToast(n, s.name))) root.showToast(n);
+        else FullscreenState.hold(n);
+    }
+
+    // Resumen al salir de pantalla completa o de una captura (FullscreenState):
+    // no es una notificacion (no va al historial); "Ver" abre el centro de
+    // control, donde quedaron las retenidas.
+    function showSummary(text) {
+        const s = {
+            id: -1, urgency: NotificationUrgency.Normal, expireTimeout: 0, appIcon: "", appName: "", hints: ({}),
+            summary: text, body: "",
+            actions: [{ text: "Ver", invoke: () => { ControlCenterState.visible = true; root.dismissToast(s); } }],
+            expire: () => root.dismissToast(s),
+            dismiss: () => root.dismissToast(s)
+        };
+        root.showToast(s);
     }
 
     function clearAll() {
@@ -41,9 +79,7 @@ QtObject {
         onNotification: (notification) => {
             notification.tracked = true;
             notification.closed.connect(() => root.dismissToast(notification));
-            // Con DND activo, la notificacion igual queda en el historial
-            // (tracked=true arriba) pero no aparece como toast temporal.
-            if (!root.doNotDisturb) root.showToast(notification);
+            root.present(notification);
         }
     }
 }

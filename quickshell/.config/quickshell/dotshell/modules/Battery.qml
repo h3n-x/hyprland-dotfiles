@@ -34,13 +34,16 @@ Item {
         return Colors.text;
     }
 
-    function notify(summary, urgency, icon) {
+    // priority: nunca se retiene en pantalla completa ni en una captura
+    // (x-dotfiles-priority, FullscreenState.isPriority).
+    function notify(summary, urgency, icon, priority) {
         Quickshell.execDetached(["notify-send", summary, "-u", urgency, "-i", icon,
-            "-h", "string:x-canonical-private-synchronous:battery"]);
+            "-h", "string:x-canonical-private-synchronous:battery"]
+            .concat(priority ? ["-h", "string:x-dotfiles-priority:1"] : []));
     }
 
-    onIsCriticalChanged: if (root.isCritical) root.notify("Batería crítica (10 %)", "critical", "battery-010")
-    onIsWarningChanged: if (root.isWarning) root.notify("Batería baja (20 %)", "critical", "battery-020")
+    onIsCriticalChanged: if (root.isCritical) root.notify("Batería crítica (10 %)", "critical", "battery-010", true)
+    onIsWarningChanged: if (root.isWarning) root.notify("Batería baja (20 %)", "critical", "battery-020", true)
     onIsFullChanged: if (root.isFull) root.notify("Batería cargada (100 %)", "normal", "battery-100-charged")
 
     RowLayout {

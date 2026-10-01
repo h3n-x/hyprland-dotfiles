@@ -56,6 +56,9 @@ PanelWindow {
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "quickshell-panel"
+    // Superficie invocada (Fase 8 B6): capa Overlay, por encima de una ventana en
+    // pantalla completa (ver FullscreenState).
+    WlrLayershell.layer: WlrLayer.Overlay
 
     // THEME_SCRIPTS_DIR: otra copia de los scripts para pruebas.
     readonly property string scriptsDir: Quickshell.env("THEME_SCRIPTS_DIR") || (Quickshell.env("HOME") + "/.config/hypr/scripts")

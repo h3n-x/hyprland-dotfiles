@@ -12,7 +12,8 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import ".." // Colors.qml, Tokens.qml
+import Quickshell.Wayland
+import ".." // Colors.qml, Tokens.qml, FullscreenState.qml, DashboardState.qml
 
 PanelWindow {
     id: bar
@@ -101,8 +102,46 @@ PanelWindow {
 
     // Dashboard (Fase 4 B7): uno por barra, centrado bajo ella (no depende de
     // ningun modulo: se abre solo con SUPER+A).
+    // Sobre una pantalla completa (Fase 8 B6, D3-A) cuelga de una franja
+    // invisible en la capa Overlay con la misma geometria que la barra: el
+    // dashboard se ve encima y la barra sigue tapada. Entrar o salir de
+    // pantalla completa lo cierra antes de cambiar de anfitriona
+    // (FullscreenState).
+    readonly property bool overFullscreen: !!bar.screen && FullscreenState.isFullscreen(bar.screen.name)
     Dashboard {
-        anchorItem: layout
-        panelWindow: bar
+        anchorItem: bar.overFullscreen ? fsAnchor : layout
+        panelWindow: bar.overFullscreen ? fsHost : bar
+    }
+    // La franja existe solo mientras el dashboard esta abierto encima de la
+    // pantalla completa; sin input (mascara vacia) ni teclado.
+    PanelWindow {
+        id: fsHost
+        screen: bar.screen
+        visible: bar.overFullscreen && DashboardState.visible && DashboardState.screen === bar.screen.name
+        anchors {
+            top: true
+            left: true
+            right: true
+        }
+        implicitHeight: Tokens.bar.height
+        margins {
+            top: Tokens.bar.marginTop
+            left: Tokens.bar.marginSide
+            right: Tokens.bar.marginSide
+        }
+        color: "transparent"
+        mask: Region {}
+        exclusionMode: ExclusionMode.Ignore
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.namespace: "quickshell-host"
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+
+        Item {
+            id: fsAnchor
+            x: layout.x
+            y: layout.y
+            width: layout.width
+            height: layout.height
+        }
     }
 }

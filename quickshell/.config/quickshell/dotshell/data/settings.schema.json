@@ -104,6 +104,14 @@
       "description": "Para las notificaciones que no indican su propia duración.",
       "apply": "live"
     },
+    "notifications.fullscreen": {
+      "type": "enum", "default": "critical",
+      "values": { "critical": "Solo las críticas", "show": "Todas", "hide": "Ninguna" },
+      "category": "notifications", "section": "Avisos", "order": 20,
+      "label": "Avisos en pantalla completa y al compartir la pantalla",
+      "description": "Los que no se muestran quedan en el historial y al salir aparece un resumen. Los avisos de batería siempre se muestran.",
+      "keywords": ["juegos", "video", "transmisión", "grabación", "no molestar"], "apply": "live"
+    },
     "system.battery.warnPct": {
       "type": "int", "default": 20, "min": 5, "max": 50, "unit": "%",
       "category": "system", "section": "Batería", "order": 10,

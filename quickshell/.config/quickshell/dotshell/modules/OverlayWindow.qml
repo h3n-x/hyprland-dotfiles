@@ -43,6 +43,9 @@ PanelWindow {
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "quickshell-panel"
+    // Superficie invocada (Fase 8 B6): capa Overlay, por encima de una ventana en
+    // pantalla completa (ver FullscreenState).
+    WlrLayershell.layer: WlrLayer.Overlay
 
     Presence { id: presence; open: window.shouldShow; enterDuration: window.enterDuration; slide: window.slide }
     visible: presence.shown
