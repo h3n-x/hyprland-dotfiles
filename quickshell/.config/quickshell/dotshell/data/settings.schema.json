@@ -58,6 +58,34 @@
       "description": "Sin animaciones ni transiciones en toda la shell.",
       "keywords": ["animaciones", "transiciones", "mareo"], "apply": "live"
     },
+    "lock.glance.weather": {
+      "type": "bool", "default": true,
+      "category": "lock", "section": "De un vistazo", "order": 10,
+      "label": "Clima",
+      "description": "Temperatura y estado del cielo, sin la ubicación. No se muestra si los datos tienen más de 2 horas.",
+      "keywords": ["bloqueo", "pantalla de bloqueo", "tiempo"], "apply": "next-use"
+    },
+    "lock.glance.media": {
+      "type": "bool", "default": true,
+      "category": "lock", "section": "De un vistazo", "order": 20,
+      "label": "Música",
+      "description": "Solo «Reproduciendo» cuando algo suena; nunca el título, el artista ni la portada.",
+      "keywords": ["bloqueo", "reproductor", "canción"], "apply": "next-use"
+    },
+    "lock.glance.battery": {
+      "type": "bool", "default": true,
+      "category": "lock", "section": "De un vistazo", "order": 30,
+      "label": "Batería",
+      "description": "Solo cuando el equipo funciona con batería, con el color de aviso en los umbrales de batería baja.",
+      "keywords": ["bloqueo", "carga", "energía"], "apply": "next-use"
+    },
+    "lock.glance.notifications": {
+      "type": "bool", "default": true,
+      "category": "lock", "section": "De un vistazo", "order": 40,
+      "label": "Avisos",
+      "description": "Cuántos avisos llegaron mientras estaba bloqueado, sin contenido. Con No molestar activo no se muestra.",
+      "keywords": ["bloqueo", "notificaciones", "privacidad"], "apply": "next-use"
+    },
     "bar.minWorkspaces": {
       "type": "int", "default": 5, "min": 1, "max": 10,
       "category": "bar", "section": "Escritorios", "order": 10,

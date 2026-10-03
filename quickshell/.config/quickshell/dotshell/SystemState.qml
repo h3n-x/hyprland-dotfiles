@@ -11,14 +11,12 @@
 //           la tabla solo cambiaba por ruido y costaba ~6,5 % de un nucleo)
 //   Al soltar detail se vacian sus datos (lista de aplicaciones, muestras).
 // Cerrado el dashboard no hay temporizador, lecturas ni procesos. La bateria
-// sale de UPower (eventos, sin polling) y esta siempre, porque la barra la
-// muestra. Lo fijo (distro, kernel, modelo de CPU y graficas, rutas de
+// esta en BatteryState.qml (UPower, eventos; la comparte el bloqueo). Lo fijo (distro, kernel, modelo de CPU y graficas, rutas de
 // sensores) se lee una sola vez, la primera vez que hace falta.
 pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import Quickshell.Services.UPower
 
 QtObject {
     id: root
@@ -389,34 +387,15 @@ QtObject {
         }
     }
 
-    // ---- Bateria (UPower, siempre) ---------------------------------------------
-    readonly property var battery: UPower.displayDevice
-    readonly property bool hasBattery: root.battery.ready && root.battery.isLaptopBattery
-    readonly property real batteryPct: root.hasBattery ? root.battery.percentage : 0
-    readonly property bool charging: root.battery.state === UPowerDeviceState.Charging
-    // Umbrales: system.battery.criticalPct / warnPct (settings store).
-    readonly property real batteryCriticalAt: SettingsState.value("system.battery.criticalPct") / 100
-    readonly property real batteryWarnAt: SettingsState.value("system.battery.warnPct") / 100
-    readonly property bool batteryCritical: root.hasBattery && !root.charging && root.batteryPct > 0 && root.batteryPct <= root.batteryCriticalAt
-    readonly property bool batteryWarning: root.hasBattery && !root.charging && root.batteryPct > root.batteryCriticalAt && root.batteryPct <= root.batteryWarnAt
-    readonly property bool batteryFull: root.hasBattery && root.charging && root.batteryPct >= 0.999
-    // Enchufado (cargando, cargada o en espera de cargar).
-    readonly property bool onAc: root.hasBattery && [UPowerDeviceState.Discharging, UPowerDeviceState.PendingDischarge,
-        UPowerDeviceState.Empty].indexOf(root.battery.state) < 0
-    // Segundos hasta vaciarse o llenarse (0 = UPower todavia no lo sabe).
-    readonly property real batteryTime: !root.hasBattery ? 0 : (root.charging ? root.battery.timeToFull : root.battery.timeToEmpty)
-    // Potencia (W) que entra o sale de la bateria.
-    readonly property real batteryRate: root.hasBattery ? Math.abs(root.battery.changeRate) : 0
-
     // ---- Estado general -----------------------------------------------------------
     // level: 0 bien, 1 atencion, 2 critico. El primero que aplique, por gravedad.
     readonly property var status: {
-        if (root.batteryCritical) return { level: 2, text: "Batería crítica" };
+        if (BatteryState.critical) return { level: 2, text: "Batería crítica" };
         if (root.temp >= 95) return { level: 2, text: "Temperatura muy alta" };
         if (root.temp >= 88) return { level: 1, text: "Temperatura alta" };
         if (root.memFrac >= 0.92) return { level: 1, text: "Memoria casi llena" };
         if (root.cpuHighCount >= 3) return { level: 1, text: "CPU al máximo" };
-        if (root.batteryWarning) return { level: 1, text: "Batería baja" };
+        if (BatteryState.warning) return { level: 1, text: "Batería baja" };
         return { level: 0, text: "Todo en orden" };
     }
     // Palabras de estado (las mismas en Inicio y en Sistema).

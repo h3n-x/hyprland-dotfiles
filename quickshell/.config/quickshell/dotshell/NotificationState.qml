@@ -8,12 +8,29 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Notifications
 
 QtObject {
     id: root
 
     property bool doNotDisturb: false
+
+    // Para el bloqueo de pantalla (Fase 9 B2; otro proceso): cuantos avisos
+    // llegaron desde que arranco la shell y si No molestar esta activo. Solo el
+    // numero, nunca el contenido. Se escribe al llegar un aviso o cambiar No
+    // molestar (nada periodico); el bloqueo lo vigila y resta el valor que vio
+    // al bloquear.
+    property int received: 0
+    function publish(): void {
+        root.lockFile.setText(JSON.stringify({ received: root.received, dnd: root.doNotDisturb }) + "\n");
+    }
+    onDoNotDisturbChanged: root.publish()
+    Component.onCompleted: root.publish()
+    property FileView lockFile: FileView {
+        path: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/dotfiles-notifications.json"
+        printErrors: false
+    }
     property var activeToasts: []
 
     // Pantallas donde se ve cada aviso, decididas al llegar (Fase 8 B6):
@@ -78,6 +95,8 @@ QtObject {
 
         onNotification: (notification) => {
             notification.tracked = true;
+            root.received++;
+            root.publish();
             notification.closed.connect(() => root.dismissToast(notification));
             root.present(notification);
         }

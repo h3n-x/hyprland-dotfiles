@@ -332,7 +332,7 @@ Item {
                     spacing: Tokens.space.sm
                     opacity: WeatherState.isDim(clock.date.getTime() / 1000) ? 0.55 : 1
                     readonly property var cur: WeatherState.current
-                    readonly property var desc: cur ? WeatherState.describe(cur.weather_code, cur.is_day === 1) : null
+                    readonly property var desc: cur ? WeatherText.describe(cur.weather_code, cur.is_day === 1) : null
                     readonly property var today: WeatherState.data && WeatherState.data.daily ? WeatherState.data.daily : null
                     Scaled {
                         Layout.alignment: Qt.AlignVCenter

@@ -92,11 +92,11 @@ ColumnLayout {
         }
         Meter {
             Layout.fillWidth: true
-            visible: SystemState.hasBattery
-            label: SystemState.charging ? "Batería · cargando" : "Batería"
-            value: Math.round(SystemState.batteryPct * 100) + " %"
-            fraction: SystemState.batteryPct
-            level: SystemState.batteryCritical ? 2 : SystemState.batteryWarning ? 1 : 0
+            visible: BatteryState.present
+            label: BatteryState.charging ? "Batería · cargando" : "Batería"
+            value: Math.round(BatteryState.pct * 100) + " %"
+            fraction: BatteryState.pct
+            level: BatteryState.critical ? 2 : BatteryState.warning ? 1 : 0
         }
     }
 }

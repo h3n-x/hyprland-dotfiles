@@ -1,22 +1,22 @@
 // Pill de bateria, con las notificaciones de bateria baja, critica y llena.
-// Porcentaje, carga y umbrales salen de SystemState (UPower, sin polling),
+// Porcentaje, carga y umbrales salen de BatteryState (UPower, sin polling),
 // los mismos que usa el estado general del dashboard.
 import QtQuick
 import Quickshell
 import QtQuick.Layouts
-import ".." // Colors.qml, Tokens.qml, ControlCenterState.qml, SystemState.qml, PowerProfileState.qml
+import ".." // Colors.qml, Tokens.qml, ControlCenterState.qml, BatteryState.qml, PowerProfileState.qml
 
 Item {
     id: root
-    visible: SystemState.hasBattery
+    visible: BatteryState.present
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight
 
-    readonly property real pct: SystemState.batteryPct
-    readonly property bool charging: SystemState.charging
-    readonly property bool isCritical: SystemState.batteryCritical
-    readonly property bool isWarning: SystemState.batteryWarning
-    readonly property bool isFull: SystemState.batteryFull
+    readonly property real pct: BatteryState.pct
+    readonly property bool charging: BatteryState.charging
+    readonly property bool isCritical: BatteryState.critical
+    readonly property bool isWarning: BatteryState.warning
+    readonly property bool isFull: BatteryState.full
 
     // Material Symbols (D10): 7 niveles de barras + lleno, alerta en critico.
     readonly property string icon: {

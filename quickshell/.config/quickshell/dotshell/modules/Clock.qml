@@ -52,7 +52,7 @@ Item {
             opacity: root.weatherDim ? 0.55 : 1
             Icon {
                 anchors.verticalCenter: parent.verticalCenter
-                name: root.cur ? WeatherState.describe(root.cur.weather_code, root.cur.is_day === 1).icon : ""
+                name: root.cur ? WeatherText.describe(root.cur.weather_code, root.cur.is_day === 1).icon : ""
                 size: Tokens.icon.sm
                 color: Colors.textMuted
             }

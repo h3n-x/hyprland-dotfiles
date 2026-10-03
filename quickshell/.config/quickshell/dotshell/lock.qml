@@ -11,10 +11,13 @@
 // tres veces, abre el hyprlock de emergencia. Al reanudar, `scripts/lock
 // --resume` lo recrea (Hyprland no le devuelve el teclado a la superficie).
 //
-// Usa el design system de la shell (Tokens, Colors) solo para leer: ningun
-// servicio de dotshell corre aca. Marcas en el log para scripts/lock:
-// "LOCK-SECURE" (el compositor confirmo el bloqueo) y "LOCK-UNLOCKED"
-// (desbloqueo correcto). La contrasena nunca va al log.
+// Usa el design system de la shell (Tokens, Colors) solo para leer. De los
+// servicios de dotshell solo los pasivos (MediaState, BatteryState,
+// WeatherText: clientes de Mpris/UPower o tablas, sin procesos ni red); nunca
+// WeatherState, NotificationState ni SystemState (lock/LockGlance.qml).
+// Marcas en el log para scripts/lock: "LOCK-SECURE" (el compositor confirmo el
+// bloqueo) y "LOCK-UNLOCKED" (desbloqueo correcto). La contrasena nunca va al
+// log.
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -43,6 +46,12 @@ ShellRoot {
         onFailed: root.play("wrong.wav")
     }
 
+    // Clima, musica, bateria, avisos y Bloq Mayus (B2): una instancia para
+    // todas las pantallas.
+    LockGlance {
+        id: lockGlance
+    }
+
     WlSessionLock {
         id: lock
         locked: true
@@ -60,6 +69,7 @@ ShellRoot {
                 // id distinto del nombre de la propiedad: "auth: auth" se
                 // resolveria a la propiedad de la propia vista (undefined).
                 auth: lockAuth
+                glance: lockGlance
                 shown: !root.leaving
                 onLeaveFinished: root.finish()
             }

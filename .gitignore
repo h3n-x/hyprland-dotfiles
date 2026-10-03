@@ -5,7 +5,6 @@ btop/.config/btop/themes/matugen.theme
 yazi/.config/yazi/flavors/matugen.yazi/flavor.toml
 nvim/.config/nvim/lua/matugen_colors.lua
 kitty/.config/kitty/colors.conf
-hypr/.config/hypr/colors.conf
 hypr/.config/hypr/current-wallpaper.conf
 hypr/.config/hypr/modules/colors.lua
 gtk-3.0/.config/gtk-3.0/gtk.css

@@ -557,10 +557,14 @@ corre, no la del repo).
 ### Bloqueo de pantalla
 
 El bloqueo es una instancia de Quickshell aparte de la shell
-(`dotshell/lock.qml`): wallpaper difuminado, reloj y fecha del design
-system, avatar (`~/.face`) y el campo de contrasena en todas las pantallas
-(un solo texto compartido). Siempre lo lanza `~/.config/hypr/scripts/lock`,
-que lo vigila:
+(`dotshell/lock.qml`), con la composicion "Material You": a la izquierda la
+hora apilada (horas en el color de acento, minutos en el del texto) y el
+chip de la fecha; a la derecha las tarjetas "de un vistazo" y la tarjeta de
+la contrasena (avatar `~/.face`, usuario, campo y la linea de Bloq Mayus o
+del error), sobre el wallpaper difuminado. El campo esta en todas las
+pantallas (un solo texto compartido) y tiene un lugar fijo: las tarjetas
+crecen hacia arriba. Siempre lo lanza `~/.config/hypr/scripts/lock`, que lo
+vigila:
 
 - `SUPER+L`, el menu de energia y el control center llaman `lock --user`;
   hypridle (inactividad y antes de suspender) llama `lock`.
@@ -575,6 +579,25 @@ que lo vigila:
 - La contrasena la verifica PAM con `dotshell/lock/pam/dotfiles-lock`
   (`pam_unix` + `pam_faillock`: 3 intentos fallidos, 10 min de espera).
 - Registro: `journalctl -t dotfiles-lock`.
+
+#### De un vistazo
+
+Cada tarjeta aparece solo si tiene algo que decir y ninguna hace nada (el
+cursor esta oculto; las teclas de volumen, brillo y multimedia siguen
+funcionando). Se apagan una por una en Opciones, "Bloqueo e inicio"
+(`lock.glance.*`):
+
+- **Clima**: temperatura y estado del cielo, sin la ubicacion; si los datos
+  tienen mas de 2 horas, no aparece. El bloqueo nunca consulta la red.
+- **Musica**: solo "Reproduciendo" mientras algo suena; nunca el titulo, el
+  artista ni la portada.
+- **Bateria**: solo funcionando con bateria, con el color de aviso en los
+  umbrales de bateria baja y critica.
+- **Avisos**: cuantos llegaron mientras estaba bloqueado, nunca el
+  contenido; con No molestar activo, no aparece.
+
+"Bloq Mayus activado" aparece bajo el campo mientras este activo (siempre:
+evita intentos fallidos, que cuentan tambien para `sudo`).
 
 #### Recuperacion manual (desde una TTY)
 

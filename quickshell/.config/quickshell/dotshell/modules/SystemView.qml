@@ -181,16 +181,16 @@ ColumnLayout {
         }
         Instrument {
             Layout.fillWidth: true
-            icon: SystemState.charging ? "battery_charging_full" : PowerProfileState.info.icon
-            label: SystemState.hasBattery ? "Energía" : "Energía · corriente"
-            value: SystemState.hasBattery ? Math.round(SystemState.batteryPct * 100) + " %" : PowerProfileState.info.label
-            unit: !SystemState.hasBattery ? ""
-                : SystemState.batteryTime > 0 ? (SystemState.charging ? "llena en " : "quedan ") + SystemState.duration(SystemState.batteryTime)
-                : SystemState.charging ? "cargando" : SystemState.onAc ? (SystemState.batteryPct >= 0.995 ? "cargada" : "conectada") : ""
+            icon: BatteryState.charging ? "battery_charging_full" : PowerProfileState.info.icon
+            label: BatteryState.present ? "Energía" : "Energía · corriente"
+            value: BatteryState.present ? Math.round(BatteryState.pct * 100) + " %" : PowerProfileState.info.label
+            unit: !BatteryState.present ? ""
+                : BatteryState.secondsLeft > 0 ? (BatteryState.charging ? "llena en " : "quedan ") + SystemState.duration(BatteryState.secondsLeft)
+                : BatteryState.charging ? "cargando" : BatteryState.onAc ? (BatteryState.pct >= 0.995 ? "cargada" : "conectada") : ""
             word: "Perfil " + PowerProfileState.info.label.toLowerCase()
-            level: SystemState.batteryCritical ? 2 : SystemState.batteryWarning ? 1 : 0
-            fraction: SystemState.hasBattery ? SystemState.batteryPct : 0
-            note: SystemState.batteryRate > 0.1 ? (SystemState.charging ? "Entran " : "Consume ") + SystemState.batteryRate.toFixed(1).replace(".", ",") + " W" : ""
+            level: BatteryState.critical ? 2 : BatteryState.warning ? 1 : 0
+            fraction: BatteryState.present ? BatteryState.pct : 0
+            note: BatteryState.watts > 0.1 ? (BatteryState.charging ? "Entran " : "Consume ") + BatteryState.watts.toFixed(1).replace(".", ",") + " W" : ""
         }
     }
 

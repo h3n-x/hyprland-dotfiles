@@ -38,7 +38,8 @@ QtObject {
         readonly property int headline: 18  // valores del OSD, titulares de tarjeta
         readonly property int display: 24   // dashboard, numeros grandes
         readonly property int displayLarge: 32
-        readonly property int hero: 80      // reloj del lockscreen
+        readonly property int hero: 80      // reloj grande del dashboard
+        readonly property int lockClock: 190 // reloj apilado (horas / minutos) del bloqueo, Fase 9 B2
     }
     readonly property TypeScale type: TypeScale {}
 

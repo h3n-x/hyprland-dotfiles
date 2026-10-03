@@ -36,7 +36,7 @@ Item {
     readonly property string status: WeatherState.status(wv.now)
     readonly property var d: WeatherState.data
     readonly property var cur: wv.d ? wv.d.current : null
-    readonly property var desc: wv.cur ? WeatherState.describe(wv.cur.weather_code, wv.cur.is_day === 1) : null
+    readonly property var desc: wv.cur ? WeatherText.describe(wv.cur.weather_code, wv.cur.is_day === 1) : null
 
     onActiveChanged: {
         if (wv.active) {
@@ -269,7 +269,7 @@ Item {
                             Layout.preferredWidth: hoursCol.width / Math.max(1, wv.hours.length)
                             spacing: 3
                             Text { Layout.alignment: Qt.AlignHCenter; text: modelData.label; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
-                            Icon { Layout.alignment: Qt.AlignHCenter; name: WeatherState.describe(modelData.code, modelData.day).icon; size: Tokens.icon.lg; color: Colors.textMuted }
+                            Icon { Layout.alignment: Qt.AlignHCenter; name: WeatherText.describe(modelData.code, modelData.day).icon; size: Tokens.icon.lg; color: Colors.textMuted }
                             Text { Layout.alignment: Qt.AlignHCenter; text: WeatherState.temp(modelData.t); color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.body; font.weight: Tokens.weight.medium; font.features: Tokens.tabularNumbers }
                             // Lluvia: solo si es probable.
                             Text { Layout.alignment: Qt.AlignHCenter; text: modelData.rain >= 30 ? modelData.rain + " %" : " "; color: Colors.decor; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
@@ -298,7 +298,7 @@ Item {
                         Layout.preferredHeight: 28
                         spacing: Tokens.space.md
                         Text { Layout.preferredWidth: 44; text: modelData.label; color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium }
-                        Icon { name: WeatherState.describe(modelData.code, true).icon; size: Tokens.icon.md; color: Colors.textMuted }
+                        Icon { name: WeatherText.describe(modelData.code, true).icon; size: Tokens.icon.md; color: Colors.textMuted }
                         Text { Layout.preferredWidth: 40; text: modelData.rain >= 30 ? modelData.rain + " %" : ""; color: Colors.decor; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
                         Text { Layout.preferredWidth: 36; horizontalAlignment: Text.AlignRight; text: WeatherState.temp(modelData.min); color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.features: Tokens.tabularNumbers }
                         Item {
