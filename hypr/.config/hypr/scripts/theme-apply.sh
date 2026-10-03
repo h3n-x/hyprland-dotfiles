@@ -234,7 +234,7 @@ wallpaper {
 EOF
   fi
 
-  # 3. ~/.face (avatar de hyprlock y Plymouth) ANTES de matugen: el hook de
+  # 3. ~/.face (avatar del bloqueo y de Plymouth) ANTES de matugen: el hook de
   #    Plymouth lo lee; antes corrian en paralelo (KI-S1). De un GIF, el
   #    primer cuadro.
   if command -v magick >/dev/null 2>&1; then

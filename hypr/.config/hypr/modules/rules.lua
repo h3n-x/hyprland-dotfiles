@@ -81,7 +81,7 @@ hl.layer_rule({ match = { namespace = "hyprpicker" },        no_anim = true })
 -- el color de fondo ~0.3 s. El cambio de wallpaper ya es un fundido en QML.
 hl.layer_rule({ match = { namespace = "quickshell-wallpaper" }, no_anim = true })
 
--- Widgets/relojes que deben verse incluso arriba de hyprlock (ninguno por ahora)
+-- Widgets/relojes que deben verse incluso arriba del bloqueo (ninguno por ahora)
 -- hl.layer_rule({ match = { namespace = "some-widget" }, above_lock = 1 })
 
 -- ---- Workspace rules ----

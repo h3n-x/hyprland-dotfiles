@@ -1,8 +1,8 @@
 #!/bin/bash
 # Genera los assets visuales del theme de Plymouth: el fondo (wallpaper actual
-# con blur + oscurecido + vignette, mismo criterio que hyprlock.conf), el
-# avatar (~/.face recortado en circulo -- la misma imagen "de usuario" que
-# hyprlock, ver theme-apply.sh) y los frames del spinner (arco
+# con blur + oscurecido + vignette, mismo criterio que la pantalla de
+# bloqueo), el avatar (~/.face recortado en circulo -- la misma imagen "de
+# usuario" que el bloqueo, ver theme-apply.sh) y los frames del spinner (arco
 # circular de 270 grados, puntas redondeadas, rotando, tenido con el color
 # primary de matugen). El anillo del spinner tiene el centro transparente a
 # proposito -- ahi adentro va el avatar (ver plymouth.script, se dibujan

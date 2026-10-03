@@ -6,7 +6,7 @@
 #   - se cayo con la sesion bloqueada ("LOCK-SECURE" visto) -> lo relanza
 #     (misc:allow_session_lock_restore permite que otro tome el bloqueo);
 #   - no llego a bloquear en LOCK_START_TIMEOUT s (3 s; los bloqueos reales
-#     confirman en 0.2-0.6 s) -> abre YA el hyprlock de emergencia: antes de
+#     confirman en 0.2-1.4 s) -> abre YA el hyprlock de emergencia: antes de
 #     bloquear la sesion esta abierta, cada reintento seria tiempo con el
 #     escritorio expuesto (correccion pre-bloqueo, V0-4);
 #   - a la 3a caida (siempre con la sesion ya bloqueada) tambien abre el de

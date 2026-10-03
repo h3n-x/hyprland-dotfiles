@@ -144,7 +144,7 @@ stow hypr quickshell kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop th
 ```
 
 Quickshell (ver seccion Quickshell abajo -- barra, notificaciones Y
-control center), kitty (incluida la tab bar), hyprlock, GTK, Qt
+control center, y la pantalla de bloqueo), kitty (incluida la tab bar), GTK, Qt
 (qt5ct/qt6ct), starship, yazi (flavor
 `matugen`, ver `yazi/.config/yazi/theme.toml`), Neovim (colorscheme
 base16 propio, ver `nvim/.config/nvim/lua/plugins/colorscheme.lua`), btop

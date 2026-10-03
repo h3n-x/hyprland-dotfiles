@@ -73,10 +73,6 @@ output_path = "~/.config/kitty/colors.conf"
 # ventanas nuevas ya toman colors.conf actualizado.
 post_hook = "kitten @ set-colors -a -c ~/.config/kitty/colors.conf 2>/dev/null || true"
 
-[templates.hyprlock]
-input_path = "~/.config/matugen/templates/hyprlock.conf"
-output_path = "~/.config/hypr/colors.conf"
-
 [templates.hyprland]
 input_path = "~/.config/matugen/templates/hyprland-colors.lua"
 output_path = "~/.config/hypr/modules/colors.lua"
@@ -89,10 +85,6 @@ output_path = "~/.config/gtk-3.0/gtk.css"
 [templates.gtk4]
 input_path = "~/.config/matugen/templates/gtk.css"
 output_path = "~/.config/gtk-4.0/gtk.css"
-
-[templates.shell]
-input_path = "~/.config/matugen/templates/shell.sh"
-output_path = "~/.cache/matugen/colors.sh"
 
 [templates.fzf]
 input_path = "~/.config/matugen/templates/fzf.sh"

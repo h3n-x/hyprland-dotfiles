@@ -187,7 +187,7 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("qs -c dotshell ipc call media previous
 -- Tapa del laptop (HP Victus): bloquear al cerrar. Correr `hyprctl devices`
 -- para confirmar el nombre exacto del switch en este equipo y ajustar abajo.
 -- ---------------------------------------------------------------------------
--- hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd("hyprlock"), { locked = true })
+-- hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd(scripts .. "/lock"), { locked = true })
 
 -- ---------------------------------------------------------------------------
 -- Global shortcuts para apps sandboxeadas (requiere XDPH, ya instalado)

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Genera los assets visuales del theme de GRUB: el fondo (wallpaper actual
-# con blur + oscurecido + vignette, mismo criterio que Plymouth/hyprlock),
+# con blur + oscurecido + vignette, mismo criterio que Plymouth y el bloqueo),
 # la tarjeta de 9 slices detras del boot_menu (menu_pixmap_style), el
 # highlight de seleccion con franja de acento (selected_item_pixmap_style)
 # y las esquinas decorativas. Ver

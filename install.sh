@@ -112,7 +112,7 @@ matugen -c ~/.config/matugen/config-system.toml image "$seed" --prefer saturatio
 sudo -n /usr/local/bin/sync-sddm-theme >/dev/null 2>&1 || true
 ok "Paleta generada a partir de $(basename "$seed"). Cambiala cuando quieras con SUPER+SHIFT+W."
 
-# ~/.face: imagen "de usuario" que dibuja hyprlock (ver hyprlock.conf).
+# ~/.face: imagen "de usuario" del bloqueo de pantalla y de Plymouth.
 # Recorte cuadrado centrado del wallpaper semilla -- theme-apply.sh la
 # regenera igual en cada cambio de fondo, ver README.
 if command -v magick >/dev/null 2>&1; then
