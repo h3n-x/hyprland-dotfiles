@@ -263,8 +263,18 @@ Rectangle {
         CategoryPage {
             category: win.page
             model: win.model
+            // Apariencia (Fase 10 B2): tema actual y avatar arriba de sus secciones.
+            extras: win.page === "appearance" ? { "Color": themeCard, "Avatar": avatarCard } : ({})
             highlightKey: win.highlightKey
         }
+    }
+    Component {
+        id: themeCard
+        ThemeCard { model: win.model }
+    }
+    Component {
+        id: avatarCard
+        AvatarCard {}
     }
     Component {
         id: aboutPage

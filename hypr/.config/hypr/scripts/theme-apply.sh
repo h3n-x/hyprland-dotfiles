@@ -5,14 +5,13 @@
 # deshacer (SUPER+SHIFT+Z, IPC) y la linea de comandos.
 #
 #   theme-apply.sh <wallpaper> [--scheme <tipo>] [--contrast <-1..1>]
-#                  [--source gallery|undo|ipc] [--dry-run] [--no-system]
+#                  [--source gallery|undo|ipc|settings] [--dry-run] [--no-system]
 #   theme-apply.sh --flush-system   (corre ya el trabajo de sistema pendiente)
 #   theme-apply.sh --favorite <wallpaper> on|off|toggle   (galeria, Fase 3 B3)
 #   theme-apply.sh --tag <wallpaper> add|remove <etiqueta>  (galeria, Fase 3 B4)
 #   theme-apply.sh --undo [--no-notify] [--dry-run]   (tema anterior del historial, B5)
 #   theme-apply.sh --backend quickshell|hyprpaper|status   (quien dibuja el wallpaper, B6)
-#   theme-apply.sh --prefs scheme <tipo>|contrast <0..1>|reset   (valores globales, B8a;
-#                  guardados en el almacen de opciones: appearance.scheme/contrast, P8.7)
+#   theme-apply.sh --face [--dry-run]   (rehace ~/.face con el avatar elegido, Fase 10 B2)
 #   theme-apply.sh --override <wallpaper> seed <#hex>|scheme <tipo>|reset   (excepcion por wallpaper, B8a;
 #                  "default" en seed o scheme quita solo ese campo, B8b)
 #
@@ -22,7 +21,9 @@
 # ultimo y nunca corren dos matugen a la vez (KI-S11).
 #
 # ~/.face se genera ANTES de matugen: el hook de Plymouth lo usa como avatar
-# (KI-S1).
+# (KI-S1). Sale del wallpaper o de la imagen propia (appearance.avatar*,
+# Fase 10 B2; esquema y contraste globales se eligen en el centro de
+# configuracion, appearance.scheme/contrast).
 # Estado e historial: ~/.local/state/dotfiles/wallpapers.json (fuera del repo).
 #
 # Dos velocidades (Fase 3 B2): matugen corre al instante con config.toml (lo
@@ -106,7 +107,7 @@ die() {
 }
 
 usage() {
-  sed -n '6,15p' "$0" | sed 's/^# \{0,3\}//' >&2
+  sed -n '7,16p' "$0" | sed 's/^# \{0,3\}//' >&2
   exit 2
 }
 
@@ -201,6 +202,25 @@ resolve_opts() { # wallpaper scheme contrast seed -> "scheme contrast seed"
 
 # ---- Aplicacion -----------------------------------------------------------
 
+# Avatar (Fase 10 B2): recorte cuadrado de 512 al centro del wallpaper
+# ("Del fondo", lo de siempre) o de la imagen propia. De un GIF, el primer
+# cuadro. Si la imagen propia no se puede leer, ~/.face queda como estaba
+# (nunca se cambia en silencio por el wallpaper) y sale con 1.
+make_face() { # wallpaper
+  command -v magick >/dev/null 2>&1 || { log "avatar: falta magick"; return 1; }
+  local src="$1"
+  if [ "$("$SETTINGS" get appearance.avatar 2>/dev/null)" = image ]; then
+    src="$("$SETTINGS" get appearance.avatarImage 2>/dev/null)"
+    if [ ! -r "$src" ] || ! magick identify "$src[0]" >/dev/null 2>&1; then
+      log "avatar: no se puede leer la imagen propia: $src (~/.face sin cambios)"
+      return 1
+    fi
+  fi
+  case "${src,,}" in *.gif) src="${src}[0]" ;; esac
+  run magick "$src" -auto-orient -gravity center -resize 512x512^ -extent 512x512 "$HOME/.face.tmp.png" >/dev/null 2>&1 \
+    && run mv -f "$HOME/.face.tmp.png" "$HOME/.face"
+}
+
 run() { # comando... (en --dry-run solo se registra)
   if [ "$DRY" = true ]; then
     log "  dry: $*"
@@ -234,14 +254,9 @@ wallpaper {
 EOF
   fi
 
-  # 3. ~/.face (avatar del bloqueo y de Plymouth) ANTES de matugen: el hook de
-  #    Plymouth lo lee; antes corrian en paralelo (KI-S1). De un GIF, el
-  #    primer cuadro.
-  if command -v magick >/dev/null 2>&1; then
-    local src="$wp"
-    case "${wp,,}" in *.gif) src="${wp}[0]" ;; esac
-    run magick "$src" -gravity center -resize 512x512^ -extent 512x512 "$HOME/.face" >/dev/null 2>&1
-  fi
+  # 3. ~/.face (avatar del bloqueo, del greeter y de Plymouth) ANTES de
+  #    matugen: el hook de Plymouth lo lee; antes corrian en paralelo (KI-S1).
+  make_face "$wp" || true
 
   # 4. Paleta y plantillas, con las opciones ya resueltas al pedir (B8a). Antes,
   #    los colores de estado fijos para este contraste (P8.7); sin ellos matugen
@@ -399,6 +414,21 @@ if [ "${1:-}" = "--flush-system" ]; then
   run_system ""
   exit 0
 fi
+# Avatar elegido en el centro de configuracion (Fase 10 B2): ~/.face ya (el
+# bloqueo lo lee directo) y, con el tema actual, la pasada del sistema
+# (greeter y Plymouth) agendada como siempre: 60 s, el ultimo gana.
+if [ "${1:-}" = "--face" ]; then
+  DRY=false; [ "${2:-}" = --dry-run ] && DRY=true
+  init_state
+  cur="$(jq -c '.current // empty' "$STATE")"
+  cwp="$(jq -r '.wallpaper // empty' <<< "$cur")"
+  [ -n "$cwp" ] || die "avatar: no hay un tema aplicado todavia"
+  make_face "$cwp" || die "avatar: no se pudo rehacer ~/.face (ver el log)"
+  log "avatar: ~/.face rehecho"
+  schedule_system "$cwp" "$(jq -r '.scheme // ""' <<< "$cur")" "$(jq -r '.contrast // ""' <<< "$cur")" \
+    "$(jq -r '.seed // ""' <<< "$cur")" "$(jq -r '.rule // "legacy"' <<< "$cur")"
+  exit 0
+fi
 if [ "${1:-}" = "--favorite" ]; then
   [ $# -eq 3 ] || usage
   fav="$(readlink -f -- "$2")"
@@ -538,31 +568,11 @@ if [ "${1:-}" = "--tag" ]; then
   exit 0
 fi
 
-# Preferencias globales y excepciones por wallpaper (Fase 3 B8a). Tras cada
-# cambio se refresca la cache: la galeria y la vista previa muestran la paleta
+# Excepciones por wallpaper (Fase 3 B8a). Tras cada cambio se refresca la cache: la galeria y la vista previa muestran la paleta
 # con las opciones nuevas (y aplicar da lo mismo que la vista previa).
 refresh_cache() {
   setsid -f "$SCRIPTS_DIR/wallpaper-cache.sh" < /dev/null > /dev/null 2>&1
 }
-if [ "${1:-}" = "--prefs" ]; then
-  [ $# -ge 2 ] || usage
-  case "$2" in
-    scheme)
-      [ $# -eq 3 ] || usage
-      "$SETTINGS" set appearance.scheme "\"$3\"" >/dev/null || die "no se pudo guardar el esquema" ;;
-    contrast)
-      [ $# -eq 3 ] || usage
-      # Rango (0..1, decision B8d) y tipo los valida el motor con el esquema.
-      [[ "$3" =~ ^[0-9]*\.?[0-9]+$ ]] || die "contraste no numerico: $3"
-      "$SETTINGS" set appearance.contrast "$3" >/dev/null || die "contraste fuera de rango (0..1): $3" ;;
-    reset)
-      "$SETTINGS" reset appearance.scheme >/dev/null && "$SETTINGS" reset appearance.contrast >/dev/null ;;
-    *) die "prefs: usar scheme <tipo>|contrast <0..1>|reset" ;;
-  esac
-  log "prefs: ${*:2}"
-  refresh_cache
-  exit 0
-fi
 if [ "${1:-}" = "--override" ]; then
   [ $# -ge 3 ] || usage
   owp="$(readlink -f -- "$2")"
@@ -638,7 +648,7 @@ if [ -n "$contrast" ]; then
   awk -v c="$contrast" 'BEGIN { exit !(c ~ /^-?[0-9]*\.?[0-9]+$/ && c >= -1 && c <= 1) }' \
     || die "contraste fuera de rango (-1..1): $contrast"
 fi
-case "$source" in gallery|undo|ipc) ;; *) die "origen desconocido: $source" ;; esac
+case "$source" in gallery|undo|ipc|settings) ;; *) die "origen desconocido: $source" ;; esac
 if [ -n "$seed" ]; then
   [[ "$seed" =~ ^#[0-9a-fA-F]{6}$ ]] || die "semilla invalida (#rrggbb): $seed"
 fi

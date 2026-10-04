@@ -9,7 +9,10 @@
 #   dotshell           Tokens.qml, SemanticPalette.qml, modules/Icon.qml, login/
 #                      (la pantalla de entrada compartida con el bloqueo)
 #   matugen            Colors.qml (templates/sddm/Colors.qml, pasada del sistema)
-#   el usuario         backgrounds/wall.png (el wallpaper actual) y face.png (~/.face)
+#   el usuario         backgrounds/wall.png (el wallpaper actual), face.png (~/.face)
+#                      y en theme.conf su tipografia y tamano del texto (Fase 10 B2;
+#                      una fuente solo si esta instalada para todo el sistema: el
+#                      greeter corre como "sddm" y no ve las del home)
 # Archivos regulares solamente (cp -L): la copia root rechaza enlaces.
 # Lo llama theme-apply.sh despues de la pasada del sistema de matugen.
 # Pruebas: SDDM_STAGE (destino), SDDM_COLORS (paleta generada), DOTFILES.
@@ -36,6 +39,22 @@ mkdir -p "$tmp/modules" "$tmp/login" "$tmp/backgrounds"
 cp -L "$SHELL_DIR/modules/Icon.qml" "$tmp/modules/"
 cp -L "$SHELL_DIR/login/"*.qml "$tmp/login/"
 cp -L "$COLORS" "$tmp/Colors.qml"
+
+# Tipografia y tamano del texto (Fase 10 B2), del almacen de opciones.
+SETTINGS=${SETTINGS_CMD:-$REPO/hypr/.config/hypr/scripts/settings}
+system_font() { # familia -> 0 si esta en /usr/share/fonts
+  fc-list --format '%{file}\n' ":family=$1" 2>/dev/null | grep -q '^/usr/share/fonts/'
+}
+for pair in uiFont:appearance.font.ui monoFont:appearance.font.mono; do
+  f=$("$SETTINGS" get "${pair#*:}" 2>/dev/null || true)
+  if [ -n "$f" ] && system_font "$f"; then
+    printf '%s=%s\n' "${pair%%:*}" "$f" >> "$tmp/theme.conf"
+  elif [ -n "$f" ]; then
+    echo "sddm-theme-stage: $f no esta instalada para todo el sistema; el greeter usa la de fabrica" >&2
+  fi
+done
+s=$("$SETTINGS" get accessibility.textScale 2>/dev/null || true)
+[ -n "$s" ] && printf 'textScale=%s\n' "$s" >> "$tmp/theme.conf"
 
 # El greeter corre como el usuario "sddm": no puede leer el home (700).
 wp=$(grep -oP '(?<=path = ).*' "$WALLPAPER_CONF" 2>/dev/null | head -1 | sed "s|^~|$HOME|" || true)

@@ -64,7 +64,7 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 ```bash
 sudo pacman -S --needed satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
-  qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd noto-fonts-emoji python-pillow wtype \
+  qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd noto-fonts-emoji python-pillow python-gobject xdg-desktop-portal-gtk wtype \
   gvfs tumbler thunar network-manager-applet blueman pavucontrol brightnessctl \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder mpv loupe \
   matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono ttf-material-symbols-variable \
@@ -180,12 +180,14 @@ terminal (por ejemplo si Quickshell no esta corriendo):
 ```
 
 Ademas regenera `~/.face` -- la imagen "de usuario" que dibujan la
-pantalla de bloqueo (arriba del campo de contrasena) y Plymouth -- como un
-recorte cuadrado centrado (512x512, via
-`magick`) del mismo wallpaper. No hace falta poner una foto real: el avatar
-del lockscreen cambia solo junto con el resto del theming. Si preferis una
-foto tuya en vez del recorte del wallpaper, sobreescribi `~/.face` a mano
-despues de cambiar de fondo (el proximo cambio la va a volver a pisar).
+pantalla de bloqueo (arriba del campo de contrasena), la de inicio de
+sesion y Plymouth -- como un recorte cuadrado centrado (512x512, via
+`magick`) del mismo wallpaper: el avatar cambia solo junto con el resto del
+theming. Para usar una foto tuya: centro de configuracion (`SUPER+I`),
+Apariencia, Avatar, "Imagen propia" y "Elegir…". Se recorta igual, se aplica
+al momento en el bloqueo (y en el login y el arranque con el pase del
+sistema, un minuto despues) y los cambios de fondo ya no la pisan
+(`theme-apply.sh --face` la rehace a mano).
 
 Shell: zsh (con [zinit](https://github.com/zdharma-continuum/zinit) para
 plugins -- se clona solo la primera vez que abris una terminal, no hace
@@ -497,8 +499,20 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   cuando se aplica ("La proxima vez", "Reinicia la shell"); las avanzadas
   quedan plegadas al final de la pagina. "Restablecer la pagina" vuelve todo
   a fabrica (pregunta antes).
+- **Apariencia** (Fase 10 B2): arriba el tema actual -- con que esquema y
+  contraste se aplico; si los de "todos los wallpapers" son otros,
+  "Aplicar al tema actual" lo reaplica con ellos (el boton "Tema global" de
+  la galeria trae aca) --, la fuente de la interfaz y la de codigo (las
+  instaladas que cubren el castellano, cada una escrita en si misma; la
+  shell, el bloqueo y el login las usan; si una se desinstala, vuelve la de
+  fabrica y Diagnostico lo dice) y el **avatar**: del fondo o una imagen
+  propia (selector de archivos del portal, GTK).
+- **Accesibilidad**: reducir movimiento, alto contraste, **tamano del
+  texto** (Normal, Grande 112 %, Muy grande 125 %: solo el texto, iconos y
+  alturas quedan igual; tambien el bloqueo y el login) y **foco siempre
+  visible** (un anillo alrededor de lo que tiene el foco del teclado).
 - **Acerca de**: versiones, Diagnostico (valores que el motor no aplico y
-  por que), tus cambios como archivo y el README.
+  por que, fuentes que ya no estan), tus cambios como archivo y el README.
 - **Buscar** (`Ctrl+F`): etiqueta, descripcion, palabras clave, sin tildes;
   Enter lleva a la opcion y la ilumina. `Ctrl+Tab` / `Ctrl+AvPag` cambian
   de pagina, Tab recorre los controles, Esc borra la busqueda y despues

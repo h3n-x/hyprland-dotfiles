@@ -246,11 +246,18 @@ Item {
                 }
             }
             Scaled {
+                id: dateBlock
                 anchors.left: timeBlock.right
                 anchors.leftMargin: home.lerp(Tokens.space.xl, Tokens.space.md, home.mediaP)
                 anchors.verticalCenter: parent.verticalCenter
                 k: home.lerp(1, Tokens.type.body / Tokens.type.headline, home.mediaP)
                 Text {
+                    // Nunca debajo de los avisos: si no entra ni con los avisos
+                    // compactos, pasa a dos lineas (y en el peor caso se corta).
+                    width: Math.max(0, Math.min(implicitWidth, (rightRow.x - dateBlock.x - Tokens.space.lg) / dateBlock.k))
+                    wrapMode: Text.WordWrap
+                    maximumLineCount: 2
+                    elide: Text.ElideRight
                     text: WeatherState.cap(home.es.standaloneDayName(clock.date.getDay(), Locale.LongFormat)) + ", "
                         + clock.date.getDate() + " de " + home.es.standaloneMonthName(clock.date.getMonth(), Locale.LongFormat)
                     color: home.mix(Colors.text, Colors.textMuted, home.mediaP)
@@ -260,14 +267,45 @@ Item {
                 }
             }
 
+            // Avisos a lo largo: si con el texto completo chocarian con la
+            // fecha, van compactos (solo el numero, como con musica). Se mide
+            // con el texto completo, no con el que se ve: no oscila.
+            Item {
+                visible: false
+                Repeater {
+                    id: fullTexts
+                    model: home.notices
+                    Text {
+                        required property var modelData
+                        text: modelData.full
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.caption
+                        font.weight: Tokens.weight.medium
+                        font.features: Tokens.tabularNumbers
+                    }
+                }
+            }
+            readonly property real fullNoticesWidth: {
+                let w = 0;
+                for (let i = 0; i < fullTexts.count; i++) {
+                    const t = fullTexts.itemAt(i);
+                    if (t) w += t.implicitWidth + Tokens.icon.sm + 5 + Tokens.space.md * 2;
+                }
+                return w + Math.max(0, fullTexts.count - 1) * Tokens.space.xs;
+            }
+            readonly property bool noticesCompact: dateBlock.x + dateBlock.implicitWidth + Tokens.space.lg
+                + rightRow.implicitWidth - noticeRow.implicitWidth + fullNoticesWidth + Tokens.space.md > width
+
             RowLayout {
+                id: rightRow
                 anchors.right: parent.right
                 anchors.rightMargin: Tokens.space.md
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: Tokens.space.lg
 
-                // Avisos: con musica, solo el numero.
+                // Avisos: con musica, o si no entran a lo largo, solo el numero.
                 Row {
+                    id: noticeRow
                     Layout.alignment: Qt.AlignVCenter
                     spacing: Tokens.space.xs
                     Repeater {
@@ -275,7 +313,7 @@ Item {
                         Rectangle {
                             id: chip
                             required property var modelData
-                            readonly property string label: home.mediaP > 0.5 && chip.modelData.n > 0 ? String(chip.modelData.n) : chip.modelData.full
+                            readonly property string label: (home.mediaP > 0.5 || context.noticesCompact) && chip.modelData.n > 0 ? String(chip.modelData.n) : chip.modelData.full
                             implicitHeight: 26
                             implicitWidth: chipRow.implicitWidth + Tokens.space.md * 2
                             radius: 13

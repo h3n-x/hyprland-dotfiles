@@ -225,6 +225,9 @@ PanelWindow {
                         required property var modelData
                         readonly property bool selected: PowerProfileState.current === profBtn.modelData.id
                         readonly property color contentColor: profBtn.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
+                        // Texto grande (Fase 10 B2): si no entra todo, primero se va
+                        // el icono; el nombre se corta solo si ni asi entra.
+                        readonly property bool roomy: profBtn.width - profBtn.border.width * 2 >= profText.implicitWidth + Tokens.icon.sm + Tokens.space.xs
                         Layout.fillWidth: true
                         implicitHeight: Tokens.pill.height
                         radius: Tokens.radius.sm
@@ -245,6 +248,7 @@ PanelWindow {
                             spacing: Tokens.space.xs
 
                             Icon {
+                                visible: profBtn.roomy
                                 name: profBtn.modelData.icon
                                 filled: profBtn.selected
                                 size: Tokens.icon.sm
@@ -252,6 +256,9 @@ PanelWindow {
                             }
 
                             Text {
+                                id: profText
+                                Layout.maximumWidth: profBtn.width - profBtn.border.width * 2
+                                elide: Text.ElideRight
                                 text: profBtn.modelData.label
                                 color: profBtn.contentColor
                                 font.family: Tokens.font.ui

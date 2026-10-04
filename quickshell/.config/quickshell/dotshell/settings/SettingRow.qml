@@ -26,7 +26,7 @@ Item {
     readonly property string note: row.model.applyNote(row.key)
     readonly property bool stacked: !!control.item && control.item.implicitWidth > col.width * 0.6
     // El selector abierto (su lista va debajo, a lo ancho de la fila).
-    readonly property bool listOpen: row.kind === "select" && !!control.item && control.item.open
+    readonly property bool listOpen: (row.kind === "select" || row.kind === "font") && !!control.item && control.item.open
 
     function set(v: var): void {
         SettingsState.set(row.key, v);
@@ -137,18 +137,27 @@ Item {
                 Layout.fillWidth: row.stacked
                 sourceComponent: ({
                     "switch": switchC, "segmented": segmentedC, "select": selectC,
-                    "stepper": stepperC, "slider": sliderC, "path": pathC
+                    "stepper": stepperC, "slider": sliderC, "path": pathC, "font": fontC
                 })[row.kind] || null
             }
         }
 
         // Lista del selector, a lo ancho de la fila (como en la galeria).
         SelectList {
-            visible: row.listOpen
+            visible: row.listOpen && row.kind === "select"
             Layout.fillWidth: true
             options: row.model.options(row.key)
             current: row.value
             onChosen: (v) => row.set(v)
+            onClosed: control.item.open = false
+        }
+        // Lista de fuentes (Fase 10 B2), en el mismo lugar.
+        FontList {
+            visible: row.listOpen && row.kind === "font"
+            Layout.fillWidth: true
+            families: row.kind === "font" && control.item ? control.item.families : []
+            current: row.value || ""
+            onChosen: (f) => row.set(f)
             onClosed: control.item.open = false
         }
     }
@@ -238,8 +247,18 @@ Item {
         id: pathC
         PathField {
             objectName: "control-path"
+            pick: ({ "image": "image", "dir": "dir" })[row.meta.kind] || ""
             value: row.value || ""
             onEdited: (v) => row.set(v)
+        }
+    }
+    Component {
+        id: fontC
+        FontPicker {
+            objectName: "control-font"
+            activeFocusOnTab: true
+            mono: row.meta.kind === "font-mono"
+            current: row.value || ""
         }
     }
 }

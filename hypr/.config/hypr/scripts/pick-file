@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+# Elegir un archivo o una carpeta con el selector del portal (Fase 10 B2):
+# org.freedesktop.portal.FileChooser, que aca atiende xdg-desktop-portal-gtk
+# (el selector de GTK, con el tema de matugen como el resto de las apps). Lo
+# usa el centro de configuracion (avatar; carpetas de capturas). qt6ct no da
+# un dialogo nativo a Qt (standard_dialogs=default) y el de Qt Quick no sigue
+# el design system: por eso el portal, directo.
+#
+#   pick-file [--folder] [--images] [--title <texto>] [--start <carpeta>]
+#
+# Imprime la ruta elegida. Salida: 0 elegida, 1 cancelada, 2 error (motivo
+# en stderr).
+import argparse
+import os
+import sys
+import uuid
+
+import gi
+
+gi.require_version("Gio", "2.0")
+from gi.repository import Gio, GLib  # noqa: E402
+
+ap = argparse.ArgumentParser(prog="pick-file")
+ap.add_argument("--folder", action="store_true", help="elegir una carpeta")
+ap.add_argument("--images", action="store_true", help="solo imagenes")
+ap.add_argument("--title", default="")
+ap.add_argument("--start", default="")
+a = ap.parse_args()
+
+try:
+    bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+except GLib.Error as e:
+    print(f"pick-file: sin bus de sesion: {e.message}", file=sys.stderr)
+    sys.exit(2)
+
+token = "pickfile_" + uuid.uuid4().hex
+sender = bus.get_unique_name()[1:].replace(".", "_")
+handle = f"/org/freedesktop/portal/desktop/request/{sender}/{token}"
+loop = GLib.MainLoop()
+result = {"code": 2, "path": ""}
+
+
+def on_response(_conn, _sender, _path, _iface, _signal, params, _data):
+    code, results = params.unpack()
+    uris = results.get("uris") or []
+    if code == 0 and uris:
+        f = Gio.File.new_for_uri(uris[0])
+        result["path"] = f.get_path() or ""
+        result["code"] = 0 if result["path"] else 2
+    else:
+        result["code"] = 1 if code == 1 else 2
+    loop.quit()
+
+
+# Suscrito antes de pedir: la respuesta no se pierde aunque llegue enseguida.
+bus.signal_subscribe("org.freedesktop.portal.Desktop", "org.freedesktop.portal.Request", "Response",
+                     handle, None, Gio.DBusSignalFlags.NO_MATCH_RULE, on_response, None)
+
+opts = {"handle_token": GLib.Variant("s", token), "modal": GLib.Variant("b", True)}
+if a.folder:
+    opts["directory"] = GLib.Variant("b", True)
+if a.images:
+    pats = [(0, p) for p in ("*.png", "*.jpg", "*.jpeg", "*.webp", "*.gif", "*.bmp")]
+    flt = ("Imágenes", pats)
+    opts["filters"] = GLib.Variant("a(sa(us))", [flt])
+    opts["current_filter"] = GLib.Variant("(sa(us))", flt)
+start = os.path.expanduser(a.start) if a.start else ""
+if start and os.path.isdir(start):
+    opts["current_folder"] = GLib.Variant("ay", start.encode() + b"\0")
+title = a.title or ("Elegir una carpeta" if a.folder else "Elegir un archivo")
+
+try:
+    bus.call_sync("org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
+                  "org.freedesktop.portal.FileChooser", "OpenFile",
+                  GLib.Variant("(ssa{sv})", ("", title, opts)), None, Gio.DBusCallFlags.NONE, -1, None)
+except GLib.Error as e:
+    print(f"pick-file: el portal no respondio: {e.message}", file=sys.stderr)
+    sys.exit(2)
+
+loop.run()
+if result["code"] == 0:
+    print(result["path"])
+elif result["code"] == 2:
+    print("pick-file: el portal devolvio un error", file=sys.stderr)
+sys.exit(result["code"])

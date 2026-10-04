@@ -15,7 +15,7 @@
   "keys": {
     "appearance.osdSeconds": {
       "type": "number", "default": 1.5, "min": 0.5, "max": 10, "step": 0.5, "unit": "s",
-      "category": "appearance", "section": "Indicadores", "order": 10,
+      "category": "appearance", "section": "Indicadores", "order": 100,
       "label": "Duración del indicador de volumen y brillo",
       "keywords": ["osd", "volumen", "brillo"], "apply": "live"
     },
@@ -43,6 +43,50 @@
       "label": "Transparencia de los paneles",
       "description": "Nunca baja del mínimo legible sobre el wallpaper.",
       "keywords": ["opacidad", "blur", "translucidez"], "apply": "live"
+    },
+    "appearance.font.ui": {
+      "type": "string", "kind": "font-sans", "default": "Plus Jakarta Sans", "maxLength": 120,
+      "category": "appearance", "section": "Tipografía", "order": 60,
+      "label": "Fuente de la interfaz",
+      "description": "La de toda la shell, el bloqueo y la pantalla de inicio de sesión.",
+      "keywords": ["letra", "tipografía", "font"], "apply": "live"
+    },
+    "appearance.font.mono": {
+      "type": "string", "kind": "font-mono", "default": "Maple Mono NF", "maxLength": 120,
+      "category": "appearance", "section": "Tipografía", "order": 70,
+      "label": "Fuente de código",
+      "description": "Rutas, comandos y valores técnicos.",
+      "keywords": ["monoespaciada", "letra", "tipografía", "font"], "apply": "live"
+    },
+    "appearance.avatar": {
+      "type": "enum", "default": "wallpaper",
+      "values": { "wallpaper": "Del fondo", "image": "Imagen propia" },
+      "category": "appearance", "section": "Avatar", "order": 80,
+      "label": "Avatar",
+      "description": "En el bloqueo, la pantalla de inicio de sesión y el arranque. Del fondo: se recorta del wallpaper en cada cambio de tema.",
+      "keywords": ["foto", "perfil", "imagen", "face"], "apply": "live"
+    },
+    "appearance.avatarImage": {
+      "type": "path", "kind": "image", "default": "~/Pictures/avatar.png",
+      "category": "appearance", "section": "Avatar", "order": 90,
+      "label": "Imagen del avatar",
+      "description": "Se usa con «Imagen propia»; se recorta al centro.",
+      "keywords": ["foto", "perfil"], "apply": "live"
+    },
+    "accessibility.textScale": {
+      "type": "number", "default": 1, "min": 1, "max": 1.25,
+      "presets": [[1, "Normal"], [1.12, "Grande"], [1.25, "Muy grande"]],
+      "category": "accessibility", "section": "Texto", "order": 30,
+      "label": "Tamaño del texto",
+      "description": "Solo el texto: iconos y alturas no cambian.",
+      "keywords": ["letra", "grande", "legibilidad", "baja visión", "zoom"], "apply": "live"
+    },
+    "accessibility.focusRing": {
+      "type": "bool", "default": false,
+      "category": "accessibility", "section": "Teclado", "order": 40,
+      "label": "Foco siempre visible",
+      "description": "Un anillo alrededor de lo que tiene el foco del teclado.",
+      "keywords": ["teclado", "tab", "foco", "navegación"], "apply": "live"
     },
     "accessibility.highContrast": {
       "type": "bool", "default": false,

@@ -20,12 +20,8 @@ ShellRoot {
     id: root
     settings.watchFiles: false
 
-    // Reducir movimiento: la misma opcion que la shell.
-    Binding {
-        target: Tokens.motion
-        property: "scale"
-        value: SettingsState.value("accessibility.reduceMotion") ? 0 : 1
-    }
+    // Movimiento, fuentes, tamano del texto y foco: las mismas opciones que la shell.
+    StoreBindings {}
 
     FloatingWindow {
         id: window

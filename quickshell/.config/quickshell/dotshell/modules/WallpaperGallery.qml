@@ -31,10 +31,12 @@
 // los mismos filtros y sobre el ultimo wallpaper visto.
 //
 // Opciones de color (Fase 3 B8b): la columna derecha tiene las del wallpaper
-// elegido (color base, esquema: excepcion guardada al instante) y el boton
-// "Tema global" abre las de todos (esquema predeterminado, contraste). Ambas
-// pasan por theme-apply.sh (--override / --prefs), que refresca la cache: la
-// vista previa sigue mostrando exactamente lo que dara Aplicar.
+// elegido (color base, esquema: excepcion guardada al instante, por
+// theme-apply.sh --override, que refresca la cache: la vista previa sigue
+// mostrando exactamente lo que dara Aplicar). Las de todos (esquema
+// predeterminado, contraste) viven en el centro de configuracion, Apariencia
+// (Fase 10 B2): el boton "Tema global" cierra la galeria y lo abre ahi. Al
+// abrir, la cache se pone al dia con las opciones nuevas.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -90,8 +92,6 @@ PanelWindow {
     property bool onlyFavorites: false
     property bool onlyRecent: false
     property string activeTag: ""
-    // Panel "Tema global" abierto.
-    property bool showGlobals: false
 
     // Wallpapers del historial en orden cronologico (solo los que estan en la cache).
     readonly property var recentNames: (ThemeState.recent || [])
@@ -152,8 +152,11 @@ PanelWindow {
         if (!window.selectedName) return;
         Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--override", window.pathOf(window.selectedName), "reset"]);
     }
-    function setPref(kind: string, value: string): void {
-        Quickshell.execDetached([window.scriptsDir + "/theme-apply.sh", "--prefs", kind, value]);
+    // Tema global (Fase 10 B2): en el centro de configuracion. La galeria
+    // (capa Overlay) se cierra para dejar ver la ventana.
+    function openGlobals(): void {
+        GalleryState.visible = false;
+        Quickshell.execDetached([window.scriptsDir + "/settings-ui", "open", "appearance"]);
     }
 
     function toggleFavorite(): void {
@@ -213,7 +216,6 @@ PanelWindow {
     onCurrentPathChanged: Qt.callLater(window.jumpToCurrent)
 
     onShouldShowChanged: {
-        window.showGlobals = false;
         if (!window.shouldShow) return;
         if (window.resumeName) {
             // Mismo salto diferido que al abrir (la grilla se repuebla y vuelve
@@ -268,45 +270,6 @@ PanelWindow {
         // MouseArea de fondo y cerraria la galeria.
         MouseArea { anchors.fill: parent }
 
-        // Panel "Tema global" (B8b). Con el panel abierto, un clic en cualquier
-        // otro lugar de la tarjeta lo cierra (y no hace nada mas).
-        MouseArea {
-            anchors.fill: parent
-            z: 19
-            visible: window.showGlobals
-            onClicked: window.showGlobals = false
-        }
-        // Se crea al abrirse: una Surface creada oculta no aporta nada y su
-        // sombra (MultiEffect) queda sin inicializar hasta mostrarse.
-        Loader {
-            id: globalPanel
-            z: 20
-            active: window.showGlobals
-            x: globalBtn.mapToItem(card, 0, 0).x + globalBtn.width - width
-            y: globalBtn.mapToItem(card, 0, 0).y + globalBtn.height + Tokens.space.sm
-            sourceComponent: Surface {
-                level: 3
-                radius: Tokens.radius.lg
-                width: Tokens.panel.widthMd
-                height: globalContent.implicitHeight + Tokens.space.lg * 2
-                // Los clics dentro del panel no llegan a la capa que lo cierra.
-                MouseArea { anchors.fill: parent }
-                GlobalThemeOptions {
-                    id: globalContent
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.margins: Tokens.space.lg
-                    // Opciones globales del almacen (P8.7); se guardan con
-                    // theme-apply.sh --prefs, que ademas recalcula las paletas.
-                    scheme: SettingsState.value("appearance.scheme")
-                    contrast: SettingsState.value("appearance.contrast")
-                    onSchemeChosen: (scheme) => window.setPref("scheme", scheme)
-                    onContrastChosen: (contrast) => window.setPref("contrast", String(contrast))
-                }
-            }
-        }
-
         RowLayout {
             anchors.fill: parent
             anchors.margins: Tokens.space.md
@@ -338,8 +301,7 @@ PanelWindow {
                                 return true;
                             }
                             if (event.key === Qt.Key_Escape) {
-                                if (window.showGlobals) window.showGlobals = false;
-                                else GalleryState.visible = false;
+                                GalleryState.visible = false;
                                 return true;
                             }
                             return false;
@@ -408,19 +370,19 @@ PanelWindow {
                         }
                     }
 
-                    // Opciones de todos los wallpapers (B8b): abre el panel.
+                    // Opciones de todos los wallpapers: en el centro de
+                    // configuracion (Fase 10 B2).
                     Rectangle {
                         id: globalBtn
                         implicitHeight: Tokens.row.height
                         implicitWidth: globalRow.implicitWidth + Tokens.pad.pillH * 2
                         radius: Tokens.radius.sm
-                        color: window.showGlobals ? Colors.accentAltContainer : "transparent"
-                        border.color: window.showGlobals ? Colors.accentAltContainer : Colors.divider
-                        Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
+                        color: "transparent"
+                        border.color: Colors.divider
                         StateLayer {
                             hovered: globalMouse.containsMouse
                             pressed: globalMouse.pressed
-                            contentColor: window.showGlobals ? Colors.textOnAccentAltContainer : Colors.textMuted
+                            contentColor: Colors.textMuted
                         }
                         Row {
                             id: globalRow
@@ -429,15 +391,20 @@ PanelWindow {
                             Icon {
                                 name: "tune"
                                 size: Tokens.icon.sm
-                                color: window.showGlobals ? Colors.textOnAccentAltContainer : Colors.textMuted
+                                color: Colors.textMuted
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: "Tema global"
-                                color: window.showGlobals ? Colors.textOnAccentAltContainer : Colors.textMuted
+                                color: Colors.textMuted
                                 font.family: Tokens.font.ui
                                 font.pixelSize: Tokens.type.label
-                                font.weight: window.showGlobals ? Tokens.weight.semibold : Tokens.weight.medium
+                                font.weight: Tokens.weight.medium
+                            }
+                            Icon {
+                                name: "open_in_new"
+                                size: Tokens.icon.sm
+                                color: Colors.textMuted
                             }
                         }
                         MouseArea {
@@ -445,7 +412,7 @@ PanelWindow {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: window.showGlobals = !window.showGlobals
+                            onClicked: window.openGlobals()
                         }
                     }
                 }
@@ -515,10 +482,7 @@ PanelWindow {
 
                     Keys.onReturnPressed: window.apply()
                     Keys.onEnterPressed: window.apply()
-                    Keys.onEscapePressed: {
-                        if (window.showGlobals) window.showGlobals = false;
-                        else GalleryState.visible = false;
-                    }
+                    Keys.onEscapePressed: GalleryState.visible = false
                     onCountChanged: Qt.callLater(window.jumpToCurrent)
 
                     Keys.onPressed: (event) => {

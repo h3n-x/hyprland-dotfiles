@@ -48,16 +48,14 @@ ShellRoot {
         }
     }
 
-    // Reducir movimiento (D9, M4): la opcion accessibility.reduceMotion
-    // (settings store, Fase 8 B1: sobrevive a reinicios) pone
-    // Tokens.motion.scale en 0 (todas las duraciones en 0 y los springs
-    // desactivados). `qs -c dotshell ipc call motion reduce|restore` la cambia
-    // por el motor, como cualquier otro escritor.
-    Binding {
-        target: Tokens.motion
-        property: "scale"
-        value: SettingsState.value("accessibility.reduceMotion") ? 0 : 1
-    }
+    // Opciones del almacen sobre el design system (StoreBindings): reducir
+    // movimiento (D9, M4: Tokens.motion.scale en 0, duraciones en 0 y springs
+    // desactivados; `qs -c dotshell ipc call motion reduce|restore` la cambia
+    // por el motor, como cualquier otro escritor), fuentes, tamano del texto y
+    // foco visible (Fase 10 B2).
+    StoreBindings {}
+    // Avatar elegido en el centro -> ~/.face (Fase 10 B2).
+    AvatarSync {}
     IpcHandler {
         target: "motion"
         function reduce(): void {

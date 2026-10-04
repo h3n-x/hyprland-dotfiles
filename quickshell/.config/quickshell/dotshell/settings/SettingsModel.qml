@@ -69,7 +69,9 @@ QtObject {
     // ---- Control por tipo -------------------------------------------------------------------
     // bool -> interruptor; enum de 3 o menos (o un numero con "presets") ->
     // segmentado; enum mas largo -> selector; int de rango corto (12 o menos)
-    // -> paso a paso; el resto de los numeros -> deslizador; path -> ruta.
+    // -> paso a paso; el resto de los numeros -> deslizador; path -> ruta (con
+    // "Elegir…" si es una imagen o una carpeta); texto de una fuente -> selector
+    // de fuentes (Fase 10 B2).
     // "" = tipo sin control (la prueba de cobertura falla).
     function control(key: string): string {
         const m = model.keys[key];
@@ -80,6 +82,7 @@ QtObject {
         if (m.type === "int" && m.min !== undefined && m.max !== undefined && m.max - m.min <= 12) return "stepper";
         if ((m.type === "int" || m.type === "number") && m.min !== undefined && m.max !== undefined) return "slider";
         if (m.type === "path") return "path";
+        if (m.type === "string" && String(m.kind || "").startsWith("font-")) return "font";
         return "";
     }
     // Opciones [[valor, texto], ...] de un enum (orden del esquema) o de presets.

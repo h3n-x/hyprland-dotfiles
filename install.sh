@@ -33,7 +33,7 @@ command -v pacman >/dev/null 2>&1 || {
 info "Instalando paquetes (pacman)..."
 sudo pacman -S --needed --noconfirm satty cliphist wl-clip-persist \
   hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
-  qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd noto-fonts-emoji python-pillow wtype \
+  qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd noto-fonts-emoji python-pillow python-gobject xdg-desktop-portal-gtk wtype \
   gvfs tumbler thunar network-manager-applet blueman pavucontrol brightnessctl \
   jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder mpv loupe \
   matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono ttf-material-symbols-variable \

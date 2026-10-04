@@ -237,10 +237,21 @@ Item {
             Text {
                 id: footerText
                 Layout.alignment: Qt.AlignHCenter
+                // Con texto grande (Fase 10 B2), si no entran, los atajos pasan
+                // a dos lineas (solo entonces: en una linea quedan igual).
+                readonly property bool wraps: footerMetrics.advanceWidth > parent.width
+                Layout.maximumWidth: parent.width
+                wrapMode: footerText.wraps ? Text.WordWrap : Text.NoWrap
+                horizontalAlignment: footerText.wraps ? Text.AlignHCenter : Text.AlignLeft
                 text: root.hints
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
+            }
+            TextMetrics {
+                id: footerMetrics
+                text: root.hints
+                font: footerText.font
             }
         }
     }

@@ -19,6 +19,15 @@ ColumnLayout {
     property string quickshell: "…"
     property string hyprland: "…"
     property bool showFile: false
+    // Fuentes elegidas que ya no estan instaladas (Fase 10 B2): la shell usa
+    // la de fabrica (StoreBindings) y aca se dice.
+    readonly property var missingFonts: {
+        const fams = Qt.fontFamilies();
+        return ["appearance.font.ui", "appearance.font.mono"]
+            .filter(k => SettingsState.isModified(k) && fams.indexOf(SettingsState.value(k)) < 0)
+            .map(k => (page.model.keys[k] || {}).label + ": «" + SettingsState.value(k) + "» no está instalada; se usa la de fábrica");
+    }
+    readonly property int issues: SettingsState.problems.length + page.missingFonts.length
 
     readonly property var fileView: {
         const v = {};
@@ -143,17 +152,30 @@ ColumnLayout {
             RowLayout {
                 spacing: Tokens.space.sm
                 Icon {
-                    name: SettingsState.problems.length ? "warning" : "check_circle"
+                    name: page.issues ? "warning" : "check_circle"
                     filled: true
-                    color: SettingsState.problems.length ? Colors.warning : Colors.success
+                    color: page.issues ? Colors.warning : Colors.success
                 }
                 Text {
-                    text: SettingsState.problems.length === 0 ? "Opciones válidas: ningún problema"
-                        : SettingsState.problems.length === 1 ? "1 problema: no se aplica, se usa el valor de fábrica"
-                        : SettingsState.problems.length + " problemas: no se aplican, se usan los valores de fábrica"
+                    text: page.issues === 0 ? "Opciones válidas: ningún problema"
+                        : page.issues === 1 ? "1 problema: no se aplica, se usa el valor de fábrica"
+                        : page.issues + " problemas: no se aplican, se usan los valores de fábrica"
                     color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
+                }
+            }
+            Repeater {
+                model: page.missingFonts
+                Text {
+                    required property string modelData
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Tokens.icon.md + Tokens.space.sm
+                    text: modelData
+                    wrapMode: Text.WordWrap
+                    color: Colors.textMuted
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.label
                 }
             }
             Repeater {

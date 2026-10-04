@@ -22,22 +22,29 @@ QtObject {
     // Interfaz = Plus Jakarta Sans; codigo/terminal = Maple Mono NF; iconos =
     // Material Symbols Rounded. Nombres de familia tal cual los expone
     // fontconfig (verificar con fc-list despues de instalarlas en P1.3).
+    // ui y mono son elegibles (Fase 10 B2, appearance.font.*): los pone
+    // StoreBindings en la shell, el bloqueo y el centro; el greeter, desde su
+    // theme.conf. Estos son los de fabrica.
     component FontFamilies: QtObject {
-        readonly property string ui: "Plus Jakarta Sans"
-        readonly property string mono: "Maple Mono NF"
+        property string ui: "Plus Jakarta Sans"
+        property string mono: "Maple Mono NF"
         readonly property string icon: "Material Symbols Rounded"
         readonly property string emoji: "Noto Color Emoji"   // selector de emoji (P4 B3)
     }
     readonly property FontFamilies font: FontFamilies {}
 
+    // scale = tamano del texto (Fase 10 B2, accessibility.textScale: 1, 1.12
+    // o 1.25), solo para el texto: iconos, alturas y espacios no cambian. Los
+    // relojes decorativos (hero, lockClock) quedan fijos.
     component TypeScale: QtObject {
-        readonly property int caption: 11   // timestamps, metadata, badges
-        readonly property int label: 12     // labels secundarios, botones
-        readonly property int body: 13      // texto por defecto, items de lista
-        readonly property int title: 15     // titulos de panel/seccion, reloj de la barra
-        readonly property int headline: 18  // valores del OSD, titulares de tarjeta
-        readonly property int display: 24   // dashboard, numeros grandes
-        readonly property int displayLarge: 32
+        property real scale: 1
+        readonly property int caption: Math.round(11 * scale)   // timestamps, metadata, badges
+        readonly property int label: Math.round(12 * scale)     // labels secundarios, botones
+        readonly property int body: Math.round(13 * scale)      // texto por defecto, items de lista
+        readonly property int title: Math.round(15 * scale)     // titulos de panel/seccion, reloj de la barra
+        readonly property int headline: Math.round(18 * scale)  // valores del OSD, titulares de tarjeta
+        readonly property int display: Math.round(24 * scale)   // dashboard, numeros grandes
+        readonly property int displayLarge: Math.round(32 * scale)
         readonly property int hero: 80      // reloj grande del dashboard
         readonly property int lockClock: 190 // reloj apilado (horas / minutos) del bloqueo, Fase 9 B2
     }
@@ -179,6 +186,12 @@ QtObject {
         readonly property real dragged: 0.16
     }
     readonly property StateLayers stateLayer: StateLayers {}
+
+    // Foco siempre visible (Fase 10 B2, accessibility.focusRing): el elemento
+    // con el foco del teclado lleva un anillo de acento de focusRingWidth
+    // (StateLayer, DashZone). Apagado = solo la capa de foco de arriba.
+    property bool focusRing: false
+    readonly property int focusRingWidth: 2
 
     // ---- Movimiento (D7, D8, D9) ------------------------------------------
     // Mismas curvas que hl.curve() en lookandfeel.lua, asi la shell se mueve

@@ -2,6 +2,9 @@
 // "Restablecer la página" (pide confirmacion), una tarjeta por seccion con
 // una SettingRow por clave y, al final, las opciones avanzadas plegadas
 // (se despliegan solas si alguna esta cambiada o si la busqueda lleva a una).
+// Una pagina puede sumar contenido propio arriba de una seccion (extras:
+// nombre de la seccion -> Component; Apariencia, Fase 10 B2): las opciones
+// siguen siendo las del esquema, con su busqueda, cambios y restablecer.
 import QtQuick
 import QtQuick.Layouts
 import ".." // Colors.qml, Tokens.qml, SettingsState.qml
@@ -13,6 +16,7 @@ ColumnLayout {
     required property string category
     required property SettingsModel model
     property string highlightKey: ""
+    property var extras: ({})
 
     readonly property var sections: page.model.sections(page.category)
     readonly property var keys: page.model.byCategory[page.category] || []
@@ -109,6 +113,12 @@ ColumnLayout {
                 Column {
                     id: list
                     width: parent.width
+                    Loader {
+                        active: !!page.extras[section.modelData.name]
+                        visible: active
+                        width: list.width
+                        sourceComponent: page.extras[section.modelData.name] || null
+                    }
                     Repeater {
                         model: section.shownKeys
                         Column {
@@ -117,7 +127,7 @@ ColumnLayout {
                             required property int index
                             width: list.width
                             Rectangle {
-                                visible: cell.index > 0
+                                visible: cell.index > 0 || !!page.extras[section.modelData.name]
                                 x: Tokens.space.lg
                                 width: parent.width - 2 * Tokens.space.lg
                                 height: 1

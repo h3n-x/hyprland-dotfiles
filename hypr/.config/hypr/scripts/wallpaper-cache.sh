@@ -17,7 +17,8 @@
 # opciones globales appearance.scheme/contrast del almacen, P8.7) a
 # partir de la semilla (`matugen color`, ~10 ms): la vista previa muestra lo
 # mismo que dara aplicar. "opts" guarda con que opciones se calculo; si cambian
-# (theme-apply.sh --prefs/--override) se recalcula solo la paleta.
+# (theme-apply.sh --override, o el centro de configuracion) se recalcula solo
+# la paleta.
 #
 # Salida: ~/.cache/dotfiles/wallpapers/{thumbs/,palettes.json}
 #
@@ -54,7 +55,7 @@ mkdir -p "$CACHE_DIR/thumbs"
 EMPTY_CFG="$CACHE_DIR/.matugen-empty.toml"
 printf '[config]\n\n[templates]\n' > "$EMPTY_CFG"
 
-# Una pasada a la vez (Fase 3 B8a): la galeria y theme-apply.sh --prefs/--override
+# Una pasada a la vez (Fase 3 B8a): la galeria y theme-apply.sh --override
 # la lanzan en segundo plano, a veces varias seguidas. Si ya hay una corriendo,
 # esta deja una marca y sale; la que corre repite al terminar con el estado nuevo
 # (si no, pasadas en paralelo se pisaban el indice con datos viejos).
