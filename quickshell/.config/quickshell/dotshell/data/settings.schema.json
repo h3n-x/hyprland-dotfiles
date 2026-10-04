@@ -113,7 +113,7 @@
       "type": "bool", "default": true,
       "category": "lock", "section": "De un vistazo", "order": 20,
       "label": "Música",
-      "description": "Solo «Reproduciendo» cuando algo suena; nunca el título, el artista ni la portada.",
+      "description": "Cuando algo suena: el título y el artista (o el reproductor); nunca la portada. Se ve aunque la sesión esté bloqueada.",
       "keywords": ["bloqueo", "reproductor", "canción"], "apply": "next-use"
     },
     "lock.glance.battery": {

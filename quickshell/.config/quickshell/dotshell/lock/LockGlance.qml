@@ -5,7 +5,8 @@
 // Solo lectura y por eventos, nada consulta periodicamente:
 //   clima    la cache que escribe weather-fetch (la shell la refresca; el
 //            bloqueo nunca toca la red); vieja de mas de 2 h = no se muestra
-//   musica   MediaState (Mpris, sin procesos): solo "Reproduciendo"
+//   musica   MediaState (Mpris, sin procesos): el titulo que suena y el
+//            artista (o el reproductor); sin portada
 //   bateria  BatteryState (UPower): solo funcionando con bateria
 //   avisos   $XDG_RUNTIME_DIR/dotfiles-notifications.json, que escribe
 //            NotificationState al llegar cada aviso: cuantos llegaron desde
@@ -111,7 +112,14 @@ Scope {
     readonly property var tiles: {
         const r = [];
         if (root.weather) r.push({ key: "weather", icon: root.weather.icon, title: root.weather.temp + "°", sub: root.weather.text, tone: "" });
-        if (root.playing) r.push({ key: "music", icon: "music_note", title: "Música", sub: "Reproduciendo", tone: "" });
+        if (root.playing) {
+            // El titulo de lo que suena (a pedido, 2026-10-04; antes solo
+            // "Reproduciendo"); sin titulo, "Música". Debajo, el artista o el
+            // reproductor.
+            const p = MediaState.active;
+            r.push({ key: "music", icon: "music_note", title: p.trackTitle || "Música",
+                     sub: p.trackArtist || MediaState.nameOf(p) || "Reproduciendo", tone: "" });
+        }
         if (root.onBattery) r.push({
             key: "battery",
             icon: BatteryState.critical || BatteryState.warning ? "battery_alert" : "battery_android_full",

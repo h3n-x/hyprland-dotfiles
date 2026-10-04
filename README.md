@@ -670,8 +670,9 @@ funcionando). Se apagan una por una en el centro de configuracion
 
 - **Clima**: temperatura y estado del cielo, sin la ubicacion; si los datos
   tienen mas de 2 horas, no aparece. El bloqueo nunca consulta la red.
-- **Musica**: solo "Reproduciendo" mientras algo suena; nunca el titulo, el
-  artista ni la portada.
+- **Musica**: mientras algo suena, el titulo y debajo el artista (o el
+  reproductor); nunca la portada. Se ve con la sesion bloqueada: si no
+  queres que se vea, apagalo en "Bloqueo e inicio".
 - **Bateria**: solo funcionando con bateria, con el color de aviso en los
   umbrales de bateria baja y critica.
 - **Avisos**: cuantos llegaron mientras estaba bloqueado, nunca el

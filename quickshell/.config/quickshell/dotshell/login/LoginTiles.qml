@@ -159,6 +159,9 @@ Column {
                         spacing: 2
                         Text {
                             text: tile.title
+                            // Un titulo largo (la cancion en el bloqueo) se corta.
+                            width: Math.min(implicitWidth, 150)
+                            elide: Text.ElideRight
                             color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.headline
