@@ -140,6 +140,36 @@ PanelWindow {
                         onClicked: NotificationState.clearAll()
                     }
                 }
+
+                // Centro de configuracion (Fase 10 B1): accion directa; el
+                // panel se cierra para dejar ver la ventana.
+                Rectangle {
+                    implicitWidth: Tokens.pill.height
+                    implicitHeight: Tokens.pill.height
+                    radius: Tokens.radius.pill(height)
+                    color: "transparent"
+
+                    StateLayer {
+                        hovered: settingsMouse.containsMouse
+                        pressed: settingsMouse.pressed
+                    }
+                    Icon {
+                        anchors.centerIn: parent
+                        name: "settings"
+                        size: Tokens.icon.md
+                        color: Colors.textMuted
+                    }
+                    MouseArea {
+                        id: settingsMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            ControlCenterState.visible = false;
+                            Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/settings-ui"]);
+                        }
+                    }
+                }
             }
 
             GridLayout {

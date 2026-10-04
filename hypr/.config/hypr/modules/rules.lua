@@ -40,6 +40,16 @@ hl.window_rule({
     center = true,
 })
 
+-- Centro de configuracion (Fase 10 B1, dotshell/settings.qml): flotando, al
+-- centro, a su tamano. Clase y titulo verificados en la ventana real.
+hl.window_rule({
+    name  = "settings-center",
+    match = { class = [[^org\.quickshell$]], title = "^Configuración$" },
+    float  = true,
+    center = true,
+    size   = { 1100, 720 },
+})
+
 -- Picture-in-picture (mpv --title=piptitle, YouTube PiP de Firefox/Chromium)
 hl.window_rule({
     name  = "picture-in-picture",

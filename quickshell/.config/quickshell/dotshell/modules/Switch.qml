@@ -15,6 +15,12 @@ Rectangle {
     property bool checked: false
     signal toggled()
 
+    // Teclado (solo si quien lo usa le da activeFocusOnTab, como el centro de
+    // configuracion): Espacio o Enter; el halo muestra el foco.
+    Keys.onSpacePressed: root.toggled()
+    Keys.onReturnPressed: root.toggled()
+    Keys.onEnterPressed: root.toggled()
+
     implicitWidth: 36
     implicitHeight: 20
     radius: Tokens.radius.pill(height)
@@ -43,6 +49,7 @@ Rectangle {
         StateLayer {
             hovered: mouse.containsMouse
             pressed: mouse.pressed
+            focused: root.activeFocus
             contentColor: root.checked ? Colors.accent : Colors.text
         }
     }

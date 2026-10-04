@@ -369,7 +369,9 @@ def allow():
 
 
 def qml_files():
-    fs = sorted(glob.glob(os.path.join(QML, "*.qml")) + glob.glob(os.path.join(QML, "modules", "*.qml")))
+    # Toda la carpeta (modules/, lock/, login/, settings/…): una superficie nueva
+    # entra sola al control (Fase 10 B1; antes solo la raiz y modules/).
+    fs = sorted(glob.glob(os.path.join(QML, "**", "*.qml"), recursive=True))
     return [f for f in fs if os.path.basename(f) not in ("probe_shell.qml",)]
 
 

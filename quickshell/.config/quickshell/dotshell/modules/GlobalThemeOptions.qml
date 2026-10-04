@@ -16,18 +16,14 @@ ColumnLayout {
     signal schemeChosen(string scheme)
     signal contrastChosen(real contrast)
 
-    readonly property var schemes: [
-        ["scheme-content", "Contenido"], ["scheme-tonal-spot", "Tonal"], ["scheme-vibrant", "Vibrante"],
-        ["scheme-expressive", "Expresivo"], ["scheme-fidelity", "Fidelidad"], ["scheme-neutral", "Neutro"],
-        ["scheme-monochrome", "Monocromo"], ["scheme-rainbow", "Arcoíris"], ["scheme-fruit-salad", "Macedonia"]]
-    readonly property var levels: [[0, "Estándar"], [0.33, "Medio"], [0.66, "Alto"], [1, "Máximo"]]
-    property bool listOpen: false
-
-    function nameOf(s: string): string {
-        for (const e of root.schemes)
-            if (e[0] === s) return e[1];
-        return s;
+    // Opciones y etiquetas del esquema del almacen (las mismas que muestra el
+    // centro de configuracion): esquemas en el orden del esquema, niveles de
+    // contraste de "presets".
+    readonly property var schemes: {
+        const m = SettingsState.meta("appearance.scheme");
+        return m ? Object.keys(m.values).map(k => [k, m.values[k]]) : [];
     }
+    readonly property var levels: (SettingsState.meta("appearance.contrast") || {}).presets || []
 
     spacing: Tokens.space.sm
 
@@ -49,86 +45,21 @@ ColumnLayout {
             font.pixelSize: Tokens.type.label
         }
         Item { Layout.fillWidth: true }
-        Rectangle {
-            implicitHeight: Tokens.pill.height - Tokens.space.xs
-            implicitWidth: pickRow.implicitWidth + Tokens.space.md * 2
-            radius: Tokens.radius.pill(height)
-            color: root.listOpen ? Colors.accentAltContainer : "transparent"
-            border.color: root.listOpen ? "transparent" : Colors.divider
-            StateLayer { hovered: pickMouse.containsMouse; pressed: pickMouse.pressed }
-            Row {
-                id: pickRow
-                anchors.centerIn: parent
-                spacing: Tokens.space.hair
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.nameOf(root.scheme)
-                    color: root.listOpen ? Colors.textOnAccentAltContainer : Colors.text
-                    font.family: Tokens.font.ui
-                    font.pixelSize: Tokens.type.label
-                }
-                Icon {
-                    name: root.listOpen ? "arrow_drop_up" : "arrow_drop_down"
-                    size: Tokens.icon.sm
-                    color: root.listOpen ? Colors.textOnAccentAltContainer : Colors.textMuted
-                }
-            }
-            MouseArea {
-                id: pickMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.listOpen = !root.listOpen
-            }
+        Select {
+            id: schemePick
+            options: root.schemes
+            current: root.scheme
         }
     }
 
-    // Lista de esquemas (se despliega en el panel).
-    Column {
-        visible: root.listOpen
+    // Lista de esquemas (se despliega en el panel; Select/SelectList compartidos).
+    SelectList {
+        visible: schemePick.open
         Layout.fillWidth: true
-        Repeater {
-            model: root.schemes
-            Rectangle {
-                id: opt
-                required property var modelData
-                readonly property bool sel: opt.modelData[0] === root.scheme
-                width: parent.width
-                height: Tokens.row.height - Tokens.space.xs
-                radius: Tokens.radius.sm
-                color: opt.sel ? Colors.accentAltContainer : "transparent"
-                StateLayer { hovered: optMouse.containsMouse; pressed: optMouse.pressed }
-                Row {
-                    anchors.left: parent.left
-                    anchors.leftMargin: Tokens.space.sm
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: Tokens.space.xs
-                    Icon {
-                        name: "check"
-                        size: Tokens.icon.sm
-                        opacity: opt.sel ? 1 : 0
-                        color: Colors.textOnAccentAltContainer
-                    }
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: opt.modelData[1]
-                        color: opt.sel ? Colors.textOnAccentAltContainer : Colors.text
-                        font.family: Tokens.font.ui
-                        font.pixelSize: Tokens.type.label
-                    }
-                }
-                MouseArea {
-                    id: optMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if (!opt.sel) root.schemeChosen(opt.modelData[0]);
-                        root.listOpen = false;
-                    }
-                }
-            }
-        }
+        options: root.schemes
+        current: root.scheme
+        onChosen: value => root.schemeChosen(value)
+        onClosed: schemePick.open = false
     }
 
     Text {
@@ -137,60 +68,12 @@ ColumnLayout {
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label
     }
-    // Control segmentado: la seleccion es una pildora dentro del segmento.
-    Rectangle {
+    // Control segmentado compartido (modules/Segmented.qml).
+    Segmented {
         Layout.fillWidth: true
-        implicitHeight: Tokens.pill.height + Tokens.space.xs
-        radius: Tokens.radius.pill(height)
-        color: "transparent"
-        border.color: Colors.divider
-        RowLayout {
-            anchors.fill: parent
-            anchors.margins: 3
-            spacing: 0
-            Repeater {
-                model: root.levels
-                Item {
-                    id: seg
-                    required property var modelData
-                    required property int index
-                    readonly property bool sel: Math.abs(root.contrast - seg.modelData[0]) < 0.01
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: Tokens.radius.pill(height)
-                        color: seg.sel ? Colors.accentAltContainer : "transparent"
-                        StateLayer {
-                            radius: parent.radius
-                            hovered: segMouse.containsMouse
-                            pressed: segMouse.pressed
-                            contentColor: seg.sel ? Colors.textOnAccentAltContainer : Colors.textMuted
-                        }
-                    }
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: Tokens.space.hair
-                        Icon { visible: seg.sel; name: "check"; size: Tokens.icon.sm; color: Colors.textOnAccentAltContainer }
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: seg.modelData[1]
-                            color: seg.sel ? Colors.textOnAccentAltContainer : Colors.textMuted
-                            font.family: Tokens.font.ui
-                            font.pixelSize: Tokens.type.label
-                            font.weight: seg.sel ? Tokens.weight.semibold : Tokens.weight.regular
-                        }
-                    }
-                    MouseArea {
-                        id: segMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: if (!seg.sel) root.contrastChosen(seg.modelData[0])
-                    }
-                }
-            }
-        }
+        options: root.levels
+        current: root.contrast
+        onChosen: value => root.contrastChosen(value)
     }
 
     Text {

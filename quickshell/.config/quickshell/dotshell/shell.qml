@@ -276,6 +276,10 @@ ShellRoot {
         function toggle(): void {
             GalleryState.toggle();
         }
+        // El centro de configuracion (Inicio, "Cambiar fondo"): abre sin cerrar.
+        function open(): void {
+            GalleryState.open();
+        }
     }
 
     // Tema (Fase 3 B5): volver al tema anterior del historial. Tambien en

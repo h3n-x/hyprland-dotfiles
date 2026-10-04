@@ -76,31 +76,6 @@ ColumnLayout {
         elide: Text.ElideRight
         maximumLineCount: 3
     }
-    // Boton tonal/contorno de las filas; main = el de "Abrir en la terminal".
-    component Btn: Rectangle {
-        id: btn
-        property string label
-        property string icon: ""
-        property bool main: false
-        signal clicked()
-        implicitHeight: 32
-        implicitWidth: btnRow.implicitWidth + Tokens.space.lg + Tokens.space.xs
-        radius: Tokens.radius.pill(height)
-        color: btn.main ? Colors.accent : "transparent"
-        border.width: btn.main ? 0 : 1
-        border.color: Colors.divider
-        StateLayer { hovered: btnMouse.containsMouse; pressed: btnMouse.pressed; contentColor: btn.main ? Colors.textOnAccent : Colors.text }
-        Row {
-            id: btnRow
-            anchors.centerIn: parent
-            spacing: Tokens.space.xs + 2
-            Icon { anchors.verticalCenter: parent.verticalCenter; visible: btn.icon !== ""; name: btn.icon; size: Tokens.icon.sm; filled: btn.main
-                color: btn.main ? Colors.textOnAccent : Colors.textMuted }
-            T { anchors.verticalCenter: parent.verticalCenter; text: btn.label; size: Tokens.type.label; wt: Tokens.weight.semibold; wrapMode: Text.NoWrap
-                color: btn.main ? Colors.textOnAccent : Colors.textMuted }
-        }
-        MouseArea { id: btnMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: btn.clicked() }
-    }
     component SectionTitle: T {
         Layout.topMargin: Tokens.space.xs
         Layout.leftMargin: Tokens.space.xs
@@ -142,7 +117,7 @@ ColumnLayout {
                     T { Layout.fillWidth: true; text: row.item.sentence; wt: Tokens.weight.semibold }
                     T { Layout.fillWidth: true; visible: !!row.item.why; text: row.item.why; size: Tokens.type.label; color: Colors.textMuted }
                 }
-                Btn {
+                Button {
                     visible: !!row.item.action && row.item.action !== "unit-log"
                     Layout.alignment: Qt.AlignVCenter
                     label: row.item.actionLabel
@@ -205,9 +180,9 @@ ColumnLayout {
                             T { Layout.fillWidth: true; text: unitRow.modelData.description + (unitRow.modelData.lastLog ? " — " + unitRow.modelData.lastLog : "")
                                 size: Tokens.type.caption; color: Colors.border; maximumLineCount: 2 }
                         }
-                        Btn { label: "Ver registro"; icon: "article"
+                        Button { label: "Ver registro"; icon: "article"
                             onClicked: MaintenanceState.act("unit-log", unitRow.modelData.name, unitRow.modelData.scope === "user" ? "user" : "") }
-                        Btn { label: "Ocultar"; icon: "visibility_off"; onClicked: MaintenanceState.ignoreUnit(unitRow.modelData.name) }
+                        Button { label: "Ocultar"; icon: "visibility_off"; onClicked: MaintenanceState.ignoreUnit(unitRow.modelData.name) }
                     }
                 }
 
@@ -251,7 +226,7 @@ ColumnLayout {
                         }
                     }
                 }
-                Btn {
+                Button {
                     visible: !!row.plan
                     main: true
                     label: "Abrir en la terminal"
@@ -301,7 +276,7 @@ ColumnLayout {
                 color: Colors.textMuted
             }
         }
-        Btn {
+        Button {
             Layout.alignment: Qt.AlignTop
             label: MaintenanceState.checking ? "Revisando…" : "Revisar"
             icon: "refresh"
@@ -363,9 +338,9 @@ ColumnLayout {
                     Layout.leftMargin: 24
                     Layout.fillWidth: true
                     T { Layout.fillWidth: true; text: infoUnit.modelData.name; font.family: Tokens.font.mono; size: Tokens.type.caption; color: Colors.textMuted; wrapMode: Text.NoWrap }
-                    Btn { label: "Ver registro"; icon: "article"
+                    Button { label: "Ver registro"; icon: "article"
                         onClicked: MaintenanceState.act("unit-log", infoUnit.modelData.name, infoUnit.modelData.scope === "user" ? "user" : "") }
-                    Btn { label: "Ocultar"; icon: "visibility_off"; onClicked: MaintenanceState.ignoreUnit(infoUnit.modelData.name) }
+                    Button { label: "Ocultar"; icon: "visibility_off"; onClicked: MaintenanceState.ignoreUnit(infoUnit.modelData.name) }
                 }
             }
         }

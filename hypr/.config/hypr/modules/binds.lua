@@ -33,6 +33,9 @@ hl.bind(mainMod .. " + SHIFT + TAB", hl.dsp.exec_cmd("qs -c dotshell ipc call sw
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager), { desc = "Programas · Archivos" })
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser), { desc = "Programas · Navegador" })
 
+-- Centro de configuracion (Quickshell, Fase 10 B1): abre la ventana o trae la
+-- que esta abierta (scripts/settings-ui; tambien el engranaje del centro de control).
+hl.bind(mainMod .. " + I", hl.dsp.exec_cmd(scripts .. "/settings-ui"), { desc = "Sistema · Configuración" })
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(scripts .. "/lock --user"), { desc = "Sistema · Bloquear la pantalla" })
 -- Bloqueo de emergencia (Fase 9 B1, D12): con el bloqueo de Quickshell vivo
 -- pero inutilizable, lo cambia por el hyprlock de emergencia (sigue pidiendo

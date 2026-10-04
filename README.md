@@ -467,6 +467,52 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
 - Para depurar en vivo: `qs -c dotshell log -f` (logs) y
   `qs -c dotshell ipc show` (lista los `IpcHandler` disponibles).
 
+### Centro de configuracion
+
+Una ventana, "Configuracion", con todas las opciones del ecosistema. Se abre
+con `SUPER+I`, con el engranaje del centro de control (`SUPER+N`) o con un
+enlace directo:
+
+```sh
+~/.config/hypr/scripts/settings-ui                        # abrir (o traer la que esta abierta)
+~/.config/hypr/scripts/settings-ui open system            # una pagina
+~/.config/hypr/scripts/settings-ui open capture.cardSeconds   # una opcion: su pagina, iluminada
+```
+
+Es una instancia de Quickshell aparte de la shell
+(`dotshell/settings.qml`, como el bloqueo): cerrada no hay ningun proceso, y
+reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
+`SUPER+I` la trae al frente). Flota al centro a 1100 x 720 (regla
+`settings-center` en `rules.lua`).
+
+- **Inicio**: el tema actual ("Cambiar fondo" abre la galeria, "Opciones de
+  tema" lleva a Apariencia), tres opciones rapidas (reducir movimiento,
+  transparencia, alto contraste) y **Tus cambios**: cada opcion cambiada,
+  con su valor, el de fabrica y volver; clic en una lleva a su fila.
+- **Una pagina por categoria** (Apariencia, Accesibilidad, Barra, Dashboard,
+  Capturas, Notificaciones, Sistema, Bloqueo e inicio, Atajos). Las paginas
+  se arman solas desde `dotshell/data/settings.schema.json`: una clave nueva
+  aparece en su pagina, con el control de su tipo, y se encuentra al buscar.
+  Una categoria sin opciones no aparece. Cada fila dice si esta "Cambiada" y
+  cuando se aplica ("La proxima vez", "Reinicia la shell"); las avanzadas
+  quedan plegadas al final de la pagina. "Restablecer la pagina" vuelve todo
+  a fabrica (pregunta antes).
+- **Acerca de**: versiones, Diagnostico (valores que el motor no aplico y
+  por que), tus cambios como archivo y el README.
+- **Buscar** (`Ctrl+F`): etiqueta, descripcion, palabras clave, sin tildes;
+  Enter lleva a la opcion y la ilumina. `Ctrl+Tab` / `Ctrl+AvPag` cambian
+  de pagina, Tab recorre los controles, Esc borra la busqueda y despues
+  cierra.
+
+Los valores se guardan solo a traves de `~/.config/hypr/scripts/settings`
+(el unico que escribe `~/.config/dotfiles/settings.json`, y solo lo que
+cambiaste); un valor que no vale no se guarda y la fila dice por que. Si un
+cambio pide reiniciar la shell, arriba aparece un aviso con el boton.
+
+Para depurar: `qs ipc -p ~/.config/quickshell/dotshell/settings.qml call
+settingsui status` (pagina y opcion iluminada); los logs, con
+`qs log -p ~/.config/quickshell/dotshell/settings.qml`.
+
 ### Spotify (spicetify + Marketplace)
 
 `user.css` parte de [catppuccin/spicetify](https://github.com/catppuccin/spicetify)
@@ -605,8 +651,8 @@ vigila:
 
 Cada tarjeta aparece solo si tiene algo que decir y ninguna hace nada (el
 cursor esta oculto; las teclas de volumen, brillo y multimedia siguen
-funcionando). Se apagan una por una en Opciones, "Bloqueo e inicio"
-(`lock.glance.*`):
+funcionando). Se apagan una por una en el centro de configuracion
+(`SUPER+I`), pagina "Bloqueo e inicio" (`lock.glance.*`):
 
 - **Clima**: temperatura y estado del cielo, sin la ubicacion; si los datos
   tienen mas de 2 horas, no aparece. El bloqueo nunca consulta la red.
@@ -903,6 +949,7 @@ descripcion.
 
 | Atajo | Acción |
 |---|---|
+| `Super` + `I` | Configuración |
 | `Super` + `L` | Bloquear la pantalla |
 | `Super` + `Ctrl` + `Alt` + `L` | Bloqueo de emergencia |
 | `Super` + `M` | Energía y sesión |

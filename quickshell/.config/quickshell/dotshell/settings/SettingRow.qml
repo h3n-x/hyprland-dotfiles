@@ -1,0 +1,245 @@
+// Una opcion del almacen (Fase 10 B1): etiqueta, descripcion, "Cambiada" y
+// cuando se aplica, el control que corresponde a su tipo (SettingsModel.
+// control) y, si esta cambiada, volver al valor de fabrica. Todo cambio va
+// por SettingsState (-> scripts/settings, el unico que escribe); si el motor
+// lo rechaza, el motivo queda debajo, en el color fijo de peligro (P8.7).
+// Los marcadores son neutros: "cambiada" es un estado y los colores de
+// identidad nunca marcan estados (principio 23).
+import QtQuick
+import QtQuick.Layouts
+import ".." // Colors.qml, Tokens.qml, SettingsState.qml
+import "../modules"
+
+Item {
+    id: row
+
+    required property string key
+    required property SettingsModel model
+    // Resultado de la busqueda: la fila se ilumina una vez.
+    property bool highlighted: false
+
+    readonly property var meta: SettingsState.meta(row.key) || ({})
+    readonly property var value: SettingsState.value(row.key)
+    readonly property bool modified: SettingsState.isModified(row.key)
+    readonly property string error: SettingsState.errors[row.key] || ""
+    readonly property string kind: row.model.control(row.key)
+    readonly property string note: row.model.applyNote(row.key)
+    readonly property bool stacked: !!control.item && control.item.implicitWidth > col.width * 0.6
+    // El selector abierto (su lista va debajo, a lo ancho de la fila).
+    readonly property bool listOpen: row.kind === "select" && !!control.item && control.item.open
+
+    function set(v: var): void {
+        SettingsState.set(row.key, v);
+    }
+
+    implicitHeight: col.implicitHeight + 2 * Tokens.space.md
+
+    // Brillo del resultado de la busqueda: entra, se sostiene y se va (una
+    // vez; con movimiento reducido, sin fundido).
+    Rectangle {
+        id: glow
+        anchors.fill: parent
+        radius: Tokens.radius.md
+        color: Colors.tint(Colors.accent, Tokens.tint.track)
+        border.width: 1
+        border.color: Colors.accent
+        opacity: 0
+    }
+    onHighlightedChanged: if (row.highlighted) flash.restart()
+    SequentialAnimation {
+        id: flash
+        NumberAnimation { target: glow; property: "opacity"; to: 1; duration: Tokens.motion.short }
+        PauseAnimation { duration: 1400 }
+        NumberAnimation { target: glow; property: "opacity"; to: 0; duration: Tokens.motion.long }
+    }
+
+    ColumnLayout {
+        id: col
+        x: Tokens.space.lg
+        y: Tokens.space.md
+        width: parent.width - 2 * Tokens.space.lg
+        spacing: Tokens.space.sm
+
+        // Texto, volver y control en una linea; si el control es ancho (un
+        // segmentado con etiquetas largas) pasa debajo, a todo el ancho.
+        GridLayout {
+            Layout.fillWidth: true
+            columns: row.stacked ? 2 : 3
+            columnSpacing: Tokens.space.md
+            rowSpacing: Tokens.space.sm
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: Tokens.space.hair
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: Tokens.space.sm
+                    Text {
+                        text: row.meta.label || row.key
+                        color: Colors.text
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.body
+                        font.weight: Tokens.weight.medium
+                    }
+                    Chip { visible: row.modified; icon: "edit"; label: "Cambiada" }
+                    Chip { visible: row.note !== ""; icon: "schedule"; label: row.note }
+                }
+                Text {
+                    visible: !!row.meta.description
+                    Layout.fillWidth: true
+                    text: row.meta.description || ""
+                    color: Colors.textMuted
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.label
+                    wrapMode: Text.WordWrap
+                }
+                Row {
+                    visible: row.error !== ""
+                    spacing: Tokens.space.xs
+                    Icon { anchors.verticalCenter: parent.verticalCenter; name: "error"; filled: true; size: Tokens.icon.sm; color: Colors.danger }
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "No se guardó: " + row.error.replace(/; no se guardó$/, "")
+                        color: Colors.danger
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.label
+                    }
+                }
+            }
+
+            // Volver al valor de fabrica (solo si esta cambiada).
+            Rectangle {
+                id: resetBtn
+                visible: row.modified
+                Layout.alignment: Qt.AlignVCenter
+                implicitWidth: Tokens.pill.height
+                implicitHeight: Tokens.pill.height
+                radius: width / 2
+                color: "transparent"
+                activeFocusOnTab: visible
+                Keys.onReturnPressed: SettingsState.reset(row.key)
+                Keys.onSpacePressed: SettingsState.reset(row.key)
+                StateLayer { hovered: resetMouse.containsMouse; pressed: resetMouse.pressed; focused: resetBtn.activeFocus }
+                Icon { anchors.centerIn: parent; name: "undo"; size: Tokens.icon.sm; color: Colors.textMuted }
+                MouseArea {
+                    id: resetMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: SettingsState.reset(row.key)
+                }
+            }
+
+            Loader {
+                id: control
+                Layout.alignment: Qt.AlignVCenter
+                Layout.columnSpan: row.stacked ? 2 : 1
+                Layout.fillWidth: row.stacked
+                sourceComponent: ({
+                    "switch": switchC, "segmented": segmentedC, "select": selectC,
+                    "stepper": stepperC, "slider": sliderC, "path": pathC
+                })[row.kind] || null
+            }
+        }
+
+        // Lista del selector, a lo ancho de la fila (como en la galeria).
+        SelectList {
+            visible: row.listOpen
+            Layout.fillWidth: true
+            options: row.model.options(row.key)
+            current: row.value
+            onChosen: (v) => row.set(v)
+            onClosed: control.item.open = false
+        }
+    }
+
+    // Etiqueta neutra de contorno (cambiada, cuando se aplica).
+    component Chip: Rectangle {
+        id: chip
+        property string icon
+        property string label
+        height: 20
+        width: chipRow.implicitWidth + Tokens.space.md
+        radius: Tokens.radius.pill(height)
+        color: "transparent"
+        border.color: Colors.divider
+        Row {
+            id: chipRow
+            anchors.centerIn: parent
+            spacing: Tokens.space.xs
+            Icon { anchors.verticalCenter: parent.verticalCenter; name: chip.icon; size: 12; color: Colors.textMuted }
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: chip.label
+                color: Colors.textMuted
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.caption
+            }
+        }
+    }
+
+    Component {
+        id: switchC
+        Switch {
+            objectName: "control-switch"
+            activeFocusOnTab: true
+            checked: !!row.value
+            onToggled: row.set(!row.value)
+        }
+    }
+    Component {
+        id: segmentedC
+        Segmented {
+            objectName: "control-segmented"
+            activeFocusOnTab: true
+            options: row.model.options(row.key)
+            current: row.value
+            onChosen: (v) => row.set(v)
+        }
+    }
+    Component {
+        id: selectC
+        Select {
+            objectName: "control-select"
+            activeFocusOnTab: true
+            options: row.model.options(row.key)
+            current: row.value
+            onChosen: (v) => row.set(v)
+        }
+    }
+    Component {
+        id: stepperC
+        Stepper {
+            objectName: "control-stepper"
+            from: row.meta.min
+            to: row.meta.max
+            value: row.value
+            unit: row.meta.unit || ""
+            labels: row.meta.labels || ({})
+            onMoved: (v) => row.set(v)
+        }
+    }
+    Component {
+        id: sliderC
+        Slider {
+            objectName: "control-slider"
+            implicitWidth: 260 + Tokens.space.md + 84
+            from: row.meta.min
+            to: row.meta.max
+            step: row.meta.step || 0
+            integer: row.meta.type === "int"
+            value: row.value
+            unit: row.meta.unit || ""
+            labels: row.meta.labels || ({})
+            onMoved: (v) => row.set(row.meta.type === "int" ? Math.round(v) : v)
+        }
+    }
+    Component {
+        id: pathC
+        PathField {
+            objectName: "control-path"
+            value: row.value || ""
+            onEdited: (v) => row.set(v)
+        }
+    }
+}

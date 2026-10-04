@@ -33,6 +33,9 @@ QtObject {
     property var values: ({})
     property var modified: []
     property var problems: []
+    // Por que el motor rechazo el ultimo cambio pedido de una clave (su
+    // mensaje); se borra con el siguiente pedido de esa clave.
+    property var errors: ({})
     property bool ready: false
     // Cambios pedidos que el motor todavia no confirmo (se ven al instante).
     property var pending: ({})
@@ -63,6 +66,11 @@ QtObject {
         }
         return v;
     }
+    // Una ruta pedida con "~" vuelve del motor expandida: se comparan iguales.
+    function expand(key: string, v: var): var {
+        const m = root.meta(key);
+        return m && m.type === "path" && typeof v === "string" && v.startsWith("~") ? root.home + v.slice(1) : v;
+    }
     function isModified(key: string): bool {
         return root.modified.indexOf(key) >= 0;
     }
@@ -84,6 +92,7 @@ QtObject {
         const p = Object.assign({}, root.pending);
         p[key] = v;
         root.pending = p;
+        root.clearError(key);
         root.outbox[key] = ["set", key, JSON.stringify(v)];
         flush.restart();
         if (["reload-shell", "relogin", "reboot"].indexOf(m.apply) >= 0 && root.pendingRestart.indexOf(key) < 0)
@@ -94,10 +103,18 @@ QtObject {
         const m = root.meta(key);
         if (m) p[key] = m.default;
         root.pending = p;
+        root.clearError(key);
         root.outbox[key] = ["reset", key];
         flush.restart();
     }
     function resetCategory(category: string): void {
+        // Lo pendiente de la categoria ya no vale (se ve el de fabrica).
+        const p = {};
+        for (const k in root.pending)
+            if (!k.startsWith(category + ".")) p[k] = root.pending[k];
+        root.pending = p;
+        for (const k in root.errors)
+            if (k.startsWith(category + ".")) root.clearError(k);
         root.outbox["@" + category] = ["reset-category", category];
         flush.restart();
     }
@@ -121,14 +138,27 @@ QtObject {
     }
     property Process writer: Process {
         stderr: StdioCollector {
+            id: writerErr
             onStreamFinished: if (this.text.trim()) console.warn("SettingsState: " + this.text.trim())
         }
-        // Si el motor rechaza el valor, se descarta el cambio pendiente.
+        // Si el motor rechaza el valor, se descarta el cambio pendiente y su
+        // motivo queda en errors (sin el prefijo "clave: " del motor).
         onExited: (code) => {
             const args = writer.command.slice(1);
-            if (code !== 0 && args[0] === "set") root.drop(args[1]);
+            if (code !== 0 && args[0] === "set") {
+                root.drop(args[1]);
+                const e = Object.assign({}, root.errors);
+                e[args[1]] = writerErr.text.trim().replace(args[1] + ": ", "") || "no se guardó";
+                root.errors = e;
+            }
             root.next();
         }
+    }
+    function clearError(key: string): void {
+        if (!root.errors.hasOwnProperty(key)) return;
+        const e = Object.assign({}, root.errors);
+        delete e[key];
+        root.errors = e;
     }
     function drop(key: string): void {
         const p = Object.assign({}, root.pending);
@@ -197,7 +227,7 @@ QtObject {
         // Lo confirmado deja de estar pendiente.
         const p = {};
         for (const k in root.pending)
-            if (JSON.stringify(root.values[k]) !== JSON.stringify(root.pending[k])) p[k] = root.pending[k];
+            if (JSON.stringify(root.values[k]) !== JSON.stringify(root.expand(k, root.pending[k]))) p[k] = root.pending[k];
         if (Object.keys(p).length !== Object.keys(root.pending).length) root.pending = p;
         root.ready = true;
     }

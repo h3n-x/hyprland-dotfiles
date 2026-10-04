@@ -1,0 +1,51 @@
+#!/bin/bash
+# Centro de configuracion (Fase 10 B1): la unica entrada (S+I, el engranaje
+# del centro de control, enlaces directos). Abre la ventana de Quickshell
+# (dotshell/settings.qml, una instancia aparte de la shell) o, si ya esta
+# abierta, le pasa el destino por IPC y la trae al frente.
+#
+#   settings-ui                     abrir (o traer la que esta abierta)
+#   settings-ui open <destino>      una pagina (appearance, system, about…) o
+#                                   una opcion (capture.cardSeconds): la pagina
+#                                   con la opcion iluminada
+#
+# Una sola ventana: el flock cubre solo "preguntar o lanzar y esperar a que
+# responda" (como mucho 5 s), asi dos S+I seguidos no abren dos. No se le
+# pasa el descriptor a Quickshell: lo heredarian los programas que abre (el
+# README) y el candado quedaria tomado con la ventana cerrada.
+# Pruebas: SETTINGS_UI_QML (otra ventana), SETTINGS_UI_RUN_DIR, SETTINGS_UI_NO_FOCUS=1.
+set -u
+
+QML=${SETTINGS_UI_QML:-$HOME/.config/quickshell/dotshell/settings.qml}
+RUN=${SETTINGS_UI_RUN_DIR:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/dotfiles}
+mkdir -p "$RUN"
+
+target=""
+case "${1:-}" in
+  "") ;;
+  open) target=${2:-} ;;
+  *) echo "uso: settings-ui [open <pagina|clave>]" >&2; exit 2 ;;
+esac
+
+ipc() { qs ipc -p "$QML" call settingsui "$@" >/dev/null 2>&1; }
+# Al frente: el compositor enfoca la ventana (clase y titulo de Quickshell).
+raise() {
+  [ "${SETTINGS_UI_NO_FOCUS:-}" = 1 ] && return
+  hyprctl dispatch 'hl.dsp.focus({ window = "title:^Configuración$" })' >/dev/null 2>&1
+}
+
+exec 9>"$RUN/settings-ui.flock"
+flock -w 5 9 || { echo "settings-ui: otra apertura en curso" >&2; exit 1; }
+
+if ipc open "$target"; then
+  raise
+  exit 0
+fi
+
+SETTINGS_UI_OPEN=$target setsid -f qs -p "$QML" 9>&- </dev/null >/dev/null 2>&1
+for _ in $(seq 50); do
+  sleep 0.1
+  ipc open "" && exit 0
+done
+echo "settings-ui: la ventana no respondio en 5 s" >&2
+exit 1
