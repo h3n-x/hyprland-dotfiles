@@ -9,21 +9,24 @@
 #   weather-fetch --clear         olvida la ubicacion y la cache (sin consultas)
 #   weather-fetch --status        resumen legible
 #
-# Privacidad: la ubicacion vive solo en este equipo (~/.local/state, fuera del
-# repo) y se guarda redondeada a 0,1 grados (~10 km); eso es lo unico que se
-# envia. Sin ubicacion no hay ninguna consulta.
+# Privacidad: la ubicacion vive solo en este equipo (el almacen de opciones,
+# dashboard.weather.location, Fase 10 B4; antes un archivo propio) y se guarda
+# redondeada a 0,1 grados (~10 km); eso es lo unico que se envia. Sin
+# ubicacion no hay ninguna consulta.
 #
 # Cache: la ultima respuesta buena se conserva siempre. Si una consulta falla
 # se anota el error (offline: sin red o sin respuesta; http: codigo de error;
 # parse: respuesta invalida) sin tocar los datos, para que el panel distinga
 # "sin conexion", "usando cache", "datos antiguos" y "error de consulta".
 #
-# Pruebas: WEATHER_API_BASE, WEATHER_GEO_BASE, WEATHER_STATE, WEATHER_CACHE.
+# Pruebas: WEATHER_API_BASE, WEATHER_GEO_BASE, WEATHER_CACHE y las SETTINGS_* del motor.
 set -uo pipefail
 
 API=${WEATHER_API_BASE:-https://api.open-meteo.com}
 GEO=${WEATHER_GEO_BASE:-https://geocoding-api.open-meteo.com}
-STATE=${WEATHER_STATE:-$HOME/.local/state/dotfiles/weather.json}
+SETTINGS="$(dirname "$(readlink -f "$0")")/settings"
+# La ubicacion (JSON {name, detail, lat, lon}) o vacio.
+location() { local l; l=$("$SETTINGS" get dashboard.weather.location 2>/dev/null); [[ $l != null ]] && printf '%s' "$l"; }
 CACHE=${WEATHER_CACHE:-$HOME/.cache/dotfiles/weather.json}
 LOCK=$CACHE.lock
 
@@ -51,9 +54,10 @@ record_error() {
 }
 
 fetch() {
-    [[ -s $STATE ]] || { echo "sin ubicacion: no se consulta" >&2; return 2; }
-    local lat lon place
-    lat=$(jq -r '.lat' "$STATE"); lon=$(jq -r '.lon' "$STATE"); place=$(jq -r '.name' "$STATE")
+    local loc lat lon place
+    loc=$(location)
+    [[ -n $loc ]] || { echo "sin ubicacion: no se consulta" >&2; return 2; }
+    lat=$(jq -r '.lat' <<<"$loc"); lon=$(jq -r '.lon' <<<"$loc"); place=$(jq -r '.name' <<<"$loc")
     [[ $lat != null && $lon != null ]] || { echo "ubicacion invalida" >&2; return 2; }
 
     exec 9>"$LOCK"
@@ -91,15 +95,16 @@ search() {
 set_location() {
     local lat=$1 lon=$2 name=$3 detail=${4:-}
     # Redondeo a 0,1 grados (~10 km): es lo unico que se guarda y se envia.
-    jq -n --arg name "$name" --arg detail "$detail" --argjson lat "$lat" --argjson lon "$lon" \
-        '{name: $name, detail: $detail, lat: (($lat * 10 | round) / 10), lon: (($lon * 10 | round) / 10)}' | write_atomic "$STATE"
+    "$SETTINGS" set dashboard.weather.location "$(jq -cn --arg name "$name" --arg detail "$detail" --argjson lat "$lat" --argjson lon "$lon" \
+        '{name: $name, detail: $detail, lat: (($lat * 10 | round) / 10), lon: (($lon * 10 | round) / 10)}')" || return 2
     rm -f "$CACHE"
     fetch
 }
 
 status() {
-    if [[ ! -s $STATE ]]; then echo "sin ubicacion (el clima no consulta nada)"; return; fi
-    jq -r '"ubicacion: \(.name) (\(.detail)) · \(.lat), \(.lon)"' "$STATE"
+    local loc; loc=$(location)
+    if [[ -z $loc ]]; then echo "sin ubicacion (el clima no consulta nada)"; return; fi
+    jq -r '"ubicacion: \(.name) (\(.detail)) · \(.lat), \(.lon)"' <<<"$loc"
     if [[ -s $CACHE ]]; then
         jq -r --argjson now "$(now)" '
             (if .fetched_at then "datos: hace \((($now - .fetched_at) / 60) | floor) min" else "datos: ninguno" end),
@@ -113,7 +118,7 @@ case ${1:-} in
     "")        fetch ;;
     --search)  search "${2:?falta el nombre}" ;;
     --set)     set_location "${2:?lat}" "${3:?lon}" "${4:?nombre}" "${5:-}" ;;
-    --clear)   rm -f "$STATE" "$CACHE" "$LOCK" ;;
+    --clear)   "$SETTINGS" reset dashboard.weather.location; rm -f "$CACHE" "$LOCK" ;;
     --status)  status ;;
     *)         sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
 esac

@@ -20,9 +20,14 @@ PanelWindow {
     // a mitad de camino (la geometria de las ventanas no se anima, guia 3.6.1).
     // El input queda limitado a los toasts (mask) y el blur solo cae donde hay
     // tarjeta (ignore_alpha).
+    // Donde aparecen (notifications.position, Fase 10 B4): arriba o abajo a la
+    // derecha (la ventana va a lo alto de la pantalla y la pila arriba o abajo)
+    // o arriba al centro (sin anclar a los lados, el compositor la centra).
+    readonly property string position: SettingsState.value("notifications.position") || "top-right"
+    readonly property bool atBottom: toastWindow.position === "bottom-right"
     anchors {
         top: true
-        right: true
+        right: toastWindow.position !== "top-center"
         bottom: true
     }
     // Debajo de la barra y alineado con su borde derecho, igual que
@@ -40,10 +45,17 @@ PanelWindow {
     property string screenName: ""
     onScreenChanged: if (toastWindow.screen && toastWindow.screen.name !== toastWindow.screenName) toastWindow.screenName = toastWindow.screen.name
     Component.onCompleted: toastWindow.screenName = toastWindow.screen ? toastWindow.screen.name : ""
-    readonly property var toasts: NotificationState.activeToasts.filter(n => NotificationState.shownOn(n, toastWindow.screenName))
+    // Hasta notifications.maxVisible a la vez (0 = sin limite); los demas
+    // esperan su turno (su tiempo corre al aparecer).
+    readonly property int maxVisible: Number(SettingsState.value("notifications.maxVisible") || 0)
+    readonly property var toasts: {
+        const l = NotificationState.activeToasts.filter(n => NotificationState.shownOn(n, toastWindow.screenName));
+        return toastWindow.maxVisible > 0 ? l.slice(0, toastWindow.maxVisible) : l;
+    }
     margins {
         top: Tokens.popupTop - toastWindow.shadowMargin
         right: Tokens.screenEdge - toastWindow.shadowMargin
+        bottom: toastWindow.atBottom ? Tokens.screenEdge - toastWindow.shadowMargin : 0
     }
     implicitWidth: Tokens.panel.widthLg + toastWindow.shadowMargin * 2
     color: "transparent"
@@ -57,7 +69,8 @@ PanelWindow {
     Column {
         id: column
         x: toastWindow.shadowMargin
-        y: toastWindow.shadowMargin
+        // Abajo: la pila crece hacia arriba desde el borde inferior.
+        y: toastWindow.atBottom ? toastWindow.height - column.height - toastWindow.shadowMargin : toastWindow.shadowMargin
         width: Tokens.panel.widthLg
         spacing: Tokens.space.sm
 

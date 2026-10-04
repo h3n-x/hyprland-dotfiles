@@ -86,12 +86,26 @@ QtObject {
         if (m.type === "path") return "path";
         if (m.type === "string" && String(m.kind || "").startsWith("font-")) return "font";
         if (m.type === "list" && m.kind === "xkb") return "layouts";
+        if (m.type === "location") return "location";
+        if (m.type === "string" && m.kind === "player") return "player";
         return "";
     }
     // Opciones [[valor, texto], ...] de un enum (orden del esquema) o de presets.
     function options(key: string): var {
         const m = model.keys[key];
         if (!m) return [];
+        // Reproductores (Fase 10 B4): automatico, los abiertos ahora (MediaState,
+        // cliente pasivo de MPRIS) y el elegido aunque no este abierto.
+        if (m.kind === "player") {
+            const out = [["", "Automático"]];
+            for (const p of MediaState.players) {
+                const k = MediaState.keyOf(p);
+                if (k && !out.some(o => o[0] === k)) out.push([k, MediaState.nameOf(p)]);
+            }
+            const cur = SettingsState.value(key);
+            if (cur && !out.some(o => o[0] === cur)) out.push([cur, cur + " (cerrado)"]);
+            return out;
+        }
         if (m.type === "enum") return Object.keys(m.values).map(v => [v, m.values[v]]);
         if (Array.isArray(m.presets)) return m.presets.map(p => Array.isArray(p) ? p : [p, String(p)]);
         return [];
@@ -104,6 +118,8 @@ QtObject {
         if (m.type === "bool") return v ? "Encendido" : "Apagado";
         if (m.type === "enum") return (m.values && m.values[v]) || String(v);
         if (m.type === "list") return (v || []).join(", ");
+        if (m.type === "location") return v ? v.name : "Sin ciudad";
+        if (m.kind === "player") return v || "Automático";
         if (m.labels && m.labels.hasOwnProperty(String(v))) return m.labels[String(v)];
         const preset = Array.isArray(m.presets) ? m.presets.find(p => Array.isArray(p) && Math.abs(p[0] - v) < 0.01) : null;
         if (preset) return preset[1];

@@ -6,6 +6,15 @@ pragma Singleton
 import QtQuick
 
 QtObject {
+    // Temperatura (de Open-Meteo, siempre en °C) como se muestra: redondeada,
+    // con signo menos tipografico y en las unidades elegidas ("c" o "f",
+    // dashboard.weather.units, Fase 10 B4). Una sola implementacion para la
+    // barra, el dashboard y el bloqueo.
+    function temp(value: real, units: string): string {
+        if (value === undefined || value === null || isNaN(value)) return "–";
+        const t = Math.round(units === "f" ? value * 9 / 5 + 32 : value);
+        return (t < 0 ? "−" + Math.abs(t) : String(t === 0 ? 0 : t)) + "°";
+    }
     // De noche, luna/nubes de noche (Material Symbols).
     function describe(code: int, isDay: bool): var {
         const c = code;

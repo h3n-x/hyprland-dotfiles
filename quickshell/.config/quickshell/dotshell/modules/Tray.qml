@@ -20,7 +20,11 @@ Row {
     // como un hueco de doble espacio entre los iconos vecinos (Bluetooth y
     // Microphone). Los items invisibles SI se saltean para spacing en un
     // RowLayout (a diferencia de un Row/Column comun).
-    visible: root.filteredItems.length > 0
+    // Si se muestra, segun su propio estado y la opcion bar.show.* (Fase 10 B4).
+    // La barra lee shown, no visible: visible depende del padre y una pill
+    // oculta nunca volveria a mostrarse.
+    readonly property bool shown: root.filteredItems.length > 0 && SettingsState.value("bar.show.tray") !== false
+    visible: shown
 
     // Las apps con un reproductor MPRIS activo ya tienen la pill multimedia
     // y el reproductor del dashboard (Mpris.qml, MediaHero.qml) -- no hace falta duplicarlas

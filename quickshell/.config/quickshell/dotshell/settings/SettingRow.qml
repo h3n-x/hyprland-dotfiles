@@ -26,7 +26,7 @@ Item {
     readonly property string note: row.model.applyNote(row.key)
     readonly property bool stacked: !!control.item && control.item.implicitWidth > col.width * 0.6
     // El selector abierto (su lista va debajo, a lo ancho de la fila).
-    readonly property bool listOpen: (row.kind === "select" || row.kind === "font" || row.kind === "layouts") && !!control.item && control.item.open
+    readonly property bool listOpen: ["select", "font", "layouts", "player", "location"].indexOf(row.kind) >= 0 && !!control.item && control.item.open
     // Lo que Hyprland usa ahora, si difiere del almacen (Fase 10 B3): modo juego,
     // un hyprctl a mano. Informacion, no un estado de error: neutro.
     readonly property var liveInfo: row.meta.hypr ? row.model.live[row.key] : null
@@ -153,19 +153,28 @@ Item {
                 Layout.fillWidth: row.stacked
                 sourceComponent: ({
                     "switch": switchC, "segmented": segmentedC, "select": selectC,
-                    "stepper": stepperC, "slider": sliderC, "path": pathC, "font": fontC, "layouts": layoutsC
+                    "stepper": stepperC, "slider": sliderC, "path": pathC, "font": fontC, "layouts": layoutsC,
+                    "player": selectC, "location": locationC
                 })[row.kind] || null
             }
         }
 
         // Lista del selector, a lo ancho de la fila (como en la galeria).
         SelectList {
-            visible: row.listOpen && row.kind === "select"
+            visible: row.listOpen && (row.kind === "select" || row.kind === "player")
             Layout.fillWidth: true
             options: row.model.options(row.key)
             current: row.value
             onChosen: (v) => row.set(v)
             onClosed: control.item.open = false
+        }
+        // Busqueda de ciudad (Fase 10 B4), en el mismo lugar.
+        CitySearch {
+            visible: row.listOpen && row.kind === "location"
+            Layout.fillWidth: true
+            onVisibleChanged: if (visible) { reset(); Qt.callLater(focusInput); }
+            onChosen: (place) => control.item.choose(place)
+            onEscaped: control.item.open = false
         }
         // Lista de distribuciones del teclado (Fase 10 B3), en el mismo lugar.
         XkbList {
@@ -181,7 +190,7 @@ Item {
             visible: row.listOpen && row.kind === "font"
             Layout.fillWidth: true
             families: row.kind === "font" && control.item ? control.item.families : []
-            current: row.value || ""
+            current: row.kind === "font" ? (row.value || "") : ""
             onChosen: (f) => row.set(f)
             onClosed: control.item.open = false
         }
@@ -293,6 +302,13 @@ Item {
             value: row.value || []
             maxItems: row.meta.maxItems || 4
             onEdited: (l) => row.set(l)
+        }
+    }
+    Component {
+        id: locationC
+        LocationField {
+            objectName: "control-location"
+            value: row.value
         }
     }
 }

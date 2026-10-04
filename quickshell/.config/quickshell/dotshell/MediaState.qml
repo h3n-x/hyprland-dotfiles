@@ -17,7 +17,20 @@ import Quickshell.Services.Mpris
 QtObject {
     id: root
 
-    readonly property var players: Mpris.players.values.filter(p => !(p.dbusName || "").endsWith(".playerctld"))
+    // Opciones (Fase 10 B4): ignorar los navegadores (media.ignoreBrowsers) y
+    // el reproductor preferido (media.preferredPlayer: su desktop entry o su
+    // identity, asi sigue valiendo cuando se reabre).
+    readonly property bool ignoreBrowsers: SettingsState.value("media.ignoreBrowsers") === true
+    readonly property string preferred: SettingsState.value("media.preferredPlayer") || ""
+    function isBrowser(p: var): bool {
+        return /firefox|chromium|chrome|zen|brave|vivaldi|edge|opera|librewolf|epiphany/i
+            .test([p.dbusName, p.desktopEntry, p.identity].join(" "));
+    }
+    function keyOf(p: var): string {
+        return p ? (p.desktopEntry || p.identity || "") : "";
+    }
+    readonly property var players: Mpris.players.values.filter(p => !(p.dbusName || "").endsWith(".playerctld")
+        && !(root.ignoreBrowsers && root.isBrowser(p)))
     // dbusName del reproductor elegido a mano ("" = automatico).
     property string selectedId: ""
     readonly property var active: {
@@ -25,6 +38,8 @@ QtObject {
         if (!ps || ps.length === 0) return null;
         const chosen = ps.find(p => p.dbusName === root.selectedId);
         if (chosen) return chosen;
+        const pref = root.preferred ? ps.find(p => root.keyOf(p) === root.preferred) : null;
+        if (pref) return pref;
         return ps.find(p => p.isPlaying) || ps[0];
     }
 

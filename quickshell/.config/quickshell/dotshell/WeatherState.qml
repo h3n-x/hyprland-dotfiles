@@ -18,7 +18,8 @@
 //   error    hay datos pero el ultimo intento fallo por la respuesta
 //   stale    hay datos de mas de 60 min (sin error: por ejemplo, tras suspender)
 //   ok
-// WEATHER_STATE / WEATHER_CACHE cambian los archivos (pruebas).
+// WEATHER_CACHE cambia la cache (pruebas); la ciudad vive en el almacen
+// (dashboard.weather.location, Fase 10 B4).
 pragma Singleton
 import QtQuick
 import Quickshell
@@ -28,13 +29,14 @@ QtObject {
     id: root
 
     readonly property string script: Quickshell.env("HOME") + "/.config/hypr/scripts/weather-fetch"
-    readonly property string statePath: Quickshell.env("WEATHER_STATE") || (Quickshell.env("HOME") + "/.local/state/dotfiles/weather.json")
     readonly property string cachePath: Quickshell.env("WEATHER_CACHE") || (Quickshell.env("HOME") + "/.cache/dotfiles/weather.json")
 
-    property var location: null   // { name, detail, lat, lon }
+    // { name, detail, lat, lon } o null: el almacen de opciones
+    // (dashboard.weather.location, Fase 10 B4); lo escribe weather-fetch --set.
+    readonly property var location: SettingsState.ready ? SettingsState.value("dashboard.weather.location") : null
     property var cache: null      // { fetched_at, last_attempt, last_error, place, data }
     property bool fetching: false
-    property bool settled: false  // los dos archivos se leyeron (o no existen)
+    property bool settled: false  // el almacen y la cache se leyeron (o no existe)
 
     readonly property bool configured: !!root.location
     readonly property var data: root.cache && root.cache.data ? root.cache.data : null
@@ -94,34 +96,7 @@ QtObject {
         onTriggered: root.refresh()
     }
 
-    // Busqueda de ciudad (solo mientras se elige) y ubicacion.
-    property var searchResults: []
-    property bool searching: false
-    property bool searchFailed: false
-    function search(query: string): void {
-        const q = query.trim();
-        if (q.length < 2) {
-            root.searchResults = [];
-            return;
-        }
-        searchProc.command = [root.script, "--search", q];
-        root.searching = true;
-        root.searchFailed = false;
-        searchProc.running = true;
-    }
-    property Process searchProc: Process {
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.searching = false;
-                try {
-                    root.searchResults = JSON.parse(this.text);
-                } catch (e) {
-                    root.searchResults = [];
-                    root.searchFailed = true;
-                }
-            }
-        }
-    }
+    // Ubicacion (la busqueda vive en modules/CitySearch.qml, Fase 10 B4).
     function setLocation(place: var): void {
         root.fetching = true;
         Quickshell.execDetached([root.script, "--set", String(place.lat), String(place.lon), place.name, place.detail || ""]);
@@ -137,25 +112,19 @@ QtObject {
     }
 
     // ---- Archivos -------------------------------------------------------------
-    property FileView stateFile: FileView {
-        path: root.statePath
-        watchChanges: true
-        printErrors: false
-        onFileChanged: reload()
-        onLoaded: {
-            try {
-                const s = JSON.parse(this.text());
-                root.location = s && s.lat !== undefined ? s : null;
-            } catch (e) {
-                root.location = null;
-            }
-            root.settle();
-        }
-        onLoadFailed: {
-            root.location = null;
-            root.settle();
-        }
+    // La ciudad la cambia otro escritor (el centro de configuracion,
+    // `settings set`): consultar con la nueva. weather-fetch --set ya consulta
+    // por su cuenta (fetching), asi que ahi no.
+    onLocationChanged: {
+        if (!root.settled) return;
+        // Otra ciudad: los datos guardados son de la anterior.
+        if (root.location && !root.fetching) root.refresh();
     }
+    property Connections storeReady: Connections {
+        target: SettingsState
+        function onReadyChanged() { if (SettingsState.ready) root.settle(); }
+    }
+    Component.onCompleted: if (SettingsState.ready) root.settle()
     property FileView cacheFile: FileView {
         path: root.cachePath
         watchChanges: true
@@ -191,9 +160,7 @@ QtObject {
     // ---- Presentacion (espanol) -------------------------------------------------
     // Temperatura redondeada con el signo menos tipografico (−5°, no -5°).
     function temp(value: real): string {
-        if (value === undefined || value === null || isNaN(value)) return "–";
-        const t = Math.round(value);
-        return (t < 0 ? "−" + Math.abs(t) : String(t === 0 ? 0 : t)) + "°";
+        return WeatherText.temp(value, SettingsState.value("dashboard.weather.units"));
     }
     // "hace 12 min", "hace 3 h", "hace 2 días".
     function ago(seconds: real): string {

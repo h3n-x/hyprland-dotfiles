@@ -18,7 +18,12 @@ Item {
     // del arranque), el hijo reporta false por tener al padre oculto y el
     // Pill no vuelve a mostrarse nunca (deadlock).
     readonly property bool active: !!root.player
-    visible: root.active
+    // La opcion bar.show.media (Fase 10 B4) la puede ocultar.
+    // Si se muestra, segun su propio estado y la opcion bar.show.* (Fase 10 B4).
+    // La barra lee shown, no visible: visible depende del padre y una pill
+    // oculta nunca volveria a mostrarse.
+    readonly property bool shown: root.active && SettingsState.value("bar.show.media") !== false
+    visible: shown
 
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
@@ -57,6 +62,8 @@ Item {
 
         Text {
             id: titleText
+            // bar.media.title (Fase 10 B4): apagado, solo el icono.
+            visible: SettingsState.value("bar.media.title") !== false
             Layout.alignment: Qt.AlignVCenter
             Layout.maximumWidth: 240
             color: root.playing ? Colors.text : Colors.textMuted

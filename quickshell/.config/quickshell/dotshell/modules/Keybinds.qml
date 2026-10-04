@@ -20,6 +20,7 @@ OverlayWindow {
     open: KeybindState.visible
     targetScreen: KeybindState.screen
     onDismissed: KeybindState.close()
+    Component.onCompleted: KeybindState.watchReloads = true
 
     Loader {
         anchors.fill: parent
@@ -172,77 +173,10 @@ OverlayWindow {
                                     spacing: Tokens.space.md
                                     Repeater {
                                         model: column.modelData
-                                        DashZone {
-                                            id: zone
+                                        KeybindGroup {
                                             required property var modelData
                                             Layout.fillWidth: true
-                                            padding: Tokens.space.md
-                                            implicitHeight: zoneCol.implicitHeight + 2 * Tokens.space.md
-                                            ColumnLayout {
-                                                id: zoneCol
-                                                width: parent.width
-                                                spacing: Tokens.space.xs + 2
-                                                RowLayout {
-                                                    Layout.fillWidth: true
-                                                    spacing: Tokens.space.sm
-                                                    Icon { name: zone.modelData.icon; size: Tokens.icon.sm; color: Colors.accent }
-                                                    T { text: zone.modelData.name; size: Tokens.type.label; wt: Tokens.weight.semibold; color: Colors.textMuted }
-                                                    T {
-                                                        visible: zone.modelData.mode
-                                                        Layout.fillWidth: true
-                                                        horizontalAlignment: Text.AlignRight
-                                                        text: "un modo"
-                                                        size: Tokens.type.caption
-                                                        color: Colors.border
-                                                    }
-                                                }
-                                                Repeater {
-                                                    model: zone.modelData.items
-                                                    // Descripcion y teclas en una linea; si las teclas no
-                                                    // entran, van debajo (alineadas a la derecha).
-                                                    GridLayout {
-                                                        id: row
-                                                        required property var modelData
-                                                        readonly property bool stacked: label.implicitWidth + keysRow.implicitWidth + Tokens.space.sm > row.width
-                                                        Layout.fillWidth: true
-                                                        columns: row.stacked ? 1 : 2
-                                                        columnSpacing: Tokens.space.sm
-                                                        rowSpacing: Tokens.space.xs
-                                                        T { id: label; Layout.fillWidth: true; text: row.modelData.text }
-                                                        // Combinaciones: teclas unidas, varias separadas por "o".
-                                                        Row {
-                                                            id: keysRow
-                                                            Layout.alignment: Qt.AlignRight
-                                                            spacing: Tokens.space.xs + 2
-                                                            Repeater {
-                                                                model: row.modelData.combos
-                                                                Row {
-                                                                    id: combo
-                                                                    required property var modelData
-                                                                    required property int index
-                                                                    spacing: 3
-                                                                    T {
-                                                                        visible: combo.index > 0
-                                                                        anchors.verticalCenter: parent.verticalCenter
-                                                                        text: "o"
-                                                                        size: Tokens.type.caption
-                                                                        color: Colors.border
-                                                                        rightPadding: 2
-                                                                    }
-                                                                    Repeater {
-                                                                        model: combo.modelData.mods.map(m => KeybindState.modLabel(m)).concat(combo.modelData.keys)
-                                                                        Keycap {
-                                                                            required property string modelData
-                                                                            label: modelData
-                                                                            spoken: KeybindState.words(modelData)
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                            group: modelData
                                         }
                                     }
                                 }

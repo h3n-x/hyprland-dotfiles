@@ -46,6 +46,13 @@ Column {
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         model: root.shown
+        // La misma barra que la pagina del centro (fija sobre la lista).
+        Scrollbar {
+            parent: list
+            flickable: list
+            x: list.width - width
+            height: list.height
+        }
         delegate: Rectangle {
             id: opt
             required property string modelData

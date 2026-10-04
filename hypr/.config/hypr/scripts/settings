@@ -51,7 +51,7 @@ import datetime, fcntl, json, os, re, sys, tempfile
 SCHEMA = os.environ["SCHEMA"]; MIGRATIONS = os.environ["MIGRATIONS"]
 USER_FILE = os.environ["USER_FILE"]; EFFECTIVE = os.environ["EFFECTIVE"]; LOCK = os.environ["LOCK"]
 APPLIER = os.environ.get("APPLIER", "")
-TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color"}
+TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color", "location"}
 APPLY = {"live", "next-use", "reload-shell", "relogin", "reboot"}
 SCOPES = {"user", "login", "lock"}
 
@@ -116,6 +116,9 @@ def schema_problems(s):
 def validate(m, v):
     """(ok, valor efectivo, motivo) segun el tipo y los limites del esquema."""
     t = m["type"]
+    # "nullable": null es un valor valido (sin elegir todavia; Fase 10 B4).
+    if v is None and m.get("nullable"):
+        return True, None, None
     def rng(x):
         if "min" in m and x < m["min"]:
             return f"menor que {m['min']}"
@@ -166,6 +169,13 @@ def validate(m, v):
         if isinstance(v, str) and (re.fullmatch(r"#[0-9a-fA-F]{6}", v) or re.fullmatch(r"[a-z][A-Za-z]*", v)):
             return True, v, None
         return False, None, "no es #rrggbb ni un rol de color"
+    if t == "location":
+        # Ciudad del clima (Fase 10 B4): {name, detail?, lat, lon}.
+        num = lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
+        if (isinstance(v, dict) and isinstance(v.get("name"), str) and v["name"] and num(v.get("lat")) and num(v.get("lon"))
+                and -90 <= v["lat"] <= 90 and -180 <= v["lon"] <= 180 and isinstance(v.get("detail", ""), str)):
+            return True, {k: v[k] for k in ("name", "detail", "lat", "lon") if k in v}, None
+        return False, None, "no es una ubicacion {name, lat, lon}"
     return False, None, "tipo desconocido"
 
 

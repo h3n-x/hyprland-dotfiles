@@ -74,8 +74,17 @@ QtObject {
         root.runningGen = root.configGen;
         root.proc.running = true;
     }
+    // Solo la guia de la shell vigila las recargas (Fase 10 B4): en el centro
+    // de configuracion, tocar Hyprland abre su socket de eventos y cada evento
+    // cuesta CPU con la ventana quieta; ahi la pagina Atajos relee con reload()
+    // cada vez que se abre.
+    property bool watchReloads: false
+    function reload(): void {
+        root.readGen = -1;
+        root.refresh();
+    }
     property Connections hyprEvents: Connections {
-        target: Hyprland
+        target: root.watchReloads ? Hyprland : null
         function onRawEvent(event: var): void {
             if (event.name !== "configreloaded") return;
             root.configGen += 1;
@@ -100,8 +109,10 @@ QtObject {
     // ---- Filtro -------------------------------------------------------------------------------
     // Busca en la descripcion, el grupo y las teclas (en palabras); los grupos
     // sin coincidencias desaparecen.
-    readonly property var filtered: {
-        const q = root.query.trim();
+    readonly property var filtered: root.filter(root.query)
+    // La misma busqueda para la guia (query) y la pagina Atajos del centro.
+    function filter(query: string): var {
+        const q = (query || "").trim();
         const out = [];
         for (const g of root.groups) {
             if (g.mode && !root.options.showModes) continue;

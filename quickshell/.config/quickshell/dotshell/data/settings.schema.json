@@ -424,6 +424,161 @@
       "type": "bool", "default": false,
       "category": "power", "section": "Condiciones", "order": 70,
       "label": "No entrar en reposo mientras suena algo", "description": "Con música o video sonando no se baja el brillo, ni se bloquea, ni se apaga la pantalla.", "keywords": ["música", "video", "inhibir"], "apply": "live"
+    },
+    "bar.show.media": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Módulos", "order": 20,
+      "label": "Música", "description": "Reproductor que suena y sus controles.", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
+    },
+    "bar.show.updates": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Módulos", "order": 21,
+      "label": "Actualizaciones", "description": "Solo aparece si hay algo para actualizar.", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
+    },
+    "bar.show.network": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Módulos", "order": 22,
+      "label": "Red", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
+    },
+    "bar.show.bluetooth": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Módulos", "order": 23,
+      "label": "Bluetooth", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
+    },
+    "bar.show.tray": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Módulos", "order": 24,
+      "label": "Bandeja de aplicaciones", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
+    },
+    "bar.show.microphone": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Módulos", "order": 25,
+      "label": "Micrófono", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
+    },
+    "bar.show.battery": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Módulos", "order": 26,
+      "label": "Batería", "description": "Solo en equipos con batería.", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
+    },
+    "bar.show.idle": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Módulos", "order": 27,
+      "label": "Mantener despierto", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
+    },
+    "bar.show.ports": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Módulos", "order": 28,
+      "label": "Puertos de desarrollo", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
+    },
+    "bar.clock.format": {
+      "type": "enum", "default": "24", "values": { "24": "24 horas", "12": "12 horas" },
+      "category": "bar", "section": "Reloj", "order": 40,
+      "label": "Formato de la hora", "keywords": ["reloj", "am", "pm"], "apply": "live"
+    },
+    "bar.clock.date": {
+      "type": "bool", "default": false,
+      "category": "bar", "section": "Reloj", "order": 41,
+      "label": "Fecha junto a la hora", "keywords": ["reloj", "día"], "apply": "live"
+    },
+    "bar.workspaces.scroll": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Escritorios", "order": 15,
+      "label": "Cambiar de escritorio con la rueda", "description": "Con el puntero sobre los escritorios de la barra.", "keywords": ["scroll", "rueda"], "apply": "live"
+    },
+    "bar.media.title": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Música", "order": 50,
+      "label": "Título en la píldora de música", "description": "Apagado: solo el icono.", "keywords": ["mpris", "canción"], "apply": "live"
+    },
+    "dashboard.home.system": {
+      "type": "bool", "default": true,
+      "category": "dashboard", "section": "Inicio", "order": 1,
+      "label": "Zona Sistema", "description": "Estado, procesador, memoria, temperatura y batería.", "keywords": ["dashboard", "zona"], "apply": "live"
+    },
+    "dashboard.home.workspaces": {
+      "type": "bool", "default": true,
+      "category": "dashboard", "section": "Inicio", "order": 2,
+      "label": "Zona Escritorios", "keywords": ["dashboard", "zona", "miniaturas"], "apply": "live"
+    },
+    "dashboard.weather.location": {
+      "type": "location", "default": null, "nullable": true,
+      "category": "dashboard", "section": "Clima", "order": 5,
+      "label": "Ciudad del clima", "description": "Se guarda redondeada (~10 km) y solo en este equipo; sin ciudad, el clima no consulta nada.", "keywords": ["clima", "tiempo", "ubicación"], "apply": "live"
+    },
+    "dashboard.weather.units": {
+      "type": "enum", "default": "c", "values": { "c": "°C", "f": "°F" },
+      "category": "dashboard", "section": "Clima", "order": 6,
+      "label": "Unidades de temperatura", "keywords": ["clima", "celsius", "fahrenheit"], "apply": "live"
+    },
+    "capture.copyToClipboard": {
+      "type": "bool", "default": true,
+      "category": "capture", "section": "Capturas", "order": 11,
+      "label": "Copiar cada captura al portapapeles", "keywords": ["captura", "portapapeles"], "apply": "next-use"
+    },
+    "capture.freeze": {
+      "type": "bool", "default": true,
+      "category": "capture", "section": "Capturas", "order": 12,
+      "label": "Congelar la pantalla al elegir una zona", "keywords": ["captura", "zona"], "apply": "next-use"
+    },
+    "capture.format": {
+      "type": "enum", "default": "png", "values": { "png": "PNG", "jpeg": "JPEG (más liviano)" },
+      "category": "capture", "section": "Capturas", "order": 13,
+      "label": "Formato de las capturas", "keywords": ["captura", "jpg", "png"], "apply": "next-use"
+    },
+    "capture.recordAudio": {
+      "type": "enum", "default": "none", "values": { "none": "Sin audio", "system": "Sonido del equipo", "mic": "Micrófono", "both": "Ambos" },
+      "category": "capture", "section": "Grabación", "order": 41,
+      "label": "Audio de la grabación", "keywords": ["grabación", "sonido", "micrófono"], "apply": "next-use"
+    },
+    "capture.fps": {
+      "type": "enum", "default": "60", "cast": "int", "values": { "60": "60 por segundo", "30": "30 por segundo" },
+      "category": "capture", "section": "Grabación", "order": 42,
+      "label": "Fotogramas", "keywords": ["grabación", "fps"], "apply": "next-use"
+    },
+    "media.preferredPlayer": {
+      "type": "string", "kind": "player", "default": "", "maxLength": 120,
+      "category": "media", "section": "Reproductor", "order": 10,
+      "label": "Reproductor preferido", "description": "Si está abierto, la barra, el dashboard y las teclas multimedia lo usan antes que a los demás.", "keywords": ["mpris", "spotify", "música"], "apply": "live"
+    },
+    "media.ignoreBrowsers": {
+      "type": "bool", "default": false,
+      "category": "media", "section": "Reproductor", "order": 20,
+      "label": "Ignorar los navegadores", "description": "Los videos del navegador no aparecen como reproductor.", "keywords": ["firefox", "chrome", "zen", "youtube"], "apply": "live"
+    },
+    "media.volumeLimit": {
+      "type": "number", "default": 1, "min": 1, "max": 1.5, "presets": [[1, "100 %"], [1.25, "125 %"], [1.5, "150 %"]],
+      "category": "media", "section": "Volumen", "order": 30,
+      "label": "Volumen máximo con las teclas", "description": "Por encima de 100 % el sonido puede distorsionar.", "keywords": ["volumen", "amplificar"], "apply": "live"
+    },
+    "notifications.position": {
+      "type": "enum", "default": "top-right", "values": { "top-right": "Arriba a la derecha", "top-center": "Arriba al centro", "bottom-right": "Abajo a la derecha" },
+      "category": "notifications", "section": "Avisos", "order": 30,
+      "label": "Dónde aparecen", "keywords": ["posición", "toast"], "apply": "live"
+    },
+    "notifications.maxVisible": {
+      "type": "enum", "default": "0", "cast": "int", "values": { "0": "Sin límite", "3": "3", "5": "5" },
+      "category": "notifications", "section": "Avisos", "order": 40,
+      "label": "Avisos visibles a la vez", "description": "Los demás esperan su turno.", "keywords": ["cantidad", "toast"], "apply": "live"
+    },
+    "notifications.sound": {
+      "type": "bool", "default": false,
+      "category": "notifications", "section": "Avisos", "order": 50,
+      "label": "Sonido al llegar un aviso", "description": "No suena con No molestar ni con avisos ocultos en pantalla completa.", "keywords": ["sonido"], "apply": "live"
+    },
+    "notifications.system.capsLock": {
+      "type": "bool", "default": false,
+      "category": "notifications", "section": "Avisos del sistema", "order": 60,
+      "label": "Bloq Mayús", "description": "Al activarlo y al desactivarlo.", "keywords": ["aviso", "sistema", "osd"], "apply": "live"
+    },
+    "notifications.system.layout": {
+      "type": "bool", "default": false,
+      "category": "notifications", "section": "Avisos del sistema", "order": 61,
+      "label": "Cambio de distribución del teclado", "keywords": ["aviso", "sistema", "osd"], "apply": "live"
+    },
+    "notifications.system.charger": {
+      "type": "bool", "default": false,
+      "category": "notifications", "section": "Avisos del sistema", "order": 62,
+      "label": "Cargador conectado o desconectado", "keywords": ["aviso", "sistema", "osd"], "apply": "live"
     }
   }
 }

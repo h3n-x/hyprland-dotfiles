@@ -19,6 +19,9 @@
 set -euo pipefail
 
 # Carpeta y calidad: capture.recordingsDir, capture.recordingQuality (settings store).
+# Fase 10 B4: capture.fps (30 / 60) y capture.recordAudio: sin audio, el sonido
+# del equipo (monitor de la salida), el microfono, o ambos (una mezcla
+# temporal: un sumidero nulo con las dos fuentes, que se quita al terminar).
 SETTINGS="$(dirname "$0")/settings"
 DIR=$("$SETTINGS" get capture.recordingsDir) || exit 1
 STATE_DIR="${XDG_RUNTIME_DIR:-/run/user/$UID}/dotfiles"
@@ -70,14 +73,29 @@ start() {
             small) qp=28 ;;
             *) qp=24 ;;
         esac
-        enc=(-c h264_vaapi -d "$node" -p "qp=$qp" -r 60)
+        enc=(-c h264_vaapi -d "$node" -p "qp=$qp")
         export LIBVA_DRIVER_NAME=radeonsi
     fi
+    enc+=(-r "$("$SETTINGS" get capture.fps 2>/dev/null || echo 60)")
+    # Audio. "Ambos": mezcla temporal, que se quita aunque esto termine mal.
+    aud=()
+    mix=()
+    unmix() { local m; for m in "${mix[@]}"; do pactl unload-module "$m" >/dev/null 2>&1 || true; done; mix=(); }
+    trap unmix EXIT
+    case $("$SETTINGS" get capture.recordAudio 2>/dev/null || echo none) in
+        system) aud=(--audio="$(pactl get-default-sink).monitor") ;;
+        mic) aud=(--audio="$(pactl get-default-source)") ;;
+        both)
+            mix+=("$(pactl load-module module-null-sink sink_name=dotfiles_rec sink_properties=device.description=Grabacion)")
+            mix+=("$(pactl load-module module-loopback source="$(pactl get-default-source)" sink=dotfiles_rec latency_msec=30)")
+            mix+=("$(pactl load-module module-loopback source="$(pactl get-default-sink).monitor" sink=dotfiles_rec latency_msec=30)")
+            aud=(--audio=dotfiles_rec.monitor) ;;
+    esac
     started=$(date +%s%3N)
     if [[ -n $mon ]]; then
-        wf-recorder -o "$mon" "${enc[@]}" -f "$file" >"$LOG" 2>&1 < /dev/null &
+        wf-recorder -o "$mon" "${enc[@]}" "${aud[@]}" -f "$file" >"$LOG" 2>&1 < /dev/null &
     else
-        wf-recorder -g "$geom" "${enc[@]}" -f "$file" >"$LOG" 2>&1 < /dev/null &
+        wf-recorder -g "$geom" "${enc[@]}" "${aud[@]}" -f "$file" >"$LOG" 2>&1 < /dev/null &
     fi
     pid=$!
     jq -n --argjson pid "$pid" --arg file "$file" --argjson started "$started" \
@@ -87,6 +105,7 @@ start() {
     ipc refresh
 
     wait "$pid" || true
+    unmix
     ms=$(( $(date +%s%3N) - started ))
     rm -f "$STATE"
     ipc refresh

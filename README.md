@@ -37,7 +37,7 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 | Wallpaper | hyprpaper |
 | Filtro de luz azul | hyprsunset |
 | Polkit | hyprpolkitagent |
-| Capturas | grim + slurp (pantalla congelada con hyprpicker) + satty, vista previa de Quickshell |
+| Capturas | grim + slurp (pantalla congelada con hyprpicker, opcional) + satty, vista previa de Quickshell |
 | Grabacion | wf-recorder con VA-API (Radeon), pill de Quickshell |
 | Visor / reproductor | Loupe / mpv (apps por defecto de imagenes y video) |
 | Portapapeles | panel de Quickshell (`SUPER + SHIFT + V`) sobre cliphist + wl-clip-persist |
@@ -422,9 +422,10 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
     clima viene de [Open-Meteo](https://open-meteo.com) (sin clave; datos
     CC BY 4.0) via `hypr/.config/hypr/scripts/weather-fetch` (cache en
     `~/.cache/dotfiles/weather.json`). **Sin ubicacion no se consulta nada**;
-    la ciudad se elige aca (`C`), se guarda solo en
-    `~/.local/state/dotfiles/weather.json` (fuera del repo) redondeada a
-    ~10 km y se consulta cada 30 min.
+    la ciudad se elige aca (`C`) o en Configuracion -> Dashboard, se guarda
+    solo en este equipo (`dashboard.weather.location` en
+    `~/.config/dotfiles/settings.json`, fuera del repo) redondeada a ~10 km y
+    se consulta cada 30 min. Grados en °C o °F (Configuracion).
   - **Sistema**: el estado en palabras, procesador, memoria, almacenamiento y
     energia (con el perfil), las aplicaciones que mas usan (agrupadas por
     aplicacion, no por proceso), la red y las graficas (la NVIDIA sin
@@ -456,7 +457,7 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   Anotar (satty sobre el mismo archivo), copiar, copiar la ruta, abrir,
   carpeta (Yazi con el archivo elegido) y papelera con Deshacer; doble clic en
   la miniatura = Anotar / Reproducir. La region se elige con la pantalla
-  congelada y las ventanas como destino. Mientras se graba, una pill en la
+  congelada (se puede apagar) y las ventanas como destino. Mientras se graba, una pill en la
   barra (tiempo, clic para parar) y marcas en las esquinas de la zona. Graba
   con VA-API en la Radeon (`LIBVA_DRIVER_NAME=radeonsi` solo para
   wf-recorder).
@@ -492,7 +493,7 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   transparencia, alto contraste) y **Tus cambios**: cada opcion cambiada,
   con su valor, el de fabrica y volver; clic en una lleva a su fila.
 - **Una pagina por categoria** (Apariencia, Accesibilidad, Barra, Dashboard,
-  Capturas, Notificaciones, Sistema, Bloqueo e inicio, Atajos). Las paginas
+  Capturas, Multimedia, Notificaciones, Sistema, Bloqueo e inicio, Atajos). Las paginas
   se arman solas desde `dotshell/data/settings.schema.json`: una clave nueva
   aparece en su pagina, con el control de su tipo, y se encuentra al buscar.
   Una categoria sin opciones no aparece. Cada fila dice si esta "Cambiada" y
@@ -522,6 +523,26 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
 - **Energia**: bajar el brillo, bloquear, apagar la pantalla y suspender
   tras un tiempo sin uso (cada uno puede ser "Nunca"), suspender tambien
   enchufado o solo con bateria, y no entrar en reposo mientras suena algo.
+- **Barra** (Fase 10 B4): mostrar u ocultar cada modulo (musica,
+  actualizaciones, red, Bluetooth, bandeja, microfono, bateria, inactividad,
+  puertos), reloj de 24 o 12 h y la fecha al lado, cambiar de escritorio con
+  la rueda, y la pill de musica con el titulo o solo el icono.
+- **Dashboard**: las zonas Sistema y Escritorios del inicio, la ciudad del
+  clima (la misma busqueda que en la vista Hoy; "Quitar" deja de consultar)
+  y °C / °F.
+- **Capturas**: copiar al portapapeles, congelar la pantalla al elegir, PNG o
+  JPEG; al grabar, audio (sin audio, el sonido del equipo, el microfono o
+  ambos: una mezcla temporal de PipeWire que se quita al terminar) y 30 o
+  60 fotogramas.
+- **Multimedia**: el reproductor preferido (el que la barra y el dashboard
+  muestran si esta abierto), ignorar los navegadores y el volumen maximo con
+  las teclas (100, 125 o 150 %).
+- **Notificaciones**: donde aparecen (arriba a la derecha, arriba al centro,
+  abajo a la derecha), cuantas a la vez (las demas esperan), un sonido al
+  llegar y avisos del sistema en el OSD: Bloq Mayus, cambio de distribucion
+  y cargador conectado o no (apagados de fabrica).
+- **Atajos**: la misma lista que la guia (`SUPER+/`), con busqueda; se relee
+  de Hyprland cada vez que se abre la pagina.
 
 Lo que va a Hyprland o a hypridle se aplica al momento (sin recargar
 Hyprland): `scripts/settings-apply` genera
@@ -535,8 +556,10 @@ vuelven tus valores.
   por que, fuentes que ya no estan), tus cambios como archivo y el README.
 - **Buscar** (`Ctrl+F`): etiqueta, descripcion, palabras clave, sin tildes;
   Enter lleva a la opcion y la ilumina. `Ctrl+Tab` / `Ctrl+AvPag` cambian
-  de pagina, Tab recorre los controles, Esc borra la busqueda y despues
-  cierra.
+  de pagina, Tab recorre los controles (la pagina se desplaza hasta el que
+  tiene el foco), las flechas, `RePag` / `AvPag` e `Inicio` / `Fin` desplazan
+  la pagina, la barra de la derecha se arrastra o se cliquea, y Esc borra la
+  busqueda y despues cierra.
 
 Los valores se guardan solo a traves de `~/.config/hypr/scripts/settings`
 (el unico que escribe `~/.config/dotfiles/settings.json`, y solo lo que
@@ -991,6 +1014,7 @@ descripcion.
 | `Super` + `Shift` + `M` | Cerrar sesión |
 | `Super` + `Ctrl` + `Shift` + `M` | Salida de emergencia |
 | `Super` + `Alt` + `G` | Modo juego |
+| `Caps_Lock` | Aviso de Bloq Mayús |
 
 **Ventanas**
 

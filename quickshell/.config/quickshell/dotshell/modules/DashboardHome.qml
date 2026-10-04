@@ -111,7 +111,10 @@ Item {
     }
 
     // ---- Teclado --------------------------------------------------------------------
-    readonly property var zones: ["today"].concat(home.hasMedia ? ["media"] : [], ["system", "workspaces"])
+    // Zonas que se pueden apagar desde el centro de configuracion (Fase 10 B4).
+    readonly property bool showSystem: SettingsState.value("dashboard.home.system") !== false
+    readonly property bool showWorkspaces: SettingsState.value("dashboard.home.workspaces") !== false
+    readonly property var zones: ["today"].concat(home.hasMedia ? ["media"] : [], home.showSystem ? ["system"] : [], home.showWorkspaces ? ["workspaces"] : [])
     function handleKey(event: var): bool {
         const plain = !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
         if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
@@ -450,13 +453,16 @@ Item {
             property real lift: 0
             transform: Translate { y: instruments.lift }
             width: parent.width
+            visible: home.showSystem || home.showWorkspaces
             columns: home.narrow ? 1 : 2
             columnSpacing: Tokens.space.md
             rowSpacing: Tokens.space.md
 
             DashZone {
                 id: systemZone
-                Layout.preferredWidth: home.narrow ? instruments.width : 272
+                visible: home.showSystem
+                // Sola, a todo el ancho.
+                Layout.preferredWidth: home.narrow || !home.showWorkspaces ? instruments.width : 272
                 Layout.preferredHeight: home.narrow ? 112 : 148
                 focused: home.focusKey === "system"
                 clickable: true
@@ -468,6 +474,7 @@ Item {
             }
             DashZone {
                 id: workspacesZone
+                visible: home.showWorkspaces
                 Layout.fillWidth: true
                 Layout.preferredHeight: home.narrow ? implicitHeight : 148
                 // Fuera de las miniaturas (que van a su escritorio): la vista Escritorios.
@@ -479,7 +486,8 @@ Item {
                     id: strip
                     anchors.fill: parent
                     screenName: home.screenName
-                    live: home.active
+                    // Oculta, no sigue a las ventanas.
+                    live: home.active && home.showWorkspaces
                 }
             }
         }

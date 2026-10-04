@@ -4,16 +4,29 @@
 #   region  pantalla congelada mientras se elige (como hyprshot --freeze), con
 #           las ventanas como destinos (capture-select)
 #   window  la ventana activa
-# Guarda en ~/Pictures/Screenshots, copia la imagen al portapapeles y se la
-# pasa a Quickshell (vista previa: anotar con satty, copiar, abrir, carpeta,
+# Guarda en capture.screenshotsDir, la copia al portapapeles y se la pasa a
+# Quickshell (vista previa: anotar con satty, copiar, abrir, carpeta,
 # papelera). Sin la shell, la captura igual queda guardada y copiada.
+# Opciones del centro de configuracion (Fase 10 B4): capture.format (png /
+# jpeg), capture.copyToClipboard, capture.freeze (congelar al elegir zona).
 # Requiere: grim, slurp, hyprpicker, wl-clipboard, jq
 set -euo pipefail
 
 # Carpeta: capture.screenshotsDir (settings store, Fase 8 B1).
-DIR=$("$(dirname "$0")/settings" get capture.screenshotsDir) || exit 1
+SETTINGS="$(dirname "$0")/settings"
+DIR=$("$SETTINGS" get capture.screenshotsDir) || exit 1
+FORMAT=$("$SETTINGS" get capture.format 2>/dev/null || echo png)
+COPY=$("$SETTINGS" get capture.copyToClipboard 2>/dev/null || echo true)
+FROZEN=$("$SETTINGS" get capture.freeze 2>/dev/null || echo true)
 mkdir -p "$DIR"
-FILE="$DIR/$(date +%Y-%m-%d_%H-%M-%S).png"
+if [[ $FORMAT == jpeg ]]; then
+    EXT=jpg; MIME=image/jpeg; GRIM=(-t jpeg -q 90)
+else
+    # -l 1: compresion minima del PNG (pantalla completa 317 ms contra 858 ms,
+    # +9 % de tamano).
+    EXT=png; MIME=image/png; GRIM=(-l 1)
+fi
+FILE="$DIR/$(date +%Y-%m-%d_%H-%M-%S).$EXT"
 MODE="${1:-region}"
 
 # Congelar la pantalla mientras se elige (hyprpicker sin lupa); grim captura
@@ -22,26 +35,26 @@ FREEZE=""
 unfreeze() { if [[ -n $FREEZE ]]; then kill "$FREEZE" 2>/dev/null || true; FREEZE=""; fi; }
 trap unfreeze EXIT
 
-# -l 1: compresion minima del PNG (pantalla completa 317 ms contra 858 ms,
-# +9 % de tamano).
 EXTRA=""
 case "$MODE" in
     full)
         read -r MON GEOM < <(hyprctl -j monitors | jq -r '.[] | select(.focused) | "\(.name) \(.x),\(.y) \((.width / .scale) | floor)x\((.height / .scale) | floor)"')
-        grim -l 1 -o "$MON" "$FILE"
+        grim "${GRIM[@]}" -o "$MON" "$FILE"
         EXTRA="$MON"
         ;;
     window)
         IFS=$'\t' read -r GEOM EXTRA < <(hyprctl -j activewindow | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])\t\(.class)"')
         [[ $GEOM == *null* ]] && exit 0 # sin ventana activa
-        grim -l 1 -g "$GEOM" "$FILE"
+        grim "${GRIM[@]}" -g "$GEOM" "$FILE"
         ;;
     region)
-        hyprpicker -r -z >/dev/null 2>&1 &
-        FREEZE=$!
-        sleep 0.1
+        if [[ $FROZEN != false ]]; then
+            hyprpicker -r -z >/dev/null 2>&1 &
+            FREEZE=$!
+            sleep 0.1
+        fi
         GEOM=$("$(dirname "$0")/capture-select") || exit 0 # cancelado (Esc)
-        grim -l 1 -g "$GEOM" "$FILE"
+        grim "${GRIM[@]}" -g "$GEOM" "$FILE"
         unfreeze
         ;;
     *)
@@ -50,5 +63,5 @@ case "$MODE" in
         ;;
 esac
 
-wl-copy -t image/png < "$FILE"
+[[ $COPY == false ]] || wl-copy -t "$MIME" < "$FILE"
 qs -c dotshell ipc call capture preview "$FILE" "$MODE" "$GEOM" "$(stat -c %s "$FILE")" "$EXTRA" >/dev/null 2>&1 || true

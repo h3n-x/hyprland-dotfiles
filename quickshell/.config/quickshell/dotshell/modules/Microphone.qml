@@ -15,7 +15,11 @@ Item {
 
     readonly property var source: Pipewire.defaultAudioSource
     readonly property bool muted: !!(root.source && root.source.audio && root.source.audio.muted)
-    visible: !!root.source
+    // Si se muestra, segun su propio estado y la opcion bar.show.* (Fase 10 B4).
+    // La barra lee shown, no visible: visible depende del padre y una pill
+    // oculta nunca volveria a mostrarse.
+    readonly property bool shown: !!root.source && SettingsState.value("bar.show.microphone") !== false
+    visible: shown
 
     property bool armed: false
     Component.onCompleted: Qt.callLater(() => root.armed = true)

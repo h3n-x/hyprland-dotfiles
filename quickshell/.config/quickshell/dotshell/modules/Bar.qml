@@ -58,7 +58,7 @@ PanelWindow {
             // mismo nombre (mismo problema que IdleInhibitor, ver
             // IdleToggle.qml) -- se expone la visibilidad del propio
             // componente en su lugar.
-            visible: mprisModule.active
+            visible: mprisModule.shown
             // Accion unica: la pill entera responde al hover (Q2 = A).
             hovered: mprisModule.hovered
             pressed: mprisModule.pressed
@@ -77,22 +77,26 @@ PanelWindow {
         // Solo mientras se graba (y un momento al terminar), Fase 4 B8.
         RecordingPill { Layout.alignment: Qt.AlignVCenter }
 
+        // Cada modulo se puede ocultar (bar.show.*, Fase 10 B4); la pill sin
+        // nada visible adentro no queda como una burbuja vacia.
         Pill {
             Layout.alignment: Qt.AlignVCenter
             spacing: Tokens.space.md
-            Update { Layout.alignment: Qt.AlignVCenter }
-            Network { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
-            Bluetooth { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
-            Tray { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
-            Microphone { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
+            visible: updMod.shown || netMod.shown || btMod.shown || trayMod.shown || micMod.shown
+            Update { id: updMod; Layout.alignment: Qt.AlignVCenter }
+            Network { id: netMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
+            Bluetooth { id: btMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
+            Tray { id: trayMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
+            Microphone { id: micMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
         }
 
         Pill {
             Layout.alignment: Qt.AlignVCenter
             spacing: Tokens.space.md
-            Battery { Layout.alignment: Qt.AlignVCenter }
-            IdleToggle { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
-            Ports { Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
+            visible: batMod.shown || idleMod.shown || portsMod.shown
+            Battery { id: batMod; Layout.alignment: Qt.AlignVCenter }
+            IdleToggle { id: idleMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
+            Ports { id: portsMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
         }
 
         Power {

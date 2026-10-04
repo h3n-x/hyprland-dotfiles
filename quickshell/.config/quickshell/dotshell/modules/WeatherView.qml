@@ -333,8 +333,7 @@ Item {
         spacing: Tokens.space.sm
 
         onVisibleChanged: if (picker.visible) {
-            field.text = "";
-            WeatherState.searchResults = [];
+            field.reset();
             if (wv.active) field.focusInput();
         }
 
@@ -392,67 +391,18 @@ Item {
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
         }
-        // Busqueda: una consulta al dejar de escribir, no una por tecla.
-        SearchField {
+        // Busqueda de ciudad (CitySearch, compartida con el centro de
+        // configuracion, Fase 10 B4).
+        CitySearch {
             id: field
-            objectName: "weatherSearch"
             Layout.fillWidth: true
-            size: "regular"
-            placeholder: "Buscar ciudad…"
-            onTextChanged: searchDelay.restart()
-            keyHandler: (event) => {
-                if (event.key === Qt.Key_Return) {
-                    if (WeatherState.searchResults.length) {
-                        WeatherState.setLocation(WeatherState.searchResults[0]);
-                        wv.picking = false;
-                    }
-                    return true;
-                }
-                if (event.key === Qt.Key_Escape) {
-                    if (wv.picking && WeatherState.configured) wv.picking = false;
-                    else wv.backRequested();
-                    return true;
-                }
-                return false;
+            onChosen: (place) => {
+                WeatherState.setLocation(place);
+                wv.picking = false;
             }
-            Timer { id: searchDelay; interval: 400; onTriggered: WeatherState.search(field.text) }
-        }
-        Text {
-            visible: WeatherState.searching || WeatherState.searchFailed || (field.text.trim().length >= 2 && !WeatherState.searching && WeatherState.searchResults.length === 0)
-            Layout.fillWidth: true
-            text: WeatherState.searching ? "Buscando…" : WeatherState.searchFailed ? "No se pudo buscar (¿sin conexión?)" : "Sin resultados"
-            color: Colors.textMuted
-            font.family: Tokens.font.ui
-            font.pixelSize: Tokens.type.caption
-        }
-        Repeater {
-            model: WeatherState.searchResults
-            Rectangle {
-                id: res
-                required property var modelData
-                required property int index
-                Layout.fillWidth: true
-                implicitHeight: 44
-                radius: Tokens.radius.md
-                color: res.index === 0 ? Colors.accentAltContainer : "transparent"
-                StateLayer { hovered: resMouse.containsMouse; pressed: resMouse.pressed }
-                Column {
-                    anchors.verticalCenter: parent.verticalCenter
-                    x: Tokens.space.md
-                    width: parent.width - Tokens.space.md * 2
-                    Text { width: parent.width; text: res.modelData.name; color: res.index === 0 ? Colors.textOnAccentAltContainer : Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.body; font.weight: Tokens.weight.medium; elide: Text.ElideRight }
-                    Text { width: parent.width; text: res.modelData.detail; color: res.index === 0 ? Colors.textOnAccentAltContainer : Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; elide: Text.ElideRight }
-                }
-                MouseArea {
-                    id: resMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        WeatherState.setLocation(res.modelData);
-                        wv.picking = false;
-                    }
-                }
+            onEscaped: {
+                if (wv.picking && WeatherState.configured) wv.picking = false;
+                else wv.backRequested();
             }
         }
     }

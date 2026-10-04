@@ -2,10 +2,13 @@
 // y busqueda arriba, el riel de paginas (SettingsModel.pages) a la izquierda
 // y la pagina a la derecha; arriba de la pagina, el aviso de reinicio cuando
 // un cambio lo pide. Teclado: Ctrl+F busca, Ctrl+Tab / Ctrl+AvPag siguiente
-// pagina, Ctrl+Mayus+Tab / Ctrl+RePag anterior, Tab entre controles, Esc
-// borra la busqueda y despues cierra.
+// pagina, Ctrl+Mayus+Tab / Ctrl+RePag anterior, Tab entre controles (la
+// pagina se desplaza hasta el que tiene el foco), flechas / RePag / AvPag /
+// Inicio / Fin desplazan la pagina (las que un control no usa), Esc borra la
+// busqueda y despues cierra. La barra de la derecha se arrastra o se cliquea.
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Window
 import Quickshell
 import ".." // Colors.qml, Tokens.qml, SettingsState.qml
 import "../modules"
@@ -44,6 +47,7 @@ Rectangle {
         win.page = id;
         body.active = true;
         flick.contentY = 0;
+        content.forceActiveFocus();
     }
     function step(dir: int): void {
         const ps = win.model.pages;
@@ -70,6 +74,41 @@ Rectangle {
                 win.highlightKey = key;
             });
         });
+    }
+
+    // ---- Desplazamiento con el teclado ---------------------------------------------------------
+    readonly property real maxY: Math.max(0, flick.contentHeight - flick.height)
+    function scrollTo(y: real): void {
+        const to = Math.max(0, Math.min(win.maxY, y));
+        scrollAnim.stop();
+        flick.cancelFlick();
+        scrollAnim.to = to;
+        scrollAnim.start();
+    }
+    function scrollBy(dy: real): void {
+        // Con la tecla sostenida, cada paso parte de donde iba el anterior.
+        win.scrollTo((scrollAnim.running ? scrollAnim.to : flick.contentY) + dy);
+    }
+    NumberAnimation {
+        id: scrollAnim
+        target: flick
+        property: "contentY"
+        duration: Tokens.motion.fast
+        easing.type: Easing.OutCubic
+    }
+    // Tab: el control con el foco queda a la vista (con un margen).
+    readonly property Item focusItem: Window.activeFocusItem
+    onFocusItemChanged: {
+        const it = win.focusItem;
+        if (!it) return;
+        for (let p = it.parent; p; p = p.parent) {
+            if (p !== flick.contentItem) continue;
+            const y = it.mapToItem(flick.contentItem, 0, 0).y;
+            const m = Tokens.space.xl;
+            if (y - m < flick.contentY) win.scrollTo(y - m);
+            else if (y + it.height + m > flick.contentY + flick.height) win.scrollTo(y + it.height + m - flick.height);
+            return;
+        }
     }
 
     color: Colors.surfaceLowest
@@ -169,6 +208,24 @@ Rectangle {
         radius: Tokens.radius.xl
         color: Colors.surfaceLow
         clip: true
+        // Recibe las teclas que los controles de la pagina no usan.
+        focus: true
+        Component.onCompleted: content.forceActiveFocus()
+        Keys.onPressed: (event) => {
+            if (event.modifiers & (Qt.ControlModifier | Qt.AltModifier)) return;
+            const step = 3 * Tokens.row.height;
+            const pageStep = flick.height * 0.85;
+            switch (event.key) {
+            case Qt.Key_Down: win.scrollBy(step); break;
+            case Qt.Key_Up: win.scrollBy(-step); break;
+            case Qt.Key_PageDown: win.scrollBy(pageStep); break;
+            case Qt.Key_PageUp: win.scrollBy(-pageStep); break;
+            case Qt.Key_Home: win.scrollTo(0); break;
+            case Qt.Key_End: win.scrollTo(win.maxY); break;
+            default: return;
+            }
+            event.accepted = true;
+        }
 
         // Aviso: hay cambios que se aplican al reiniciar la shell.
         Rectangle {
@@ -218,6 +275,13 @@ Rectangle {
             contentHeight: body.implicitHeight + 2 * Tokens.space.xl
             boundsBehavior: Flickable.StopAtBounds
             clip: true
+            // Clic en un lugar vacio de la pagina: el teclado vuelve a desplazarla.
+            MouseArea {
+                z: -1
+                width: flick.width
+                height: Math.max(flick.height, flick.contentHeight)
+                onPressed: (m) => { content.forceActiveFocus(); m.accepted = false; }
+            }
             Loader {
                 id: body
                 x: Tokens.space.xl
@@ -226,15 +290,12 @@ Rectangle {
                 sourceComponent: win.page === "home" ? homePage : win.page === "about" ? aboutPage : categoryPage
             }
         }
-        // Indicador de desplazamiento (solo si hay algo que desplazar).
-        Rectangle {
-            visible: flick.contentHeight > flick.height
-            x: parent.width - width - Tokens.space.xs
-            y: flick.y + flick.visibleArea.yPosition * flick.height
-            width: 4
-            height: flick.visibleArea.heightRatio * flick.height
-            radius: 2
-            color: Colors.tint(Colors.textMuted, Tokens.tint.hairline)
+        // Barra de desplazamiento (solo si hay algo que desplazar).
+        Scrollbar {
+            flickable: flick
+            x: parent.width - width
+            y: flick.y
+            height: flick.height
         }
     }
 
@@ -264,13 +325,18 @@ Rectangle {
             category: win.page
             model: win.model
             // Apariencia (Fase 10 B2): tema actual y avatar arriba de sus secciones.
-            extras: win.page === "appearance" ? { "Color": themeCard, "Avatar": avatarCard } : ({})
+            extras: win.page === "appearance" ? { "Color": themeCard, "Avatar": avatarCard }
+                : win.page === "keybinds" ? { "_top": keybindsBrowser } : ({})
             highlightKey: win.highlightKey
         }
     }
     Component {
         id: themeCard
         ThemeCard { model: win.model }
+    }
+    Component {
+        id: keybindsBrowser
+        KeybindsBrowser {}
     }
     Component {
         id: avatarCard

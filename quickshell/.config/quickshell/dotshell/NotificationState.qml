@@ -60,8 +60,12 @@ QtObject {
         if (root.doNotDisturb) return;
         // Pantalla completa o captura en todas las pantallas: queda en el
         // historial y cuenta para el resumen (FullscreenState).
-        if (Quickshell.screens.some(s => FullscreenState.allowsToast(n, s.name))) root.showToast(n);
-        else FullscreenState.hold(n);
+        if (Quickshell.screens.some(s => FullscreenState.allowsToast(n, s.name))) {
+            root.showToast(n);
+            // Sonido al llegar (notifications.sound, Fase 10 B4): solo si se ve.
+            if (SettingsState.value("notifications.sound") === true)
+                Quickshell.execDetached(["paplay", "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga"]);
+        } else FullscreenState.hold(n);
     }
 
     // Resumen al salir de pantalla completa o de una captura (FullscreenState):

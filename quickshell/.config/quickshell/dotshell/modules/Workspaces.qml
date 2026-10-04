@@ -102,6 +102,8 @@ Item {
 
     WheelHandler {
         target: root
+        // bar.workspaces.scroll (Fase 10 B4).
+        enabled: SettingsState.value("bar.workspaces.scroll") !== false
         onWheel: (event) => {
             const direction = event.angleDelta.y > 0 ? "r+1" : "r-1";
             Hyprland.dispatch("hl.dsp.focus({ workspace = '" + direction + "' })");

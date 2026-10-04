@@ -87,6 +87,15 @@ ColumnLayout {
     // Si ya no hay nada cambiado (otro la restablecio), la pregunta se va.
     onChangedChanged: if (page.changed === 0) page.confirming = false
 
+    // Contenido propio arriba de todas las secciones (extras["_top"]; la lista
+    // de atajos, Fase 10 B4).
+    Loader {
+        active: !!page.extras["_top"]
+        visible: active
+        Layout.fillWidth: true
+        sourceComponent: page.extras["_top"] || null
+    }
+
     Repeater {
         model: page.sections
         ColumnLayout {

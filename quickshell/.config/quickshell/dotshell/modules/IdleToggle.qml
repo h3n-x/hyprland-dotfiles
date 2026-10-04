@@ -9,6 +9,12 @@ import ".." // Colors.qml
 
 Item {
     id: root
+    // Oculto desde el centro de configuracion (bar.show.idle, Fase 10 B4).
+    // Si se muestra, segun su propio estado y la opcion bar.show.* (Fase 10 B4).
+    // La barra lee shown, no visible: visible depende del padre y una pill
+    // oculta nunca volveria a mostrarse.
+    readonly property bool shown: SettingsState.value("bar.show.idle") !== false
+    visible: shown
     required property var panelWindow
     property bool active: false
 

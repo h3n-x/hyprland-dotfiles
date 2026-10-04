@@ -8,7 +8,11 @@ import ".." // Colors.qml, Tokens.qml, ControlCenterState.qml, BatteryState.qml,
 
 Item {
     id: root
-    visible: BatteryState.present
+    // Si se muestra, segun su propio estado y la opcion bar.show.* (Fase 10 B4).
+    // La barra lee shown, no visible: visible depende del padre y una pill
+    // oculta nunca volveria a mostrarse.
+    readonly property bool shown: BatteryState.present && SettingsState.value("bar.show.battery") !== false
+    visible: shown
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight
 

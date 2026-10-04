@@ -58,6 +58,15 @@ ShellRoot {
     AvatarSync {}
     // Sin reposo mientras suena algo, si se pidio (Fase 10 B3).
     MediaIdleInhibit {}
+    // Avisos del sistema por el OSD (Fase 10 B4); el atajo de Bloq Mayus llama
+    // aca por IPC (osd capsLock).
+    SystemNotices { id: systemNotices }
+    IpcHandler {
+        target: "osd"
+        function capsLock(): void {
+            systemNotices.capsLock();
+        }
+    }
     IpcHandler {
         target: "motion"
         function reduce(): void {

@@ -165,7 +165,8 @@ end)
 -- ---------------------------------------------------------------------------
 hl.bind(
 	"XF86AudioRaiseVolume",
-	hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"),
+	-- Tope: media.volumeLimit (100, 125 o 150 %), del centro de configuracion (Fase 10 B4).
+	hl.dsp.exec_cmd("sh -c 'wpctl set-volume -l \"$(~/.config/hypr/scripts/settings get media.volumeLimit)\" @DEFAULT_AUDIO_SINK@ 5%+'"),
 	{ locked = true, repeating = true, desc = "Multimedia · Volumen" }
 )
 hl.bind(
@@ -174,6 +175,9 @@ hl.bind(
 	{ locked = true, repeating = true, desc = "Multimedia · Volumen" }
 )
 hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, desc = "Multimedia · Silenciar" })
+-- Aviso de Bloq Mayus en el OSD (Fase 10 B4; solo si esta encendido en
+-- Notificaciones -> Avisos del sistema): no consume la tecla, corre al soltarla.
+hl.bind("Caps_Lock", hl.dsp.exec_cmd("qs -c dotshell ipc call osd capsLock"), { non_consuming = true, release = true, desc = "Sistema · Aviso de Bloq Mayús" })
 hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, desc = "Multimedia · Silenciar el micrófono" })
 
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"), { locked = true, repeating = true, desc = "Multimedia · Brillo" })

@@ -74,7 +74,7 @@ Scope {
         if (!cur || !c.fetched_at) return null;
         if (clock.date.getTime() / 1000 - c.fetched_at > 2 * 3600) return null;
         const d = WeatherText.describe(cur.weather_code, cur.is_day === 1);
-        return { icon: d.icon, temp: Math.round(cur.temperature_2m), text: d.text };
+        return { icon: d.icon, temp: WeatherText.temp(cur.temperature_2m, SettingsState.value("dashboard.weather.units")), text: d.text };
     }
 
     // ---- Musica ---------------------------------------------------------------------------
@@ -111,7 +111,7 @@ Scope {
     // ---- Tarjetas, en orden fijo ----------------------------------------------------------
     readonly property var tiles: {
         const r = [];
-        if (root.weather) r.push({ key: "weather", icon: root.weather.icon, title: root.weather.temp + "°", sub: root.weather.text, tone: "" });
+        if (root.weather) r.push({ key: "weather", icon: root.weather.icon, title: root.weather.temp, sub: root.weather.text, tone: "" });
         if (root.playing) {
             // El titulo de lo que suena (a pedido, 2026-10-04; antes solo
             // "Reproduciendo"); sin titulo, "Música". Debajo, el artista o el
