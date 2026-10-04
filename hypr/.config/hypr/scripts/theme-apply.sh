@@ -327,14 +327,16 @@ run_system() { # token esperado ("" = el que haya pendiente)
   if [ "$DRY" = true ]; then
     log "  dry: palette status --contrast ${contrast:-0} --write"
     log "  dry: matugen -c $SYSTEM_CFG ${args[*]}"
-    log "  dry: sudo -n /usr/local/bin/sync-sddm-theme"
+    log "  dry: sddm-theme-stage && sudo -n /usr/local/bin/sync-sddm-theme"
     rc=0
   else
     "$PALETTE" status --contrast "${contrast:-0}" --write 2>> "$LOG"
     matugen -c "$SYSTEM_CFG" "${args[@]}" >/dev/null 2>&1
     rc=$?
-    # SDDM despues de escribir sus 9 archivos (KI-C2); Plymouth y GRUB
-    # sincronizan desde sus propios post_hook.
+    # El greeter (Fase 9 B3): se arma como el usuario despues de que matugen
+    # termino (no escribe en orden, KI-C2) y la copia root lo instala. Plymouth
+    # y GRUB sincronizan desde sus propios post_hook.
+    "$SCRIPTS_DIR/sddm-theme-stage" 2>> "$LOG" || log "sistema: sddm-theme-stage fallo"
     sudo -n /usr/local/bin/sync-sddm-theme >/dev/null 2>&1 || log "sistema: sync-sddm-theme fallo o no hay regla sudoers"
   fi
   # Solo se borra si nadie agendo otro mientras tanto.

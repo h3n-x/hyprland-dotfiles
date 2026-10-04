@@ -103,6 +103,19 @@ SemanticPalette {
     // Alto contraste (accessibility.highContrast): lo aplica SemanticPalette.
     highContrast: SettingsState.value("accessibility.highContrast") === true
 
+    // Opacidad de las superficies translucidas (Tokens.opacity.surface): la
+    // transparencia elegida, nunca por debajo de surfaceFloor; opaca con alto
+    // contraste. Vive aca porque Tokens es QtQuick puro (lo comparte el greeter).
+    property Binding surfaceOpacity: Binding {
+        target: Tokens.opacity
+        property: "surface"
+        value: {
+            if (SettingsState.value("accessibility.highContrast") === true) return 1;
+            const t = SettingsState.value("appearance.transparency");
+            return Math.max(Tokens.opacity.surfaceFloor, t === "off" ? 1 : t === "reduced" ? 0.97 : 0.92);
+        }
+    }
+
     // Cambio de paleta animado (guia de transiciones 3.6.1: dur.theme, ease.standard);
     // instantaneo con movimiento reducido y en la primera carga.
     // Durante la vista previa (pasos y vuelta) dur.medium (decision B7c).

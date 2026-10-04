@@ -1,0 +1,4 @@
+singleton Colors 1.0 Colors.qml
+singleton Tokens 1.0 Tokens.qml
+SemanticPalette 1.0 SemanticPalette.qml
+SddmAuth 1.0 SddmAuth.qml

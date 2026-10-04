@@ -1,12 +1,10 @@
 [SddmGreeterTheme]
-Name=Dotfiles Matugen
-Description=Tema basado en catppuccin/sddm, recoloreado por matugen segun el wallpaper
+Name=Dotfiles Login
+Description=Greeter de los dotfiles: la misma pantalla de entrada que el bloqueo (Fase 9 B3), con los colores de matugen
 Type=sddm-theme
-Version=1.0
+Version=2.0
 MainScript=Main.qml
 ConfigFile=theme.conf
-TranslationsDirectory=translations
-Theme-Id=DotfilesMatugen
+Theme-Id=dotfiles-login
 Theme-API=2.0
-License=MIT
 QtVersion=6

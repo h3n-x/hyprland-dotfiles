@@ -146,11 +146,10 @@ QtObject {
         // texto secundario sigue legible con cualquier wallpaper detras (P8.7 C5,
         // medido: 5.0:1 a 0.85, 3.6:1 a 0.75).
         readonly property real surfaceFloor: 0.85
-        readonly property real surface: {
-            if (SettingsState.value("accessibility.highContrast") === true) return 1;
-            const t = SettingsState.value("appearance.transparency");
-            return Math.max(surfaceFloor, t === "off" ? 1 : t === "reduced" ? 0.97 : 0.92);
-        }
+        // La fija Colors.qml segun appearance.transparency y el alto contraste
+        // (Binding): Tokens queda en QtQuick puro, asi lo usa tambien el greeter
+        // de SDDM (Fase 9 B3), que se queda con este valor.
+        property real surface: 0.92
         readonly property real scrim: 0.40       // fondo de overlays a pantalla completa
         readonly property real scrimImage: 0.60  // velo bajo texto sobre imagenes (miniaturas, portadas)
         // Contenido deshabilitado (M3). Mismo valor que SemanticPalette.disabledOpacity

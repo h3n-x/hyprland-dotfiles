@@ -88,9 +88,10 @@ ShellRoot {
         Qt.callLater(Qt.quit);
     }
     // Respaldo: si la animacion no avisa (pantalla apagada), se termina igual.
+    // Cubre el instante del candado abierto (M6) y la salida (M2, LoginStage).
     Timer {
         running: root.leaving
-        interval: Tokens.motion.long + 200
+        interval: Tokens.motion.short + Math.round(Tokens.motion.long / 0.7) + 300
         onTriggered: root.finish()
     }
 }

@@ -521,15 +521,25 @@ solo pisa el tema si no hay ninguno seteado).
 
 ### SDDM (pantalla de login)
 
-Tema propio (`sddm/theme/`, adaptado de
-[catppuccin/sddm](https://github.com/catppuccin/sddm) -- MIT, ver
-`sddm/theme/LICENSE-catppuccin`) recoloreado por matugen. A diferencia de
-todo lo demas, SDDM corre como servicio de sistema (usuario `sddm`, antes
-del login), no como vos, asi que necesita un paso de setup con sudo. Una
-vez hecho, se recolorea solo en cada cambio de wallpaper, igual que el
-resto (via `sudo -n` a un script puntual, no sudo sin restricciones -- ver
-el comentario en `matugen/.config/matugen/config.toml`, template
-`sddm-sleepbutton`):
+El greeter (`dotfiles-login`) es la misma pantalla de entrada que el bloqueo
+(ver "Bloqueo de pantalla"): hora apilada, chip de la fecha y la tarjeta de
+la contrasena, con el avatar `~/.face`. Las tarjetas son acciones: Apagar,
+Reiniciar, Suspender (si el equipo puede) y Sesion (un clic pasa a la
+siguiente, por ejemplo Hyprland / Hyprland (uwsm)). Entra sobre el fondo
+difuminado que deja Plymouth y, al iniciar sesion, sale hasta el wallpaper
+nitido con el que arranca el escritorio.
+
+Comparte el codigo con el bloqueo: `dotshell/login/` (QtQuick puro),
+`Tokens.qml`, `SemanticPalette.qml` y `modules/Icon.qml`; lo propio del
+greeter esta en `sddm/theme/` (`Main.qml`, `SddmAuth.qml`). La paleta la
+genera matugen (`templates/sddm/Colors.qml`) en la pasada del sistema, 60 s
+despues del ultimo cambio de wallpaper. `scripts/sddm-theme-stage` arma el
+tema completo como vos en `~/.cache/matugen/sddm-login/` (con el wallpaper y
+el avatar) y la copia root de `sync-sddm-theme` solo lo instala en
+`/usr/share/sddm/themes/dotfiles-login` (sin argumentos, rechaza enlaces
+simbolicos): SDDM corre como el usuario `sddm` y no puede leer tu home.
+
+Setup (una vez, con sudo):
 
 ```bash
 # Copia root-owned del script (el sudoers NO apunta al de este repo, que
@@ -544,15 +554,22 @@ visudo -c -f /tmp/matugen-sddm-sudoers && \
   sudo install -m 440 -o root -g root /tmp/matugen-sddm-sudoers /etc/sudoers.d/matugen-sddm
 rm /tmp/matugen-sddm-sudoers
 
-# Genera el tema por primera vez y lo activa
+# Arma e instala el tema por primera vez y lo activa
+~/.config/hypr/scripts/sddm-theme-stage
 sudo /usr/local/bin/sync-sddm-theme
 sudo mkdir -p /etc/sddm.conf.d
-printf '[Theme]\nCurrent=dotfiles-matugen\n' | sudo tee /etc/sddm.conf.d/theme.conf
+printf '[Theme]\nCurrent=dotfiles-login\n' | sudo tee /etc/sddm.conf.d/theme.conf
 ```
 
 Si editas `sync-sddm-theme.sh`, hay que repetir el primer `install` para
 que el cambio aplique (la copia en `/usr/local/bin` es la que realmente
-corre, no la del repo).
+corre, no la del repo). Para probar el tema sin cerrar sesion:
+`sddm-greeter-qt6 --test-mode --theme ~/.cache/matugen/sddm-login` (los
+errores de QML van al journal: `journalctl --user -e`).
+
+Si el greeter no cargara: `Ctrl+Alt+F3`, entrar, y
+`sudo sed -i 's/^Current=.*/Current=maldives/' /etc/sddm.conf.d/theme.conf`
+y `sudo systemctl restart sddm` (maldives viene con SDDM).
 
 ### Bloqueo de pantalla
 
@@ -563,7 +580,11 @@ chip de la fecha; a la derecha las tarjetas "de un vistazo" y la tarjeta de
 la contrasena (avatar `~/.face`, usuario, campo y la linea de Bloq Mayus o
 del error), sobre el wallpaper difuminado. El campo esta en todas las
 pantallas (un solo texto compartido) y tiene un lugar fijo: las tarjetas
-crecen hacia arriba. Siempre lo lanza `~/.config/hypr/scripts/lock`, que lo
+crecen hacia arriba. Es la misma pantalla que el greeter (codigo
+compartido en `dotshell/login/`): entra desde el escritorio (el fondo se
+difumina; reloj, tarjetas y tarjeta de la contrasena, en ese orden) y al
+desbloquear el candado se abre y sale todo hasta el wallpaper nitido. Nada
+se mueve si nada cambia; con "Reducir movimiento", todo es inmediato. Siempre lo lanza `~/.config/hypr/scripts/lock`, que lo
 vigila:
 
 - `SUPER+L`, el menu de energia y el control center llaman `lock --user`;

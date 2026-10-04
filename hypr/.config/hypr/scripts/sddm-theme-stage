@@ -1,0 +1,48 @@
+#!/bin/bash
+# Arma el tema del greeter de SDDM (Fase 9 B3) como el usuario, completo, en
+# ~/.cache/matugen/sddm-login/. Despues /usr/local/bin/sync-sddm-theme (root,
+# sin argumentos) solo lo copia a /usr/share/sddm/themes/dotfiles-login: root
+# nunca lee el home ni decide que archivos van.
+#
+# Contenido (una sola implementacion, nada se copia a mano):
+#   sddm/theme/        Main.qml, SddmAuth.qml, qmldir, theme.conf, metadata.desktop
+#   dotshell           Tokens.qml, SemanticPalette.qml, modules/Icon.qml, login/
+#                      (la pantalla de entrada compartida con el bloqueo)
+#   matugen            Colors.qml (templates/sddm/Colors.qml, pasada del sistema)
+#   el usuario         backgrounds/wall.png (el wallpaper actual) y face.png (~/.face)
+# Archivos regulares solamente (cp -L): la copia root rechaza enlaces.
+# Lo llama theme-apply.sh despues de la pasada del sistema de matugen.
+# Pruebas: SDDM_STAGE (destino), SDDM_COLORS (paleta generada), DOTFILES.
+set -euo pipefail
+
+REPO=${DOTFILES:-$HOME/Dotfiles}
+SHELL_DIR=$REPO/quickshell/.config/quickshell/dotshell
+THEME_SRC=$REPO/sddm/theme
+COLORS=${SDDM_COLORS:-$HOME/.cache/matugen/sddm-login-colors.qml}
+OUT=${SDDM_STAGE:-$HOME/.cache/matugen/sddm-login}
+WALLPAPER_CONF=$HOME/.config/hypr/current-wallpaper.conf
+
+# matugen todavia no genero la paleta (primer arranque): nada que armar.
+[ -f "$COLORS" ] || exit 0
+
+mkdir -p "$(dirname "$OUT")"
+tmp=$(mktemp -d "$OUT.XXXXXX")
+trap 'rm -rf "$tmp"' EXIT
+
+cp -L "$THEME_SRC/Main.qml" "$THEME_SRC/SddmAuth.qml" "$THEME_SRC/qmldir" \
+      "$THEME_SRC/theme.conf" "$THEME_SRC/metadata.desktop" "$tmp/"
+cp -L "$SHELL_DIR/Tokens.qml" "$SHELL_DIR/SemanticPalette.qml" "$tmp/"
+mkdir -p "$tmp/modules" "$tmp/login" "$tmp/backgrounds"
+cp -L "$SHELL_DIR/modules/Icon.qml" "$tmp/modules/"
+cp -L "$SHELL_DIR/login/"*.qml "$tmp/login/"
+cp -L "$COLORS" "$tmp/Colors.qml"
+
+# El greeter corre como el usuario "sddm": no puede leer el home (700).
+wp=$(grep -oP '(?<=path = ).*' "$WALLPAPER_CONF" 2>/dev/null | head -1 | sed "s|^~|$HOME|" || true)
+[ -n "$wp" ] && [ -f "$wp" ] && cp -L "$wp" "$tmp/backgrounds/wall.png"
+[ -f "$HOME/.face" ] && cp -L "$HOME/.face" "$tmp/face.png"
+
+chmod -R u=rwX,go=rX "$tmp"
+rm -rf "$OUT"
+mv "$tmp" "$OUT"
+trap - EXIT

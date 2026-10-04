@@ -7,13 +7,16 @@
 # una sola vez, 60 s despues del ultimo cambio de wallpaper (o al iniciar la
 # siguiente sesion si quedo pendiente).
 #
-# SDDM no tiene post_hook: quien corre esta config sincroniza despues con
+# SDDM no tiene post_hook: quien corre esta config (theme-apply.sh), cuando
+# matugen ya termino (no escribe en orden, KI-C2), arma el greeter con
+# scripts/sddm-theme-stage y lo instala con
 #   sudo -n /usr/local/bin/sync-sddm-theme
-# cuando ya existen los 9 archivos del tema (antes el hook colgaba de
-# sddm-sleepbutton y matugen no escribe en orden: podia copiar un tema a
-# medias, KI-C2). Apunta a una copia root-owned en /usr/local/bin (no al
-# script de este repo: si el sudoers apuntara ahi, NOPASSWD equivaldria a
-# sudo sin restricciones). Fuente: hypr/.config/hypr/scripts/sync-sddm-theme.sh.
+# (Fase 9 B3: el greeter "dotfiles-login" usa la pantalla de entrada del
+# bloqueo; de matugen solo necesita su paleta, sddm-login). La copia
+# root-owned en /usr/local/bin no es el script del repo: si el sudoers
+# apuntara ahi, NOPASSWD equivaldria a sudo sin restricciones. Fuente:
+# hypr/.config/hypr/scripts/sync-sddm-theme.sh. Las 9 plantillas sddm-* de
+# abajo son del tema anterior (dotfiles-matugen) y se retiran en B3b.
 # ============================================================================
 
 [config]
@@ -22,6 +25,10 @@
 # {{status.warning.default.hex}} y {{theme.contrast}}. Solo cambian con el
 # modo: nunca con el wallpaper, el esquema ni el contraste (principio 23).
 import_json_files = ["~/.cache/matugen/status.json"]
+
+[templates.sddm-login]
+input_path = "~/.config/matugen/templates/sddm/Colors.qml"
+output_path = "~/.cache/matugen/sddm-login-colors.qml"
 
 [templates.sddm-main]
 input_path = "~/.config/matugen/templates/sddm/Main.qml"

@@ -110,14 +110,15 @@ Scope {
     // ---- Tarjetas, en orden fijo ----------------------------------------------------------
     readonly property var tiles: {
         const r = [];
-        if (root.weather) r.push({ icon: root.weather.icon, title: root.weather.temp + "°", sub: root.weather.text, tone: "" });
-        if (root.playing) r.push({ icon: "music_note", title: "Música", sub: "Reproduciendo", tone: "" });
+        if (root.weather) r.push({ key: "weather", icon: root.weather.icon, title: root.weather.temp + "°", sub: root.weather.text, tone: "" });
+        if (root.playing) r.push({ key: "music", icon: "music_note", title: "Música", sub: "Reproduciendo", tone: "" });
         if (root.onBattery) r.push({
+            key: "battery",
             icon: BatteryState.critical || BatteryState.warning ? "battery_alert" : "battery_android_full",
             title: Math.round(BatteryState.pct * 100) + " %",
             sub: BatteryState.critical ? "Batería crítica" : BatteryState.warning ? "Batería baja" : "Con batería",
             tone: BatteryState.critical ? "danger" : BatteryState.warning ? "warning" : "" });
-        if (root.notifications > 0) r.push({ icon: "notifications", title: root.notifications + (root.notifications === 1 ? " aviso" : " avisos"), sub: "Nuevos", tone: "" });
+        if (root.notifications > 0) r.push({ key: "notifications", icon: "notifications", title: root.notifications + (root.notifications === 1 ? " aviso" : " avisos"), sub: "Nuevos", tone: "" });
         return r;
     }
 }
