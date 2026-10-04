@@ -15,8 +15,7 @@
 # bloqueo; de matugen solo necesita su paleta, sddm-login). La copia
 # root-owned en /usr/local/bin no es el script del repo: si el sudoers
 # apuntara ahi, NOPASSWD equivaldria a sudo sin restricciones. Fuente:
-# hypr/.config/hypr/scripts/sync-sddm-theme.sh. Las 9 plantillas sddm-* de
-# abajo son del tema anterior (dotfiles-matugen) y se retiran en B3b.
+# hypr/.config/hypr/scripts/sync-sddm-theme.sh.
 # ============================================================================
 
 [config]
@@ -29,42 +28,6 @@ import_json_files = ["~/.cache/matugen/status.json"]
 [templates.sddm-login]
 input_path = "~/.config/matugen/templates/sddm/Colors.qml"
 output_path = "~/.cache/matugen/sddm-login-colors.qml"
-
-[templates.sddm-main]
-input_path = "~/.config/matugen/templates/sddm/Main.qml"
-output_path = "~/.cache/matugen/sddm-theme/Main.qml"
-
-[templates.sddm-clock]
-input_path = "~/.config/matugen/templates/sddm/Components/Clock.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/Clock.qml"
-
-[templates.sddm-loginpanel]
-input_path = "~/.config/matugen/templates/sddm/Components/LoginPanel.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/LoginPanel.qml"
-
-[templates.sddm-sessionpanel]
-input_path = "~/.config/matugen/templates/sddm/Components/SessionPanel.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/SessionPanel.qml"
-
-[templates.sddm-passwordfield]
-input_path = "~/.config/matugen/templates/sddm/Components/PasswordField.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/PasswordField.qml"
-
-[templates.sddm-userfield]
-input_path = "~/.config/matugen/templates/sddm/Components/UserField.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/UserField.qml"
-
-[templates.sddm-powerbutton]
-input_path = "~/.config/matugen/templates/sddm/Components/PowerButton.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/PowerButton.qml"
-
-[templates.sddm-rebootbutton]
-input_path = "~/.config/matugen/templates/sddm/Components/RebootButton.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/RebootButton.qml"
-
-[templates.sddm-sleepbutton]
-input_path = "~/.config/matugen/templates/sddm/Components/SleepButton.qml"
-output_path = "~/.cache/matugen/sddm-theme/Components/SleepButton.qml"
 
 [templates.plymouth]
 input_path = "~/.config/matugen/templates/plymouth.script"
