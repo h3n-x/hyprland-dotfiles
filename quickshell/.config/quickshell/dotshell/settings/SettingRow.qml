@@ -26,7 +26,10 @@ Item {
     readonly property string note: row.model.applyNote(row.key)
     readonly property bool stacked: !!control.item && control.item.implicitWidth > col.width * 0.6
     // El selector abierto (su lista va debajo, a lo ancho de la fila).
-    readonly property bool listOpen: (row.kind === "select" || row.kind === "font") && !!control.item && control.item.open
+    readonly property bool listOpen: (row.kind === "select" || row.kind === "font" || row.kind === "layouts") && !!control.item && control.item.open
+    // Lo que Hyprland usa ahora, si difiere del almacen (Fase 10 B3): modo juego,
+    // un hyprctl a mano. Informacion, no un estado de error: neutro.
+    readonly property var liveInfo: row.meta.hypr ? row.model.live[row.key] : null
 
     function set(v: var): void {
         SettingsState.set(row.key, v);
@@ -94,6 +97,19 @@ Item {
                     wrapMode: Text.WordWrap
                 }
                 Row {
+                    visible: !!row.liveInfo && !row.liveInfo.same
+                    spacing: Tokens.space.xs
+                    Icon { anchors.verticalCenter: parent.verticalCenter; name: "info"; size: Tokens.icon.sm; color: Colors.textMuted }
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: row.liveInfo ? "Hyprland usa ahora: " + row.liveInfo.live.map(v => typeof v === "boolean" ? (v ? "encendido" : "apagado")
+                            : String(v).replace(".", ",")).join(" · ") : ""
+                        color: Colors.textMuted
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.label
+                    }
+                }
+                Row {
                     visible: row.error !== ""
                     spacing: Tokens.space.xs
                     Icon { anchors.verticalCenter: parent.verticalCenter; name: "error"; filled: true; size: Tokens.icon.sm; color: Colors.danger }
@@ -137,7 +153,7 @@ Item {
                 Layout.fillWidth: row.stacked
                 sourceComponent: ({
                     "switch": switchC, "segmented": segmentedC, "select": selectC,
-                    "stepper": stepperC, "slider": sliderC, "path": pathC, "font": fontC
+                    "stepper": stepperC, "slider": sliderC, "path": pathC, "font": fontC, "layouts": layoutsC
                 })[row.kind] || null
             }
         }
@@ -149,6 +165,15 @@ Item {
             options: row.model.options(row.key)
             current: row.value
             onChosen: (v) => row.set(v)
+            onClosed: control.item.open = false
+        }
+        // Lista de distribuciones del teclado (Fase 10 B3), en el mismo lugar.
+        XkbList {
+            visible: row.listOpen && row.kind === "layouts"
+            Layout.fillWidth: true
+            entries: row.kind === "layouts" && control.item ? control.item.entries : []
+            taken: row.value || []
+            onChosen: (id) => control.item.add(id)
             onClosed: control.item.open = false
         }
         // Lista de fuentes (Fase 10 B2), en el mismo lugar.
@@ -259,6 +284,15 @@ Item {
             activeFocusOnTab: true
             mono: row.meta.kind === "font-mono"
             current: row.value || ""
+        }
+    }
+    Component {
+        id: layoutsC
+        LayoutList {
+            objectName: "control-layouts"
+            value: row.value || []
+            maxItems: row.meta.maxItems || 4
+            onEdited: (l) => row.set(l)
         }
     }
 }

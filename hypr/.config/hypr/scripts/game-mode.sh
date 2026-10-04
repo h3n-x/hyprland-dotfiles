@@ -4,12 +4,15 @@
 # Optimiza el sistema para gaming:
 #   - Perfil de energía a "performance"
 #   - Pausa hypridle (evita pantalla negra con mandos)
-#   - Desactiva blur y sombras en Hyprland para maximizar FPS y reducir latencia
+#   - Desactiva blur, sombras y animaciones de Hyprland (hyprctl eval: con la
+#     config Lua, `hyprctl keyword` no funciona, KI-C35); al salir vuelven tus
+#     valores del centro de configuracion (settings-apply), no los de fabrica
 #   - Notifica al usuario
 # ============================================================================
 set -euo pipefail
 
-STATE_FILE="/tmp/gamemode-${USER}.state"
+# GAMEMODE_STATE: otro archivo de estado (pruebas; settings-apply lee el mismo).
+STATE_FILE="${GAMEMODE_STATE:-/tmp/gamemode-${USER}.state}"
 
 is_active() {
     [ -f "$STATE_FILE" ]
@@ -26,10 +29,9 @@ enable_game_mode() {
     # 2. Pausar hypridle para que no bloquee ni apague pantalla con mandos
     pkill -STOP hypridle 2>/dev/null || true
 
-    # 3. Optimizar Hyprland (desactivar blur y sombras para menor latencia)
+    # 3. Optimizar Hyprland (sin blur, sombras ni animaciones: menos latencia)
     if command -v hyprctl >/dev/null 2>&1; then
-        hyprctl keyword decoration:blur:enabled false >/dev/null 2>&1 || true
-        hyprctl keyword decoration:shadow:enabled false >/dev/null 2>&1 || true
+        hyprctl eval 'hl.config({ decoration = { blur = { enabled = false }, shadow = { enabled = false } }, animations = { enabled = false } })' >/dev/null 2>&1 || true
     fi
 
     notify-send -a "Modo Juego" "Modo Juego Activado" \
@@ -45,14 +47,11 @@ disable_game_mode() {
         powerprofilesctl set balanced 2>/dev/null || true
     fi
 
-    # 2. Reanudar hypridle
-    pkill -CONT hypridle 2>/dev/null || true
-
-    # 3. Restaurar efectos visuales de Hyprland
-    if command -v hyprctl >/dev/null 2>&1; then
-        hyprctl keyword decoration:blur:enabled true >/dev/null 2>&1 || true
-        hyprctl keyword decoration:shadow:enabled true >/dev/null 2>&1 || true
-    fi
+    # 2 y 3. hypridle de nuevo, con la config de ahora (pudo cambiar en pausa),
+    # y los valores de Hyprland que elegiste (blur, sombras, animaciones).
+    local apply="$(dirname "$(readlink -f "$0")")/settings-apply"
+    "$apply" idle --restart >/dev/null 2>&1 || pkill -CONT hypridle 2>/dev/null || true
+    "$apply" hypr --all >/dev/null 2>&1 || true
 
     notify-send -a "Modo Juego" "Modo Juego Desactivado" \
         "Perfil equilibrado restaurado | Efectos visuales activos" \

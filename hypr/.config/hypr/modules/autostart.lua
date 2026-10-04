@@ -22,7 +22,9 @@ hl.on("hyprland.start", function()
     -- El wallpaper lo dibuja Quickshell (Fase 3 B6); hyprpaper solo si se
     -- eligio como vuelta atras con `theme-apply.sh --backend hyprpaper`.
     hl.exec_cmd("sh -c '[ \"$(~/.config/hypr/scripts/theme-apply.sh --backend status)\" = hyprpaper ] && exec hyprpaper'")
-    hl.exec_cmd("hypridle")
+    -- hypridle con la config generada desde las opciones de Energia (Fase 10
+    -- B3): settings-apply la arma (y los overrides de Hyprland) antes.
+    hl.exec_cmd("sh -c '~/.config/hypr/scripts/settings-apply render; exec hypridle -c ~/.local/state/dotfiles/hypridle.conf'")
     hl.exec_cmd("hyprsunset")
 
     -- Temas de arranque/login que quedaron pendientes si la sesion anterior

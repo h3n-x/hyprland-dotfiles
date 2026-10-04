@@ -56,6 +56,8 @@ ShellRoot {
     StoreBindings {}
     // Avatar elegido en el centro -> ~/.face (Fase 10 B2).
     AvatarSync {}
+    // Sin reposo mientras suena algo, si se pidio (Fase 10 B3).
+    MediaIdleInhibit {}
     IpcHandler {
         target: "motion"
         function reduce(): void {

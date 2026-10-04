@@ -33,6 +33,8 @@ ColumnLayout {
     }
 
     spacing: Tokens.space.lg
+    // Valores de Hyprland de esta pagina (Fase 10 B3).
+    Component.onCompleted: page.model.refreshLive(page.category)
 
     RowLayout {
         Layout.fillWidth: true

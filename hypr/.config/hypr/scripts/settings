@@ -19,8 +19,11 @@
 # Nadie lee settings.json directamente: la shell (SettingsState) y los scripts
 # leen la cache efectiva; todo lo que escribe pasa por aca. Un valor invalido
 # no se aplica ni se borra (cuarentena, queda en "problems"). Sin secretos.
+# Las claves que van a Hyprland o a hypridle ("hypr"/"idle" en el esquema, Fase
+# 10 B3) se aplican despues de escribir: settings-apply changed <claves>.
 # Pruebas: SETTINGS_SCHEMA, SETTINGS_MIGRATIONS, SETTINGS_FILE,
-# SETTINGS_EFFECTIVE, SETTINGS_LOCK.
+# SETTINGS_EFFECTIVE, SETTINGS_LOCK, SETTINGS_APPLY (otro aplicador; vacio =
+# ninguno).
 set -uo pipefail
 
 SCHEMA=${SETTINGS_SCHEMA:-$HOME/.config/quickshell/dotshell/data/settings.schema.json}
@@ -28,7 +31,8 @@ MIGRATIONS=${SETTINGS_MIGRATIONS:-$(dirname "$SCHEMA")/settings.migrations.json}
 USER_FILE=${SETTINGS_FILE:-$HOME/.config/dotfiles/settings.json}
 EFFECTIVE=${SETTINGS_EFFECTIVE:-${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/settings.effective.json}
 LOCK=${SETTINGS_LOCK:-${XDG_RUNTIME_DIR:-/tmp}/dotfiles/settings.lock}
-export SCHEMA MIGRATIONS USER_FILE EFFECTIVE LOCK
+APPLIER=${SETTINGS_APPLY-$(dirname "$(readlink -f "$0")")/settings-apply}
+export SCHEMA MIGRATIONS USER_FILE EFFECTIVE LOCK APPLIER
 
 # La cache vale si es mas nueva que todo lo que la produce.
 fresh() {
@@ -46,6 +50,7 @@ import datetime, fcntl, json, os, re, sys, tempfile
 
 SCHEMA = os.environ["SCHEMA"]; MIGRATIONS = os.environ["MIGRATIONS"]
 USER_FILE = os.environ["USER_FILE"]; EFFECTIVE = os.environ["EFFECTIVE"]; LOCK = os.environ["LOCK"]
+APPLIER = os.environ.get("APPLIER", "")
 TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color"}
 APPLY = {"live", "next-use", "reload-shell", "relogin", "reboot"}
 SCOPES = {"user", "login", "lock"}
@@ -262,7 +267,8 @@ def write_user(change):
     """Relee bajo el lock, aplica el cambio y escribe (nunca los valores ajenos)."""
     s = schema()
     def run():
-        user, _, broken = read_user(s)
+        user, problems, broken = read_user(s)
+        before = effective(s, user, problems)["values"]
         if broken and os.path.exists(USER_FILE):
             stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             os.replace(USER_FILE, f"{USER_FILE}.broken-{stamp}")
@@ -270,7 +276,18 @@ def write_user(change):
         out = {"version": max(s["version"], user.get("version", 0)), "values": dict(sorted(user["values"].items()))}
         atomic_write(USER_FILE, json.dumps(out, ensure_ascii=False, indent=2) + "\n")
         dump(quiet=True)
-    locked(run)
+        return before
+    before = locked(run)
+    # Fuera del lock: lo que va a Hyprland o a hypridle se aplica ya. Un error
+    # de aplicacion se avisa pero no deshace lo guardado.
+    after, _ = load_json(EFFECTIVE, {"values": {}})
+    changed = [k for k, m in s["keys"].items() if (m.get("hypr") or m.get("idle"))
+               and before.get(k) != after.get("values", {}).get(k)]
+    if changed and APPLIER:
+        import subprocess
+        r = subprocess.run([APPLIER, "changed"] + changed, capture_output=True, text=True)
+        if r.returncode != 0 or r.stderr.strip():
+            print(f"aplicar: {(r.stderr or r.stdout).strip()}", file=sys.stderr)
 
 
 def cmd_set(key, text):

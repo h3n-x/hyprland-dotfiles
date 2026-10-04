@@ -8,6 +8,8 @@
 // (en el orden del esquema; las vacias no aparecen hasta tener opciones) y
 // Acerca de.
 import QtQuick
+import Quickshell
+import Quickshell.Io
 import ".." // SettingsState.qml
 
 QtObject {
@@ -83,6 +85,7 @@ QtObject {
         if ((m.type === "int" || m.type === "number") && m.min !== undefined && m.max !== undefined) return "slider";
         if (m.type === "path") return "path";
         if (m.type === "string" && String(m.kind || "").startsWith("font-")) return "font";
+        if (m.type === "list" && m.kind === "xkb") return "layouts";
         return "";
     }
     // Opciones [[valor, texto], ...] de un enum (orden del esquema) o de presets.
@@ -100,6 +103,7 @@ QtObject {
         if (!m || v === undefined || v === null) return "";
         if (m.type === "bool") return v ? "Encendido" : "Apagado";
         if (m.type === "enum") return (m.values && m.values[v]) || String(v);
+        if (m.type === "list") return (v || []).join(", ");
         if (m.labels && m.labels.hasOwnProperty(String(v))) return m.labels[String(v)];
         const preset = Array.isArray(m.presets) ? m.presets.find(p => Array.isArray(p) && Math.abs(p[0] - v) < 0.01) : null;
         if (preset) return preset[1];
@@ -108,6 +112,42 @@ QtObject {
             return home && String(v).startsWith(home + "/") ? "~" + String(v).slice(home.length) : String(v);
         }
         return String(v).replace(".", ",") + (m.unit ? " " + m.unit : "");
+    }
+
+    // ---- Valor en Hyprland (Fase 10 B3) ---------------------------------------------------
+    // Para las claves con "hypr": lo que Hyprland usa ahora (scripts/settings-apply
+    // live, un solo proceso por pagina). live[clave] = { same, live: [...] }.
+    // Se pide al abrir la pagina y despues de un cambio; nunca periodicamente.
+    // Sin escuchar los eventos de Hyprland: recibirlos todos (foco, ventanas)
+    // costaba CPU con la ventana quieta, por una recarga a mano que es rara.
+    property var live: ({})
+    property var liveKeys: []
+    function refreshLive(category: string): void {
+        model.liveKeys = (model.byCategory[category] || []).filter(k => !!model.keys[k].hypr);
+        if (!model.liveKeys.length) return;
+        liveTimer.restart();
+    }
+    property Timer liveTimer: Timer {
+        interval: 250
+        onTriggered: {
+            if (liveProc.running) { liveTimer.restart(); return; }
+            liveProc.command = [Quickshell.env("SETTINGS_APPLY_CMD") || (Quickshell.env("HOME") + "/.config/hypr/scripts/settings-apply"), "live"].concat(model.liveKeys);
+            liveProc.running = true;
+        }
+    }
+    // Despues de un cambio (el motor ya lo aplico).
+    property Connections liveOnChange: Connections {
+        target: SettingsState
+        function onValuesChanged() { if (model.liveKeys.length) liveTimer.restart(); }
+    }
+    property Process liveProc: Process {
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    model.live = Object.assign({}, model.live, JSON.parse(this.text));
+                } catch (e) {}
+            }
+        }
     }
 
     // Que pasa al cambiarla (badge de la fila); "" = al instante.

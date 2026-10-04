@@ -507,10 +507,30 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   shell, el bloqueo y el login las usan; si una se desinstala, vuelve la de
   fabrica y Diagnostico lo dice) y el **avatar**: del fondo o una imagen
   propia (selector de archivos del portal, GTK).
-- **Accesibilidad**: reducir movimiento, alto contraste, **tamano del
+- **Accesibilidad**: reducir movimiento (la shell y tambien las animaciones
+  de las ventanas), alto contraste, **tamano del
   texto** (Normal, Grande 112 %, Muy grande 125 %: solo el texto, iconos y
   alturas quedan igual; tambien el bloqueo y el login) y **foco siempre
   visible** (un anillo alrededor de lo que tiene el foco del teclado).
+- **Ventanas** (en Apariencia, Fase 10 B3): espacios, esquinas, borde,
+  opacidad, desenfoque y sombras de Hyprland.
+- **Teclado y raton**: distribuciones del teclado (la primera es la principal;
+  con mas de una, una combinacion las alterna), repeticion de teclas, Bloq
+  Num, el foco que sigue al raton, velocidad y aceleracion del puntero, y el
+  touchpad (desplazamiento natural, tocar para hacer clic, desactivar
+  mientras se escribe, clic derecho con dos dedos, velocidad).
+- **Energia**: bajar el brillo, bloquear, apagar la pantalla y suspender
+  tras un tiempo sin uso (cada uno puede ser "Nunca"), suspender tambien
+  enchufado o solo con bateria, y no entrar en reposo mientras suena algo.
+
+Lo que va a Hyprland o a hypridle se aplica al momento (sin recargar
+Hyprland): `scripts/settings-apply` genera
+`~/.local/state/dotfiles/hypr-overrides.lua` (solo lo que cambiaste;
+`hyprland.lua` lo carga al final, la config del repo es la de fabrica) y
+`~/.local/state/dotfiles/hypridle.conf` (hypridle arranca con esa). Si
+Hyprland usa otro valor (por ejemplo en modo juego), la fila lo dice. El modo
+juego (`SUPER+ALT+G`) apaga desenfoque, sombras y animaciones y al salir
+vuelven tus valores.
 - **Acerca de**: versiones, Diagnostico (valores que el motor no aplico y
   por que, fuentes que ya no estan), tus cambios como archivo y el README.
 - **Buscar** (`Ctrl+F`): etiqueta, descripcion, palabras clave, sin tildes;

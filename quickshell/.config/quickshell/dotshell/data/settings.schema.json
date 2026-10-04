@@ -9,6 +9,8 @@
     "media":         { "label": "Multimedia",       "icon": "music_note",        "order": 60 },
     "notifications": { "label": "Notificaciones",   "icon": "notifications",     "order": 70 },
     "system":        { "label": "Sistema",          "icon": "settings",          "order": 80 },
+    "power":         { "label": "Energía",          "icon": "bolt",              "order": 84 },
+    "input":         { "label": "Teclado y ratón",  "icon": "mouse",             "order": 86 },
     "lock":          { "label": "Bloqueo e inicio", "icon": "lock",              "order": 90 },
     "keybinds":      { "label": "Atajos",           "icon": "keyboard",          "order": 100 }
   },
@@ -99,8 +101,9 @@
       "type": "bool", "default": false,
       "category": "accessibility", "section": "Movimiento", "order": 10,
       "label": "Reducir movimiento",
-      "description": "Sin animaciones ni transiciones en toda la shell.",
-      "keywords": ["animaciones", "transiciones", "mareo"], "apply": "live"
+      "description": "Sin animaciones ni transiciones en toda la shell ni en las ventanas.",
+      "keywords": ["animaciones", "transiciones", "mareo"], "apply": "live",
+      "hypr": "animations:enabled", "hyprInvert": true
     },
     "lock.glance.weather": {
       "type": "bool", "default": true,
@@ -268,6 +271,159 @@
       "type": "bool", "default": true,
       "category": "keybinds", "section": "Guía de atajos", "order": 30,
       "label": "Mostrar los modos (cambiar tamaño)", "apply": "live"
+    },
+    "appearance.windows.gapsIn": {
+      "type": "int", "default": 4, "min": 0, "max": 24, "unit": "px",
+      "category": "appearance", "section": "Ventanas", "order": 50,
+      "label": "Espacio entre ventanas", "keywords": ["gaps", "márgenes"], "apply": "live", "hypr": "general:gaps_in"
+    },
+    "appearance.windows.gapsOut": {
+      "type": "int", "default": 12, "min": 0, "max": 48, "unit": "px",
+      "category": "appearance", "section": "Ventanas", "order": 51,
+      "label": "Espacio con el borde de la pantalla", "keywords": ["gaps", "márgenes"], "apply": "live", "hypr": "general:gaps_out"
+    },
+    "appearance.windows.rounding": {
+      "type": "int", "default": 12, "min": 0, "max": 24, "unit": "px",
+      "category": "appearance", "section": "Ventanas", "order": 52,
+      "label": "Esquinas redondeadas", "description": "12 = el radio de los paneles de la shell.", "keywords": ["rounding", "radio"], "apply": "live", "hypr": "decoration:rounding"
+    },
+    "appearance.windows.borderSize": {
+      "type": "int", "default": 2, "min": 0, "max": 6, "unit": "px",
+      "category": "appearance", "section": "Ventanas", "order": 53,
+      "label": "Grosor del borde", "keywords": ["border"], "apply": "live", "hypr": "general:border_size"
+    },
+    "appearance.windows.activeOpacity": {
+      "type": "number", "default": 0.92, "min": 0.5, "max": 1, "step": 0.01,
+      "category": "appearance", "section": "Ventanas", "order": 54,
+      "label": "Opacidad de la ventana activa", "keywords": ["transparencia"], "apply": "live", "hypr": "decoration:active_opacity"
+    },
+    "appearance.windows.inactiveOpacity": {
+      "type": "number", "default": 0.85, "min": 0.5, "max": 1, "step": 0.01,
+      "category": "appearance", "section": "Ventanas", "order": 55,
+      "label": "Opacidad de las demás ventanas", "keywords": ["transparencia"], "apply": "live", "hypr": "decoration:inactive_opacity"
+    },
+    "appearance.windows.blur": {
+      "type": "bool", "default": true,
+      "category": "appearance", "section": "Ventanas", "order": 56,
+      "label": "Desenfoque detrás de las ventanas", "keywords": ["blur"], "apply": "live", "hypr": "decoration:blur:enabled"
+    },
+    "appearance.windows.blurSize": {
+      "type": "int", "default": 6, "min": 1, "max": 20,
+      "category": "appearance", "section": "Ventanas", "order": 57, "advanced": true,
+      "label": "Intensidad del desenfoque", "keywords": ["blur"], "apply": "live", "hypr": "decoration:blur:size"
+    },
+    "appearance.windows.blurPasses": {
+      "type": "int", "default": 2, "min": 1, "max": 6,
+      "category": "appearance", "section": "Ventanas", "order": 58, "advanced": true,
+      "label": "Pasadas del desenfoque", "description": "Más pasadas, más suave y más costoso.", "keywords": ["blur"], "apply": "live", "hypr": "decoration:blur:passes"
+    },
+    "appearance.windows.shadows": {
+      "type": "bool", "default": true,
+      "category": "appearance", "section": "Ventanas", "order": 59,
+      "label": "Sombras de las ventanas", "keywords": ["shadow"], "apply": "live", "hypr": "decoration:shadow:enabled"
+    },
+    "input.keyboard.layouts": {
+      "type": "list", "kind": "xkb", "default": ["us"], "maxItems": 4, "items": {"type": "string", "pattern": "[a-z]{2,8}(:[A-Za-z0-9_-]+)?"},
+      "category": "input", "section": "Teclado", "order": 10,
+      "label": "Distribuciones del teclado", "description": "La primera es la de siempre; con más de una, la combinación de abajo las alterna.", "keywords": ["idioma", "layout", "xkb", "español", "latam"], "apply": "live", "hypr": "input:kb_layout"
+    },
+    "input.keyboard.switch": {
+      "type": "enum", "default": "",
+      "values": { "": "Ninguna", "grp:alt_shift_toggle": "Alt + Mayús", "grp:win_space_toggle": "Super + Espacio", "grp:ctrl_shift_toggle": "Ctrl + Mayús", "grp:alts_toggle": "Las dos Alt" },
+      "category": "input", "section": "Teclado", "order": 20,
+      "label": "Cambiar de distribución con", "keywords": ["idioma", "layout", "atajo"], "apply": "live", "hypr": "input:kb_options"
+    },
+    "input.keyboard.repeatRate": {
+      "type": "int", "default": 40, "min": 10, "max": 80, "unit": "/s",
+      "category": "input", "section": "Teclado", "order": 30,
+      "label": "Velocidad de repetición", "description": "Letras por segundo al mantener una tecla.", "keywords": ["repeat"], "apply": "live", "hypr": "input:repeat_rate"
+    },
+    "input.keyboard.repeatDelay": {
+      "type": "int", "default": 300, "min": 150, "max": 1000, "step": 25, "unit": "ms",
+      "category": "input", "section": "Teclado", "order": 40,
+      "label": "Espera antes de repetir", "keywords": ["repeat", "delay"], "apply": "live", "hypr": "input:repeat_delay"
+    },
+    "input.keyboard.numlock": {
+      "type": "bool", "default": true,
+      "category": "input", "section": "Teclado", "order": 50,
+      "label": "Bloq Num activado al iniciar", "keywords": ["numlock", "teclado numérico"], "apply": "next-use", "hypr": "input:numlock_by_default"
+    },
+    "input.mouse.followMouse": {
+      "type": "enum", "default": "1", "cast": "int",
+      "values": { "1": "Sigue al ratón", "2": "Solo el teclado sigue al ratón", "3": "Teclado y ratón por separado", "0": "No sigue al ratón" },
+      "category": "input", "section": "Ratón", "order": 10,
+      "label": "El foco de las ventanas", "description": "Sigue al ratón: la ventana bajo el puntero recibe el teclado.", "keywords": ["follow mouse", "foco"], "apply": "live", "hypr": "input:follow_mouse"
+    },
+    "input.mouse.sensitivity": {
+      "type": "number", "default": 0, "min": -1, "max": 1, "step": 0.05,
+      "category": "input", "section": "Ratón", "order": 20,
+      "label": "Velocidad del puntero", "keywords": ["sensibilidad", "sensitivity"], "apply": "live", "hypr": "input:sensitivity"
+    },
+    "input.mouse.accel": {
+      "type": "enum", "default": "adaptive",
+      "values": { "adaptive": "Adaptativa", "flat": "Constante" },
+      "category": "input", "section": "Ratón", "order": 30,
+      "label": "Aceleración", "description": "Constante: el puntero se mueve lo mismo sin importar la velocidad del gesto (juegos, diseño).", "keywords": ["accel", "aceleración"], "apply": "live", "hypr": "input:accel_profile"
+    },
+    "input.touchpad.naturalScroll": {
+      "type": "bool", "default": false,
+      "category": "input", "section": "Touchpad", "order": 10,
+      "label": "Desplazamiento natural", "description": "El contenido sigue a los dedos, como en un teléfono.", "keywords": ["scroll", "invertido"], "apply": "live", "hypr": "input:touchpad:natural_scroll"
+    },
+    "input.touchpad.tapToClick": {
+      "type": "bool", "default": false,
+      "category": "input", "section": "Touchpad", "order": 20,
+      "label": "Tocar para hacer clic", "keywords": ["tap"], "apply": "live", "hypr": "input:touchpad:tap-to-click"
+    },
+    "input.touchpad.disableWhileTyping": {
+      "type": "bool", "default": true,
+      "category": "input", "section": "Touchpad", "order": 30,
+      "label": "Desactivar mientras se escribe", "keywords": ["dwt", "palma"], "apply": "live", "hypr": "input:touchpad:disable_while_typing"
+    },
+    "input.touchpad.clickfinger": {
+      "type": "bool", "default": false,
+      "category": "input", "section": "Touchpad", "order": 40,
+      "label": "Clic derecho con dos dedos", "description": "Apagado: clic derecho en la esquina inferior derecha.", "keywords": ["clickfinger", "clic derecho"], "apply": "live", "hypr": "input:touchpad:clickfinger_behavior"
+    },
+    "input.touchpad.scrollFactor": {
+      "type": "number", "default": 1, "min": 0.2, "max": 3, "step": 0.1,
+      "category": "input", "section": "Touchpad", "order": 50,
+      "label": "Velocidad del desplazamiento", "keywords": ["scroll"], "apply": "live", "hypr": "input:touchpad:scroll_factor"
+    },
+    "power.dim": {
+      "type": "bool", "default": true,
+      "category": "power", "section": "Inactividad", "order": 10,
+      "label": "Bajar el brillo antes de bloquear", "keywords": ["idle", "brillo", "atenuar"], "apply": "live", "idle": "dim"
+    },
+    "power.dimAfter": {
+      "type": "number", "default": 2.5, "min": 0.5, "max": 60, "step": 0.5, "unit": "min",
+      "category": "power", "section": "Inactividad", "order": 20,
+      "label": "Bajar el brillo a los", "keywords": ["idle", "brillo"], "apply": "live", "idle": "dim"
+    },
+    "power.lockAfter": {
+      "type": "number", "default": 5, "min": 0, "max": 60, "step": 0.5, "unit": "min", "labels": {"0": "Nunca"},
+      "category": "power", "section": "Inactividad", "order": 30,
+      "label": "Bloquear a los", "keywords": ["idle", "bloqueo", "inactividad"], "apply": "live", "idle": "lock"
+    },
+    "power.screenOffAfter": {
+      "type": "number", "default": 5.5, "min": 0, "max": 60, "step": 0.5, "unit": "min", "labels": {"0": "Nunca"},
+      "category": "power", "section": "Inactividad", "order": 40,
+      "label": "Apagar la pantalla a los", "keywords": ["idle", "dpms", "pantalla"], "apply": "live", "idle": "screenOff"
+    },
+    "power.suspendAfter": {
+      "type": "number", "default": 20, "min": 0, "max": 240, "step": 5, "unit": "min", "labels": {"0": "Nunca"},
+      "category": "power", "section": "Inactividad", "order": 50,
+      "label": "Suspender a los", "keywords": ["idle", "suspender", "dormir"], "apply": "live", "idle": "suspend"
+    },
+    "power.suspendOnAC": {
+      "type": "bool", "default": true,
+      "category": "power", "section": "Condiciones", "order": 60,
+      "label": "Suspender también enchufado", "description": "Apagado: solo se suspende funcionando con batería.", "keywords": ["cargador", "batería", "suspender"], "apply": "live", "idle": "suspend"
+    },
+    "power.inhibitWhileMedia": {
+      "type": "bool", "default": false,
+      "category": "power", "section": "Condiciones", "order": 70,
+      "label": "No entrar en reposo mientras suena algo", "description": "Con música o video sonando no se baja el brillo, ni se bloquea, ni se apaga la pantalla.", "keywords": ["música", "video", "inhibir"], "apply": "live"
     }
   }
 }
