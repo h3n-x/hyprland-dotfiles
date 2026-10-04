@@ -151,57 +151,83 @@ Rectangle {
     }
 
     // ---- Riel -------------------------------------------------------------------------------
-    Column {
-        id: rail
+    // Se desplaza si la ventana es baja (o el texto grande): rueda, la barra
+    // del borde o cambiar de pagina, que deja la elegida a la vista.
+    Flickable {
+        id: railFlick
         x: Tokens.space.md
         y: header.height
         width: 220
-        spacing: Tokens.space.hair
-        Repeater {
-            model: win.model.pages
-            Rectangle {
-                id: item
-                required property var modelData
-                readonly property bool sel: win.page === item.modelData.id
-                width: rail.width
-                height: Tokens.row.heightLarge
-                radius: Tokens.radius.pill(height)
-                color: item.sel ? Colors.accentAltContainer : "transparent"
-                StateLayer { hovered: itemMouse.containsMouse; pressed: itemMouse.pressed; contentColor: item.sel ? Colors.textOnAccentAltContainer : Colors.text }
-                Row {
-                    x: Tokens.space.lg
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: Tokens.space.md
-                    Icon {
+        height: win.height - y - Tokens.space.md
+        contentHeight: rail.implicitHeight
+        boundsBehavior: Flickable.StopAtBounds
+        clip: true
+        Column {
+            id: rail
+            width: railFlick.width
+            spacing: Tokens.space.hair
+            Repeater {
+                model: win.model.pages
+                Rectangle {
+                    id: item
+                    required property var modelData
+                    readonly property bool sel: win.page === item.modelData.id
+                    width: rail.width
+                    height: Tokens.row.heightLarge
+                    radius: Tokens.radius.pill(height)
+                    color: item.sel ? Colors.accentAltContainer : "transparent"
+                    StateLayer { hovered: itemMouse.containsMouse; pressed: itemMouse.pressed; contentColor: item.sel ? Colors.textOnAccentAltContainer : Colors.text }
+                    Row {
+                        x: Tokens.space.lg
                         anchors.verticalCenter: parent.verticalCenter
-                        name: item.modelData.icon
-                        filled: item.sel
-                        color: item.sel ? Colors.textOnAccentAltContainer : Colors.textMuted
+                        spacing: Tokens.space.md
+                        Icon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            name: item.modelData.icon
+                            filled: item.sel
+                            color: item.sel ? Colors.textOnAccentAltContainer : Colors.textMuted
+                        }
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: item.modelData.label
+                            color: item.sel ? Colors.textOnAccentAltContainer : Colors.text
+                            font.family: Tokens.font.ui
+                            font.pixelSize: Tokens.type.body
+                            font.weight: item.sel ? Tokens.weight.semibold : Tokens.weight.regular
+                        }
                     }
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: item.modelData.label
-                        color: item.sel ? Colors.textOnAccentAltContainer : Colors.text
-                        font.family: Tokens.font.ui
-                        font.pixelSize: Tokens.type.body
-                        font.weight: item.sel ? Tokens.weight.semibold : Tokens.weight.regular
+                    MouseArea {
+                        id: itemMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: win.go(item.modelData.id)
                     }
-                }
-                MouseArea {
-                    id: itemMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: win.go(item.modelData.id)
                 }
             }
         }
+    }
+    // La barra del riel, en el hueco entre el riel y el contenido.
+    Scrollbar {
+        flickable: railFlick
+        x: railFlick.x + railFlick.width
+        y: railFlick.y
+        height: railFlick.height
+    }
+    // La pagina elegida queda a la vista en el riel (Ctrl+Tab, busqueda, enlaces).
+    onPageChanged: {
+        const i = win.model.pages.findIndex(p => p.id === win.page);
+        if (i < 0) return;
+        const h = Tokens.row.heightLarge;
+        const y = i * (h + Tokens.space.hair);
+        if (y < railFlick.contentY) railFlick.contentY = y;
+        else if (y + h > railFlick.contentY + railFlick.height) railFlick.contentY = y + h - railFlick.height;
     }
 
     // ---- Contenido -----------------------------------------------------------------------------
     Rectangle {
         id: content
-        x: rail.x + rail.width + Tokens.space.md
+        x: railFlick.x + railFlick.width + Tokens.space.md
         y: header.height
         width: win.width - x - Tokens.space.md
         height: win.height - y - Tokens.space.md

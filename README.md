@@ -559,7 +559,9 @@ vuelven tus valores.
   de pagina, Tab recorre los controles (la pagina se desplaza hasta el que
   tiene el foco), las flechas, `RePag` / `AvPag` e `Inicio` / `Fin` desplazan
   la pagina, la barra de la derecha se arrastra o se cliquea, y Esc borra la
-  busqueda y despues cierra.
+  busqueda y despues cierra. Si la ventana es baja, la lista de paginas de la
+  izquierda tambien se desplaza (rueda o su barra) y la pagina elegida queda a
+  la vista.
 
 Los valores se guardan solo a traves de `~/.config/hypr/scripts/settings`
 (el unico que escribe `~/.config/dotfiles/settings.json`, y solo lo que
