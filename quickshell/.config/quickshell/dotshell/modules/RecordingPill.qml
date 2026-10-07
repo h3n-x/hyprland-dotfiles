@@ -15,7 +15,9 @@ Pill {
     readonly property bool saved: pill.result === "saved"
     readonly property bool failed: pill.result === "error"
 
-    visible: pill.recording || pill.result !== ""
+    // Si se muestra (Fase 11 B1: la disposicion de la barra lee shown, nunca visible).
+    readonly property bool shown: pill.recording || pill.result !== ""
+    visible: shown
     // Resultado (P8.7): guardado = success, error = danger (fijos); grabando, neutro con el punto danger (N6).
     color: pill.saved ? Colors.successContainer : pill.failed ? Colors.dangerContainer : Colors.surfaceLow
     hovered: mouse.containsMouse && pill.recording

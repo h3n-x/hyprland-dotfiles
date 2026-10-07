@@ -27,6 +27,9 @@ Rectangle {
     // HoverHalo y esto queda en false.
     property bool hovered: false
     property bool pressed: false
+    // Los modulos de adentro (Fase 11 B1): la barra lee su `shown` para no
+    // dejar una pildora vacia y el hover de pildora entera (wholePill).
+    readonly property var parts: row.children
     StateLayer { hovered: root.hovered; pressed: root.pressed }
 
     // RowLayout (no Row) a proposito: con Row, cada hijo se posiciona con

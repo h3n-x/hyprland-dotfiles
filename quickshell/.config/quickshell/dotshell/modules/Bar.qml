@@ -1,14 +1,13 @@
-// Barra principal. Layout a pedido del usuario:
-// izquierda: pill de workspaces, pill de mpris (solo titulo) -- separados.
-// centro: reloj (toggle hora/fecha al click, ver Clock.qml).
-// derecha, en pills separados: (update, bandeja, microfono) / (bateria,
-// idle inhibitor) -- y power, aparte, al final del todo.
+// Barra principal (Fase 11 B1): la disposicion viene del almacen
+// (bar.layout: izquierda, centro y derecha; cada elemento es un modulo
+// "bare", una pildora con uno o mas modulos o un espaciador) y se edita en
+// Configuracion -> Barra. El centro va al centro de la pantalla de verdad;
+// izquierda y derecha ocupan los costados. Cada modulo es el de siempre
+// (BarEntry elige el componente por id); una pildora sin modulos visibles no
+// queda como una burbuja vacia.
 //
-// Se sacaron (a pedido) cpu/memoria/temperatura/gpu/distro -- ver plan de
-// migracion para el detalle de por que se habian agregado. Volume.qml y
-// Backlight.qml TAMBIEN se sacaron de aca (ya esta el OSD, ver Osd.qml) --
-// pero siguen corriendo, instanciados sin UI en shell.qml, porque son los
-// que disparan ese OSD (Pipewire/FileView + OsdState.show()).
+// Volume.qml y Backlight.qml no estan en la barra: corren sin UI en
+// shell.qml y disparan el OSD.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -34,73 +33,102 @@ PanelWindow {
     }
     color: "transparent"
     // SUPER+SHIFT+B (ver binds.lua + shell.qml) -- toggle global, afecta a
-    // todas las pantallas a la vez (BarVisibility es un singleton).
-    visible: !BarVisibility.hidden
+    // todas las pantallas a la vez (BarVisibility es un singleton); y solo en
+    // las pantallas elegidas (bar.screens, Fase 11 B1; vacio = todas).
+    readonly property bool barShown: !BarVisibility.hidden && BarVisibility.onScreen(bar.screen)
+    visible: bar.barShown
 
-    RowLayout {
+    readonly property var lay: SettingsState.value("bar.layout") || ({ "start": [], "center": [], "end": [] })
+    readonly property bool startSpacer: bar.lay.start.indexOf("spacer") >= 0
+    readonly property bool endSpacer: bar.lay.end.indexOf("spacer") >= 0
+
+    // Contenedor de las tres secciones (el dashboard se ancla aca).
+    Item {
         id: layout
         anchors.fill: parent
-        spacing: Tokens.space.sm
 
-        Pill {
-            Layout.alignment: Qt.AlignVCenter
-            Workspaces { Layout.alignment: Qt.AlignVCenter }
+        RowLayout {
+            id: startRow
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            width: Math.max(0, centerRow.x - Tokens.space.sm)
+            spacing: Tokens.space.sm
+            Repeater {
+                model: bar.lay.start
+                delegate: itemC
+            }
+            // Sin espaciador propio, lo de la izquierda queda pegado a la izquierda.
+            Item { visible: !bar.startSpacer; Layout.fillWidth: true }
         }
 
-        Pill {
-            Layout.alignment: Qt.AlignVCenter
-            // Sin esto, con el reproductor cerrado quedaria una "burbuja"
-            // vacia (el Item de Mpris.qml se pone invisible, pero Row
-            // igual le reserva su espacio -- ver el mismo tema en Pill.qml).
-            // No se importa Quickshell.Services.Mpris aca para leer esto
-            // directo porque ese modulo exporta un singleton TAMBIEN
-            // llamado "Mpris" que chocaria con este componente local del
-            // mismo nombre (mismo problema que IdleInhibitor, ver
-            // IdleToggle.qml) -- se expone la visibilidad del propio
-            // componente en su lugar.
-            visible: mprisModule.shown
-            // Accion unica: la pill entera responde al hover (Q2 = A).
-            hovered: mprisModule.hovered
-            pressed: mprisModule.pressed
-            Mpris { id: mprisModule; Layout.alignment: Qt.AlignVCenter }
+        RowLayout {
+            id: centerRow
+            anchors.centerIn: parent
+            spacing: Tokens.space.sm
+            Repeater {
+                model: bar.lay.center
+                delegate: itemC
+            }
         }
 
-        Item { Layout.fillWidth: true }
-
-        Pill {
-            Layout.alignment: Qt.AlignVCenter
-            Clock { Layout.alignment: Qt.AlignVCenter }
+        RowLayout {
+            id: endRow
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            width: Math.max(0, parent.width - centerRow.x - centerRow.width - Tokens.space.sm)
+            spacing: Tokens.space.sm
+            Item { visible: !bar.endSpacer; Layout.fillWidth: true }
+            Repeater {
+                model: bar.lay.end
+                delegate: itemC
+            }
         }
+    }
 
-        Item { Layout.fillWidth: true }
-
-        // Solo mientras se graba (y un momento al terminar), Fase 4 B8.
-        RecordingPill { Layout.alignment: Qt.AlignVCenter }
-
-        // Cada modulo se puede ocultar (bar.show.*, Fase 10 B4); la pill sin
-        // nada visible adentro no queda como una burbuja vacia.
-        Pill {
+    // Un elemento de una seccion: espaciador, modulo "bare" o pildora.
+    Component {
+        id: itemC
+        Loader {
+            id: slot
+            required property var modelData
+            readonly property bool shown: !!slot.item && slot.item.shown === true
             Layout.alignment: Qt.AlignVCenter
-            spacing: Tokens.space.md
-            visible: updMod.shown || netMod.shown || btMod.shown || trayMod.shown || micMod.shown
-            Update { id: updMod; Layout.alignment: Qt.AlignVCenter }
-            Network { id: netMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
-            Bluetooth { id: btMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
-            Tray { id: trayMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
-            Microphone { id: micMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
+            Layout.fillWidth: slot.modelData === "spacer"
+            visible: slot.modelData === "spacer" || slot.shown
+            sourceComponent: slot.modelData === "spacer" ? spacerC : typeof slot.modelData === "string" ? bareC : pillC
+            onLoaded: slot.item.data_ = slot.modelData
         }
-
-        Pill {
-            Layout.alignment: Qt.AlignVCenter
-            spacing: Tokens.space.md
-            visible: batMod.shown || idleMod.shown || portsMod.shown
-            Battery { id: batMod; Layout.alignment: Qt.AlignVCenter }
-            IdleToggle { id: idleMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
-            Ports { id: portsMod; Layout.alignment: Qt.AlignVCenter; panelWindow: bar }
+    }
+    Component {
+        id: spacerC
+        Item { property var data_; readonly property bool shown: true }
+    }
+    Component {
+        id: bareC
+        BarEntry {
+            property var data_
+            mid: typeof data_ === "string" ? data_ : ""
+            panelWindow: bar
         }
-
-        Power {
-            Layout.alignment: Qt.AlignVCenter
+    }
+    Component {
+        id: pillC
+        Pill {
+            id: pill
+            property var data_
+            readonly property var ids: data_ && data_.pill ? data_.pill : []
+            readonly property bool shown: pill.parts.some(c => c.shown === true)
+            spacing: pill.ids.length > 1 ? Tokens.space.md : Tokens.gap.inline
+            hovered: pill.parts.some(c => c.wholePill === true && c.hovered)
+            pressed: pill.parts.some(c => c.wholePill === true && c.pressed)
+            Repeater {
+                model: pill.ids
+                BarEntry {
+                    required property string modelData
+                    mid: modelData
+                    panelWindow: bar
+                }
+            }
         }
     }
 
@@ -111,17 +139,20 @@ PanelWindow {
     // dashboard se ve encima y la barra sigue tapada. Entrar o salir de
     // pantalla completa lo cierra antes de cambiar de anfitriona
     // (FullscreenState).
+    // Sin barra en esta pantalla (oculta, o no elegida en bar.screens) cuelga
+    // de la misma franja, para que SUPER+A funcione igual.
     readonly property bool overFullscreen: !!bar.screen && FullscreenState.isFullscreen(bar.screen.name)
+    readonly property bool hosted: bar.overFullscreen || !bar.barShown
     Dashboard {
-        anchorItem: bar.overFullscreen ? fsAnchor : layout
-        panelWindow: bar.overFullscreen ? fsHost : bar
+        anchorItem: bar.hosted ? fsAnchor : layout
+        panelWindow: bar.hosted ? fsHost : bar
     }
     // La franja existe solo mientras el dashboard esta abierto encima de la
-    // pantalla completa; sin input (mascara vacia) ni teclado.
+    // pantalla completa (o sin barra); sin input (mascara vacia) ni teclado.
     PanelWindow {
         id: fsHost
         screen: bar.screen
-        visible: bar.overFullscreen && DashboardState.visible && DashboardState.screen === bar.screen.name
+        visible: bar.hosted && DashboardState.visible && DashboardState.screen === bar.screen.name
         anchors {
             top: true
             left: true

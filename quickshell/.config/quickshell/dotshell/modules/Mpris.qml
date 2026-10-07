@@ -18,11 +18,10 @@ Item {
     // del arranque), el hijo reporta false por tener al padre oculto y el
     // Pill no vuelve a mostrarse nunca (deadlock).
     readonly property bool active: !!root.player
-    // La opcion bar.show.media (Fase 10 B4) la puede ocultar.
-    // Si se muestra, segun su propio estado y la opcion bar.show.* (Fase 10 B4).
+    // Si se muestra, segun su propio estado (que este en la barra lo decide bar.layout, Fase 11 B1).
     // La barra lee shown, no visible: visible depende del padre y una pill
     // oculta nunca volveria a mostrarse.
-    readonly property bool shown: root.active && SettingsState.value("bar.show.media") !== false
+    readonly property bool shown: root.active
     visible: shown
 
     implicitWidth: row.implicitWidth
@@ -82,6 +81,8 @@ Item {
     }
 
     // Accion unica: la Pill que lo contiene se ilumina entera (Bar.qml, Q2 = A).
+    // Accion unica: la pildora entera responde al hover (Q2 = A; Fase 11 B1 lo lee de aca).
+    readonly property bool wholePill: true
     readonly property bool hovered: hoverArea.containsMouse
     readonly property bool pressed: hoverArea.pressed
 

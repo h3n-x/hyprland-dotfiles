@@ -25,6 +25,10 @@ ShellRoot {
         function toggle(): void {
             BarVisibility.hidden = !BarVisibility.hidden;
         }
+        // Marca un modulo de la barra (editor del centro de configuracion, Fase 11 B1); "" = ninguno.
+        function highlight(id: string): void {
+            BarVisibility.highlight = id;
+        }
     }
 
     // SUPER+SHIFT+CTRL+B -- reemplaza a "killall -SIGUSR2 waybar". Reload

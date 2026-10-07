@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "categories": {
     "appearance":    { "label": "Apariencia",       "icon": "palette",           "order": 10 },
     "accessibility": { "label": "Accesibilidad",    "icon": "accessibility",     "order": 20 },
@@ -133,6 +133,38 @@
       "label": "Avisos",
       "description": "Cuántos avisos llegaron mientras estaba bloqueado, sin contenido. Con No molestar activo no se muestra.",
       "keywords": ["bloqueo", "notificaciones", "privacidad"], "apply": "next-use"
+    },
+    "bar.layout": {
+      "type": "barLayout",
+      "default": {
+        "start": [{ "pill": ["workspaces"] }, { "pill": ["media"] }],
+        "center": [{ "pill": ["clock"] }],
+        "end": ["recording", { "pill": ["updates", "network", "bluetooth", "tray", "microphone"] }, { "pill": ["battery", "idle", "ports"] }, "power"]
+      },
+      "modules": {
+        "workspaces": { "label": "Escritorios",     "icon": "space_dashboard" },
+        "media":      { "label": "Música",          "icon": "music_note" },
+        "clock":      { "label": "Reloj y clima",   "icon": "schedule" },
+        "recording":  { "label": "Grabación",       "icon": "radio_button_checked", "bare": true },
+        "updates":    { "label": "Actualizaciones", "icon": "download" },
+        "network":    { "label": "Red",             "icon": "wifi" },
+        "bluetooth":  { "label": "Bluetooth",       "icon": "bluetooth" },
+        "tray":       { "label": "Bandeja",         "icon": "apps" },
+        "microphone": { "label": "Micrófono",       "icon": "mic" },
+        "battery":    { "label": "Batería",         "icon": "battery_full" },
+        "idle":       { "label": "Inactividad",     "icon": "visibility_off" },
+        "ports":      { "label": "Puertos",         "icon": "lan" },
+        "power":      { "label": "Apagar",          "icon": "power_settings_new", "bare": true }
+      },
+      "category": "bar", "section": "Disposición", "order": 1,
+      "label": "Disposición de la barra", "description": "Arrastra los módulos entre izquierda, centro y derecha, dentro o fuera de una píldora, o a Disponibles para quitarlos.",
+      "keywords": ["módulos", "orden", "ocultar", "mostrar", "píldora", "layout"], "apply": "live"
+    },
+    "bar.screens": {
+      "type": "list", "default": [], "items": { "type": "string", "maxLength": 200 }, "maxItems": 8, "kind": "screens",
+      "category": "bar", "section": "Disposición", "order": 2,
+      "label": "Pantallas con barra", "description": "Apaga las pantallas donde no la quieres. Con todas encendidas, también va en las que conectes después.",
+      "keywords": ["monitor", "pantalla", "barra"], "apply": "live"
     },
     "bar.minWorkspaces": {
       "type": "int", "default": 5, "min": 1, "max": 10,
@@ -484,51 +516,6 @@
       "type": "bool", "default": false,
       "category": "power", "section": "Condiciones", "order": 70,
       "label": "No entrar en reposo mientras suena algo", "description": "Con música o video sonando no se baja el brillo, ni se bloquea, ni se apaga la pantalla.", "keywords": ["música", "video", "inhibir"], "apply": "live"
-    },
-    "bar.show.media": {
-      "type": "bool", "default": true,
-      "category": "bar", "section": "Módulos", "order": 20,
-      "label": "Música", "description": "Reproductor que suena y sus controles.", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
-    },
-    "bar.show.updates": {
-      "type": "bool", "default": true,
-      "category": "bar", "section": "Módulos", "order": 21,
-      "label": "Actualizaciones", "description": "Solo aparece si hay algo para actualizar.", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
-    },
-    "bar.show.network": {
-      "type": "bool", "default": true,
-      "category": "bar", "section": "Módulos", "order": 22,
-      "label": "Red", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
-    },
-    "bar.show.bluetooth": {
-      "type": "bool", "default": true,
-      "category": "bar", "section": "Módulos", "order": 23,
-      "label": "Bluetooth", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
-    },
-    "bar.show.tray": {
-      "type": "bool", "default": true,
-      "category": "bar", "section": "Módulos", "order": 24,
-      "label": "Bandeja de aplicaciones", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
-    },
-    "bar.show.microphone": {
-      "type": "bool", "default": true,
-      "category": "bar", "section": "Módulos", "order": 25,
-      "label": "Micrófono", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
-    },
-    "bar.show.battery": {
-      "type": "bool", "default": true,
-      "category": "bar", "section": "Módulos", "order": 26,
-      "label": "Batería", "description": "Solo en equipos con batería.", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
-    },
-    "bar.show.idle": {
-      "type": "bool", "default": true,
-      "category": "bar", "section": "Módulos", "order": 27,
-      "label": "Mantener despierto", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
-    },
-    "bar.show.ports": {
-      "type": "bool", "default": true,
-      "category": "bar", "section": "Módulos", "order": 28,
-      "label": "Puertos de desarrollo", "keywords": ["barra", "módulo", "ocultar"], "apply": "live"
     },
     "bar.clock.format": {
       "type": "enum", "default": "24", "values": { "24": "24 horas", "12": "12 horas" },

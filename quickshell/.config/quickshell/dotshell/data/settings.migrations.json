@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "to": 2,
+    "note": "Fase 11 B1: los interruptores bar.show.* pasan a la disposicion de la barra (bar.layout)",
+    "layoutRemove": {
+      "target": "bar.layout",
+      "keys": {
+        "bar.show.media": "media", "bar.show.updates": "updates", "bar.show.network": "network",
+        "bar.show.bluetooth": "bluetooth", "bar.show.tray": "tray", "bar.show.microphone": "microphone",
+        "bar.show.battery": "battery", "bar.show.idle": "idle", "bar.show.ports": "ports"
+      }
+    }
+  }
+]

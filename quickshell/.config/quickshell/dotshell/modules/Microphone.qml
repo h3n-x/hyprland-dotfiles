@@ -15,10 +15,10 @@ Item {
 
     readonly property var source: Pipewire.defaultAudioSource
     readonly property bool muted: !!(root.source && root.source.audio && root.source.audio.muted)
-    // Si se muestra, segun su propio estado y la opcion bar.show.* (Fase 10 B4).
+    // Si se muestra, segun su propio estado (que este en la barra lo decide bar.layout, Fase 11 B1).
     // La barra lee shown, no visible: visible depende del padre y una pill
     // oculta nunca volveria a mostrarse.
-    readonly property bool shown: !!root.source && SettingsState.value("bar.show.microphone") !== false
+    readonly property bool shown: !!root.source
     visible: shown
 
     property bool armed: false

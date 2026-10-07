@@ -1,19 +1,16 @@
-// Reemplaza a waybar/modules/idle_inhibitor.jsonc. Nombrado "IdleToggle" y no
-// "IdleInhibitor" a proposito -- Quickshell.Wayland ya expone un tipo
-// IdleInhibitor, y un archivo con el mismo nombre en este directorio
-// colisionaria con ese import (quedaria referenciandose a si mismo en vez
-// del tipo real).
+// Reemplaza a waybar/modules/idle_inhibitor.jsonc. Se llama "IdleToggle" y no
+// "IdleInhibitor" para no tener el mismo nombre que el tipo de
+// Quickshell.Wayland que usa adentro (mas claro al leer; KI-S4).
 import QtQuick
 import Quickshell.Wayland
 import ".." // Colors.qml
 
 Item {
     id: root
-    // Oculto desde el centro de configuracion (bar.show.idle, Fase 10 B4).
-    // Si se muestra, segun su propio estado y la opcion bar.show.* (Fase 10 B4).
+    // Si se muestra, segun su propio estado (que este en la barra lo decide bar.layout, Fase 11 B1).
     // La barra lee shown, no visible: visible depende del padre y una pill
     // oculta nunca volveria a mostrarse.
-    readonly property bool shown: SettingsState.value("bar.show.idle") !== false
+    readonly property bool shown: true
     visible: shown
     required property var panelWindow
     property bool active: false

@@ -91,6 +91,9 @@ QtObject {
         // Fase 10 B5: horas del dia (luz nocturna) y el panel de pantallas.
         if (m.type === "time") return "time";
         if (m.type === "outputs") return "outputs";
+        // Fase 11 B1: la disposicion de la barra y en que pantallas va.
+        if (m.type === "barLayout") return "barLayout";
+        if (m.type === "list" && m.kind === "screens") return "screens";
         return "";
     }
     // Opciones [[valor, texto], ...] de un enum (orden del esquema) o de presets.
@@ -124,6 +127,11 @@ QtObject {
         if (m.type === "location") return v ? v.name : "Sin ciudad";
         if (m.kind === "player") return v || "Automático";
         if (m.type === "time") return String(v);
+        if (m.type === "barLayout") {
+            const n = ["start", "center", "end"].reduce((a, s) => a + (v[s] || []).reduce((b, it) => b + (it && it.pill ? it.pill.length : it === "spacer" ? 0 : 1), 0), 0);
+            return n + (n === 1 ? " módulo" : " módulos");
+        }
+        if (m.kind === "screens") return (v || []).length ? v.join(", ") : "Todas";
         if (m.type === "outputs") {
             const n = Object.keys(v || {}).length;
             return n === 0 ? "Automática" : n === 1 ? "1 pantalla ajustada" : n + " pantallas ajustadas";

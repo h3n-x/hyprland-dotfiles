@@ -300,8 +300,11 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   el QML, tabla semantica de las plantillas).
 - **Estructura**: `shell.qml` (entry point + los `IpcHandler` de abajo),
   `modules/Bar.qml` (`PanelWindow`, una instancia por pantalla via
-  `Variants` sobre `Quickshell.screens`), `modules/Pill.qml` (contenedor
-  redondeado reutilizable) y un archivo por modulo (`Workspaces`, `Mpris`,
+  `Variants` sobre `Quickshell.screens`; arma la disposicion que guarda
+  `bar.layout`: izquierda, centro -- al centro de la pantalla de verdad -- y
+  derecha), `modules/BarEntry.qml` (el modulo de cada id),
+  `modules/Pill.qml` (contenedor redondeado reutilizable) y un archivo por
+  modulo (`Workspaces`, `Mpris`,
   `Clock`, `Update`, `Network`, `Bluetooth`, `Tray`, `Microphone`,
   `Battery`, `IdleToggle`, `Power`). `Volume`/`Backlight` no tienen icono
   en la barra (a pedido del usuario, ver OSD abajo) -- se instancian
@@ -541,10 +544,13 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   horario o del atardecer al amanecer (con la ciudad del clima), temperatura y
   un paso mas calido de madrugada. La config versionada de monitores
   (`modules/monitors.lua`) es generica: lo de tu equipo vive en tu almacen.
-- **Barra** (Fase 10 B4): mostrar u ocultar cada modulo (musica,
-  actualizaciones, red, Bluetooth, bandeja, microfono, bateria, inactividad,
-  puertos), reloj de 24 o 12 h y la fecha al lado, cambiar de escritorio con
-  la rueda, y la pill de musica con el titulo o solo el icono.
+- **Barra**: la **disposicion** (Fase 11 B1) en tres columnas (izquierda,
+  centro, derecha): se arrastra cada modulo a otro lugar, dentro o fuera de
+  una pildora, se agregan espacios, y lo que se suelta en Disponibles se
+  quita; al senalar un modulo se marca en la barra (con teclado: flechas para
+  moverlo, Supr para quitarlo). En que pantallas va la barra. Reloj de 24 o
+  12 h y la fecha al lado, cambiar de escritorio con la rueda, y la pill de
+  musica con el titulo o solo el icono (Fase 10 B4).
 - **Dashboard**: las zonas Sistema y Escritorios del inicio, la ciudad del
   clima (la misma busqueda que en la vista Hoy; "Quitar" deja de consultar)
   y °C / °F.

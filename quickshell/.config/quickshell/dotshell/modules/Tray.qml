@@ -20,10 +20,10 @@ Row {
     // como un hueco de doble espacio entre los iconos vecinos (Bluetooth y
     // Microphone). Los items invisibles SI se saltean para spacing en un
     // RowLayout (a diferencia de un Row/Column comun).
-    // Si se muestra, segun su propio estado y la opcion bar.show.* (Fase 10 B4).
+    // Si se muestra, segun su propio estado (que este en la barra lo decide bar.layout, Fase 11 B1).
     // La barra lee shown, no visible: visible depende del padre y una pill
     // oculta nunca volveria a mostrarse.
-    readonly property bool shown: root.filteredItems.length > 0 && SettingsState.value("bar.show.tray") !== false
+    readonly property bool shown: root.filteredItems.length > 0
     visible: shown
 
     // Las apps con un reproductor MPRIS activo ya tienen la pill multimedia

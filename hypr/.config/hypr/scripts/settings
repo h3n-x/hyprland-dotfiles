@@ -52,7 +52,7 @@ import datetime, fcntl, json, os, re, sys, tempfile
 SCHEMA = os.environ["SCHEMA"]; MIGRATIONS = os.environ["MIGRATIONS"]
 USER_FILE = os.environ["USER_FILE"]; EFFECTIVE = os.environ["EFFECTIVE"]; LOCK = os.environ["LOCK"]
 APPLIER = os.environ.get("APPLIER", "")
-TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color", "location", "time", "outputs"}
+TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color", "location", "time", "outputs", "barLayout"}
 # Campos de una regla de pantalla (Fase 10 B5; los que hl.monitor acepta, verificados en V0).
 OUTPUT_CM = {"auto", "srgb", "dcip3", "dp3", "adobe", "wide", "edid", "hdr", "hdredid"}
 APPLY = {"live", "next-use", "reload-shell", "relogin", "reboot"}
@@ -186,7 +186,45 @@ def validate(m, v):
         return False, None, "no es una hora HH:MM"
     if t == "outputs":
         return validate_outputs(v)
+    if t == "barLayout":
+        return validate_bar_layout(m, v)
     return False, None, "tipo desconocido"
+
+
+def validate_bar_layout(m, v):
+    """Disposicion de la barra (Fase 11 B1): {start, center, end} de "spacer", un modulo "bare" (dibuja su
+    propia forma) o {"pill": [modulos]}. Cada modulo una vez como mucho; los del registro del esquema."""
+    mods = m.get("modules", {})
+    if not isinstance(v, dict) or set(v) != {"start", "center", "end"}:
+        return False, None, "no es {start, center, end}"
+    seen = set()
+    for sec in ("start", "center", "end"):
+        if not isinstance(v[sec], list):
+            return False, None, f"{sec}: no es una lista"
+        for it in v[sec]:
+            ids = []
+            if it == "spacer":
+                continue
+            if isinstance(it, str):
+                if it not in mods:
+                    return False, None, f"modulo desconocido {it!r}"
+                if not mods[it].get("bare"):
+                    return False, None, f"{it} va dentro de una pildora"
+                ids = [it]
+            elif isinstance(it, dict) and set(it) == {"pill"} and isinstance(it["pill"], list) and it["pill"]:
+                for x in it["pill"]:
+                    if x not in mods:
+                        return False, None, f"modulo desconocido {x!r}"
+                    if mods[x].get("bare"):
+                        return False, None, f"{x} no va dentro de una pildora"
+                ids = it["pill"]
+            else:
+                return False, None, f"{sec}: elemento no valido"
+            for x in ids:
+                if x in seen:
+                    return False, None, f"{x} aparece dos veces"
+                seen.add(x)
+    return True, {sec: list(v[sec]) for sec in ("start", "center", "end")}, None
 
 
 def validate_outputs(v):
@@ -248,6 +286,28 @@ def migrate(user, s):
         for key, conv in mg.get("convert", {}).items():
             if key in values and "map" in conv and values[key] in conv["map"]:
                 values[key] = conv["map"][values[key]]
+        # layoutRemove (Fase 11 B1): una opcion vieja en false saca su modulo de una disposicion
+        # (bar.show.<id> -> bar.layout); la opcion vieja se borra con el valor que tenga.
+        lr = mg.get("layoutRemove")
+        if lr:
+            target = lr["target"]
+            gone = [mid for old, mid in lr["keys"].items() if values.get(old) is False]
+            for old in lr["keys"]:
+                values.pop(old, None)
+            if gone:
+                lay = values.get(target, s["keys"].get(target, {}).get("default"))
+                lay = json.loads(json.dumps(lay))
+                for sec in lay:
+                    out = []
+                    for it in lay[sec]:
+                        if isinstance(it, dict) and "pill" in it:
+                            it["pill"] = [x for x in it["pill"] if x not in gone]
+                            if it["pill"]:
+                                out.append(it)
+                        elif it not in gone:
+                            out.append(it)
+                    lay[sec] = out
+                values[target] = lay
         version = mg["to"]
     user["values"] = values
     user["version"] = max(version, user.get("version", 0) if isinstance(user.get("version"), int) else 0)
