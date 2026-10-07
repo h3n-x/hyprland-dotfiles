@@ -12,6 +12,9 @@ Item {
     // La barra lee shown, no visible: visible depende del padre y una pill
     // oculta nunca volveria a mostrarse.
     readonly property bool shown: BatteryState.present
+    // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
+    readonly property string tooltip: Math.round(BatteryState.pct * 100) + " %" + (BatteryState.charging ? " · cargando" : "")
+        + (BatteryState.secondsLeft > 0 ? " · " + SystemState.duration(BatteryState.secondsLeft) + (BatteryState.charging ? " para llenarse" : " restantes") : "")
     visible: shown
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight

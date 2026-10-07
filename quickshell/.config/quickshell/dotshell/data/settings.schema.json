@@ -160,7 +160,9 @@
         "activeWindow":  { "label": "Ventana activa",           "icon": "web_asset" },
         "notifications": { "label": "Avisos",                   "icon": "notifications" },
         "privacy":       { "label": "Privacidad",               "icon": "privacy_tip" },
-        "launcher":      { "label": "Lanzador",                 "icon": "apps" }
+        "launcher":      { "label": "Lanzador",                 "icon": "apps" },
+        "resources":     { "label": "Recursos",                 "icon": "memory" },
+        "netspeed":      { "label": "Velocidad de la red",      "icon": "swap_vert" }
       },
       "category": "bar", "section": "Disposición", "order": 1,
       "label": "Disposición de la barra", "description": "Arrastra los módulos entre izquierda, centro y derecha, dentro o fuera de una píldora, o a Disponibles para quitarlos.",
@@ -183,6 +185,68 @@
       "category": "bar", "section": "Módulos", "order": 20,
       "label": "Avisos pendientes", "description": "Cómo marca la campana que hay avisos en el historial.",
       "keywords": ["notificaciones", "campana", "contador"], "apply": "live"
+    },
+    "bar.resources.cpu": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Módulos", "order": 30,
+      "label": "Recursos: procesador", "keywords": ["cpu", "uso"], "apply": "live"
+    },
+    "bar.resources.mem": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Módulos", "order": 31,
+      "label": "Recursos: memoria", "keywords": ["ram", "memoria"], "apply": "live"
+    },
+    "bar.resources.temp": {
+      "type": "bool", "default": false,
+      "category": "bar", "section": "Módulos", "order": 32,
+      "label": "Recursos: temperatura", "keywords": ["temperatura", "calor"], "apply": "live"
+    },
+    "bar.resources.warnPct": {
+      "type": "int", "default": 90, "min": 50, "max": 100, "step": 5, "unit": "%",
+      "category": "bar", "section": "Módulos", "order": 33,
+      "label": "Recursos: aviso a partir de", "description": "Por encima, el valor se ve en amarillo.",
+      "keywords": ["umbral", "cpu", "memoria"], "apply": "live", "advanced": true
+    },
+    "bar.workspaces.perMonitor": {
+      "type": "bool", "default": false,
+      "category": "bar", "section": "Escritorios", "order": 20,
+      "label": "Solo los de esta pantalla", "description": "Con varias pantallas, cada barra muestra sus escritorios.",
+      "keywords": ["monitor", "workspaces"], "apply": "live"
+    },
+    "bar.workspaces.showEmpty": {
+      "type": "bool", "default": true,
+      "category": "bar", "section": "Escritorios", "order": 25,
+      "label": "Mostrar los vacíos", "keywords": ["workspaces", "vacío"], "apply": "live"
+    },
+    "bar.workspaces.windowIcons": {
+      "type": "bool", "default": false,
+      "category": "bar", "section": "Escritorios", "order": 30,
+      "label": "Iconos de las ventanas", "description": "En vez de círculos, el icono de cada ventana del escritorio.",
+      "keywords": ["workspaces", "iconos", "apps"], "apply": "live"
+    },
+    "bar.workspaces.maxIcons": {
+      "type": "int", "default": 3, "min": 1, "max": 6,
+      "category": "bar", "section": "Escritorios", "order": 31,
+      "label": "Iconos por escritorio", "description": "Más ventanas se cuentan con +n.",
+      "keywords": ["workspaces", "iconos"], "apply": "live"
+    },
+    "bar.tooltips": {
+      "type": "bool", "default": false,
+      "category": "bar", "section": "Comportamiento", "order": 10,
+      "label": "Información al pasar el ratón", "description": "Un rótulo con el detalle de cada módulo (la fecha completa, la batería, la ventana...).",
+      "keywords": ["tooltip", "hover", "rótulo"], "apply": "live"
+    },
+    "bar.scroll": {
+      "type": "enum", "default": "none", "values": { "none": "Nada", "volume": "Volumen", "brightness": "Brillo" },
+      "category": "bar", "section": "Comportamiento", "order": 20,
+      "label": "La rueda sobre la barra", "description": "Fuera de los escritorios (ellos tienen su propia rueda).",
+      "keywords": ["scroll", "rueda", "volumen", "brillo"], "apply": "live"
+    },
+    "system.sampleSeconds": {
+      "type": "int", "default": 2, "min": 2, "max": 10, "unit": "s",
+      "category": "system", "section": "Recursos", "order": 5,
+      "label": "Actualizar los recursos cada", "description": "Para el dashboard (Sistema) y los módulos de recursos y red de la barra; solo mientras se ven.",
+      "keywords": ["intervalo", "cpu", "red", "muestreo"], "apply": "live"
     },
     "bar.minWorkspaces": {
       "type": "int", "default": 5, "min": 1, "max": 10,

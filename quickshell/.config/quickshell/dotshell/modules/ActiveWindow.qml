@@ -14,6 +14,8 @@ Item {
     property var toplevel: ToplevelManager.activeToplevel
     readonly property bool shown: !!root.toplevel && !!(root.toplevel.title || root.toplevel.appId)
     visible: shown
+    // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
+    readonly property string tooltip: root.toplevel ? (root.toplevel.title || "") : ""
 
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight

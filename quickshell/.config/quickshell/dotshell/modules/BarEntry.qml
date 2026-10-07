@@ -27,8 +27,20 @@ Loader {
         "idle": idleC, "ports": portsC, "power": powerC,
         // Fase 11 B2
         "keyboard": keyboardC, "lockKeys": lockKeysC, "activeWindow": activeWindowC, "notifications": notificationsC,
-        "privacy": privacyC, "launcher": launcherC
+        "privacy": privacyC, "launcher": launcherC,
+        // Fase 11 B2b
+        "resources": resourcesC, "netspeed": netspeedC
     })[entry.mid] || null
+
+    // Informacion al pasar el raton (bar.tooltips, Fase 11 B2b): el texto del
+    // modulo (tooltip) o su nombre; la barra la muestra debajo.
+    HoverHandler {
+        id: hover
+        enabled: SettingsState.value("bar.tooltips") === true
+        onHoveredChanged: if (entry.panelWindow && entry.panelWindow.tip)
+            entry.panelWindow.tip(hover.hovered ? entry : null)
+    }
+    readonly property string tooltip: (entry.item && entry.item.tooltip) || ((SettingsState.meta("bar.layout") || {}).modules || {})[entry.mid]?.label || ""
 
     Rectangle {
         visible: BarVisibility.highlight !== "" && BarVisibility.highlight === entry.mid
@@ -41,7 +53,7 @@ Loader {
         z: 10
     }
 
-    Component { id: workspacesC; Workspaces {} }
+    Component { id: workspacesC; Workspaces { screenName: entry.panelWindow && entry.panelWindow.screen ? entry.panelWindow.screen.name : "" } }
     Component { id: mediaC; Mpris {} }
     Component { id: clockC; Clock {} }
     Component { id: recordingC; RecordingPill {} }
@@ -60,4 +72,6 @@ Loader {
     Component { id: notificationsC; NotificationBell {} }
     Component { id: privacyC; Privacy {} }
     Component { id: launcherC; LauncherButton {} }
+    Component { id: resourcesC; Resources {} }
+    Component { id: netspeedC; NetSpeed {} }
 }

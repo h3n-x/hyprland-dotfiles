@@ -19,6 +19,8 @@ Item {
     property int cameraLinks: 0
     readonly property bool cameraInUse: root.cameraLinks > 0
     readonly property bool shown: root.screenShared || root.micInUse || root.cameraInUse
+    // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
+    readonly property string tooltip: [root.screenShared ? "Pantalla compartida" : "", root.micInUse ? "Micrófono en uso" : "", root.cameraInUse ? "Cámara en uso" : ""].filter(x => x).join(" · ")
     visible: shown
 
     // Enlaces de cada camara: cuantos la estan usando.

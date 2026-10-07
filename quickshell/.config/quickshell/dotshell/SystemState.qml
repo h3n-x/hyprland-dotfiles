@@ -38,14 +38,28 @@ QtObject {
         onReleased: {
             root.apps = [];
             root.procPrev = null;
+            if (!root.net.active) {
+                root.netPrev = null;
+                root.rxRate = 0;
+                root.txRate = 0;
+            }
+        }
+    }
+    // Solo la velocidad de la red (modulo de la barra, Fase 11 B2b): lee
+    // /proc/net/dev y nada mas.
+    property Demand net: Demand {
+        name: "system.net"
+        onActiveChanged: if (active) root.sample()
+        onReleased: if (!root.detail.active) {
             root.netPrev = null;
             root.rxRate = 0;
             root.txRate = 0;
         }
     }
-    readonly property bool sampling: root.basic.active || root.detail.active
+    readonly property bool sampling: root.basic.active || root.detail.active || root.net.active
     property Timer ticker: Timer {
-        interval: 2000
+        // Cada cuanto (system.sampleSeconds, 2-10 s; Fase 11 B2b): el dashboard y la barra.
+        interval: Math.max(2, SettingsState.value("system.sampleSeconds") || 2) * 1000
         repeat: true
         running: root.sampling
         onTriggered: root.sample()
@@ -57,12 +71,14 @@ QtObject {
             if (!infoProc.running) infoProc.running = true;
             return; // la primera muestra sale al terminar (rutas de sensores)
         }
-        statFile.reload();
-        memFile.reload();
-        if (root.paths.cpuTemp) tempFile.reload();
+        if (root.basic.active || root.detail.active) {
+            statFile.reload();
+            memFile.reload();
+            if (root.paths.cpuTemp) tempFile.reload();
+        }
+        if (root.detail.active || root.net.active) netFile.reload();
         if (root.detail.active) {
             uptimeFile.reload();
-            netFile.reload();
             if (root.appTick === 0 && !procsProc.running) procsProc.running = true;
             root.appTick = (root.appTick + 1) % 2;
             if (root.paths.gpuBusy) gpuBusyFile.reload();

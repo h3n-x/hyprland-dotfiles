@@ -23,6 +23,9 @@ Item {
     }
 
     readonly property var es: Qt.locale("es_ES")
+    // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
+    readonly property string tooltip: clock.date.toLocaleDateString(root.es, "dddd d 'de' MMMM 'de' yyyy")
+        + (root.showWeather ? " · " + WeatherText.describe(root.cur.weather_code, root.cur.is_day === 1).text : "")
     readonly property var cur: WeatherState.current
     readonly property bool showWeather: WeatherState.configured && !!root.cur
     readonly property bool weatherDim: root.showWeather && WeatherState.isDim(clock.date.getTime() / 1000)

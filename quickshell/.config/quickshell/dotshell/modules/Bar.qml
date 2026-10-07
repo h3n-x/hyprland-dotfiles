@@ -85,6 +85,59 @@ PanelWindow {
         }
     }
 
+    // ---- Informacion al pasar el raton (bar.tooltips, Fase 11 B2b) ------------------------
+    property Item tipItem: null
+    function tip(item: var): void {
+        bar.tipItem = item;
+        if (item) tipDelay.restart();
+        else { tipDelay.stop(); tipWin.visible = false; }
+    }
+    Timer {
+        id: tipDelay
+        interval: 500
+        onTriggered: if (bar.tipItem && bar.tipItem.tooltip) tipWin.visible = true
+    }
+    PopupWindow {
+        id: tipWin
+        visible: false
+        color: "transparent"
+        anchor.window: bar
+        anchor.rect.x: bar.tipItem ? bar.tipItem.mapToItem(layout, bar.tipItem.width / 2, 0).x - tipWin.implicitWidth / 2 : 0
+        anchor.rect.y: bar.height + Tokens.space.xs
+        implicitWidth: tipText.implicitWidth + 2 * Tokens.space.md
+        implicitHeight: tipText.implicitHeight + 2 * Tokens.space.sm
+        Rectangle {
+            anchors.fill: parent
+            radius: Tokens.radius.sm
+            color: Colors.surfaceHigh
+            border.color: Colors.divider
+            Text {
+                id: tipText
+                anchors.centerIn: parent
+                text: bar.tipItem ? bar.tipItem.tooltip : ""
+                color: Colors.text
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.label
+            }
+        }
+    }
+
+    // ---- Rueda sobre la barra (bar.scroll, Fase 11 B2b) ---------------------------------
+    // Fuera de los escritorios (su propia rueda va primero): volumen o brillo,
+    // con los mismos comandos que las teclas (el tope de media.volumeLimit).
+    WheelHandler {
+        target: layout
+        enabled: ["volume", "brightness"].indexOf(SettingsState.value("bar.scroll")) >= 0
+        onWheel: (event) => {
+            const up = event.angleDelta.y > 0;
+            if (SettingsState.value("bar.scroll") === "volume")
+                Quickshell.execDetached(["wpctl", "set-volume", "-l", String(SettingsState.value("media.volumeLimit") || 1),
+                    "@DEFAULT_AUDIO_SINK@", up ? "5%+" : "5%-"]);
+            else
+                Quickshell.execDetached(["brightnessctl", "-e4", "-n2", "set", up ? "5%+" : "5%-"]);
+        }
+    }
+
     // Un elemento de una seccion: espaciador, modulo "bare" o pildora.
     Component {
         id: itemC

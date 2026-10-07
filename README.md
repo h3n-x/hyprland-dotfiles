@@ -553,7 +553,13 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   pasa a la siguiente), Bloq Mayus / Bloq Num (solo mientras estan
   activados), ventana activa, avisos (campana con punto o numero; clic abre el
   centro de control), privacidad (pantalla compartida, microfono o camara en
-  uso, en amarillo) y el lanzador. En que pantallas va la barra. Reloj de 24 o
+  uso, en amarillo), el lanzador, recursos (procesador, memoria, temperatura;
+  amarillo por encima de un umbral) y velocidad de la red -- estos dos solo
+  leen el sistema mientras estan en la barra, cada `system.sampleSeconds`.
+  Escritorios: solo los de cada pantalla, sin los vacios, o con el icono de
+  cada ventana. Informacion al pasar el raton (la fecha completa, la bateria,
+  el titulo entero...) y la rueda sobre la barra para volumen o brillo,
+  apagadas de fabrica. En que pantallas va la barra. Reloj de 24 o
   12 h y la fecha al lado, cambiar de escritorio con la rueda, y la pill de
   musica con el titulo o solo el icono (Fase 10 B4).
 - **Dashboard**: las zonas Sistema y Escritorios del inicio, la ciudad del

@@ -9,6 +9,8 @@ import ".." // Colors.qml, Tokens.qml, KeyboardState.qml
 Item {
     id: root
     readonly property bool shown: KeyboardState.layouts.length > 1
+    // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
+    readonly property string tooltip: KeyboardState.keymap + " (clic: la siguiente)"
     visible: shown
 
     implicitWidth: row.implicitWidth
