@@ -24,7 +24,10 @@ Loader {
     sourceComponent: ({
         "workspaces": workspacesC, "media": mediaC, "clock": clockC, "recording": recordingC, "updates": updatesC,
         "network": networkC, "bluetooth": bluetoothC, "tray": trayC, "microphone": microphoneC, "battery": batteryC,
-        "idle": idleC, "ports": portsC, "power": powerC
+        "idle": idleC, "ports": portsC, "power": powerC,
+        // Fase 11 B2
+        "keyboard": keyboardC, "lockKeys": lockKeysC, "activeWindow": activeWindowC, "notifications": notificationsC,
+        "privacy": privacyC, "launcher": launcherC
     })[entry.mid] || null
 
     Rectangle {
@@ -51,4 +54,10 @@ Loader {
     Component { id: idleC; IdleToggle { panelWindow: entry.panelWindow } }
     Component { id: portsC; Ports { panelWindow: entry.panelWindow } }
     Component { id: powerC; Power {} }
+    Component { id: keyboardC; KeyboardLayout {} }
+    Component { id: lockKeysC; LockKeys {} }
+    Component { id: activeWindowC; ActiveWindow {} }
+    Component { id: notificationsC; NotificationBell {} }
+    Component { id: privacyC; Privacy {} }
+    Component { id: launcherC; LauncherButton {} }
 }

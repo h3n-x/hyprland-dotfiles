@@ -62,15 +62,16 @@ ShellRoot {
     AvatarSync {}
     // Sin reposo mientras suena algo, si se pidio (Fase 10 B3).
     MediaIdleInhibit {}
-    // Avisos del sistema por el OSD (Fase 10 B4); el atajo de Bloq Mayus llama
-    // aca por IPC (osd capsLock).
+    // Avisos del sistema por el OSD (Fase 10 B4); los atajos de Bloq Mayus y Bloq
+    // Num llaman aca por IPC (osd keys, Fase 11 B2).
     SystemNotices { id: systemNotices }
     // Frecuencia de la pantalla integrada segun el cargador (Fase 10 B5).
     DisplayPower {}
     IpcHandler {
         target: "osd"
-        function capsLock(): void {
-            systemNotices.capsLock();
+        // Bloq Mayus / Bloq Num (atajos no consumidores, Fase 11 B2).
+        function keys(): void {
+            systemNotices.keys();
         }
     }
     IpcHandler {

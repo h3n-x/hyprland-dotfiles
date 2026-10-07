@@ -15,6 +15,8 @@ QtObject {
     id: root
 
     property bool doNotDisturb: false
+    // Cuantos hay en el historial (la campana de la barra, Fase 11 B2).
+    readonly property int count: root.server.trackedNotifications.values.length
 
     // Para el bloqueo de pantalla (Fase 9 B2; otro proceso): cuantos avisos
     // llegaron desde que arranco la shell y si No molestar esta activo. Solo el

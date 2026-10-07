@@ -175,9 +175,11 @@ hl.bind(
 	{ locked = true, repeating = true, desc = "Multimedia · Volumen" }
 )
 hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, desc = "Multimedia · Silenciar" })
--- Aviso de Bloq Mayus en el OSD (Fase 10 B4; solo si esta encendido en
--- Notificaciones -> Avisos del sistema): no consume la tecla, corre al soltarla.
-hl.bind("Caps_Lock", hl.dsp.exec_cmd("qs -c dotshell ipc call osd capsLock"), { non_consuming = true, release = true, desc = "Sistema · Aviso de Bloq Mayús" })
+-- Bloq Mayus y Bloq Num: el estado para el aviso del OSD (Fase 10 B4) y el modulo
+-- de la barra (Fase 11 B2); solo se lee si alguno lo usa. No consumen la tecla,
+-- corren al soltarla.
+hl.bind("Caps_Lock", hl.dsp.exec_cmd("qs -c dotshell ipc call osd keys"), { non_consuming = true, release = true, desc = "Sistema · Estado de Bloq Mayús" })
+hl.bind("Num_Lock", hl.dsp.exec_cmd("qs -c dotshell ipc call osd keys"), { non_consuming = true, release = true, desc = "Sistema · Estado de Bloq Num" })
 hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, desc = "Multimedia · Silenciar el micrófono" })
 
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"), { locked = true, repeating = true, desc = "Multimedia · Brillo" })

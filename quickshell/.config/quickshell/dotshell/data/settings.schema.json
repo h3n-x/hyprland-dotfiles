@@ -154,7 +154,13 @@
         "battery":    { "label": "Batería",         "icon": "battery_full" },
         "idle":       { "label": "Inactividad",     "icon": "visibility_off" },
         "ports":      { "label": "Puertos",         "icon": "lan" },
-        "power":      { "label": "Apagar",          "icon": "power_settings_new", "bare": true }
+        "power":      { "label": "Apagar",          "icon": "power_settings_new", "bare": true },
+        "keyboard":      { "label": "Distribución del teclado", "icon": "keyboard" },
+        "lockKeys":      { "label": "Bloq Mayús y Num",         "icon": "keyboard_capslock" },
+        "activeWindow":  { "label": "Ventana activa",           "icon": "web_asset" },
+        "notifications": { "label": "Avisos",                   "icon": "notifications" },
+        "privacy":       { "label": "Privacidad",               "icon": "privacy_tip" },
+        "launcher":      { "label": "Lanzador",                 "icon": "apps" }
       },
       "category": "bar", "section": "Disposición", "order": 1,
       "label": "Disposición de la barra", "description": "Arrastra los módulos entre izquierda, centro y derecha, dentro o fuera de una píldora, o a Disponibles para quitarlos.",
@@ -165,6 +171,18 @@
       "category": "bar", "section": "Disposición", "order": 2,
       "label": "Pantallas con barra", "description": "Apaga las pantallas donde no la quieres. Con todas encendidas, también va en las que conectes después.",
       "keywords": ["monitor", "pantalla", "barra"], "apply": "live"
+    },
+    "bar.activeWindow.maxWidth": {
+      "type": "int", "default": 320, "min": 120, "max": 800, "step": 20, "unit": "px",
+      "category": "bar", "section": "Módulos", "order": 10,
+      "label": "Ancho máximo de la ventana activa", "description": "El título se recorta con puntos suspensivos.",
+      "keywords": ["título", "ventana", "active window"], "apply": "live"
+    },
+    "bar.notifications.count": {
+      "type": "enum", "default": "dot", "values": { "dot": "Un punto", "number": "El número" },
+      "category": "bar", "section": "Módulos", "order": 20,
+      "label": "Avisos pendientes", "description": "Cómo marca la campana que hay avisos en el historial.",
+      "keywords": ["notificaciones", "campana", "contador"], "apply": "live"
     },
     "bar.minWorkspaces": {
       "type": "int", "default": 5, "min": 1, "max": 10,

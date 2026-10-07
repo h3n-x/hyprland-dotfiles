@@ -548,7 +548,12 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   centro, derecha): se arrastra cada modulo a otro lugar, dentro o fuera de
   una pildora, se agregan espacios, y lo que se suelta en Disponibles se
   quita; al senalar un modulo se marca en la barra (con teclado: flechas para
-  moverlo, Supr para quitarlo). En que pantallas va la barra. Reloj de 24 o
+  moverlo, Supr para quitarlo). Modulos para agregar desde Disponibles (Fase
+  11 B2; ninguno viene puesto): distribucion del teclado (con dos o mas; clic
+  pasa a la siguiente), Bloq Mayus / Bloq Num (solo mientras estan
+  activados), ventana activa, avisos (campana con punto o numero; clic abre el
+  centro de control), privacidad (pantalla compartida, microfono o camara en
+  uso, en amarillo) y el lanzador. En que pantallas va la barra. Reloj de 24 o
   12 h y la fecha al lado, cambiar de escritorio con la rueda, y la pill de
   musica con el titulo o solo el icono (Fase 10 B4).
 - **Dashboard**: las zonas Sistema y Escritorios del inicio, la ciudad del
@@ -1042,7 +1047,8 @@ descripcion.
 | `Super` + `Shift` + `M` | Cerrar sesión |
 | `Super` + `Ctrl` + `Shift` + `M` | Salida de emergencia |
 | `Super` + `Alt` + `G` | Modo juego |
-| `Caps_Lock` | Aviso de Bloq Mayús |
+| `Caps_Lock` | Estado de Bloq Mayús |
+| `Num_Lock` | Estado de Bloq Num |
 
 **Ventanas**
 
