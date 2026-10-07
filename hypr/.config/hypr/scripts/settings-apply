@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
 # Opciones del almacen que viven fuera de la shell (Fase 10 B3, P10.3, P10.9):
-# Hyprland y hypridle. El esquema dice a que va cada clave ("hypr": opcion de
-# Hyprland, "idle": parte de hypridle); el almacen es la unica fuente y esto
-# genera, nunca edita a mano:
-#   ~/.local/state/dotfiles/hypr-overrides.lua  solo las claves cambiadas
-#       (hyprland.lua lo carga al final: la config versionada es la de fabrica)
+# Hyprland, hypridle, pantallas y luz nocturna. El esquema dice a que va cada
+# clave ("hypr": opcion de Hyprland, "idle": parte de hypridle, "applyTo":
+# display / displaypower / nightlight, B5); el almacen es la unica fuente y
+# esto genera, nunca edita a mano:
+#   ~/.local/state/dotfiles/hypr-overrides.lua  solo las claves cambiadas y las
+#       reglas de pantalla (hyprland.lua lo carga al final: la config
+#       versionada es la de fabrica, generica)
 #   ~/.local/state/dotfiles/hypridle.conf       la config entera de hypridle
+#   ~/.local/state/dotfiles/hyprsunset/hypr/hyprsunset.conf  la luz nocturna (B5)
+#
+# Pantallas (B5): guardar display.outputs ES probarla. Se aplica en vivo
+# (hyprctl eval de reglas completas: un campo omitido no vuelve a su valor,
+# V0b; VRR solo con una recarga), se anota lo de antes y un vigilante aparte
+# la revierte a los 15 s salvo display-keep. Al arrancar, un valor sin
+# confirmar (se corto la luz en plena prueba) vuelve al confirmado.
 #
 #   settings-apply changed <clave>...    lo llama scripts/settings tras escribir:
 #                                        rehace lo que toca y lo aplica ya
@@ -18,12 +27,23 @@
 #                                        (hyprctl getoption) por clave
 #   settings-apply idle-suspend          accion de suspender de hypridle: respeta
 #                                        "Suspender tambien enchufado"
+#   settings-apply display-keep | display-revert   confirma o deshace la prueba
+#   settings-apply display-power         frecuencia de la pantalla integrada segun
+#                                        el cargador (display.highRefreshOnAC); JSON
+#                                        de lo que cambio (la shell lo avisa)
+#   settings-apply nightlight [--restart|--start|--if-changed]  rehace
+#                                        hyprsunset.conf y lo (re)arranca o lo para
+#   settings-apply nightlight-preview <K>  esa temperatura 5 s y vuelve al horario
 #
 # Pruebas: SETTINGS_SCHEMA, SETTINGS_EFFECTIVE (como scripts/settings),
 # SETTINGS_APPLY_STATE (carpeta de salida), SETTINGS_APPLY_HYPRCTL (otro
 # hyprctl), SETTINGS_APPLY_HYPRIDLE (otro arranque de hypridle; "" = no
 # reiniciar), SETTINGS_APPLY_SUSPEND (otra accion de suspender),
-# SETTINGS_APPLY_POWER (carpeta de power_supply), GAMEMODE_STATE.
+# SETTINGS_APPLY_POWER (carpeta de power_supply), GAMEMODE_STATE,
+# SETTINGS_APPLY_RUN (carpeta de la prueba pendiente), SETTINGS_APPLY_CONFIRM
+# (segundos), SETTINGS_APPLY_HYPRSUNSET (otro arranque; "" = no arrancar),
+# SETTINGS_APPLY_GAMEMODE (otro game-mode.sh), SETTINGS_APPLY_SUNSET_PROC (nombre del proceso
+# a parar), WEATHER_CACHE.
 import glob
 import json
 import os
@@ -32,6 +52,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
+import time
 
 HOME = os.environ["HOME"]
 SCHEMA = os.environ.get("SETTINGS_SCHEMA") or f"{HOME}/.config/quickshell/dotshell/data/settings.schema.json"
@@ -45,6 +66,20 @@ HYPRIDLE = os.environ.get("SETTINGS_APPLY_HYPRIDLE", f"hypridle -c {IDLE_CONF}")
 SUSPEND = shlex.split(os.environ.get("SETTINGS_APPLY_SUSPEND") or "systemctl suspend")
 POWER = os.environ.get("SETTINGS_APPLY_POWER") or "/sys/class/power_supply"
 GAMEMODE = os.environ.get("GAMEMODE_STATE") or f"/tmp/gamemode-{os.environ.get('USER', '')}.state"
+HERE = os.path.dirname(os.path.realpath(__file__))
+RUN = os.environ.get("SETTINGS_APPLY_RUN") or f"{os.environ.get('XDG_RUNTIME_DIR') or '/run/user/' + str(os.getuid())}/dotfiles"
+PENDING = f"{RUN}/display-pending.json"
+CONFIRMED = f"{STATE}/display-confirmed.json"
+CONFIRM_SECONDS = float(os.environ.get("SETTINGS_APPLY_CONFIRM") or 15)
+# hyprsunset no acepta una ruta de config (v0.4: --config no existe): lee
+# $XDG_CONFIG_HOME/hypr/hyprsunset.conf, asi que arranca con XDG_CONFIG_HOME
+# apuntando a una carpeta propia del estado (solo para ese proceso).
+SUNSET_HOME = f"{STATE}/hyprsunset"
+SUNSET_CONF = f"{SUNSET_HOME}/hypr/hyprsunset.conf"
+HYPRSUNSET = os.environ.get("SETTINGS_APPLY_HYPRSUNSET", f"env XDG_CONFIG_HOME={SUNSET_HOME} hyprsunset")
+SUNSET_PROC = os.environ.get("SETTINGS_APPLY_SUNSET_PROC") or "hyprsunset"  # pruebas: nunca el real
+GAMEMODE_SH = os.environ.get("SETTINGS_APPLY_GAMEMODE") or f"{HERE}/game-mode.sh"
+WEATHER_CACHE = os.environ.get("WEATHER_CACHE") or f"{os.environ.get('XDG_CACHE_HOME') or HOME + '/.cache'}/dotfiles/weather.json"
 
 
 def load():
@@ -113,6 +148,10 @@ def render_overrides(s, eff):
             lines.append(f"-- {k}")
             for opt, v in hypr_values(s["keys"][k], eff["values"][k]).items():
                 lines.append(lua_config(opt, v))
+    outs = eff["values"].get("display.outputs") or {}
+    if outs:
+        lines += ["", "-- display.outputs (Pantallas, Fase 10 B5)"]
+        lines += [monitor_lua(name, r) for name, r in sorted(outs.items())]
     text = "\n".join(lines) + "\n"
     # Lua valido antes de reemplazar el que carga Hyprland.
     fd, tmp = tempfile.mkstemp(suffix=".lua")
@@ -223,6 +262,276 @@ def on_ac():
     return False
 
 
+# ---- Pantallas (Fase 10 B5) --------------------------------------------------------------
+# Lo que Hyprland pone en un campo que la regla no nombra (y el respaldo generico
+# de monitors.lua): una regla aplicada en vivo los lleva todos, explicitos.
+LIVE_DEFAULTS = {"mode": "preferred", "position": "auto", "scale": "auto", "transform": 0, "bitdepth": 8,
+                 "cm": "auto", "sdrbrightness": 1.0, "sdrsaturation": 1.0, "mirror": "", "enabled": True}
+FIELD_ORDER = ["mode", "position", "scale", "transform", "vrr", "bitdepth", "cm", "sdrbrightness", "sdrsaturation",
+               "sdr_min_luminance", "sdr_max_luminance", "min_luminance", "max_luminance", "max_avg_luminance", "mirror"]
+CMS = {"auto", "srgb", "dcip3", "dp3", "adobe", "wide", "edid", "hdr", "hdredid"}
+
+
+def monitor_lua(output, r, skip=()):
+    """hl.monitor({ output = ..., campos }) con los campos en un orden fijo."""
+    if not output.strip() or output.strip() == "desc:":
+        raise ValueError("regla de pantalla sin nombre")  # coincidiria con todas (V0)
+    parts = [f"output = {lua_value(output)}"]
+    for f in FIELD_ORDER:
+        if f in r and f not in skip:
+            parts.append(f"{f} = {lua_value(r[f])}")
+    if "enabled" in r and "enabled" not in skip:
+        parts.append(f"disabled = {lua_value(not r['enabled'])}")
+    return "hl.monitor({ " + ", ".join(parts) + " })"
+
+
+def hypr(*a):
+    r = subprocess.run(HYPRCTL + list(a), capture_output=True, text=True)
+    return r.returncode, (r.stdout + r.stderr).strip()
+
+
+def monitors():
+    rc, out = hypr("monitors", "all", "-j")
+    try:
+        return json.loads(out) if rc == 0 else []
+    except ValueError:
+        return []
+
+
+def matches(key, m):
+    if key.startswith("desc:"):
+        d = key[5:].strip()
+        return bool(d) and (m.get("description") or "").startswith(d)
+    return key == m.get("name")
+
+
+def snapshot_rule(m, mons):
+    """La regla completa que describe a la pantalla m tal como esta ahora."""
+    if m.get("disabled"):
+        return {"enabled": False}
+    mirror = ""
+    if str(m.get("mirrorOf", "none")) not in ("none", ""):
+        mirror = next((x["name"] for x in mons if str(x.get("id")) == str(m["mirrorOf"])), "")
+    r = {"mode": f"{m['width']}x{m['height']}@{m['refreshRate']:.3f}", "position": f"{m['x']}x{m['y']}",
+         "scale": m["scale"], "transform": m.get("transform", 0), "vrr": 1 if m.get("vrr") else 0,
+         "bitdepth": 10 if "2101010" in (m.get("currentFormat") or "") else 8,
+         "cm": m.get("colorManagementPreset") if m.get("colorManagementPreset") in CMS else "auto",
+         "mirror": mirror, "enabled": True}
+    for f, j in (("sdrbrightness", "sdrBrightness"), ("sdrsaturation", "sdrSaturation")):
+        if isinstance(m.get(j), (int, float)):
+            r[f] = m[j]
+    return r
+
+
+def read_json(path, default):
+    try:
+        return json.load(open(path))
+    except (OSError, ValueError):
+        return default
+
+
+def set_outputs(value):
+    """Escribe display.outputs sin volver a disparar la prueba (aplicador vacio)."""
+    env = dict(os.environ, SETTINGS_APPLY="")
+    subprocess.run([SETTINGS, "set", "display.outputs", json.dumps(value)], env=env, capture_output=True)
+
+
+def after_reload():
+    # El modo juego apaga efectos con eval: una recarga los traeria de vuelta.
+    subprocess.run([GAMEMODE_SH, "reapply"], capture_output=True)
+    display_power(announce=False)
+
+
+def display_try(s, eff):
+    new = eff["values"].get("display.outputs") or {}
+    old = read_json(CONFIRMED, {}).get("outputs", {})
+    prev = read_json(PENDING, None)
+    if prev:  # una prueba sobre otra: lo de antes sigue siendo lo confirmado
+        old = prev["oldStore"]
+    mons = monitors()
+    snap = {m["name"]: snapshot_rule(m, mons) for m in mons} if not prev else prev["snapshot"]
+    render_overrides(s, eff)
+    code, reload_needed = [], False
+    for key in sorted(set(old) | set(new)):
+        if old.get(key) == new.get(key):
+            continue
+        rule = dict(LIVE_DEFAULTS, **new.get(key, {}))
+        for m in mons:
+            if matches(key, m):
+                code.append(monitor_lua(m["name"], rule, skip=("vrr",)))
+                # VRR solo con recarga: si de verdad cambia (sin valor = el que tiene ahora).
+                now = snap.get(m["name"], {}).get("vrr", 0)
+                if old.get(key, {}).get("vrr", now) != new.get(key, {}).get("vrr", now):
+                    reload_needed = True
+                # Sin regla de VRR ya: vuelve el general (misc:vrr), solo con recarga.
+                if "vrr" in old.get(key, {}) and "vrr" not in new.get(key, {}):
+                    reload_needed = True
+    if not code and not reload_needed:
+        if not prev:
+            write_atomic(CONFIRMED, json.dumps({"outputs": new}, ensure_ascii=False, indent=1) + "\n")
+        return
+    if code:
+        rc, out = hypr("eval", "\n".join(code))
+        if rc != 0 or (out and out != "ok"):
+            print(f"settings-apply: hyprctl eval: {out}", file=sys.stderr)
+    if reload_needed:
+        hypr("reload")
+        after_reload()
+    pid = f"{time.time():.6f}"
+    write_atomic(PENDING, json.dumps({"id": pid, "deadline": time.time() + CONFIRM_SECONDS, "seconds": CONFIRM_SECONDS,
+                                      "snapshot": snap, "oldStore": old, "newStore": new,
+                                      "reload": reload_needed or bool(prev and prev.get("reload"))}, ensure_ascii=False) + "\n")
+    subprocess.Popen(["setsid", "-f", os.path.realpath(__file__), "display-watchdog", pid], stdin=subprocess.DEVNULL,
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def display_keep():
+    p = read_json(PENDING, None)
+    if not p:
+        return
+    write_atomic(CONFIRMED, json.dumps({"outputs": p["newStore"]}, ensure_ascii=False, indent=1) + "\n")
+    os.unlink(PENDING)
+
+
+def display_revert():
+    p = read_json(PENDING, None)
+    if not p:
+        return
+    os.unlink(PENDING)
+    set_outputs(p["oldStore"])
+    s2, eff2 = load()
+    render_overrides(s2, eff2)
+    mons = {m["name"] for m in monitors()}
+    code = [monitor_lua(n, r, skip=("vrr",)) for n, r in sorted(p["snapshot"].items()) if n in mons]
+    if code:
+        hypr("eval", "\n".join(code))
+    if p.get("reload"):
+        hypr("reload")
+        after_reload()
+
+
+def display_watchdog(pid):
+    p = read_json(PENDING, None)
+    if not p or p.get("id") != pid:
+        return
+    time.sleep(max(0, p["deadline"] - time.time()))
+    p = read_json(PENDING, None)
+    if p and p.get("id") == pid:
+        display_revert()
+
+
+def display_startup_check(eff):
+    """Al arrancar: sin prueba en curso, el almacen vale lo confirmado."""
+    store = eff["values"].get("display.outputs") or {}
+    if os.path.exists(PENDING):
+        return
+    conf = read_json(CONFIRMED, None)
+    if conf is None:
+        write_atomic(CONFIRMED, json.dumps({"outputs": store}, ensure_ascii=False, indent=1) + "\n")
+    elif conf.get("outputs", {}) != store:
+        set_outputs(conf.get("outputs", {}))
+
+
+def internal(m):
+    return (m.get("name") or "").startswith(("eDP", "LVDS", "DSI"))
+
+
+def display_power(announce=True):
+    """Pantalla integrada: la frecuencia mas alta enchufado, ~60 Hz con bateria (si se pidio)."""
+    s, eff = load()
+    want_low = bool(eff["values"].get("display.highRefreshOnAC")) and not on_ac() and any(
+        open(f).read().strip() == "Battery" for f in glob.glob(f"{POWER}/*/type") if os.path.exists(f))
+    outs = eff["values"].get("display.outputs") or {}
+    changed = []
+    for m in monitors():
+        if not internal(m) or m.get("disabled"):
+            continue
+        size = f"{m['width']}x{m['height']}"
+        rates = sorted({float(x.split("@")[1].rstrip("Hz")) for x in m.get("availableModes", []) if x.startswith(size + "@")})
+        if not rates:
+            continue
+        if want_low:
+            target = min(rates, key=lambda r: abs(r - 60))
+        else:
+            rule = next((r for k, r in outs.items() if matches(k, m)), {})
+            mode = rule.get("mode", "")
+            target = float(mode.split("@")[1]) if mode.startswith(size + "@") else max(rates)
+            target = min(rates, key=lambda r: abs(r - target))
+        if abs(target - m["refreshRate"]) < 0.5:
+            continue
+        hypr("eval", f'hl.monitor({{ output = "{m["name"]}", mode = "{size}@{target:.3f}" }})')
+        changed.append({"output": m["name"], "hz": round(target), "battery": want_low})
+    if announce:
+        print(json.dumps(changed))
+
+
+# ---- Luz nocturna (Fase 10 B5) --------------------------------------------------------------
+def hm(t):
+    h, m = t.split(":")
+    return f"{int(h)}:{m}"
+
+
+def sun_times():
+    """(atardecer, amanecer) de hoy "HH:MM" desde la cache del clima, o None."""
+    c = read_json(WEATHER_CACHE, {})
+    d = (c.get("data") or c).get("daily") or {}
+    days, sets, rises = d.get("time") or [], d.get("sunset") or [], d.get("sunrise") or []
+    if not sets or not rises:
+        return None
+    today = time.strftime("%Y-%m-%d")
+    i = days.index(today) if today in days else 0
+    try:
+        return sets[i][11:16], rises[i][11:16]
+    except (IndexError, TypeError):
+        return None
+
+
+def render_nightlight(eff):
+    v = eff["values"]
+    g = lambda k: v.get("display.nightLight." + k)
+    start, end = g("from"), g("to")
+    if g("mode") == "sun":
+        st = sun_times()
+        if st:
+            start, end = st
+    lines = ["# Generado por scripts/settings-apply (Fase 10 B5) desde ~/.config/dotfiles/settings.json:",
+             "# luz nocturna del centro de configuracion (Pantallas). No editar a mano.", "", "max-gamma = 100", "",
+             "profile {", f"    time = {hm(end)}", "    identity = true", "}", "",
+             "profile {", f"    time = {hm(start)}", f"    temperature = {g('temperature')}", "    gamma = 1.0", "}"]
+    if g("late"):
+        lines += ["", "profile {", f"    time = {hm(g('lateFrom'))}", f"    temperature = {g('lateTemperature')}",
+                  f"    gamma = {g('lateGamma') / 100:.2f}".rstrip("0").rstrip("."), "}"]
+    text = "\n".join(lines) + "\n"
+    try:
+        old = open(SUNSET_CONF).read()
+    except OSError:
+        old = ""
+    if text != old:
+        write_atomic(SUNSET_CONF, text)
+    return text != old
+
+
+def sunset_running():
+    return subprocess.run(["pgrep", "-x", SUNSET_PROC], capture_output=True).returncode == 0
+
+
+def nightlight(eff, restart=False, start_only=False):
+    changed = render_nightlight(eff)
+    if not eff["values"].get("display.nightLight.enabled"):
+        subprocess.run(["pkill", "-x", SUNSET_PROC], capture_output=True)
+        return
+    if start_only and sunset_running():
+        return
+    if (restart or changed or not sunset_running()) and HYPRSUNSET:
+        subprocess.run(["pkill", "-x", SUNSET_PROC], capture_output=True)
+        for _ in range(20):  # que suelte la pantalla antes de arrancar el nuevo
+            if not sunset_running():
+                break
+            time.sleep(0.05)
+        subprocess.Popen(["setsid", "-f"] + shlex.split(HYPRSUNSET), stdin=subprocess.DEVNULL,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 # ---- CLI --------------------------------------------------------------------------------
 args = sys.argv[1:]
 cmd = args[0] if args else ""
@@ -236,6 +545,13 @@ if cmd == "changed":
     if any(s["keys"].get(k, {}).get("idle") for k in keys):
         if render_idle(s, eff):
             restart_idle()
+    to = {s["keys"].get(k, {}).get("applyTo") for k in keys}
+    if "display" in to:
+        display_try(s, eff)
+    if "displaypower" in to:
+        display_power(announce=False)
+    if "nightlight" in to:
+        nightlight(eff, restart=True)
 elif cmd == "hypr":
     render_overrides(s, eff)
     apply_hypr(s, eff, None if args[1:] in ([], ["--all"]) else set(args[1:]))
@@ -243,12 +559,34 @@ elif cmd == "idle":
     if render_idle(s, eff) or "--restart" in args:
         restart_idle()
 elif cmd == "render":
+    display_startup_check(eff)
+    s, eff = load()
     render_overrides(s, eff)
     render_idle(s, eff)
+    render_nightlight(eff)
+elif cmd == "display-keep":
+    display_keep()
+elif cmd == "display-revert":
+    display_revert()
+elif cmd == "display-watchdog":
+    display_watchdog(args[1] if len(args) > 1 else "")
+elif cmd == "display-power":
+    display_power()
+elif cmd == "nightlight":
+    if "--if-changed" in args:
+        if render_nightlight(eff) and eff["values"].get("display.nightLight.enabled"):
+            nightlight(eff, restart=True)
+    else:
+        nightlight(eff, restart="--restart" in args, start_only="--start" in args)
+elif cmd == "nightlight-preview":
+    hypr("hyprsunset", "temperature", str(int(args[1])))
+    subprocess.Popen(["setsid", "-f", "sh", "-c", f"sleep 5; exec {shlex.quote(os.path.realpath(__file__))} nightlight --restart"],
+                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 elif cmd == "live":
     print(json.dumps(live(s, eff, None if args[1:] in ([], ["--all"]) else set(args[1:])), ensure_ascii=False))
 elif cmd == "idle-suspend":
     if eff["values"].get("power.suspendOnAC", True) or not on_ac():
         sys.exit(subprocess.run(SUSPEND).returncode)
 else:
-    sys.exit("uso: settings-apply changed <clave>...|hypr [--all|<clave>...]|idle [--restart]|render|live [--all|<clave>...]|idle-suspend")
+    sys.exit("uso: settings-apply changed <clave>...|hypr [--all|<clave>...]|idle [--restart]|render|live [--all|<clave>...]|"
+             "idle-suspend|display-keep|display-revert|display-power|nightlight [--restart|--start|--if-changed]|nightlight-preview <K>")

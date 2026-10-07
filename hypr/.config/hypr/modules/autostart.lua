@@ -23,9 +23,10 @@ hl.on("hyprland.start", function()
     -- eligio como vuelta atras con `theme-apply.sh --backend hyprpaper`.
     hl.exec_cmd("sh -c '[ \"$(~/.config/hypr/scripts/theme-apply.sh --backend status)\" = hyprpaper ] && exec hyprpaper'")
     -- hypridle con la config generada desde las opciones de Energia (Fase 10
-    -- B3): settings-apply la arma (y los overrides de Hyprland) antes.
-    hl.exec_cmd("sh -c '~/.config/hypr/scripts/settings-apply render; exec hypridle -c ~/.local/state/dotfiles/hypridle.conf'")
-    hl.exec_cmd("hyprsunset")
+    -- B3) y la luz nocturna desde Pantallas (B5): settings-apply arma los
+    -- archivos (y los overrides de Hyprland) y arranca hyprsunset si esta
+    -- encendida.
+    hl.exec_cmd("sh -c '~/.config/hypr/scripts/settings-apply render; ~/.config/hypr/scripts/settings-apply nightlight --start; exec hypridle -c ~/.local/state/dotfiles/hypridle.conf'")
 
     -- Temas de arranque/login que quedaron pendientes si la sesion anterior
     -- termino antes de que theme-apply.sh los regenerara (Fase 3 B2). Sin

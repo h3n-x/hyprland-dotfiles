@@ -19,7 +19,8 @@
 # parse: respuesta invalida) sin tocar los datos, para que el panel distinga
 # "sin conexion", "usando cache", "datos antiguos" y "error de consulta".
 #
-# Pruebas: WEATHER_API_BASE, WEATHER_GEO_BASE, WEATHER_CACHE y las SETTINGS_* del motor.
+# Pruebas: WEATHER_API_BASE, WEATHER_GEO_BASE, WEATHER_CACHE, WEATHER_AFTER (lo que corre tras
+# guardar datos nuevos; vacio = nada) y las SETTINGS_* del motor.
 set -uo pipefail
 
 API=${WEATHER_API_BASE:-https://api.open-meteo.com}
@@ -28,6 +29,7 @@ SETTINGS="$(dirname "$(readlink -f "$0")")/settings"
 # La ubicacion (JSON {name, detail, lat, lon}) o vacio.
 location() { local l; l=$("$SETTINGS" get dashboard.weather.location 2>/dev/null); [[ $l != null ]] && printf '%s' "$l"; }
 CACHE=${WEATHER_CACHE:-$HOME/.cache/dotfiles/weather.json}
+AFTER=${WEATHER_AFTER-"$(dirname "$(readlink -f "$0")")/settings-apply nightlight --if-changed"}
 LOCK=$CACHE.lock
 
 now() { date +%s; }
@@ -83,6 +85,9 @@ fetch() {
     fi
     jq --arg place "$place" --argjson at "$(now)" \
         '{fetched_at: $at, last_attempt: $at, place: $place, data: {timezone, current, hourly, daily}}' "$BODY" | write_atomic "$CACHE"
+    # Luz nocturna "del atardecer al amanecer" (Fase 10 B5): las horas del sol
+    # salen de esta cache; si cambiaron, se rehace y reinicia (si no, nada).
+    if [[ -n $AFTER ]]; then $AFTER >/dev/null 2>&1 || true; fi
 }
 
 search() {

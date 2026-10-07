@@ -24,7 +24,8 @@ Item {
     readonly property string error: SettingsState.errors[row.key] || ""
     readonly property string kind: row.model.control(row.key)
     readonly property string note: row.model.applyNote(row.key)
-    readonly property bool stacked: !!control.item && control.item.implicitWidth > col.width * 0.6
+    // Pantallas (B5) siempre a todo el ancho, debajo del texto.
+    readonly property bool stacked: row.kind === "outputs" || (!!control.item && control.item.implicitWidth > col.width * 0.6)
     // El selector abierto (su lista va debajo, a lo ancho de la fila).
     readonly property bool listOpen: ["select", "font", "layouts", "player", "location"].indexOf(row.kind) >= 0 && !!control.item && control.item.open
     // Lo que Hyprland usa ahora, si difiere del almacen (Fase 10 B3): modo juego,
@@ -154,7 +155,7 @@ Item {
                 sourceComponent: ({
                     "switch": switchC, "segmented": segmentedC, "select": selectC,
                     "stepper": stepperC, "slider": sliderC, "path": pathC, "font": fontC, "layouts": layoutsC,
-                    "player": selectC, "location": locationC
+                    "player": selectC, "location": locationC, "time": timeC, "outputs": outputsC
                 })[row.kind] || null
             }
         }
@@ -302,6 +303,21 @@ Item {
             value: row.value || []
             maxItems: row.meta.maxItems || 4
             onEdited: (l) => row.set(l)
+        }
+    }
+    Component {
+        id: timeC
+        TimeField {
+            objectName: "control-time"
+            value: row.value || "00:00"
+            onEdited: (v) => row.set(v)
+        }
+    }
+    // Pantallas (Fase 10 B5): el panel entero ocupa el ancho de la fila.
+    Component {
+        id: outputsC
+        DisplaysPanel {
+            objectName: "control-outputs"
         }
     }
     Component {

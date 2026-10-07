@@ -43,14 +43,9 @@ PanelWindow {
     Presence { id: presence; open: ControlCenterState.visible }
     visible: presence.shown
 
-    // Estado y procesos de hardware
-    property bool hyprsunsetActive: false
-    Process {
-        id: checkHyprsunset
-        command: ["pgrep", "-x", "hyprsunset"]
-        onExited: (code) => window.hyprsunsetActive = (code === 0)
-    }
-
+    // Estado y procesos de hardware. La luz nocturna es una opcion del almacen
+    // (display.nightLight.enabled, Fase 10 B5): settings-apply arranca o para
+    // hyprsunset; la tile la cambia como el centro de configuracion.
     property bool gameModeActive: false
     Process {
         id: checkGameMode
@@ -66,7 +61,6 @@ PanelWindow {
 
 
     function refreshHardware() {
-        checkHyprsunset.running = true;
         checkGameMode.running = true;
         PowerProfileState.refresh();
     }
@@ -190,11 +184,8 @@ PanelWindow {
                 }
                 QuickToggle {
                     icon: "nightlight"
-                    active: window.hyprsunsetActive
-                    onClicked: {
-                        Quickshell.execDetached(["sh", "-c", "pgrep -x hyprsunset >/dev/null && pkill hyprsunset || (hyprsunset &)"]);
-                        checkHyprsunset.running = true;
-                    }
+                    active: SettingsState.value("display.nightLight.enabled") === true
+                    onClicked: SettingsState.set("display.nightLight.enabled", !(SettingsState.value("display.nightLight.enabled") === true))
                 }
                 QuickToggle {
                     icon: "sports_esports"

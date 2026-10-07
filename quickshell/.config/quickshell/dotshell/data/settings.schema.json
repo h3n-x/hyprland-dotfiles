@@ -9,6 +9,7 @@
     "media":         { "label": "Multimedia",       "icon": "music_note",        "order": 60 },
     "notifications": { "label": "Notificaciones",   "icon": "notifications",     "order": 70 },
     "system":        { "label": "Sistema",          "icon": "settings",          "order": 80 },
+    "display":       { "label": "Pantallas",        "icon": "monitor",           "order": 82 },
     "power":         { "label": "Energía",          "icon": "bolt",              "order": 84 },
     "input":         { "label": "Teclado y ratón",  "icon": "mouse",             "order": 86 },
     "lock":          { "label": "Bloqueo e inicio", "icon": "lock",              "order": 90 },
@@ -389,6 +390,65 @@
       "type": "number", "default": 1, "min": 0.2, "max": 3, "step": 0.1,
       "category": "input", "section": "Touchpad", "order": 50,
       "label": "Velocidad del desplazamiento", "keywords": ["scroll"], "apply": "live", "hypr": "input:touchpad:scroll_factor"
+    },
+    "display.outputs": {
+      "type": "outputs", "default": {},
+      "category": "display", "section": "Pantallas", "order": 10,
+      "label": "Disposición y modo", "description": "Cada cambio se prueba antes de guardarse: si no confirmas en 15 s, vuelve el anterior.",
+      "keywords": ["monitor", "resolución", "frecuencia", "hz", "escala", "rotación", "vrr", "hdr", "10 bits", "espejo", "duplicar"], "apply": "live", "applyTo": "display"
+    },
+    "display.highRefreshOnAC": {
+      "type": "bool", "default": false,
+      "category": "display", "section": "Pantallas", "order": 20,
+      "label": "Frecuencia alta solo enchufado", "description": "Con batería, la pantalla integrada baja a 60 Hz; al enchufar vuelve a la más alta. Un aviso lo dice cada vez.",
+      "keywords": ["hz", "batería", "refresco", "144"], "apply": "live", "applyTo": "displaypower"
+    },
+    "display.nightLight.enabled": {
+      "type": "bool", "default": true,
+      "category": "display", "section": "Luz nocturna", "order": 100,
+      "label": "Luz nocturna", "description": "Calienta los colores de la pantalla por la noche (hyprsunset).",
+      "keywords": ["luz azul", "hyprsunset", "noche", "filtro"], "apply": "live", "applyTo": "nightlight"
+    },
+    "display.nightLight.mode": {
+      "type": "enum", "default": "schedule", "values": { "schedule": "Horario", "sun": "Del atardecer al amanecer" },
+      "category": "display", "section": "Luz nocturna", "order": 110,
+      "label": "Cuándo", "description": "\"Del atardecer al amanecer\" usa la ciudad del clima (Dashboard); sin ciudad, el horario.",
+      "keywords": ["sol", "atardecer", "amanecer"], "apply": "live", "applyTo": "nightlight"
+    },
+    "display.nightLight.from": {
+      "type": "time", "default": "20:00",
+      "category": "display", "section": "Luz nocturna", "order": 120,
+      "label": "Desde", "keywords": ["hora", "inicio"], "apply": "live", "applyTo": "nightlight"
+    },
+    "display.nightLight.to": {
+      "type": "time", "default": "08:00",
+      "category": "display", "section": "Luz nocturna", "order": 130,
+      "label": "Hasta", "keywords": ["hora", "fin"], "apply": "live", "applyTo": "nightlight"
+    },
+    "display.nightLight.temperature": {
+      "type": "int", "default": 4500, "min": 2500, "max": 6500, "step": 100, "unit": "K",
+      "category": "display", "section": "Luz nocturna", "order": 140,
+      "label": "Temperatura", "description": "Más baja, más cálida.", "keywords": ["kelvin", "cálido"], "apply": "live", "applyTo": "nightlight"
+    },
+    "display.nightLight.late": {
+      "type": "bool", "default": true,
+      "category": "display", "section": "Luz nocturna", "order": 150,
+      "label": "Más cálida de madrugada", "keywords": ["noche", "tarde"], "apply": "live", "applyTo": "nightlight"
+    },
+    "display.nightLight.lateFrom": {
+      "type": "time", "default": "23:00",
+      "category": "display", "section": "Luz nocturna", "order": 160,
+      "label": "Desde las", "keywords": ["hora"], "apply": "live", "applyTo": "nightlight"
+    },
+    "display.nightLight.lateTemperature": {
+      "type": "int", "default": 3500, "min": 2500, "max": 6500, "step": 100, "unit": "K",
+      "category": "display", "section": "Luz nocturna", "order": 170,
+      "label": "Temperatura de madrugada", "keywords": ["kelvin"], "apply": "live", "applyTo": "nightlight"
+    },
+    "display.nightLight.lateGamma": {
+      "type": "int", "default": 90, "min": 50, "max": 100, "step": 5, "unit": "%",
+      "category": "display", "section": "Luz nocturna", "order": 180,
+      "label": "Brillo de madrugada", "keywords": ["gamma", "brillo"], "apply": "live", "applyTo": "nightlight"
     },
     "power.dim": {
       "type": "bool", "default": true,

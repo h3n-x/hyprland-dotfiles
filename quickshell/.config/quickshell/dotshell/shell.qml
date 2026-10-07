@@ -61,6 +61,8 @@ ShellRoot {
     // Avisos del sistema por el OSD (Fase 10 B4); el atajo de Bloq Mayus llama
     // aca por IPC (osd capsLock).
     SystemNotices { id: systemNotices }
+    // Frecuencia de la pantalla integrada segun el cargador (Fase 10 B5).
+    DisplayPower {}
     IpcHandler {
         target: "osd"
         function capsLock(): void {

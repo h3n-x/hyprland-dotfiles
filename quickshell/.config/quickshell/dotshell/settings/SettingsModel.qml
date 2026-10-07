@@ -88,6 +88,9 @@ QtObject {
         if (m.type === "list" && m.kind === "xkb") return "layouts";
         if (m.type === "location") return "location";
         if (m.type === "string" && m.kind === "player") return "player";
+        // Fase 10 B5: horas del dia (luz nocturna) y el panel de pantallas.
+        if (m.type === "time") return "time";
+        if (m.type === "outputs") return "outputs";
         return "";
     }
     // Opciones [[valor, texto], ...] de un enum (orden del esquema) o de presets.
@@ -120,6 +123,11 @@ QtObject {
         if (m.type === "list") return (v || []).join(", ");
         if (m.type === "location") return v ? v.name : "Sin ciudad";
         if (m.kind === "player") return v || "Automático";
+        if (m.type === "time") return String(v);
+        if (m.type === "outputs") {
+            const n = Object.keys(v || {}).length;
+            return n === 0 ? "Automática" : n === 1 ? "1 pantalla ajustada" : n + " pantallas ajustadas";
+        }
         if (m.labels && m.labels.hasOwnProperty(String(v))) return m.labels[String(v)];
         const preset = Array.isArray(m.presets) ? m.presets.find(p => Array.isArray(p) && Math.abs(p[0] - v) < 0.01) : null;
         if (preset) return preset[1];

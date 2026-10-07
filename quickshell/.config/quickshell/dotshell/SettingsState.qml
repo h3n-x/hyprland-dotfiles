@@ -67,6 +67,13 @@ QtObject {
         return v;
     }
     // Una ruta pedida con "~" vuelve del motor expandida: se comparan iguales.
+    // Texto canonico de un valor (claves ordenadas, como la cache del motor,
+    // sort_keys): un objeto (pantallas, ciudad) se compara por contenido.
+    function canon(v: var): string {
+        if (Array.isArray(v)) return "[" + v.map(x => root.canon(x)).join(",") + "]";
+        if (v !== null && typeof v === "object") return "{" + Object.keys(v).sort().map(k => JSON.stringify(k) + ":" + root.canon(v[k])).join(",") + "}";
+        return JSON.stringify(v);
+    }
     function expand(key: string, v: var): var {
         const m = root.meta(key);
         return m && m.type === "path" && typeof v === "string" && v.startsWith("~") ? root.home + v.slice(1) : v;
@@ -227,7 +234,7 @@ QtObject {
         // Lo confirmado deja de estar pendiente.
         const p = {};
         for (const k in root.pending)
-            if (JSON.stringify(root.values[k]) !== JSON.stringify(root.expand(k, root.pending[k]))) p[k] = root.pending[k];
+            if (root.canon(root.values[k]) !== root.canon(root.expand(k, root.pending[k]))) p[k] = root.pending[k];
         if (Object.keys(p).length !== Object.keys(root.pending).length) root.pending = p;
         root.ready = true;
     }

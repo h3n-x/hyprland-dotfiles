@@ -35,7 +35,7 @@ detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
 | Menu de arranque | GRUB (theme propio con matugen, ver seccion GRUB abajo) |
 | Idle | Hypridle |
 | Wallpaper | hyprpaper |
-| Filtro de luz azul | hyprsunset |
+| Filtro de luz azul | hyprsunset (horario o del atardecer al amanecer, desde Configuracion -> Pantallas) |
 | Polkit | hyprpolkitagent |
 | Capturas | grim + slurp (pantalla congelada con hyprpicker, opcional) + satty, vista previa de Quickshell |
 | Grabacion | wf-recorder con VA-API (Radeon), pill de Quickshell |
@@ -322,8 +322,8 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   (con DND activo, la notificación queda en el historial pero no
   aparece como toast). `ControlCenter.qml` reproduce lo que daba
   `swaync/config.json`: historial con "limpiar todo", grid de accesos
-  rápidos (wifi/bluetooth/hyprsunset -- este último sin servicio nativo,
-  se chequea con `pgrep` al abrir el panel/lock), perfil de energia y DND;
+  rápidos (wifi/bluetooth/luz nocturna -- esta última es la misma opcion que
+  Configuracion -> Pantallas, `display.nightLight.enabled`), perfil de energia y DND;
   el reproductor y el estado del equipo (incluida la NVIDIA) estan en el
   dashboard. `SUPER+N`/`SUPER+SHIFT+N` (ver
   `binds.lua`) reemplazan a `swaync-client -t -sw`/`-C`.
@@ -493,7 +493,8 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   transparencia, alto contraste) y **Tus cambios**: cada opcion cambiada,
   con su valor, el de fabrica y volver; clic en una lleva a su fila.
 - **Una pagina por categoria** (Apariencia, Accesibilidad, Barra, Dashboard,
-  Capturas, Multimedia, Notificaciones, Sistema, Bloqueo e inicio, Atajos). Las paginas
+  Capturas, Multimedia, Notificaciones, Sistema, Pantallas, Energia, Teclado y
+  raton, Bloqueo e inicio, Atajos). Las paginas
   se arman solas desde `dotshell/data/settings.schema.json`: una clave nueva
   aparece en su pagina, con el control de su tipo, y se encuentra al buscar.
   Una categoria sin opciones no aparece. Cada fila dice si esta "Cambiada" y
@@ -523,6 +524,23 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
 - **Energia**: bajar el brillo, bloquear, apagar la pantalla y suspender
   tras un tiempo sin uso (cada uno puede ser "Nunca"), suspender tambien
   enchufado o solo con bateria, y no entrar en reposo mientras suena algo.
+- **Pantallas** (Fase 10 B5): una tarjeta por pantalla con resolucion,
+  frecuencia, escala (solo las que dejan un espacio entero, con el espacio que
+  queda), rotacion, volteada, VRR, duplicar y, plegado, color avanzado (8/10
+  bits, perfiles sRGB / DCI-P3 / Display P3 / Adobe RGB / amplio / EDID / HDR,
+  brillo y saturacion de lo SDR en HDR). Con dos o mas, la **disposicion** se
+  arrastra (se pega a los bordes; dos superpuestas no se pueden aplicar) y se
+  puede apagar una (nunca la ultima). Lo que la pantalla no dice soportar
+  (segun su EDID, `scripts/display-caps`) se muestra con una nota. **Cada
+  cambio se prueba**: al aplicar arriba aparece "¿Mantener esta
+  configuracion?" con 15 s; sin "Mantener" vuelve la anterior (lo cuenta un
+  proceso aparte: vuelve aunque la pantalla quede negra o la ventana se
+  cierre). VRR se aplica recargando Hyprland (un parpadeo). "Frecuencia alta
+  solo enchufado" baja la integrada a 60 Hz con bateria (con aviso).
+  **Luz nocturna**: encendida o no (tambien desde el centro de control),
+  horario o del atardecer al amanecer (con la ciudad del clima), temperatura y
+  un paso mas calido de madrugada. La config versionada de monitores
+  (`modules/monitors.lua`) es generica: lo de tu equipo vive en tu almacen.
 - **Barra** (Fase 10 B4): mostrar u ocultar cada modulo (musica,
   actualizaciones, red, Bluetooth, bandeja, microfono, bateria, inactividad,
   puertos), reloj de 24 o 12 h y la fecha al lado, cambiar de escritorio con
@@ -548,7 +566,9 @@ Lo que va a Hyprland o a hypridle se aplica al momento (sin recargar
 Hyprland): `scripts/settings-apply` genera
 `~/.local/state/dotfiles/hypr-overrides.lua` (solo lo que cambiaste;
 `hyprland.lua` lo carga al final, la config del repo es la de fabrica) y
-`~/.local/state/dotfiles/hypridle.conf` (hypridle arranca con esa). Si
+`~/.local/state/dotfiles/hypridle.conf` (hypridle arranca con esa), y las
+reglas de pantalla (en los mismos overrides) y
+`~/.local/state/dotfiles/hyprsunset/hypr/hyprsunset.conf` (luz nocturna; hyprsunset arranca con `XDG_CONFIG_HOME` apuntando ahi: no acepta una ruta). Si
 Hyprland usa otro valor (por ejemplo en modo juego), la fila lo dice. El modo
 juego (`SUPER+ALT+G`) apaga desenfoque, sombras y animaciones y al salir
 vuelven tus valores.

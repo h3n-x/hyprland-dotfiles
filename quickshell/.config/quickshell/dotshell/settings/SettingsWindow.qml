@@ -293,9 +293,16 @@ Rectangle {
             }
         }
 
+        // Prueba de pantallas en curso (Fase 10 B5): mantener o revertir.
+        DisplayConfirm {
+            id: displayConfirm
+            x: Tokens.space.lg
+            y: banner.visible ? banner.y + banner.height + Tokens.space.sm : Tokens.space.lg
+            width: parent.width - 2 * Tokens.space.lg
+        }
         Flickable {
             id: flick
-            y: banner.visible ? banner.y + banner.height : 0
+            y: displayConfirm.visible ? displayConfirm.y + displayConfirm.height + Tokens.space.sm : banner.visible ? banner.y + banner.height : 0
             width: parent.width
             height: parent.height - y
             contentHeight: body.implicitHeight + 2 * Tokens.space.xl

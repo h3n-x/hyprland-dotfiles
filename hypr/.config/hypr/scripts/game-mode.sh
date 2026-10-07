@@ -18,6 +18,14 @@ is_active() {
     [ -f "$STATE_FILE" ]
 }
 
+# Sin blur, sombras ni animaciones. Tambien tras una recarga de la config en
+# pleno modo juego (settings-apply, VRR de una pantalla: Fase 10 B5): reapply.
+effects_off() {
+    if command -v hyprctl >/dev/null 2>&1; then
+        hyprctl eval 'hl.config({ decoration = { blur = { enabled = false }, shadow = { enabled = false } }, animations = { enabled = false } })' >/dev/null 2>&1 || true
+    fi
+}
+
 enable_game_mode() {
     touch "$STATE_FILE"
 
@@ -30,9 +38,7 @@ enable_game_mode() {
     pkill -STOP hypridle 2>/dev/null || true
 
     # 3. Optimizar Hyprland (sin blur, sombras ni animaciones: menos latencia)
-    if command -v hyprctl >/dev/null 2>&1; then
-        hyprctl eval 'hl.config({ decoration = { blur = { enabled = false }, shadow = { enabled = false } }, animations = { enabled = false } })' >/dev/null 2>&1 || true
-    fi
+    effects_off
 
     notify-send -a "Modo Juego" "Modo Juego Activado" \
         "Perfil: Rendimiento | Reposo pausado | Gráficos optimizados" \
@@ -72,6 +78,9 @@ case "${1:-toggle}" in
             enable_game_mode
         fi
         ;;
+    reapply)
+        if is_active; then effects_off; fi
+        ;;
     status)
         if is_active; then
             echo "active"
@@ -82,7 +91,7 @@ case "${1:-toggle}" in
         fi
         ;;
     *)
-        echo "uso: game-mode.sh [on|off|toggle|status]" >&2
+        echo "uso: game-mode.sh [on|off|toggle|reapply|status]" >&2
         exit 1
         ;;
 esac

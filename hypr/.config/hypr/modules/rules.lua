@@ -95,8 +95,6 @@ hl.layer_rule({ match = { namespace = "quickshell-wallpaper" }, no_anim = true }
 -- hl.layer_rule({ match = { namespace = "some-widget" }, above_lock = 1 })
 
 -- ---- Workspace rules ----
-hl.workspace_rule({
-    workspace = "1",
-    monitor    = "desc:Chimei Innolux Corporation 0x1560",
-    default     = true,
-})
+-- Sin reglas fijas a una pantalla (Fase 10 B5: la config versionada es
+-- generica): Hyprland abre el escritorio 1 en la primera pantalla. Asignar
+-- escritorios a pantallas llega con la Fase 11.

@@ -20,7 +20,8 @@
 # leen la cache efectiva; todo lo que escribe pasa por aca. Un valor invalido
 # no se aplica ni se borra (cuarentena, queda en "problems"). Sin secretos.
 # Las claves que van a Hyprland o a hypridle ("hypr"/"idle" en el esquema, Fase
-# 10 B3) se aplican despues de escribir: settings-apply changed <claves>.
+# 10 B3) y las de pantallas y luz nocturna ("applyTo", B5) se aplican despues de
+# escribir: settings-apply changed <claves>.
 # Pruebas: SETTINGS_SCHEMA, SETTINGS_MIGRATIONS, SETTINGS_FILE,
 # SETTINGS_EFFECTIVE, SETTINGS_LOCK, SETTINGS_APPLY (otro aplicador; vacio =
 # ninguno).
@@ -51,7 +52,9 @@ import datetime, fcntl, json, os, re, sys, tempfile
 SCHEMA = os.environ["SCHEMA"]; MIGRATIONS = os.environ["MIGRATIONS"]
 USER_FILE = os.environ["USER_FILE"]; EFFECTIVE = os.environ["EFFECTIVE"]; LOCK = os.environ["LOCK"]
 APPLIER = os.environ.get("APPLIER", "")
-TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color", "location"}
+TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color", "location", "time", "outputs"}
+# Campos de una regla de pantalla (Fase 10 B5; los que hl.monitor acepta, verificados en V0).
+OUTPUT_CM = {"auto", "srgb", "dcip3", "dp3", "adobe", "wide", "edid", "hdr", "hdredid"}
 APPLY = {"live", "next-use", "reload-shell", "relogin", "reboot"}
 SCOPES = {"user", "login", "lock"}
 
@@ -176,7 +179,55 @@ def validate(m, v):
                 and -90 <= v["lat"] <= 90 and -180 <= v["lon"] <= 180 and isinstance(v.get("detail", ""), str)):
             return True, {k: v[k] for k in ("name", "detail", "lat", "lon") if k in v}, None
         return False, None, "no es una ubicacion {name, lat, lon}"
+    if t == "time":
+        # Hora del dia "HH:MM" (luz nocturna, Fase 10 B5).
+        if isinstance(v, str) and re.fullmatch(r"([01][0-9]|2[0-3]):[0-5][0-9]", v):
+            return True, v, None
+        return False, None, "no es una hora HH:MM"
+    if t == "outputs":
+        return validate_outputs(v)
     return False, None, "tipo desconocido"
+
+
+def validate_outputs(v):
+    """Reglas de pantalla por salida (Fase 10 B5): {"desc:<descripcion>" | "<conector>": {campo: valor}}.
+    Un desc: vacio coincidiria con todas las pantallas: se rechaza."""
+    num = lambda x: isinstance(x, (int, float)) and not isinstance(x, bool)
+    if not isinstance(v, dict):
+        return False, None, "no es un mapa de pantallas"
+    out = {}
+    for name, r in v.items():
+        if not isinstance(name, str) or not name.strip() or name.strip() == "desc:" or name.startswith("desc: "):
+            return False, None, f"pantalla sin nombre ({name!r})"
+        if not isinstance(r, dict):
+            return False, None, f"{name}: no es una regla"
+        checks = {
+            "mode": lambda x: isinstance(x, str) and (x in ("preferred", "highres", "highrr", "maxwidth")
+                                                     or re.fullmatch(r"\d+x\d+(@\d+(\.\d+)?)?", x)),
+            "position": lambda x: isinstance(x, str) and (x in ("auto", "auto-right", "auto-left", "auto-up", "auto-down")
+                                                         or re.fullmatch(r"-?\d+x-?\d+", x)),
+            "scale": lambda x: x == "auto" or (num(x) and 0.25 <= x <= 10),
+            "transform": lambda x: isinstance(x, int) and not isinstance(x, bool) and 0 <= x <= 7,
+            "enabled": lambda x: isinstance(x, bool),
+            "mirror": lambda x: isinstance(x, str),
+            "vrr": lambda x: isinstance(x, int) and not isinstance(x, bool) and 0 <= x <= 2,
+            "bitdepth": lambda x: x in (8, 10),
+            "cm": lambda x: x in OUTPUT_CM,
+            "sdrbrightness": lambda x: num(x) and 0.5 <= x <= 3,
+            "sdrsaturation": lambda x: num(x) and 0.5 <= x <= 3,
+            "sdr_min_luminance": lambda x: num(x) and 0 <= x <= 10,
+            "sdr_max_luminance": lambda x: num(x) and 10 <= x <= 10000,
+            "min_luminance": lambda x: num(x) and 0 <= x <= 10,
+            "max_luminance": lambda x: num(x) and 10 <= x <= 10000,
+            "max_avg_luminance": lambda x: num(x) and 10 <= x <= 10000,
+        }
+        for f, val in r.items():
+            if f not in checks:
+                return False, None, f"{name}: campo desconocido {f!r}"
+            if not checks[f](val):
+                return False, None, f"{name}: {f} no valido ({val!r})"
+        out[name.strip()] = dict(r)
+    return True, out, None
 
 
 def migrate(user, s):
@@ -291,7 +342,7 @@ def write_user(change):
     # Fuera del lock: lo que va a Hyprland o a hypridle se aplica ya. Un error
     # de aplicacion se avisa pero no deshace lo guardado.
     after, _ = load_json(EFFECTIVE, {"values": {}})
-    changed = [k for k, m in s["keys"].items() if (m.get("hypr") or m.get("idle"))
+    changed = [k for k, m in s["keys"].items() if (m.get("hypr") or m.get("idle") or m.get("applyTo"))
                and before.get(k) != after.get("values", {}).get(k)]
     if changed and APPLIER:
         import subprocess
