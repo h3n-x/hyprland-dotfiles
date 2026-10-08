@@ -340,6 +340,15 @@ def migrate(user, s):
                             out.append(it)
                     lay[sec] = out
                 values[target] = lay["zones"] if zones else lay
+        # listAdd (Fase 11 B5): agrega elementos al principio o al final de una lista ya guardada
+        # (sin guardar, la de fabrica ya los trae); los que ya estan no se repiten.
+        la = mg.get("listAdd")
+        if la and isinstance(values.get(la["target"]), list):
+            cur = values[la["target"]]
+            ids = lambda l: [x.get("id") if isinstance(x, dict) else x for x in l]
+            start = [x for x in la.get("start", []) if (x.get("id") if isinstance(x, dict) else x) not in ids(cur)]
+            end = [x for x in la.get("end", []) if (x.get("id") if isinstance(x, dict) else x) not in ids(cur)]
+            values[la["target"]] = start + cur + end
         version = mg["to"]
     user["values"] = values
     user["version"] = max(version, user.get("version", 0) if isinstance(user.get("version"), int) else 0)

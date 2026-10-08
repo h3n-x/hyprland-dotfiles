@@ -18,5 +18,14 @@
       "target": "dashboard.home.zones",
       "keys": { "dashboard.home.system": "system", "dashboard.home.workspaces": "workspaces" }
     }
+  },
+  {
+    "to": 4,
+    "note": "Fase 11 B5: la linea de arriba y el reproductor pasan a ser zonas de Inicio (se pueden quitar y volver a agregar)",
+    "listAdd": {
+      "target": "dashboard.home.zones",
+      "start": [{ "id": "context", "size": "full" }],
+      "end": [{ "id": "media", "size": "full" }]
+    }
   }
 ]

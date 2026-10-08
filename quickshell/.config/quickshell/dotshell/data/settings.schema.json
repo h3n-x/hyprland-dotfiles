@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "categories": {
     "appearance":    { "label": "Apariencia",       "icon": "palette",           "order": 10 },
     "accessibility": { "label": "Accesibilidad",    "icon": "accessibility",     "order": 20 },
@@ -658,11 +658,15 @@
     },
     "dashboard.home.zones": {
       "type": "homeZones",
-      "default": [{ "id": "system", "size": "compact" }, { "id": "workspaces", "size": "wide" }],
+      "default": [{ "id": "context", "size": "full" }, { "id": "system", "size": "compact" }, { "id": "workspaces", "size": "wide" }, { "id": "media", "size": "full" }],
       "category": "dashboard", "section": "Inicio", "order": 1,
-      "label": "Zonas de Inicio", "description": "Qué se ve debajo de la hora y la música, en qué orden y de qué tamaño. Se edita en el dashboard mismo (lápiz o Ctrl+E).",
+      "label": "Zonas de Inicio", "description": "Qué se ve en Inicio (también la hora y la música), en qué orden y de qué tamaño. Se edita en el dashboard mismo (lápiz o Ctrl+E).",
       "keywords": ["dashboard", "zona", "widget", "editar", "inicio"], "apply": "live",
       "widgets": {
+        "context": { "label": "Hora y avisos", "icon": "schedule", "sizes": ["full"], "bare": true, "view": "today",
+                     "description": "La hora, la fecha, los avisos (solo si los hay) y el clima." },
+        "media": { "label": "Música", "icon": "music_note", "sizes": ["full"], "bare": true, "needs": "media",
+                   "description": "El reproductor; aparece mientras suena algo." },
         "system": { "label": "Sistema", "icon": "monitor_heart", "sizes": ["compact", "wide"], "view": "system",
                     "description": "Estado, procesador, memoria, temperatura y batería." },
         "workspaces": { "label": "Escritorios", "icon": "space_dashboard", "sizes": ["wide", "compact"], "view": "workspaces",

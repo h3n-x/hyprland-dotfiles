@@ -1,10 +1,11 @@
-// Inicio del dashboard (Fase 4 B7): la vista principal. Tres niveles:
-//   contexto      hora, fecha, avisos (solo si hay) y clima; sin superficie
-//   zonas         estado general, escritorios y lo que se agregue (Fase 11 B4:
-//                 HomeZones, editables en el dashboard mismo)
-//   reproductor   solo mientras hay uno (MediaHero), siempre al final (Fase 11
-//                 B5a, pedido tras la prueba real: las zonas no se corren al
-//                 empezar o terminar la musica)
+// Inicio del dashboard (Fase 4 B7): la vista principal. Todo son zonas
+// (HomeZones, Fase 11 B4; editables en el dashboard mismo). Desde la Fase 11
+// B5 tambien la linea de contexto (hora, fecha, avisos solo si hay, clima;
+// sin superficie) y el reproductor (solo mientras hay uno) son zonas que se
+// quitan y se vuelven a agregar; de fabrica: contexto, estado general,
+// escritorios y, al final, el reproductor (las zonas no se corren al empezar
+// o terminar la musica). Su contenido vive aca (contextC, mediaC) y HomeZones
+// lo ubica.
 //
 // Con musica el reloj se reduce a la linea de contexto y el titulo de la
 // cancion es el texto mas grande; sin musica el reloj crece al tamano del de
@@ -46,15 +47,14 @@ Item {
         // Mantenimiento sin zona, de la linea de contexto.
         const id = instruments.zoneFor(key);
         if (id) return instruments.rectOf(id, target);
-        const z = key === "today" || key === "maintenance" ? context : null;
-        if (!z) return Qt.rect(0, 0, target.width, 0);
-        const p = z.mapToItem(target, 0, 0);
-        return Qt.rect(p.x, p.y, z.width, z.height);
+        if ((key === "today" || key === "maintenance") && home.placed("context")) return instruments.rectOf("context", target);
+        return Qt.rect(0, 0, target.width, 0);
     }
 
     implicitHeight: col.implicitHeight
 
-    readonly property bool hasMedia: !!MediaState.active
+    // Con la zona Musica quitada, el reloj no se achica por la musica (Fase 11 B5).
+    readonly property bool hasMedia: !!MediaState.active && instruments.stored.some(z => z.id === "media")
 
     // ---- Con musica / sin musica: un solo valor que mueve todo ----------------
     // 1 = con reproductor. Se anima solo con el panel visible; al abrir va
@@ -89,16 +89,15 @@ Item {
     }
 
     // ---- Apertura -------------------------------------------------------------------
-    // Con algo sonando, el foco empieza en el reproductor. Las tres franjas
-    // entran escalonadas 0/40/80 ms, de arriba abajo (como los textos del
-    // reproductor en B5).
+    // Con algo sonando, el foco empieza en el reproductor. Las zonas entran
+    // juntas, con un leve ascenso.
     function prepare(): void {
         mediaAnim.stop();
         home.mediaP = home.hasMedia ? 1 : 0;
         if (instruments.strip) instruments.strip.reset();
         const playing = !!MediaState.active && MediaState.active.isPlaying;
         home.focusKey = playing ? "media" : "";
-        for (const band of [context, heroBox, instruments]) {
+        for (const band of [instruments]) {
             band.opacity = Tokens.motion.scale > 0 ? 0 : 1;
             band.lift = Tokens.motion.scale > 0 ? Tokens.space.xs : 0;
         }
@@ -116,14 +115,12 @@ Item {
                 NumberAnimation { target: band.target; property: "lift"; to: 0; duration: Tokens.motion.medium; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeEnter }
             }
         }
-        Band { target: context; delay: 0 }
-        Band { target: instruments; delay: 40 }
-        Band { target: heroBox; delay: 80 }
+        Band { target: instruments; delay: 0 }
     }
 
     // ---- Teclado --------------------------------------------------------------------
     // Las zonas de abajo son datos (Fase 11 B4, HomeZones): en su orden.
-    readonly property var zones: ["today"].concat(instruments.order, home.hasMedia ? ["media"] : [])
+    readonly property var zones: instruments.order
     function escapeEdit(): void {
         instruments.leave();
     }
@@ -152,15 +149,14 @@ Item {
             return true;
         }
         const enter = event.key === Qt.Key_Return || event.key === Qt.Key_Enter;
-        if (enter && home.focusKey === "today") {
-            home.openView("today");
-            return true;
-        }
-        // Una zona: su vista (Sistema, Calendario, Proximas horas), su accion
-        // (Perfil) o su campo (Notas, Tareas; Fase 11 B5).
+        // Una zona: su vista (contexto -> Hoy, Sistema, Calendario, Proximas
+        // horas), su accion (Perfil) o su campo (Notas, Tareas; Fase 11 B5).
         if (enter && home.focusKey !== "workspaces" && instruments.spec[home.focusKey] && instruments.activate(home.focusKey))
             return true;
-        if (home.focusKey === "media") return hero.handleKey(event);
+        if (home.focusKey === "media") {
+            const m = instruments.widgetOf("media");
+            return !!m && m.handleKey(event);
+        }
         if (home.focusKey === "workspaces") {
             if (instruments.strip && instruments.strip.handleKey(event)) return true;
             // Enter sin un escritorio elegido: la vista Escritorios.
@@ -215,49 +211,14 @@ Item {
         Binding { target: sc.child; property: "scale"; value: sc.k; when: !!sc.child }
     }
 
-    SystemClock {
-        id: clock
-        enabled: home.active
-        precision: SystemClock.Minutes
-    }
-    readonly property var es: Qt.locale("es_ES")
-
-    Column {
-        id: col
-        width: home.width
-        spacing: Tokens.space.md
-
-        // ===== Contexto =====
+    // ===== Contexto (zona "context") =====
+    Component {
+        id: contextC
         Item {
             id: context
-            property real lift: 0
-            transform: Translate { y: context.lift }
-            width: parent.width
-            height: home.lerp(132, 48, home.mediaP)
-
-            // Fecha y clima llevan a Hoy (los avisos tienen su propio clic).
-            Rectangle {
-                anchors.fill: parent
-                radius: Tokens.radius.md
-                color: "transparent"
-                StateLayer { hovered: contextMouse.containsMouse; pressed: contextMouse.pressed }
-                Rectangle {
-                    anchors.fill: parent
-                    radius: parent.radius
-                    color: "transparent"
-                    border.width: 2
-                    border.color: Colors.accent
-                    opacity: home.focusKey === "today" ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: Tokens.motion.fast } }
-                }
-                MouseArea {
-                    id: contextMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: home.openView("today")
-                }
-            }
+            // Alto que pide (HomeZones): 132 sin musica, 48 con ella. El clic
+            // (a Hoy), el anillo de foco y el resalte son de su zona.
+            readonly property real ideal: home.lerp(132, 48, home.mediaP)
 
             Scaled {
                 id: timeBlock
@@ -448,6 +409,49 @@ Item {
                 }
             }
         }
+    }
+
+    // ===== Reproductor (zona "media", solo mientras hay uno) =====
+    // Se pliega con mediaP (un solo movimiento con el reloj); editando sin
+    // nada sonando, un lugar con su nombre.
+    Component {
+        id: mediaC
+        Item {
+            readonly property real ideal: home.mediaP > 0 ? Math.round(hero.implicitHeight * home.mediaP) : 64
+            clip: true
+            function handleKey(event: var): bool {
+                return hero.handleKey(event);
+            }
+            MediaHero {
+                id: hero
+                width: parent.width
+                height: implicitHeight
+                visible: home.mediaP > 0
+                opacity: home.mediaP
+                active: home.active && home.hasMedia
+            }
+            Text {
+                visible: home.mediaP === 0
+                anchors.centerIn: parent
+                text: "Aparece mientras suena algo"
+                color: Colors.textMuted
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.label
+            }
+        }
+    }
+
+    SystemClock {
+        id: clock
+        enabled: home.active
+        precision: SystemClock.Minutes
+    }
+    readonly property var es: Qt.locale("es_ES")
+
+    Column {
+        id: col
+        width: home.width
+        spacing: Tokens.space.md
 
         // ===== Zonas (Fase 11 B4): estado general, escritorios y lo que se agregue =====
         HomeZones {
@@ -460,32 +464,10 @@ Item {
             narrow: home.narrow
             screenName: home.screenName
             focusKey: home.focusKey
+            mediaP: home.mediaP
+            external: ({ context: contextC, media: mediaC })
             onOpenView: (view, from) => home.openView(view)
             onFieldDone: home.fieldDone()
-        }
-
-        // ===== Reproductor =====
-        Item {
-            id: heroBox
-            property real lift: 0
-            transform: Translate { y: heroBox.lift }
-            width: parent.width
-            height: Math.round(hero.implicitHeight * home.mediaP)
-            visible: home.mediaP > 0
-            clip: true
-            DashZone {
-                width: parent.width
-                height: hero.implicitHeight
-                tinted: false
-                padding: 0
-                focused: home.focusKey === "media"
-                opacity: home.mediaP
-                MediaHero {
-                    id: hero
-                    anchors.fill: parent
-                    active: home.active && home.hasMedia
-                }
-            }
         }
     }
 }

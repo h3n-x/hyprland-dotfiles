@@ -38,7 +38,8 @@ ColumnLayout {
                     Icon { anchors.verticalCenter: parent.verticalCenter; name: chip.info.icon || ""; size: Tokens.icon.sm; color: Colors.text }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: (chip.info.label || chip.modelData.id) + " · " + (chip.modelData.size === "wide" ? "ancha" : "compacta")
+                        // "full" (la linea y la musica, Fase 11 B5): sin tamano que elegir, solo el nombre.
+                        text: (chip.info.label || chip.modelData.id) + (chip.modelData.size === "full" ? "" : " · " + (chip.modelData.size === "wide" ? "ancha" : "compacta"))
                         color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label

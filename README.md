@@ -420,11 +420,13 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
     (Fase 11 B4): de fabrica el estado general del equipo ("Todo en orden" y
     cuatro medidores) y los escritorios en miniatura; ademas el calendario del
     mes y las proximas horas del clima (con ciudad). Cada una compacta o
-    ancha, en el orden que quieras, o ninguna. Al final, siempre, el
-    reproductor mientras hay uno (portada grande, progreso con busqueda, cinco
-    controles, transicion al cambiar de cancion): las zonas no se corren al
-    empezar o terminar la musica. Sin musica, el reloj crece y el panel se
-    acorta.
+    ancha, en el orden que quieras, o ninguna. El reproductor (portada
+    grande, progreso con busqueda, cinco controles, transicion al cambiar de
+    cancion) va de fabrica al final, mientras hay uno: las zonas no se corren
+    al empezar o terminar la musica. La linea de hora/fecha/avisos/clima y el
+    reproductor tambien son zonas: se quitan, se mueven y se vuelven a agregar
+    como las demas. Sin musica (o sin la zona Musica), el reloj crece y el
+    panel se acorta.
     **Editar Inicio**: el lapiz (al pasar el raton por las zonas), `Ctrl+E` o
     Configuracion -> Dashboard -> "Editar Inicio". Las zonas se ven con
     contorno punteado: arrastrar las ordena, el boton de tamano y la cruz;

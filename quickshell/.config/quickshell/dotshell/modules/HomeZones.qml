@@ -16,7 +16,10 @@
 // Esc / Enter / Ctrl+E terminan. Todo se guarda en el almacen al soltar.
 //
 // Fase 11 B5: un widget es una entrada del registro + un Component en
-// `components` (id -> Component). Una zona abre su vista (`view`), hace su
+// `components` (id -> Component; los de Inicio mismo, la linea de contexto y
+// el reproductor, llegan en `external`). Tamano "full": siempre sola en su
+// fila; "bare": sin el tinte de zona ni margen ni alto minimo (la linea de
+// contexto, el reproductor con su propio fondo). Una zona abre su vista (`view`), hace su
 // accion (`action`: "avatar" lleva a Configuracion) o, si su contenido es
 // interactivo (Notas, Tareas, Accesos rapidos), no es clicable. Los campos de
 // texto de una zona se quedan con sus teclas; Esc los deja (fieldDone: el
@@ -36,6 +39,10 @@ Item {
     // Zona con el anillo de foco de Inicio ("" = ninguna).
     property string focusKey: ""
     readonly property bool editing: DashboardState.editing
+    // Avance de "hay musica" (0..1, DashboardHome): el reproductor se pliega con el.
+    property real mediaP: 0
+    // Componentes que da Inicio (context, media).
+    property var external: ({})
     // Abrir la vista de una zona (y de cual sale, para la transicion).
     signal openView(string view, string from)
     // Un campo de texto de una zona se dejo (Esc): el foco vuelve al dashboard.
@@ -48,7 +55,7 @@ Item {
     readonly property var list: (zones.work || zones.stored).filter(z => !!zones.spec[z.id])
     function usable(id: string): bool {
         const needs = (zones.spec[id] || {}).needs;
-        return needs === "weather" ? WeatherState.configured : needs === "now" ? !!NowState.item : true;
+        return needs === "weather" ? WeatherState.configured : needs === "now" ? !!NowState.item : needs === "media" ? zones.mediaP > 0 : true;
     }
     // Fuera de la edicion, una zona que no puede mostrar nada (Proximas horas sin ciudad) no ocupa lugar.
     readonly property var shown: zones.editing ? zones.list : zones.list.filter(z => zones.usable(z.id))
@@ -68,7 +75,7 @@ Item {
         const W = zones.width;
         for (let i = 0; i < l.length;) {
             const a = l[i], b = l[i + 1];
-            if (!zones.narrow && b && !(a.size === "wide" && b.size === "wide")) {
+            if (!zones.narrow && b && a.size !== "full" && b.size !== "full" && !(a.size === "wide" && b.size === "wide")) {
                 let wa, wb;
                 if (a.size === b.size) {
                     wa = Math.floor((W - zones.gap) / 2);
@@ -108,8 +115,9 @@ Item {
         const g = {};
         let y = 0;
         for (const row of zones.rows) {
-            let h = zones.narrow ? 0 : zones.baseHeight;
-            for (const c of row) h = Math.max(h, zones.ideals[c.id] || zones.baseHeight);
+            const bare = row.every(c => (zones.spec[c.id] || {}).bare);
+            let h = zones.narrow || bare ? 0 : zones.baseHeight;
+            for (const c of row) h = Math.max(h, zones.ideals[c.id] !== undefined ? zones.ideals[c.id] : zones.baseHeight);
             for (const c of row) g[c.id] = { x: c.x, y: y, w: c.w, h: h };
             y += h + zones.gap;
         }
@@ -289,6 +297,8 @@ Item {
                 anchors.fill: parent
                 focused: zones.editing ? zones.selected === slot.modelData : zones.focusKey === slot.modelData
                 clickable: !zones.editing && zones.opens(slot.modelData)
+                tinted: !slot.meta.bare
+                padding: slot.meta.bare ? 0 : Tokens.space.lg
                 onActivated: zones.activate(slot.modelData)
                 Loader {
                     id: content
@@ -375,7 +385,9 @@ Item {
                         Icon { anchors.verticalCenter: parent.verticalCenter; name: slot.meta.icon || ""; size: Tokens.icon.md; color: Colors.text }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: (slot.meta.label || slot.modelData) + (zones.usable(slot.modelData) ? "" : slot.meta.needs === "now" ? " · aparece cuando hay algo" : " · necesita una ciudad")
+                            text: (slot.meta.label || slot.modelData) + (zones.usable(slot.modelData) ? ""
+                                : slot.meta.needs === "now" ? " · aparece cuando hay algo"
+                                : slot.meta.needs === "media" ? " · aparece mientras suena algo" : " · necesita una ciudad")
                             color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
@@ -423,11 +435,13 @@ Item {
         }
     }
 
-    // Lapiz (fuera de la edicion): arriba a la derecha de las zonas, solo al pasar el raton.
+    // Lapiz (fuera de la edicion): arriba a la derecha de la primera zona con
+    // superficie (no sobre el clima de la linea de contexto), solo al pasar el raton.
+    readonly property string pencilZone: zones.order.find(id => !(zones.spec[id] || {}).bare) || ""
+    readonly property var pencilAt: zones.pencilZone && zones.geom[zones.pencilZone] ? zones.geom[zones.pencilZone] : { x: 0, y: 0, w: zones.width }
     EditButton {
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.margins: Tokens.space.sm
+        x: zones.pencilAt.x + zones.pencilAt.w - width - Tokens.space.sm
+        y: zones.pencilAt.y + Tokens.space.sm
         z: 3
         visible: opacity > 0
         opacity: !zones.editing && hover.hovered && zones.order.length > 0 ? 1 : 0
@@ -521,11 +535,16 @@ Item {
 
     // ---- Contenido de cada widget (ideal: el alto que pide para su ancho) ----------------
     // Un widget nuevo: su entrada en el registro del esquema y su Component aca.
-    readonly property var components: ({
+    readonly property var components: Object.assign({
         system: systemC, workspaces: workspacesC, calendar: calendarC, weather: weatherC,
         profile: profileC, quick: quickC, notes: notesC, todo: todoC,
         timer: timerC, now: nowC
-    })
+    }, zones.external)
+    // El contenido de una zona puesta (p. ej. el reproductor, para sus teclas).
+    function widgetOf(id: string): var {
+        const s = slots.itemAt(Object.keys(zones.spec).indexOf(id));
+        return s ? s.widget : null;
+    }
     // Ahora decide si aparece aunque no se vea: su hora y, si las muestra, las tareas.
     readonly property bool nowPlaced: zones.stored.some(z => z.id === "now")
     Subscription { demand: NowState.clock; active: zones.active && zones.nowPlaced }
