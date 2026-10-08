@@ -77,6 +77,18 @@ ShellRoot {
     SystemNotices { id: systemNotices }
     // Frecuencia de la pantalla integrada segun el cargador (Fase 10 B5).
     DisplayPower {}
+    // Temporizadores de Inicio (Fase 11 B5b): TimerState se crea al arrancar,
+    // asi una fase que termina con el dashboard cerrado igual avisa.
+    IpcHandler {
+        target: "timer"
+        readonly property bool started: TimerState.ready
+        function toggle(): void { TimerState.toggle(); }
+        function reset(): void { TimerState.reset(); }
+        function status(): string {
+            return JSON.stringify({ ready: TimerState.ready, mode: TimerState.mode, active: TimerState.active,
+                                    alarm: TimerState.alarm.running, ticking: TimerState.ticker.running });
+        }
+    }
     IpcHandler {
         target: "osd"
         // Bloq Mayus / Bloq Num (atajos no consumidores, Fase 11 B2).

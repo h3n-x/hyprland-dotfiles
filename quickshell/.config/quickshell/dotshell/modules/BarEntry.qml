@@ -29,7 +29,9 @@ Loader {
         "keyboard": keyboardC, "lockKeys": lockKeysC, "activeWindow": activeWindowC, "notifications": notificationsC,
         "privacy": privacyC, "launcher": launcherC,
         // Fase 11 B2b
-        "resources": resourcesC, "netspeed": netspeedC
+        "resources": resourcesC, "netspeed": netspeedC,
+        // Fase 11 B5b
+        "timer": timerC
     })[entry.mid] || null
 
     // Informacion al pasar el raton (bar.tooltips, Fase 11 B2b): el texto del
@@ -74,4 +76,5 @@ Loader {
     Component { id: launcherC; LauncherButton {} }
     Component { id: resourcesC; Resources {} }
     Component { id: netspeedC; NetSpeed {} }
+    Component { id: timerC; TimerModule {} }
 }

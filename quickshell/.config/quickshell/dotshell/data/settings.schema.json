@@ -162,7 +162,8 @@
         "privacy":       { "label": "Privacidad",               "icon": "privacy_tip" },
         "launcher":      { "label": "Lanzador",                 "icon": "apps" },
         "resources":     { "label": "Recursos",                 "icon": "memory" },
-        "netspeed":      { "label": "Velocidad de la red",      "icon": "swap_vert" }
+        "netspeed":      { "label": "Velocidad de la red",      "icon": "swap_vert" },
+        "timer":         { "label": "Temporizador",             "icon": "timer" }
       },
       "category": "bar", "section": "Disposición", "order": 1,
       "label": "Disposición de la barra", "description": "Arrastra los módulos entre izquierda, centro y derecha, dentro o fuera de una píldora, o a Disponibles para quitarlos.",
@@ -677,7 +678,11 @@
         "notes": { "label": "Notas", "icon": "sticky_note_2", "sizes": ["wide", "compact"],
                    "description": "Una nota que se guarda sola, solo en este equipo." },
         "todo": { "label": "Tareas", "icon": "checklist", "sizes": ["compact", "wide"],
-                  "description": "Una lista de pendientes, solo en este equipo." }
+                  "description": "Una lista de pendientes, solo en este equipo." },
+        "timer": { "label": "Temporizador", "icon": "timer", "sizes": ["compact", "wide"],
+                   "description": "Pomodoro, cronómetro y cuenta atrás; avisa al terminar cada fase." },
+        "now": { "label": "Ahora", "icon": "bolt", "sizes": ["wide", "compact"], "needs": "now",
+                 "description": "Lo más relevante del momento (lluvia cerca, un temporizador, tareas, la puesta de sol); aparece solo cuando hay algo." }
       }
     },
     "dashboard.weather.location": {
@@ -714,6 +719,45 @@
       "category": "dashboard", "section": "Accesos rápidos", "order": 31,
       "label": "Carpetas fijadas", "description": "Vacío: tus carpetas personales (Descargas, Documentos, Imágenes…).",
       "keywords": ["accesos", "carpetas", "directorios", "fijar"], "apply": "live"
+    },
+    "dashboard.timer.focusMinutes": {
+      "type": "int", "default": 25, "min": 5, "max": 90, "step": 5, "unit": "min",
+      "category": "dashboard", "section": "Temporizador", "order": 40,
+      "label": "Concentración (pomodoro)", "keywords": ["pomodoro", "temporizador", "foco", "trabajo"], "apply": "live"
+    },
+    "dashboard.timer.breakMinutes": {
+      "type": "int", "default": 5, "min": 1, "max": 30, "unit": "min",
+      "category": "dashboard", "section": "Temporizador", "order": 41,
+      "label": "Descanso", "keywords": ["pomodoro", "pausa", "descanso"], "apply": "live"
+    },
+    "dashboard.timer.longBreakMinutes": {
+      "type": "int", "default": 15, "min": 5, "max": 60, "step": 5, "unit": "min",
+      "category": "dashboard", "section": "Temporizador", "order": 42,
+      "label": "Descanso largo", "keywords": ["pomodoro", "pausa", "descanso"], "apply": "live"
+    },
+    "dashboard.timer.cycles": {
+      "type": "int", "default": 4, "min": 2, "max": 8,
+      "category": "dashboard", "section": "Temporizador", "order": 43,
+      "label": "Concentraciones antes del descanso largo", "keywords": ["pomodoro", "ciclos"], "apply": "live"
+    },
+    "dashboard.timer.autoContinue": {
+      "type": "bool", "default": true,
+      "category": "dashboard", "section": "Temporizador", "order": 44,
+      "label": "Seguir solo con la fase siguiente", "description": "Apagado: al terminar una fase, la siguiente espera a que la empieces.",
+      "keywords": ["pomodoro", "automático"], "apply": "live"
+    },
+    "dashboard.timer.sound": {
+      "type": "bool", "default": false,
+      "category": "dashboard", "section": "Temporizador", "order": 45,
+      "label": "Sonido al terminar", "description": "Además del aviso. Necesita pw-play (PipeWire) y el tema de sonidos freedesktop.",
+      "keywords": ["pomodoro", "alarma", "sonido"], "apply": "live"
+    },
+    "dashboard.now.kinds": {
+      "type": "list", "kind": "checks", "default": ["timer", "rain", "todo", "heat", "sunset"], "unique": true,
+      "items": { "type": "enum", "values": { "timer": "Un temporizador en marcha", "rain": "Lluvia en las próximas 3 horas", "todo": "Tareas pendientes", "heat": "Calor o frío fuerte", "sunset": "La puesta de sol (en la próxima hora)" } },
+      "category": "dashboard", "section": "Ahora", "order": 50,
+      "label": "Qué puede mostrar la zona Ahora", "description": "En este orden de prioridad; muestra solo lo primero que aplique.",
+      "keywords": ["ahora", "tarjeta", "aviso", "lluvia", "atardecer"], "apply": "live"
     },
     "capture.copyToClipboard": {
       "type": "bool", "default": true,

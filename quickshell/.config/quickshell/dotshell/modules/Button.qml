@@ -37,6 +37,8 @@ Rectangle {
             color: btn.main ? Colors.textOnAccent : btn.ink }
         Text {
             anchors.verticalCenter: parent.verticalCenter
+            // Sin texto, solo el icono (Fase 11 B5b: el temporizador compacto).
+            visible: btn.label !== ""
             text: btn.label
             color: btn.main ? Colors.textOnAccent : btn.ink
             font.family: Tokens.font.ui

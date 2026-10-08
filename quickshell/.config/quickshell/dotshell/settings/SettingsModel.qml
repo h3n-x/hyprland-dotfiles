@@ -98,6 +98,8 @@ QtObject {
         if (m.type === "list" && m.kind === "screens") return "screens";
         // Fase 11 B5: aplicaciones y carpetas fijadas (Accesos rapidos).
         if (m.type === "list" && (m.kind === "apps" || m.kind === "folders")) return m.kind;
+        // Fase 11 B5b: varias opciones de un enum, cada una con su interruptor.
+        if (m.type === "list" && m.kind === "checks") return "checks";
         // Fase 11 B4: las zonas de Inicio (resumen; se editan en el dashboard).
         if (m.type === "homeZones") return "homeZones";
         return "";
@@ -119,6 +121,7 @@ QtObject {
             return out;
         }
         if (m.type === "enum") return Object.keys(m.values).map(v => [v, m.values[v]]);
+        if (m.kind === "checks") return Object.keys((m.items || {}).values || {}).map(v => [v, m.items.values[v]]);
         if (Array.isArray(m.presets)) return m.presets.map(p => Array.isArray(p) ? p : [p, String(p)]);
         return [];
     }
@@ -138,6 +141,11 @@ QtObject {
             return n + (n === 1 ? " módulo" : " módulos");
         }
         if (m.kind === "screens") return (v || []).length ? v.join(", ") : "Todas";
+        if (m.kind === "checks") {
+            const all = Object.keys((m.items || {}).values || {}).length;
+            const n = (v || []).length;
+            return n === all ? "Todas" : n === 0 ? "Ninguna" : n + " de " + all;
+        }
         if (m.kind === "apps") return (v || []).length ? (v || []).map(id => AppInfo.name(id)).join(", ") : "Ninguna";
         if (m.kind === "folders") return (v || []).length ? (v || []).map(p => p.split("/").pop()).join(", ") : "Las carpetas personales";
         if (m.type === "homeZones") {

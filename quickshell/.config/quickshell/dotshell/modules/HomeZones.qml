@@ -48,7 +48,7 @@ Item {
     readonly property var list: (zones.work || zones.stored).filter(z => !!zones.spec[z.id])
     function usable(id: string): bool {
         const needs = (zones.spec[id] || {}).needs;
-        return needs === "weather" ? WeatherState.configured : true;
+        return needs === "weather" ? WeatherState.configured : needs === "now" ? !!NowState.item : true;
     }
     // Fuera de la edicion, una zona que no puede mostrar nada (Proximas horas sin ciudad) no ocupa lugar.
     readonly property var shown: zones.editing ? zones.list : zones.list.filter(z => zones.usable(z.id))
@@ -298,7 +298,8 @@ Item {
                     // Editando: apenas visible, el nombre de la zona encima.
                     opacity: zones.editing ? Tokens.tint.track : 1
                     Behavior on opacity { NumberAnimation { duration: Tokens.motion.short } }
-                    sourceComponent: !zones.usable(slot.modelData) ? needsC : zones.components[slot.modelData] || null
+                    // Sin ciudad, el aviso; Ahora sin nada (solo en la edicion) se muestra a si misma.
+                    sourceComponent: !zones.usable(slot.modelData) && slot.meta.needs === "weather" ? needsC : zones.components[slot.modelData] || null
                     // Lo que la zona pide de alto para su ancho.
                     readonly property real ideal: content.item && content.item.ideal !== undefined ? content.item.ideal + 2 * zone.padding : zones.baseHeight
                     onIdealChanged: zones.report(slot.modelData, content.ideal)
@@ -374,7 +375,7 @@ Item {
                         Icon { anchors.verticalCenter: parent.verticalCenter; name: slot.meta.icon || ""; size: Tokens.icon.md; color: Colors.text }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: (slot.meta.label || slot.modelData) + (zones.usable(slot.modelData) ? "" : " · necesita una ciudad")
+                            text: (slot.meta.label || slot.modelData) + (zones.usable(slot.modelData) ? "" : slot.meta.needs === "now" ? " · aparece cuando hay algo" : " · necesita una ciudad")
                             color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
@@ -522,8 +523,13 @@ Item {
     // Un widget nuevo: su entrada en el registro del esquema y su Component aca.
     readonly property var components: ({
         system: systemC, workspaces: workspacesC, calendar: calendarC, weather: weatherC,
-        profile: profileC, quick: quickC, notes: notesC, todo: todoC
+        profile: profileC, quick: quickC, notes: notesC, todo: todoC,
+        timer: timerC, now: nowC
     })
+    // Ahora decide si aparece aunque no se vea: su hora y, si las muestra, las tareas.
+    readonly property bool nowPlaced: zones.stored.some(z => z.id === "now")
+    Subscription { demand: NowState.clock; active: zones.active && zones.nowPlaced }
+    Subscription { demand: TodoState.demand; active: zones.active && zones.nowPlaced && !NowState.todoPlaced && NowState.kinds.indexOf("todo") >= 0 }
     // Tamano con el que esta puesta una zona.
     function wideOf(id: string): bool {
         const z = zones.list.find(x => x.id === id);
@@ -613,6 +619,20 @@ Item {
             active: zones.active
             wide: zones.wideOf("todo")
             onDone: zones.fieldDone()
+        }
+    }
+    Component {
+        id: timerC
+        TimerZone {
+            active: zones.active
+            wide: zones.wideOf("timer")
+        }
+    }
+    Component {
+        id: nowC
+        NowZone {
+            active: zones.active
+            wide: zones.wideOf("now")
         }
     }
     Component {

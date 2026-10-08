@@ -439,6 +439,14 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
     tareas se guardan solo en este equipo (`~/.local/state/dotfiles/notes.json`
     y `todo.json`, fuera del repo). `Tab` + `Enter` entra a escribir; `Esc`
     sale del campo.
+    Fase 11 B5b: **Temporizador** (pomodoro, cronometro y cuenta atras; cada
+    cambio de fase avisa, con sonido si se pide; duraciones en Configuracion ->
+    Dashboard; el estado en `~/.local/state/dotfiles/timer.json`, asi que una
+    recarga no lo pierde; `qs -c dotshell ipc call timer toggle|reset|status`)
+    y **Ahora** (una linea con lo mas relevante: un temporizador en marcha,
+    lluvia en las proximas 3 h, tareas pendientes, calor o helada, la puesta
+    de sol; aparece solo cuando hay algo). La barra puede llevar el modulo
+    **Temporizador** (lo que queda, por minuto; clic pausa).
   - **Hoy**: calendario del mes y el clima con una frase ("Sensacion 30°. Hoy
     entre 18° y 33°, sin lluvia a la vista."), las proximas 12 h y 5 dias. El
     clima viene de [Open-Meteo](https://open-meteo.com) (sin clave; datos
