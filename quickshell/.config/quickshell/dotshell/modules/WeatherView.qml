@@ -60,17 +60,6 @@ Item {
         return false;
     }
 
-    // Proximas 12 h, cada 2 h (la API da 12 horas desde la actual).
-    readonly property var hours: {
-        if (!wv.d || !wv.d.hourly) return [];
-        const h = wv.d.hourly;
-        const out = [];
-        for (let i = 0; i < h.time.length && out.length < 6; i += 2)
-            out.push({ label: i === 0 ? "Ahora" : h.time[i].slice(11, 13) + " h", code: h.weather_code[i],
-                       day: h.is_day ? h.is_day[i] === 1 : true, t: h.temperature_2m[i],
-                       rain: h.precipitation_probability ? h.precipitation_probability[i] : 0 });
-        return out;
-    }
     readonly property var days: {
         if (!wv.d || !wv.d.daily) return [];
         const dl = wv.d.daily;
@@ -250,7 +239,7 @@ Item {
 
         // Proximas horas.
         DashZone {
-            visible: wv.hours.length > 0
+            visible: WeatherState.hours.length > 0
             Layout.fillWidth: true
             implicitHeight: hoursCol.implicitHeight + 2 * padding
             ColumnLayout {
@@ -259,23 +248,7 @@ Item {
                 anchors.right: parent.right
                 spacing: Tokens.space.sm
                 ZoneTitle { Layout.fillWidth: true; text: "Próximas horas" }
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 0
-                    Repeater {
-                        model: wv.hours
-                        ColumnLayout {
-                            required property var modelData
-                            Layout.preferredWidth: hoursCol.width / Math.max(1, wv.hours.length)
-                            spacing: 3
-                            Text { Layout.alignment: Qt.AlignHCenter; text: modelData.label; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
-                            Icon { Layout.alignment: Qt.AlignHCenter; name: WeatherText.describe(modelData.code, modelData.day).icon; size: Tokens.icon.lg; color: Colors.textMuted }
-                            Text { Layout.alignment: Qt.AlignHCenter; text: WeatherState.temp(modelData.t); color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.body; font.weight: Tokens.weight.medium; font.features: Tokens.tabularNumbers }
-                            // Lluvia: solo si es probable.
-                            Text { Layout.alignment: Qt.AlignHCenter; text: modelData.rain >= 30 ? modelData.rain + " %" : " "; color: Colors.decor; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
-                        }
-                    }
-                }
+                WeatherHours { Layout.fillWidth: true }
             }
         }
 

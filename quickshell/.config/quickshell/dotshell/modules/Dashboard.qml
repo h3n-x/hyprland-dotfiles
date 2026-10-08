@@ -13,13 +13,18 @@
 // al volver, al reves. Entre dos vistas (su letra), un fundido cruzado con la
 // altura animada. Los puntos de la cabecera solo dicen donde se esta.
 //
+// Las zonas de Inicio son datos (Fase 11 B4, HomeZones): se editan aca mismo
+// (lapiz, Ctrl+E o "dashboard edit"); editando, todas las teclas son de la
+// edicion y Esc la termina sin cerrar el panel.
+//
 // Tamano segun SU pantalla: ancho = pantalla - 2 x 12, entre 640 y 960 px
 // (bajo 820, una sola regla de reacomodo); alto maximo = pantalla - barra -
 // margen, y si el contenido no entra, se desplaza adentro.
 //
 // Cerrado no corre nada: el muestreo del equipo (SystemState) y el
-// seguimiento de ventanas (DesktopState) se piden al mostrarse y se sueltan
-// al ocultarse; la vista Sistema pide su detalle solo mientras se ve.
+// seguimiento de ventanas (DesktopState) se piden al mostrarse, solo si su
+// zona esta en Inicio o se mira su vista, y se sueltan al ocultarse; la
+// vista Sistema pide su detalle solo mientras se ve.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -48,8 +53,9 @@ AnchoredPanel {
     readonly property bool narrow: panel.contentWidth + 2 * panel.padding < 820
 
     // Datos solo mientras se ve (Fase 8 B3): estado del equipo y escritorios.
-    property Subscription systemData: Subscription { demand: SystemState.basic; active: panel.active }
-    property Subscription desktopData: Subscription { demand: DesktopState.live; active: panel.active }
+    // Solo si su zona esta en Inicio o se mira su vista (Fase 11 B4).
+    property Subscription systemData: Subscription { demand: SystemState.basic; active: panel.active && (home.placed("system") || panel.detail === "system") }
+    property Subscription desktopData: Subscription { demand: DesktopState.live; active: panel.active && (home.placed("workspaces") || panel.detail === "workspaces") }
     onActiveChanged: {
         // Termino de cerrarse: sin vista montada (se sueltan sus datos y capturas).
         if (!panel.active && panel.detail) {
@@ -76,6 +82,11 @@ AnchoredPanel {
     readonly property var letters: ({ [Qt.Key_H]: "today", [Qt.Key_S]: "system", [Qt.Key_E]: "workspaces", [Qt.Key_M]: "maintenance" })
 
     function back(): bool {
+        // Editando Inicio: Esc termina la edicion (o deja "Agregar").
+        if (DashboardState.editing) {
+            home.escapeEdit();
+            return true;
+        }
         if (DashboardState.view === "home") return false;
         DashboardState.showView("home");
         return true;
@@ -132,7 +143,14 @@ AnchoredPanel {
     }
 
     function handleKey(event: var): bool {
+        // Editando Inicio, todas las teclas son de la edicion.
+        if (DashboardState.editing) return home.handleKey(event);
         const plain = !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
+        // Ctrl+E: editar las zonas de Inicio (Fase 11 B4).
+        if (event.key === Qt.Key_E && (event.modifiers & Qt.ControlModifier)) {
+            DashboardState.edit();
+            return true;
+        }
         // H, S, E, M: esa vista, desde cualquier lugar.
         const byLetter = plain ? panel.letters[event.key] : undefined;
         if (byLetter) {

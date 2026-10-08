@@ -52,7 +52,7 @@ import datetime, fcntl, json, os, re, sys, tempfile
 SCHEMA = os.environ["SCHEMA"]; MIGRATIONS = os.environ["MIGRATIONS"]
 USER_FILE = os.environ["USER_FILE"]; EFFECTIVE = os.environ["EFFECTIVE"]; LOCK = os.environ["LOCK"]
 APPLIER = os.environ.get("APPLIER", "")
-TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color", "location", "time", "outputs", "barLayout"}
+TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color", "location", "time", "outputs", "barLayout", "homeZones"}
 # Campos de una regla de pantalla (Fase 10 B5; los que hl.monitor acepta, verificados en V0).
 OUTPUT_CM = {"auto", "srgb", "dcip3", "dp3", "adobe", "wide", "edid", "hdr", "hdredid"}
 APPLY = {"live", "next-use", "reload-shell", "relogin", "reboot"}
@@ -188,6 +188,8 @@ def validate(m, v):
         return validate_outputs(v)
     if t == "barLayout":
         return validate_bar_layout(m, v)
+    if t == "homeZones":
+        return validate_home_zones(m, v)
     return False, None, "tipo desconocido"
 
 
@@ -225,6 +227,28 @@ def validate_bar_layout(m, v):
                     return False, None, f"{x} aparece dos veces"
                 seen.add(x)
     return True, {sec: list(v[sec]) for sec in ("start", "center", "end")}, None
+
+
+def validate_home_zones(m, v):
+    """Zonas de Inicio del dashboard (Fase 11 B4): lista ordenada de {"id", "size"}; cada widget del
+    registro del esquema una vez como mucho, con un tamano que ese widget admite. Vacia = sin zonas."""
+    widgets = m.get("widgets", {})
+    if not isinstance(v, list):
+        return False, None, "no es una lista de zonas"
+    seen, out = set(), []
+    for it in v:
+        if not isinstance(it, dict) or set(it) != {"id", "size"}:
+            return False, None, "zona no valida (se espera {id, size})"
+        wid, size = it["id"], it["size"]
+        if wid not in widgets:
+            return False, None, f"widget desconocido {wid!r}"
+        if size not in widgets[wid].get("sizes", []):
+            return False, None, f"{wid}: tamano no valido ({size!r})"
+        if wid in seen:
+            return False, None, f"{wid} aparece dos veces"
+        seen.add(wid)
+        out.append({"id": wid, "size": size})
+    return True, out, None
 
 
 def validate_outputs(v):
@@ -287,7 +311,8 @@ def migrate(user, s):
             if key in values and "map" in conv and values[key] in conv["map"]:
                 values[key] = conv["map"][values[key]]
         # layoutRemove (Fase 11 B1): una opcion vieja en false saca su modulo de una disposicion
-        # (bar.show.<id> -> bar.layout); la opcion vieja se borra con el valor que tenga.
+        # (bar.show.<id> -> bar.layout; B4: dashboard.home.<zona> -> dashboard.home.zones);
+        # la opcion vieja se borra con el valor que tenga.
         lr = mg.get("layoutRemove")
         if lr:
             target = lr["target"]
@@ -297,6 +322,10 @@ def migrate(user, s):
             if gone:
                 lay = values.get(target, s["keys"].get(target, {}).get("default"))
                 lay = json.loads(json.dumps(lay))
+                # Una lista de zonas (dashboard.home.zones, Fase 11 B4): se quitan esas zonas.
+                zones = isinstance(lay, list)
+                if zones:
+                    lay = {"zones": lay}
                 for sec in lay:
                     out = []
                     for it in lay[sec]:
@@ -304,10 +333,10 @@ def migrate(user, s):
                             it["pill"] = [x for x in it["pill"] if x not in gone]
                             if it["pill"]:
                                 out.append(it)
-                        elif it not in gone:
+                        elif (it.get("id") if isinstance(it, dict) else it) not in gone:
                             out.append(it)
                     lay[sec] = out
-                values[target] = lay
+                values[target] = lay["zones"] if zones else lay
         version = mg["to"]
     user["values"] = values
     user["version"] = max(version, user.get("version", 0) if isinstance(user.get("version"), int) else 0)

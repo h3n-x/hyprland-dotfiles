@@ -1,7 +1,8 @@
 // Inicio del dashboard (Fase 4 B7): la vista principal. Tres niveles:
 //   contexto      hora, fecha, avisos (solo si hay) y clima; sin superficie
 //   protagonista  el reproductor, solo mientras hay uno (MediaHero)
-//   instrumentos  estado general del equipo y escritorios
+//   zonas         estado general, escritorios y lo que se agregue (Fase 11 B4:
+//                 HomeZones, editables en el dashboard mismo)
 //
 // Con musica el reloj se reduce a la linea de contexto y el titulo de la
 // cancion es el texto mas grande; sin musica el reloj crece al tamano del de
@@ -12,9 +13,10 @@
 // Teclado (Dashboard.qml le pasa las teclas): Tab / Mayus+Tab mueven el
 // anillo de foco entre zonas; con el foco en el reproductor, sus teclas
 // (MediaHero); en escritorios, izquierda/derecha + Enter (sin elegir uno:
-// la vista Escritorios); en la linea de contexto y en sistema, Enter abre su
-// vista (Hoy, Sistema); 1-9 van a ese workspace desde cualquier lugar. Un
-// clic en la fecha o el clima abre Hoy; en el estado del equipo, Sistema.
+// la vista Escritorios); en la linea de contexto y en una zona, Enter abre su
+// vista (Hoy, Sistema...); 1-9 van a ese workspace desde cualquier lugar. Un
+// clic en la fecha o el clima abre Hoy; en una zona, su vista. Editando
+// Inicio, las teclas son de la edicion (HomeZones).
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -36,7 +38,11 @@ Item {
     // Rectangulo de una zona en las coordenadas de "target" (de donde sale la
     // transicion de contenedor).
     function zoneRect(key: string, target: Item): rect {
-        const z = key === "system" ? systemZone : key === "workspaces" ? workspacesZone : key === "today" || key === "maintenance" ? context : null;
+        // De la zona que lleva a esa vista (Fase 11 B4: la ultima tocada); Hoy y
+        // Mantenimiento sin zona, de la linea de contexto.
+        const id = instruments.zoneFor(key);
+        if (id) return instruments.rectOf(id, target);
+        const z = key === "today" || key === "maintenance" ? context : null;
         if (!z) return Qt.rect(0, 0, target.width, 0);
         const p = z.mapToItem(target, 0, 0);
         return Qt.rect(p.x, p.y, z.width, z.height);
@@ -84,7 +90,7 @@ Item {
     function prepare(): void {
         mediaAnim.stop();
         home.mediaP = home.hasMedia ? 1 : 0;
-        strip.reset();
+        if (instruments.strip) instruments.strip.reset();
         const playing = !!MediaState.active && MediaState.active.isPlaying;
         home.focusKey = playing ? "media" : "";
         for (const band of [context, heroBox, instruments]) {
@@ -111,32 +117,50 @@ Item {
     }
 
     // ---- Teclado --------------------------------------------------------------------
-    // Zonas que se pueden apagar desde el centro de configuracion (Fase 10 B4).
-    readonly property bool showSystem: SettingsState.value("dashboard.home.system") !== false
-    readonly property bool showWorkspaces: SettingsState.value("dashboard.home.workspaces") !== false
-    readonly property var zones: ["today"].concat(home.hasMedia ? ["media"] : [], home.showSystem ? ["system"] : [], home.showWorkspaces ? ["workspaces"] : [])
+    // Las zonas de abajo son datos (Fase 11 B4, HomeZones): en su orden.
+    readonly property var zones: ["today"].concat(home.hasMedia ? ["media"] : [], instruments.order)
+    function escapeEdit(): void {
+        instruments.leave();
+    }
+    function placed(id: string): bool {
+        return instruments.order.indexOf(id) >= 0;
+    }
     function handleKey(event: var): bool {
+        // Editando Inicio, las teclas son de la edicion (Ctrl+E la empieza: Dashboard.qml).
+        if (DashboardState.editing) return instruments.handleKey(event);
         const plain = !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
         if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
             const z = home.zones;
             const i = z.indexOf(home.focusKey);
             const back = event.key === Qt.Key_Backtab;
             home.focusKey = i < 0 ? (back ? z[z.length - 1] : z[0]) : z[(i + (back ? -1 : 1) + z.length) % z.length];
-            if (home.focusKey !== "workspaces") strip.selected = -1;
+            if (home.focusKey !== "workspaces" && instruments.strip) instruments.strip.selected = -1;
             return true;
         }
         if (plain && event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
-            strip.pick(event.key - Qt.Key_0);
+            // Sin la zona Escritorios, directo al workspace.
+            if (instruments.strip) instruments.strip.pick(event.key - Qt.Key_0);
+            else {
+                DashboardState.close();
+                DesktopState.focusWorkspace(event.key - Qt.Key_0);
+            }
             return true;
         }
         const enter = event.key === Qt.Key_Return || event.key === Qt.Key_Enter;
-        if (enter && (home.focusKey === "system" || home.focusKey === "today")) {
-            home.openView(home.focusKey);
+        if (enter && home.focusKey === "today") {
+            home.openView("today");
+            return true;
+        }
+        // Una zona con su vista (Sistema, Calendario, Proximas horas).
+        const view = (instruments.spec[home.focusKey] || {}).view;
+        if (enter && view && home.focusKey !== "workspaces") {
+            instruments.lastFrom = home.focusKey;
+            home.openView(view);
             return true;
         }
         if (home.focusKey === "media") return hero.handleKey(event);
         if (home.focusKey === "workspaces") {
-            if (strip.handleKey(event)) return true;
+            if (instruments.strip && instruments.strip.handleKey(event)) return true;
             // Enter sin un escritorio elegido: la vista Escritorios.
             if (enter) {
                 home.openView("workspaces");
@@ -447,49 +471,18 @@ Item {
             }
         }
 
-        // ===== Estado general + escritorios =====
-        GridLayout {
+        // ===== Zonas (Fase 11 B4): estado general, escritorios y lo que se agregue =====
+        HomeZones {
             id: instruments
             property real lift: 0
             transform: Translate { y: instruments.lift }
             width: parent.width
-            visible: home.showSystem || home.showWorkspaces
-            columns: home.narrow ? 1 : 2
-            columnSpacing: Tokens.space.md
-            rowSpacing: Tokens.space.md
-
-            DashZone {
-                id: systemZone
-                visible: home.showSystem
-                // Sola, a todo el ancho.
-                Layout.preferredWidth: home.narrow || !home.showWorkspaces ? instruments.width : 272
-                Layout.preferredHeight: home.narrow ? 112 : 148
-                focused: home.focusKey === "system"
-                clickable: true
-                onActivated: home.openView("system")
-                SystemGlance {
-                    anchors.fill: parent
-                    wide: home.narrow
-                }
-            }
-            DashZone {
-                id: workspacesZone
-                visible: home.showWorkspaces
-                Layout.fillWidth: true
-                Layout.preferredHeight: home.narrow ? implicitHeight : 148
-                // Fuera de las miniaturas (que van a su escritorio): la vista Escritorios.
-                clickable: true
-                onActivated: home.openView("workspaces")
-                implicitHeight: strip.implicitHeight + 2 * padding
-                focused: home.focusKey === "workspaces"
-                WorkspaceStrip {
-                    id: strip
-                    anchors.fill: parent
-                    screenName: home.screenName
-                    // Oculta, no sigue a las ventanas.
-                    live: home.active && home.showWorkspaces
-                }
-            }
+            visible: instruments.order.length > 0 || DashboardState.editing
+            active: home.active
+            narrow: home.narrow
+            screenName: home.screenName
+            focusKey: home.focusKey
+            onOpenView: (view, from) => home.openView(view)
         }
     }
 }

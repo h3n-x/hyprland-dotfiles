@@ -259,6 +259,10 @@ ShellRoot {
         function toggle(): void {
             DashboardState.toggle();
         }
+        // Inicio en modo edicion (Fase 11 B4; el boton "Editar Inicio" del centro).
+        function edit(): void {
+            DashboardState.edit();
+        }
     }
 
     // Capturas y grabacion (Fase 4 B8): avisos de los scripts screenshot y

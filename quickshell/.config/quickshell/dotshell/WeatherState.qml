@@ -42,6 +42,18 @@ QtObject {
     readonly property var data: root.cache && root.cache.data ? root.cache.data : null
     readonly property var current: root.data ? root.data.current : null
     readonly property real fetchedAt: root.cache && root.cache.fetched_at ? root.cache.fetched_at : 0
+    // Proximas 12 h, cada 2 h (la API da 12 horas desde la actual): la vista Hoy
+    // y la zona "Proximas horas" de Inicio (WeatherHours).
+    readonly property var hours: {
+        if (!root.data || !root.data.hourly) return [];
+        const h = root.data.hourly;
+        const out = [];
+        for (let i = 0; i < h.time.length && out.length < 6; i += 2)
+            out.push({ label: i === 0 ? "Ahora" : h.time[i].slice(11, 13) + " h", code: h.weather_code[i],
+                       day: h.is_day ? h.is_day[i] === 1 : true, t: h.temperature_2m[i],
+                       rain: h.precipitation_probability ? h.precipitation_probability[i] : 0 });
+        return out;
+    }
     // Error del ultimo intento, solo si es posterior a los datos.
     readonly property var lastError: root.cache && root.cache.last_error && root.cache.last_error.at >= root.fetchedAt
         ? root.cache.last_error : null

@@ -94,6 +94,8 @@ QtObject {
         // Fase 11 B1: la disposicion de la barra y en que pantallas va.
         if (m.type === "barLayout") return "barLayout";
         if (m.type === "list" && m.kind === "screens") return "screens";
+        // Fase 11 B4: las zonas de Inicio (resumen; se editan en el dashboard).
+        if (m.type === "homeZones") return "homeZones";
         return "";
     }
     // Opciones [[valor, texto], ...] de un enum (orden del esquema) o de presets.
@@ -132,6 +134,10 @@ QtObject {
             return n + (n === 1 ? " módulo" : " módulos");
         }
         if (m.kind === "screens") return (v || []).length ? v.join(", ") : "Todas";
+        if (m.type === "homeZones") {
+            const n = (v || []).length;
+            return n === 0 ? "Sin zonas" : n === 1 ? "1 zona" : n + " zonas";
+        }
         if (m.type === "outputs") {
             const n = Object.keys(v || {}).length;
             return n === 0 ? "Automática" : n === 1 ? "1 pantalla ajustada" : n + " pantallas ajustadas";

@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "categories": {
     "appearance":    { "label": "Apariencia",       "icon": "palette",           "order": 10 },
     "accessibility": { "label": "Accesibilidad",    "icon": "accessibility",     "order": 20 },
@@ -655,15 +655,22 @@
       "category": "bar", "section": "Música", "order": 50,
       "label": "Título en la píldora de música", "description": "Apagado: solo el icono.", "keywords": ["mpris", "canción"], "apply": "live"
     },
-    "dashboard.home.system": {
-      "type": "bool", "default": true,
+    "dashboard.home.zones": {
+      "type": "homeZones",
+      "default": [{ "id": "system", "size": "compact" }, { "id": "workspaces", "size": "wide" }],
       "category": "dashboard", "section": "Inicio", "order": 1,
-      "label": "Zona Sistema", "description": "Estado, procesador, memoria, temperatura y batería.", "keywords": ["dashboard", "zona"], "apply": "live"
-    },
-    "dashboard.home.workspaces": {
-      "type": "bool", "default": true,
-      "category": "dashboard", "section": "Inicio", "order": 2,
-      "label": "Zona Escritorios", "keywords": ["dashboard", "zona", "miniaturas"], "apply": "live"
+      "label": "Zonas de Inicio", "description": "Qué se ve debajo de la hora y la música, en qué orden y de qué tamaño. Se edita en el dashboard mismo (lápiz o Ctrl+E).",
+      "keywords": ["dashboard", "zona", "widget", "editar", "inicio"], "apply": "live",
+      "widgets": {
+        "system": { "label": "Sistema", "icon": "monitor_heart", "sizes": ["compact", "wide"], "view": "system",
+                    "description": "Estado, procesador, memoria, temperatura y batería." },
+        "workspaces": { "label": "Escritorios", "icon": "space_dashboard", "sizes": ["wide", "compact"], "view": "workspaces",
+                        "description": "Los escritorios en miniatura." },
+        "calendar": { "label": "Calendario", "icon": "calendar_month", "sizes": ["compact", "wide"], "view": "today",
+                      "description": "El mes, como en Hoy." },
+        "weather": { "label": "Próximas horas", "icon": "partly_cloudy_day", "sizes": ["wide", "compact"], "view": "today", "needs": "weather",
+                     "description": "El clima de las próximas horas. Necesita una ciudad (Clima)." }
+      }
     },
     "dashboard.weather.location": {
       "type": "location", "default": null, "nullable": true,

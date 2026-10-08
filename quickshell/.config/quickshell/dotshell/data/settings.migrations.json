@@ -10,5 +10,13 @@
         "bar.show.battery": "battery", "bar.show.idle": "idle", "bar.show.ports": "ports"
       }
     }
+  },
+  {
+    "to": 3,
+    "note": "Fase 11 B4: los interruptores de las zonas de Inicio pasan a la lista de zonas (dashboard.home.zones)",
+    "layoutRemove": {
+      "target": "dashboard.home.zones",
+      "keys": { "dashboard.home.system": "system", "dashboard.home.workspaces": "workspaces" }
+    }
   }
 ]
