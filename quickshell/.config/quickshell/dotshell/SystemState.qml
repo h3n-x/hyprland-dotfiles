@@ -10,6 +10,12 @@
 //           almacenamiento y las aplicaciones cada 4 s (D2: a 2 s el orden de
 //           la tabla solo cambiaba por ruido y costaba ~6,5 % de un nucleo)
 //   Al soltar detail se vacian sus datos (lista de aplicaciones, muestras).
+// Historia corta (Fase 11 B5c, P11.8): lo que se muestrea queda en memoria
+// los ultimos dashboard.system.historyMinutes, para los graficos de Sistema.
+// No muestrea nada aparte: solo guarda lo que ya se leyo (por eso tiene
+// huecos donde el dashboard estuvo cerrado), sobrevive a cerrar el dashboard
+// y se recorta en la muestra siguiente. Una sola senal por muestra
+// (historyRev), no una por serie.
 // Cerrado el dashboard no hay temporizador, lecturas ni procesos. La bateria
 // esta en BatteryState.qml (UPower, eventos; la comparte el bloqueo). Lo fijo (distro, kernel, modelo de CPU y graficas, rutas de
 // sensores) se lee una sola vez, la primera vez que hace falta.
@@ -86,6 +92,39 @@ QtObject {
             if (root.paths.nvmeTemp) nvmeTempFile.reload();
             if (root.paths.dgpuPower) dgpuPowerFile.reload();
         }
+    }
+
+    // ---- Historia corta (Fase 11 B5c) -------------------------------------------------
+    readonly property bool historyOn: SettingsState.value("dashboard.system.history") !== false
+    readonly property real historyMs: (SettingsState.value("dashboard.system.historyMinutes") || 5) * 60000
+    readonly property real intervalMs: Math.max(2, SettingsState.value("system.sampleSeconds") || 2) * 1000
+    // serie -> [{ t, v }] (cpu, mem, rx, tx, gpu, dgpu 0/1, batt 0..1)
+    property var history: ({})
+    property int historyRev: 0
+    function push(key: string, v: real): void {
+        if (!root.historyOn || isNaN(v)) return;
+        const now = Date.now();
+        const a = root.history[key] || [];
+        const cut = now - root.historyMs;
+        let i = 0;
+        while (i < a.length && a[i].t < cut) i++;
+        const n = i ? a.slice(i) : a.slice();
+        n.push({ t: now, v: v });
+        root.history[key] = n;
+        // Las lecturas de una muestra llegan en vueltas distintas del bucle: un
+        // solo aviso 200 ms despues de la primera (un redibujo por muestra).
+        if (!historyFlush.running) historyFlush.start();
+    }
+    property Timer historyFlush: Timer {
+        interval: 200
+        onTriggered: root.historyRev++
+    }
+    function series(key: string): var {
+        return root.history[key] || [];
+    }
+    onHistoryOnChanged: if (!root.historyOn) {
+        root.history = {};
+        root.historyRev++;
     }
 
     // ---- Datos fijos (una vez) -----------------------------------------------------
@@ -177,6 +216,9 @@ QtObject {
             if (dt <= 0) return;
             root.cpu = Math.max(0, Math.min(1, 1 - (idle - p.idle) / dt));
             root.cpuHighCount = root.cpu >= 0.9 ? root.cpuHighCount + 1 : 0;
+            root.push("cpu", root.cpu);
+            // La bateria (UPower, por eventos) se anota al mismo paso que la CPU.
+            if (BatteryState.present) root.push("batt", BatteryState.pct);
         }
     }
     property Timer quick: Timer {
@@ -203,6 +245,7 @@ QtObject {
             root.memUsed = root.memTotal - kb("MemAvailable");
             root.swapTotal = kb("SwapTotal");
             root.swapUsed = root.swapTotal - kb("SwapFree");
+            root.push("mem", root.memFrac);
         }
     }
 
@@ -238,6 +281,7 @@ QtObject {
         onLoaded: {
             const v = Number(this.text().trim());
             root.gpuBusy = isNaN(v) ? NaN : v / 100;
+            root.push("gpu", root.gpuBusy);
         }
     }
     // dGPU NVIDIA: su estado de energia (runtime PM) se lee de sysfs en cada
@@ -252,6 +296,7 @@ QtObject {
         printErrors: false
         onLoaded: {
             const state = this.text().trim();
+            root.push("dgpu", state === "active" ? 1 : 0);
             if (state === root.dgpuPower) return;
             root.dgpuPower = state;
             if (state === "active") {
@@ -306,6 +351,8 @@ QtObject {
             const dt = (now - p.at) / 1000;
             root.rxRate = Math.max(0, (f[0] - p.rx) / dt);
             root.txRate = Math.max(0, (f[8] - p.tx) / dt);
+            root.push("rx", root.rxRate);
+            root.push("tx", root.txRate);
         }
     }
 

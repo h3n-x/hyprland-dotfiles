@@ -9,6 +9,12 @@
 // solo se deslizan ante cambios de verdad (LevelBar) y la lista de
 // aplicaciones reordena sus filas con un deslizamiento cuando cambia el
 // ranking. Datos: SystemState (se leen solo mientras esta vista se ve).
+//
+// Historia corta (Fase 11 B5c, P11.8): con dashboard.system.history, el
+// procesador, la memoria y la bateria muestran los ultimos minutos en lugar
+// de la barra de nivel, y la red y las graficas su grafico (Sparkline: cambia
+// en escalones, una vez por muestra, nunca se desliza). Cuales, en
+// dashboard.system.charts; sin bateria o sin lectura de la grafica, no hay.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -27,6 +33,16 @@ ColumnLayout {
     onActiveChanged: if (view.active) PowerProfileState.refresh()
 
     readonly property var disk: SystemState.storage.length ? SystemState.storage[0] : null
+    // Graficos pedidos (Fase 11 B5c).
+    readonly property var charts: SystemState.historyOn ? (SettingsState.value("dashboard.system.charts") || []) : []
+    function charted(k: string): bool {
+        return view.charts.indexOf(k) >= 0;
+    }
+    // Una serie de la historia; se reevalua con cada muestra (historyRev).
+    function hist(k: string): var {
+        void SystemState.historyRev;
+        return SystemState.series(k);
+    }
     readonly property real diskFrac: view.disk && view.disk.size > 0 ? view.disk.used / view.disk.size : 0
 
     // Frase que explica el estado, en palabras.
@@ -51,6 +67,8 @@ ColumnLayout {
         property int level: 0
         property real fraction: 0
         property string note: ""
+        // Serie de la historia (Fase 11 B5c; "" = la barra de nivel).
+        property string series: ""
         implicitHeight: insCol.implicitHeight + 2 * ins.padding
 
         ColumnLayout {
@@ -101,10 +119,20 @@ ColumnLayout {
                 Behavior on color { ColorAnimation { duration: Tokens.motion.medium } }
             }
             LevelBar {
+                visible: !ins.series
                 Layout.fillWidth: true
                 Layout.topMargin: Tokens.space.xs
                 fraction: ins.fraction
                 level: ins.level
+            }
+            Sparkline {
+                visible: !!ins.series
+                Layout.fillWidth: true
+                Layout.topMargin: Tokens.space.xs
+                series: ins.series ? view.hist(ins.series) : []
+                rev: SystemState.historyRev
+                span: SystemState.historyMs
+                step: SystemState.intervalMs
             }
             Text {
                 Layout.fillWidth: true
@@ -148,16 +176,19 @@ ColumnLayout {
 
         Instrument {
             Layout.fillWidth: true
+            Layout.fillHeight: true
             icon: "memory"
             label: "Procesador"
             value: Math.round(SystemState.cpu * 100) + " %"
             word: SystemState.cpuWord(SystemState.cpu)
             level: SystemState.cpuHighCount >= 3 ? 1 : 0
             fraction: SystemState.cpu
+            series: view.charted("cpu") ? "cpu" : ""
             note: (isNaN(SystemState.temp) ? "" : Math.round(SystemState.temp) + "° · ") + SystemState.cpuModel
         }
         Instrument {
             Layout.fillWidth: true
+            Layout.fillHeight: true
             icon: "memory_alt"
             label: "Memoria"
             value: SystemState.bytes(SystemState.memUsed)
@@ -165,10 +196,12 @@ ColumnLayout {
             word: SystemState.memWord(SystemState.memFrac)
             level: SystemState.memFrac >= 0.92 ? 1 : 0
             fraction: SystemState.memFrac
+            series: view.charted("memory") ? "mem" : ""
             note: SystemState.swapUsed > 64 * 1048576 ? "Swap en uso: " + SystemState.bytes(SystemState.swapUsed) : "Sin swap en uso"
         }
         Instrument {
             Layout.fillWidth: true
+            Layout.fillHeight: true
             icon: "hard_drive"
             label: "Almacenamiento"
             value: view.disk ? SystemState.bytes(view.disk.avail) : "–"
@@ -181,6 +214,7 @@ ColumnLayout {
         }
         Instrument {
             Layout.fillWidth: true
+            Layout.fillHeight: true
             icon: BatteryState.charging ? "battery_charging_full" : PowerProfileState.info.icon
             label: BatteryState.present ? "Energía" : "Energía · corriente"
             value: BatteryState.present ? Math.round(BatteryState.pct * 100) + " %" : PowerProfileState.info.label
@@ -190,6 +224,7 @@ ColumnLayout {
             word: "Perfil " + PowerProfileState.info.label.toLowerCase()
             level: BatteryState.critical ? 2 : BatteryState.warning ? 1 : 0
             fraction: BatteryState.present ? BatteryState.pct : 0
+            series: BatteryState.present && view.charted("energy") ? "batt" : ""
             note: BatteryState.watts > 0.1 ? (BatteryState.charging ? "Entran " : "Consume ") + BatteryState.watts.toFixed(1).replace(".", ",") + " W" : ""
         }
     }
@@ -319,6 +354,21 @@ ColumnLayout {
                             }
                         }
                     }
+                    // Bajada (decor) y subida (accentAlt), como las flechas de arriba.
+                    Sparkline {
+                        visible: view.charted("network") && NetworkState.connected
+                        Layout.fillWidth: true
+                        Layout.topMargin: Tokens.space.xs
+                        series: view.hist("rx")
+                        series2: view.hist("tx")
+                        rev: SystemState.historyRev
+                        span: SystemState.historyMs
+                        step: SystemState.intervalMs
+                        maxValue: 0
+                        color: Colors.decor
+                        color2: Colors.accentAlt
+                        format: (v) => "↓ " + SystemState.rate(v)
+                    }
                 }
             }
 
@@ -355,6 +405,16 @@ ColumnLayout {
                             font.features: Tokens.tabularNumbers
                         }
                     }
+                    // Uso de la integrada (si el driver lo da).
+                    Sparkline {
+                        visible: view.charted("gpu") && !!SystemState.paths.gpuBusy
+                        Layout.fillWidth: true
+                        implicitHeight: 32
+                        series: view.hist("gpu")
+                        rev: SystemState.historyRev
+                        span: SystemState.historyMs
+                        step: SystemState.intervalMs
+                    }
                     RowLayout {
                         visible: !!SystemState.dgpuName
                         Layout.fillWidth: true
@@ -375,6 +435,19 @@ ColumnLayout {
                             font.pixelSize: Tokens.type.label
                             elide: Text.ElideRight
                         }
+                    }
+                    // La NVIDIA: franjas donde estuvo activa (su estado de energia, sin despertarla).
+                    Sparkline {
+                        visible: view.charted("gpu") && !!SystemState.dgpuName && !!SystemState.paths.dgpuPower
+                        Layout.fillWidth: true
+                        implicitHeight: 10
+                        mode: "strip"
+                        color: Colors.decor
+                        series: view.hist("dgpu")
+                        rev: SystemState.historyRev
+                        span: SystemState.historyMs
+                        step: SystemState.intervalMs
+                        format: (v) => v > 0.5 ? "Activa" : "En reposo"
                     }
                 }
             }

@@ -461,7 +461,12 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   - **Sistema**: el estado en palabras, procesador, memoria, almacenamiento y
     energia (con el perfil), las aplicaciones que mas usan (agrupadas por
     aplicacion, no por proceso), la red y las graficas (la NVIDIA sin
-    despertarla).
+    despertarla). Con **historia corta** (Fase 11 B5c, de fabrica encendida):
+    procesador, memoria y bateria muestran los ultimos minutos en lugar de la
+    barra de nivel, y la red y las graficas su grafico (la NVIDIA, franjas
+    donde estuvo activa). No se mide nada aparte: se guarda lo que ya se lee
+    mientras miras el dashboard (por eso hay huecos), solo en memoria. Cuantos
+    minutos y que graficos, en Configuracion -> Dashboard -> Sistema.
   - **Escritorios**: cada workspace como la pantalla real a escala (fondo,
     barra, gaps, bordes y la captura de cada ventana, tomada una vez al abrir
     la vista); clic en una ventana va a esa ventana, en el fondo al

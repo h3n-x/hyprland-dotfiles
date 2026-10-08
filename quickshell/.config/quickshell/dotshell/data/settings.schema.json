@@ -756,6 +756,24 @@
       "label": "Sonido al terminar", "description": "Además del aviso. Necesita pw-play (PipeWire) y el tema de sonidos freedesktop.",
       "keywords": ["pomodoro", "alarma", "sonido"], "apply": "live"
     },
+    "dashboard.system.history": {
+      "type": "bool", "default": true,
+      "category": "dashboard", "section": "Sistema", "order": 60,
+      "label": "Historia corta en Sistema", "description": "Gráficos de los últimos minutos con lo que ya se mide mientras miras el dashboard; nada se mide con el dashboard cerrado (por eso puede haber huecos).",
+      "keywords": ["historia", "gráfico", "rendimiento", "cpu", "memoria", "red"], "apply": "live"
+    },
+    "dashboard.system.historyMinutes": {
+      "type": "int", "default": 5, "min": 1, "max": 10, "unit": "min",
+      "category": "dashboard", "section": "Sistema", "order": 61,
+      "label": "Cuánto recordar", "keywords": ["historia", "minutos"], "apply": "live"
+    },
+    "dashboard.system.charts": {
+      "type": "list", "kind": "checks", "default": ["cpu", "memory", "energy", "network", "gpu"], "unique": true,
+      "items": { "type": "enum", "values": { "cpu": "Procesador", "memory": "Memoria", "energy": "Batería (si hay)", "network": "Red", "gpu": "Gráficas (si se pueden leer)" } },
+      "category": "dashboard", "section": "Sistema", "order": 62,
+      "label": "Con gráfico", "description": "Sin gráfico, la barra de nivel de siempre.",
+      "keywords": ["historia", "gráfico", "tarjetas"], "apply": "live"
+    },
     "dashboard.now.kinds": {
       "type": "list", "kind": "checks", "default": ["timer", "rain", "todo", "heat", "sunset"], "unique": true,
       "items": { "type": "enum", "values": { "timer": "Un temporizador en marcha", "rain": "Lluvia en las próximas 3 horas", "todo": "Tareas pendientes", "heat": "Calor o frío fuerte", "sunset": "La puesta de sol (en la próxima hora)" } },
