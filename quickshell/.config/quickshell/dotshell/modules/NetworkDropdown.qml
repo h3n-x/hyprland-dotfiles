@@ -8,7 +8,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Networking
-import ".." // Colors.qml, Tokens.qml, NetworkState.qml
+import ".." // Colors.qml, Tokens.qml, NetworkState.qml, QuickTiles.qml
 
 AnchoredPanel {
     id: popup
@@ -109,7 +109,7 @@ AnchoredPanel {
 
             Switch {
                 checked: Networking.wifiEnabled
-                onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
+                onToggled: QuickTiles.toggleWifi()
             }
         }
 

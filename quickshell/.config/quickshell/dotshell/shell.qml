@@ -60,6 +60,10 @@ ShellRoot {
         function clearAll(): void {
             NotificationState.clearAll();
         }
+        // Abrir editando los ajustes rapidos (Fase 11 B6; lo usa Configuracion).
+        function edit(): void {
+            ControlCenterState.edit();
+        }
     }
 
     // Opciones del almacen sobre el design system (StoreBindings): reducir
@@ -70,8 +74,9 @@ ShellRoot {
     StoreBindings {}
     // Avatar elegido en el centro -> ~/.face (Fase 10 B2).
     AvatarSync {}
-    // Sin reposo mientras suena algo, si se pidio (Fase 10 B3).
-    MediaIdleInhibit {}
+    // Sin reposo mientras suena algo, si se pidio (Fase 10 B3), o mientras
+    // "mantener despierto" este encendido (Fase 11 B6, IdleState).
+    IdleInhibit {}
     // Avisos del sistema por el OSD (Fase 10 B4); los atajos de Bloq Mayus y Bloq
     // Num llaman aca por IPC (osd keys, Fase 11 B2).
     SystemNotices { id: systemNotices }

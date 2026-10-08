@@ -5,8 +5,8 @@
 // Hyprland (decision M1). No guarda estado propio: el consumidor enlaza
 // "checked" y reacciona a "toggled":
 //
-//   Switch { checked: Networking.wifiEnabled
-//            onToggled: Networking.wifiEnabled = !Networking.wifiEnabled }
+//   Switch { checked: algo.activo
+//            onToggled: algo.cambiar() }
 import QtQuick
 import ".." // Tokens.qml, Colors.qml
 

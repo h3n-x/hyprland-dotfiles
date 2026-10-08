@@ -102,6 +102,7 @@ QtObject {
         if (m.type === "list" && m.kind === "checks") return "checks";
         // Fase 11 B4: las zonas de Inicio (resumen; se editan en el dashboard).
         if (m.type === "homeZones") return "homeZones";
+        if (m.type === "tiles") return "tiles";
         return "";
     }
     // Opciones [[valor, texto], ...] de un enum (orden del esquema) o de presets.
@@ -148,6 +149,10 @@ QtObject {
         }
         if (m.kind === "apps") return (v || []).length ? (v || []).map(id => AppInfo.name(id)).join(", ") : "Ninguna";
         if (m.kind === "folders") return (v || []).length ? (v || []).map(p => p.split("/").pop()).join(", ") : "Las carpetas personales";
+        if (m.type === "tiles") {
+            const n = (v || []).length;
+            return n === 0 ? "Ninguno" : n === 1 ? "1 ajuste" : n + " ajustes";
+        }
         if (m.type === "homeZones") {
             const n = (v || []).length;
             return n === 0 ? "Sin zonas" : n === 1 ? "1 zona" : n + " zonas";

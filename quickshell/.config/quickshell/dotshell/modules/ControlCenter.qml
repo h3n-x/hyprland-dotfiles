@@ -1,18 +1,21 @@
 // Reemplaza a swaync del todo -- ver Fase C del plan. Reproduce lo que
-// daba swaync/config.json: historial de notificaciones + "limpiar todo",
-// grid de accesos rapidos (wifi/bluetooth/hyprsunset/lock) y DND (el
-// reproductor y el estado del equipo, incluida la dGPU, estan en el
-// dashboard, Fase 4 B7). Una instancia por pantalla (ver shell.qml), toggle global via
-// ControlCenterState.qml (bind SUPER+N, ver shell.qml + binds.lua).
+// daba swaync/config.json: historial de notificaciones + "limpiar todo" y
+// los ajustes rapidos (el reproductor y el estado del equipo, incluida la
+// dGPU, estan en el dashboard, Fase 4 B7). Una instancia por pantalla (ver
+// shell.qml), toggle global via ControlCenterState.qml (bind SUPER+N, ver
+// shell.qml + binds.lua).
+//
+// Ajustes rapidos (Fase 11 B6): el lugar unico de los ajustes rapidos. Son
+// datos (controlCenter.tiles) que dibuja y edita TileGrid; cada accion es de
+// QuickTiles. El lapiz aparece al pasar el raton por los ajustes (como en
+// Inicio); mientras se edita, el panel toma el teclado (sin editar, nunca).
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-import Quickshell.Networking
-import Quickshell.Bluetooth
 import Quickshell.Widgets
 import Quickshell.Wayland
-import ".." // Colors.qml, Tokens.qml, NotificationState.qml, ControlCenterState.qml, PowerProfileState.qml
+import ".." // Colors.qml, Tokens.qml, NotificationState.qml, ControlCenterState.qml, QuickTiles.qml
 
 PanelWindow {
     id: window
@@ -44,34 +47,15 @@ PanelWindow {
     color: "transparent"
     mask: Region { item: card }
     exclusionMode: ExclusionMode.Ignore
+    // El teclado solo mientras se editan los ajustes rapidos (TileGrid).
+    WlrLayershell.keyboardFocus: ControlCenterState.editing ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     // Apertura/cierre animados (P2.5): la ventana queda mapeada mientras el
     // contenido anima la salida.
     Presence { id: presence; open: ControlCenterState.visible }
     visible: presence.shown
 
-    // Estado y procesos de hardware. La luz nocturna es una opcion del almacen
-    // (display.nightLight.enabled, Fase 10 B5): settings-apply arranca o para
-    // hyprsunset; la tile la cambia como el centro de configuracion.
-    property bool gameModeActive: false
-    Process {
-        id: checkGameMode
-        command: [Quickshell.env("HOME") + "/.config/hypr/scripts/game-mode.sh", "status"]
-        onExited: (code) => window.gameModeActive = (code === 0)
-    }
-
-    Timer {
-        id: gameModeTimer
-        interval: 350
-        onTriggered: checkGameMode.running = true
-    }
-
-
-    function refreshHardware() {
-        checkGameMode.running = true;
-        PowerProfileState.refresh();
-    }
-
-    onVisibleChanged: if (window.visible) window.refreshHardware()
+    // Lo que hay que preguntar al sistema (modo juego, que existe) se pregunta al abrir.
+    onVisibleChanged: if (window.visible) QuickTiles.refresh()
 
     // Nivel de elevacion 2 (surface_container translucida sobre blur, sombra sm),
     // igual que los desplegables. Padding 16 = radio lg: los hijos no necesitan
@@ -90,6 +74,18 @@ PanelWindow {
         scale: presence.contentScale
         transformOrigin: Item.TopRight
         transform: Translate { y: presence.offsetY }
+
+        // Editando: las teclas son del editor (Esc termina sin cerrar el panel).
+        Item {
+            id: editKeys
+            Keys.onPressed: (event) => {
+                if (ControlCenterState.editing && tiles.handleKey(event)) event.accepted = true;
+            }
+            Connections {
+                target: ControlCenterState
+                function onEditingChanged() { if (ControlCenterState.editing) editKeys.forceActiveFocus(); }
+            }
+        }
 
         ColumnLayout {
             id: layout
@@ -172,127 +168,12 @@ PanelWindow {
                 }
             }
 
-            GridLayout {
+            // Ajustes rapidos (Fase 11 B6): la lista del almacen y su editor.
+            TileGrid {
+                id: tiles
                 Layout.fillWidth: true
-                columns: 5
-                columnSpacing: Tokens.space.sm
-                rowSpacing: Tokens.space.sm
-
-                QuickToggle {
-                    icon: "wifi"
-                    active: Networking.wifiEnabled
-                    onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
-                }
-                QuickToggle {
-                    icon: "bluetooth"
-                    active: !!(Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled)
-                    onClicked: if (Bluetooth.defaultAdapter) Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
-                }
-                QuickToggle {
-                    icon: "nightlight"
-                    active: SettingsState.value("display.nightLight.enabled") === true
-                    onClicked: SettingsState.set("display.nightLight.enabled", !(SettingsState.value("display.nightLight.enabled") === true))
-                }
-                QuickToggle {
-                    icon: "sports_esports"
-                    active: window.gameModeActive
-                    onClicked: {
-                        Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/game-mode.sh", "toggle"]);
-                        gameModeTimer.restart();
-                    }
-                }
-                QuickToggle {
-                    icon: "lock"
-                    active: false
-                    onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/lock", "--user"])
-                }
+                Layout.preferredHeight: implicitHeight
             }
-
-            // Selector de Perfiles de Rendimiento (power-profiles-daemon).
-            // Botones segmentados: el perfil activo en secondary_container (C3).
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Tokens.space.xs
-
-                Repeater {
-                    model: PowerProfileState.profiles
-
-                    Rectangle {
-                        id: profBtn
-                        required property var modelData
-                        readonly property bool selected: PowerProfileState.current === profBtn.modelData.id
-                        readonly property color contentColor: profBtn.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
-                        // Texto grande (Fase 10 B2): si no entra todo, primero se va
-                        // el icono; el nombre se corta solo si ni asi entra.
-                        readonly property bool roomy: profBtn.width - profBtn.border.width * 2 >= profText.implicitWidth + Tokens.icon.sm + Tokens.space.xs
-                        Layout.fillWidth: true
-                        implicitHeight: Tokens.pill.height
-                        radius: Tokens.radius.sm
-                        color: profBtn.selected ? Colors.accentAltContainer : "transparent"
-                        border.color: profBtn.selected ? Colors.accentAltContainer : Colors.divider
-                        Behavior on color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
-                        Behavior on border.color { ColorAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
-                        border.width: 1
-
-                        StateLayer {
-                            hovered: profMouse.containsMouse
-                            pressed: profMouse.pressed
-                            contentColor: profBtn.contentColor
-                        }
-
-                        RowLayout {
-                            anchors.centerIn: parent
-                            spacing: Tokens.space.xs
-
-                            Icon {
-                                visible: profBtn.roomy
-                                name: profBtn.modelData.icon
-                                filled: profBtn.selected
-                                size: Tokens.icon.sm
-                                color: profBtn.contentColor
-                            }
-
-                            Text {
-                                id: profText
-                                Layout.maximumWidth: profBtn.width - profBtn.border.width * 2
-                                elide: Text.ElideRight
-                                text: profBtn.modelData.label
-                                color: profBtn.contentColor
-                                font.family: Tokens.font.ui
-                                font.pixelSize: Tokens.type.label
-                                font.weight: profBtn.selected ? Tokens.weight.semibold : Tokens.weight.regular
-                            }
-                        }
-
-                        MouseArea {
-                            id: profMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: PowerProfileState.set(profBtn.modelData.id)
-                        }
-                    }
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.leftMargin: Tokens.space.xs
-
-                Text {
-                    text: "No molestar"
-                    color: Colors.text
-                    font.family: Tokens.font.ui
-                    font.pixelSize: Tokens.type.body
-                    Layout.fillWidth: true
-                }
-
-                Switch {
-                    checked: NotificationState.doNotDisturb
-                    onToggled: NotificationState.doNotDisturb = !NotificationState.doNotDisturb
-                }
-            }
-
             Flickable {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Math.min(300, historyList.implicitHeight)

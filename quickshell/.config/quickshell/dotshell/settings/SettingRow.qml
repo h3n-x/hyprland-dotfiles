@@ -25,7 +25,7 @@ Item {
     readonly property string kind: row.model.control(row.key)
     readonly property string note: row.model.applyNote(row.key)
     // Pantallas (B5) siempre a todo el ancho, debajo del texto.
-    readonly property bool stacked: ["outputs", "barLayout", "screens", "homeZones", "apps", "folders", "checks"].indexOf(row.kind) >= 0 || (!!control.item && control.item.implicitWidth > col.width * 0.6)
+    readonly property bool stacked: ["outputs", "barLayout", "screens", "homeZones", "tiles", "apps", "folders", "checks"].indexOf(row.kind) >= 0 || (!!control.item && control.item.implicitWidth > col.width * 0.6)
     // El selector abierto (su lista va debajo, a lo ancho de la fila).
     readonly property bool listOpen: ["select", "font", "layouts", "apps", "player", "location"].indexOf(row.kind) >= 0 && !!control.item && control.item.open
     // Lo que Hyprland usa ahora, si difiere del almacen (Fase 10 B3): modo juego,
@@ -155,7 +155,7 @@ Item {
                 sourceComponent: ({
                     "switch": switchC, "segmented": segmentedC, "select": selectC,
                     "stepper": stepperC, "slider": sliderC, "path": pathC, "font": fontC, "layouts": layoutsC,
-                    "player": selectC, "location": locationC, "time": timeC, "outputs": outputsC, "barLayout": barLayoutC, "screens": screensC, "homeZones": homeZonesC,
+                    "player": selectC, "location": locationC, "time": timeC, "outputs": outputsC, "barLayout": barLayoutC, "screens": screensC, "homeZones": homeZonesC, "tiles": tilesC,
                     "apps": chipsC, "folders": chipsC, "text": textC, "checks": checksC
                 })[row.kind] || null
             }
@@ -365,8 +365,17 @@ Item {
     // Zonas de Inicio (Fase 11 B4): resumen y el boton que lleva al editor del dashboard.
     Component {
         id: homeZonesC
-        HomeZonesSummary {
+        LayoutSummary {
             objectName: "control-homeZones"
+            value: row.value || []
+        }
+    }
+    // Ajustes rapidos (Fase 11 B6): el mismo resumen, su editor es el del centro de control.
+    Component {
+        id: tilesC
+        LayoutSummary {
+            objectName: "control-tiles"
+            key: "controlCenter.tiles"
             value: row.value || []
         }
     }

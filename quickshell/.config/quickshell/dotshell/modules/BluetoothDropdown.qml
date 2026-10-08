@@ -6,7 +6,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Bluetooth
-import ".." // Colors.qml, Tokens.qml
+import ".." // Colors.qml, Tokens.qml, QuickTiles.qml
 
 AnchoredPanel {
     id: popup
@@ -81,7 +81,7 @@ AnchoredPanel {
 
             Switch {
                 checked: !!(popup.adapter && popup.adapter.enabled)
-                onToggled: if (popup.adapter) popup.adapter.enabled = !popup.adapter.enabled
+                onToggled: QuickTiles.toggleBluetooth()
             }
         }
 

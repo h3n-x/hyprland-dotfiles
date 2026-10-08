@@ -415,26 +415,6 @@ Item {
         }
     }
 
-    // Boton redondo de la edicion (encima del arrastre).
-    component EditButton: Rectangle {
-        id: eb
-        property string icon
-        signal clicked()
-        implicitWidth: 28
-        implicitHeight: 28
-        radius: 14
-        color: Colors.surfaceHigh
-        StateLayer { hovered: ebMouse.containsMouse; pressed: ebMouse.pressed }
-        Icon { anchors.centerIn: parent; name: eb.icon; size: Tokens.icon.sm; color: Colors.text }
-        MouseArea {
-            id: ebMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: eb.clicked()
-        }
-    }
-
     // Lapiz (fuera de la edicion): arriba a la derecha de la primera zona con
     // superficie (no sobre el clima de la linea de contexto), solo al pasar el raton.
     readonly property string pencilZone: zones.order.find(id => !(zones.spec[id] || {}).bare) || ""

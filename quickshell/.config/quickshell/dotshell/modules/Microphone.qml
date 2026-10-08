@@ -4,7 +4,7 @@
 // (Osd.qml/OsdState.qml) al mutear/desmutear, igual criterio que Volume.qml.
 import QtQuick
 import Quickshell.Services.Pipewire
-import ".." // Colors.qml, OsdState.qml
+import ".." // Colors.qml, OsdState.qml, QuickTiles.qml
 
 Item {
     id: root
@@ -26,7 +26,7 @@ Item {
 
     onMutedChanged: {
         if (!root.armed) return;
-        OsdState.show(root.muted ? "mic_off" : "mic", root.muted ? 0 : 1, root.muted ? "Mic muted" : "Mic on");
+        OsdState.show(root.muted ? "mic_off" : "mic", root.muted ? 0 : 1, root.muted ? "Micrófono silenciado" : "Micrófono activo");
     }
 
     implicitWidth: label.implicitWidth
@@ -59,7 +59,7 @@ Item {
             if (mouse.button === Qt.RightButton) {
                 audioDropdown.toggle();
             } else {
-                if (root.source && root.source.audio) root.source.audio.muted = !root.source.audio.muted;
+                QuickTiles.toggleMic();
             }
         }
     }

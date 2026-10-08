@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "categories": {
     "appearance":    { "label": "Apariencia",       "icon": "palette",           "order": 10 },
     "accessibility": { "label": "Accesibilidad",    "icon": "accessibility",     "order": 20 },
@@ -8,6 +8,7 @@
     "capture":       { "label": "Capturas",         "icon": "screenshot_region", "order": 50 },
     "media":         { "label": "Multimedia",       "icon": "music_note",        "order": 60 },
     "notifications": { "label": "Notificaciones",   "icon": "notifications",     "order": 70 },
+    "controlCenter": { "label": "Centro de control", "icon": "tune",             "order": 75 },
     "system":        { "label": "Sistema",          "icon": "settings",          "order": 80 },
     "display":       { "label": "Pantallas",        "icon": "monitor",           "order": 82 },
     "power":         { "label": "Energía",          "icon": "bolt",              "order": 84 },
@@ -687,6 +688,30 @@
                    "description": "Pomodoro, cronómetro y cuenta atrás; avisa al terminar cada fase." },
         "now": { "label": "Ahora", "icon": "bolt", "sizes": ["wide", "compact"], "needs": "now",
                  "description": "Lo más relevante del momento (lluvia cerca, un temporizador, tareas, la puesta de sol); aparece solo cuando hay algo." }
+      }
+    },
+    "controlCenter.tiles": {
+      "type": "tiles",
+      "default": [{ "id": "wifi", "size": "small" }, { "id": "bluetooth", "size": "small" }, { "id": "nightLight", "size": "small" },
+                  { "id": "gameMode", "size": "small" }, { "id": "lock", "size": "small" }, { "id": "profile", "size": "row" }, { "id": "dnd", "size": "row" }],
+      "category": "controlCenter", "section": "Ajustes rápidos", "order": 1,
+      "label": "Ajustes rápidos", "description": "Qué ajustes muestra el centro de control, en qué orden y de qué tamaño. Se edita en el centro de control mismo (lápiz).",
+      "keywords": ["accesos", "toggles", "wifi", "bluetooth", "no molestar", "perfil", "editar", "centro de control"], "apply": "live",
+      "widgets": {
+        "wifi": { "label": "Wi-Fi", "icon": "wifi", "sizes": ["small", "wide"] },
+        "bluetooth": { "label": "Bluetooth", "icon": "bluetooth", "sizes": ["small", "wide"], "needs": "bluetooth" },
+        "nightLight": { "label": "Luz nocturna", "icon": "nightlight", "sizes": ["small", "wide"] },
+        "gameMode": { "label": "Modo juego", "icon": "sports_esports", "sizes": ["small", "wide"] },
+        "lock": { "label": "Bloquear", "icon": "lock", "sizes": ["small", "wide"] },
+        "profile": { "label": "Perfil de energía", "icon": "bolt", "sizes": ["row", "small", "wide"], "needs": "profiles" },
+        "dnd": { "label": "No molestar", "icon": "do_not_disturb_on", "sizes": ["row", "small", "wide"] },
+        "idle": { "label": "Mantener despierto", "icon": "visibility", "sizes": ["small", "wide"] },
+        "mic": { "label": "Micrófono", "icon": "mic", "sizes": ["small", "wide"], "needs": "mic" },
+        "capture": { "label": "Captura", "icon": "screenshot_region", "sizes": ["small", "wide"] },
+        "record": { "label": "Grabar", "icon": "radio_button_checked", "sizes": ["small", "wide"] },
+        "keyboard": { "label": "Distribución del teclado", "icon": "keyboard", "sizes": ["small", "wide"], "needs": "layouts" },
+        "picker": { "label": "Color de la pantalla", "icon": "colorize", "sizes": ["small", "wide"], "needs": "hyprpicker" },
+        "settings": { "label": "Configuración", "icon": "settings", "sizes": ["small", "wide"] }
       }
     },
     "dashboard.weather.location": {

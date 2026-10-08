@@ -52,7 +52,7 @@ import datetime, fcntl, json, os, re, sys, tempfile
 SCHEMA = os.environ["SCHEMA"]; MIGRATIONS = os.environ["MIGRATIONS"]
 USER_FILE = os.environ["USER_FILE"]; EFFECTIVE = os.environ["EFFECTIVE"]; LOCK = os.environ["LOCK"]
 APPLIER = os.environ.get("APPLIER", "")
-TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color", "location", "time", "outputs", "barLayout", "homeZones"}
+TYPES = {"bool", "int", "number", "string", "enum", "path", "list", "color", "location", "time", "outputs", "barLayout", "homeZones", "tiles"}
 # Campos de una regla de pantalla (Fase 10 B5; los que hl.monitor acepta, verificados en V0).
 OUTPUT_CM = {"auto", "srgb", "dcip3", "dp3", "adobe", "wide", "edid", "hdr", "hdredid"}
 APPLY = {"live", "next-use", "reload-shell", "relogin", "reboot"}
@@ -191,7 +191,8 @@ def validate(m, v):
         return validate_outputs(v)
     if t == "barLayout":
         return validate_bar_layout(m, v)
-    if t == "homeZones":
+    # Fase 11 B6: los ajustes rapidos del centro de control son la misma clase de lista (un validador).
+    if t in ("homeZones", "tiles"):
         return validate_home_zones(m, v)
     return False, None, "tipo desconocido"
 
@@ -233,8 +234,9 @@ def validate_bar_layout(m, v):
 
 
 def validate_home_zones(m, v):
-    """Zonas de Inicio del dashboard (Fase 11 B4): lista ordenada de {"id", "size"}; cada widget del
-    registro del esquema una vez como mucho, con un tamano que ese widget admite. Vacia = sin zonas."""
+    """Lista ordenada de {"id", "size"} contra el registro "widgets" de su clave: las zonas de Inicio
+    (Fase 11 B4) y los ajustes rapidos del centro de control (B6). Cada uno una vez como mucho, con un
+    tamano que admite. Vacia = ninguno."""
     widgets = m.get("widgets", {})
     if not isinstance(v, list):
         return False, None, "no es una lista de zonas"

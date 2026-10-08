@@ -324,11 +324,21 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   la vez) y expone el historial + una cola de toasts + "no molestar"
   (con DND activo, la notificación queda en el historial pero no
   aparece como toast). `ControlCenter.qml` reproduce lo que daba
-  `swaync/config.json`: historial con "limpiar todo", grid de accesos
-  rápidos (wifi/bluetooth/luz nocturna -- esta última es la misma opcion que
-  Configuracion -> Pantallas, `display.nightLight.enabled`), perfil de energia y DND;
-  el reproductor y el estado del equipo (incluida la NVIDIA) estan en el
-  dashboard. `SUPER+N`/`SUPER+SHIFT+N` (ver
+  `swaync/config.json`: historial con "limpiar todo" y los **ajustes
+  rapidos** -- el unico lugar de los ajustes rapidos (Fase 11 B6). De
+  fabrica: wifi, bluetooth, luz nocturna (la misma opcion que
+  Configuracion -> Pantallas), modo juego, bloquear, perfil de energia y "No
+  molestar". Son datos (`controlCenter.tiles`): con el lapiz (al pasar el
+  raton por los ajustes) o `qs -c dotshell ipc call controlcenter edit` se
+  ordenan arrastrando, cambian de tamaño (cuadrado, ancho con nombre y
+  estado, fila) y se quitan o agregan; tambien hay "mantener despierto"
+  (el mismo estado que el modulo de la barra, para todas las pantallas),
+  microfono, captura, grabar, distribucion del teclado (con 2 o mas),
+  color de la pantalla (si esta `hyprpicker`) y Configuracion. Lo que el
+  equipo no tiene no aparece. Cada accion tiene un solo dueño
+  (`QuickTiles.qml`); los interruptores de los desplegables de red y
+  bluetooth usan el mismo. El reproductor y el estado del equipo (incluida
+  la NVIDIA) estan en el dashboard. `SUPER+N`/`SUPER+SHIFT+N` (ver
   `binds.lua`) reemplazan a `swaync-client -t -sw`/`-C`.
 - **OSD** (`modules/Osd.qml` + `OsdState.qml`): popup temporal
   (icono + barra de nivel) para volumen/mic/brillo, reemplaza a los

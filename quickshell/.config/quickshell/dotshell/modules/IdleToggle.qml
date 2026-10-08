@@ -1,9 +1,8 @@
-// Reemplaza a waybar/modules/idle_inhibitor.jsonc. Se llama "IdleToggle" y no
-// "IdleInhibitor" para no tener el mismo nombre que el tipo de
-// Quickshell.Wayland que usa adentro (mas claro al leer; KI-S4).
+// Reemplaza a waybar/modules/idle_inhibitor.jsonc: "mantener despierto" en
+// la barra. El estado es uno solo (IdleState, Fase 11 B6), el mismo que el
+// ajuste rapido del centro de control y el de las otras pantallas.
 import QtQuick
-import Quickshell.Wayland
-import ".." // Colors.qml
+import ".." // Colors.qml, IdleState.qml
 
 Item {
     id: root
@@ -13,15 +12,10 @@ Item {
     readonly property bool shown: true
     visible: shown
     required property var panelWindow
-    property bool active: false
+    readonly property bool active: IdleState.active
 
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight
-
-    IdleInhibitor {
-        window: root.active ? root.panelWindow : null
-        enabled: root.active
-    }
 
     Icon {
         id: label
@@ -38,6 +32,6 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: root.active = !root.active
+        onClicked: IdleState.toggle()
     }
 }
