@@ -25,9 +25,9 @@ Item {
     readonly property string kind: row.model.control(row.key)
     readonly property string note: row.model.applyNote(row.key)
     // Pantallas (B5) siempre a todo el ancho, debajo del texto.
-    readonly property bool stacked: ["outputs", "barLayout", "screens", "homeZones"].indexOf(row.kind) >= 0 || (!!control.item && control.item.implicitWidth > col.width * 0.6)
+    readonly property bool stacked: ["outputs", "barLayout", "screens", "homeZones", "apps", "folders"].indexOf(row.kind) >= 0 || (!!control.item && control.item.implicitWidth > col.width * 0.6)
     // El selector abierto (su lista va debajo, a lo ancho de la fila).
-    readonly property bool listOpen: ["select", "font", "layouts", "player", "location"].indexOf(row.kind) >= 0 && !!control.item && control.item.open
+    readonly property bool listOpen: ["select", "font", "layouts", "apps", "player", "location"].indexOf(row.kind) >= 0 && !!control.item && control.item.open
     // Lo que Hyprland usa ahora, si difiere del almacen (Fase 10 B3): modo juego,
     // un hyprctl a mano. Informacion, no un estado de error: neutro.
     readonly property var liveInfo: row.meta.hypr ? row.model.live[row.key] : null
@@ -155,7 +155,8 @@ Item {
                 sourceComponent: ({
                     "switch": switchC, "segmented": segmentedC, "select": selectC,
                     "stepper": stepperC, "slider": sliderC, "path": pathC, "font": fontC, "layouts": layoutsC,
-                    "player": selectC, "location": locationC, "time": timeC, "outputs": outputsC, "barLayout": barLayoutC, "screens": screensC, "homeZones": homeZonesC
+                    "player": selectC, "location": locationC, "time": timeC, "outputs": outputsC, "barLayout": barLayoutC, "screens": screensC, "homeZones": homeZonesC,
+                    "apps": chipsC, "folders": chipsC, "text": textC
                 })[row.kind] || null
             }
         }
@@ -177,11 +178,13 @@ Item {
             onChosen: (place) => control.item.choose(place)
             onEscaped: control.item.open = false
         }
-        // Lista de distribuciones del teclado (Fase 10 B3), en el mismo lugar.
-        XkbList {
-            visible: row.listOpen && row.kind === "layouts"
+        // Lista para agregar (Fase 10 B3: distribuciones del teclado; Fase 11 B5:
+        // aplicaciones fijadas), en el mismo lugar.
+        PickList {
+            visible: row.listOpen && (row.kind === "layouts" || row.kind === "apps")
             Layout.fillWidth: true
-            entries: row.kind === "layouts" && control.item ? control.item.entries : []
+            entries: (row.kind === "layouts" || row.kind === "apps") && control.item ? control.item.entries : []
+            placeholder: row.kind === "apps" ? "Buscar una aplicación" : "Buscar una distribución (spanish, latam, dvorak…)"
             taken: row.value || []
             onChosen: (id) => control.item.add(id)
             onClosed: control.item.open = false
@@ -302,6 +305,28 @@ Item {
             objectName: "control-layouts"
             value: row.value || []
             maxItems: row.meta.maxItems || 4
+            onEdited: (l) => row.set(l)
+        }
+    }
+    // Texto corto (Fase 11 B5): el mismo campo que las rutas, con letra normal.
+    Component {
+        id: textC
+        PathField {
+            objectName: "control-text"
+            plain: true
+            placeholder: row.meta.placeholder || "Sin elegir"
+            value: row.value || ""
+            onEdited: (v) => row.set(v)
+        }
+    }
+    // Aplicaciones y carpetas fijadas (Fase 11 B5): a lo ancho de la fila.
+    Component {
+        id: chipsC
+        ChipList {
+            objectName: "control-" + row.kind
+            mode: row.kind
+            value: row.value || []
+            maxItems: row.meta.maxItems || 12
             onEdited: (l) => row.set(l)
         }
     }

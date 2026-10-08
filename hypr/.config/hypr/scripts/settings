@@ -166,6 +166,9 @@ def validate(m, v):
             ok, val, why = validate(item, x)
             if not ok:
                 return False, None, f"elemento no válido ({why})"
+            # "unique": cada elemento una vez (Fase 11 B5: apps y carpetas fijadas).
+            if m.get("unique") and val in out:
+                return False, None, f"{x!r} aparece dos veces"
             out.append(val)
         return True, out, None
     if t == "color":

@@ -238,6 +238,7 @@ AnchoredPanel {
                 screenName: panel.scr ? panel.scr.name : ""
                 narrow: panel.narrow
                 onOpenView: (view) => DashboardState.showView(view)
+                onFieldDone: panel.focusPanel()
                 // Se retira: se apaga y se aleja un poco.
                 visible: panel.viewP < 1
                 enabled: panel.viewP === 0

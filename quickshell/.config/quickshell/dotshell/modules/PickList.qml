@@ -1,7 +1,10 @@
-// Lista para agregar una distribucion (Fase 10 B3; ver LayoutList): busqueda
-// por nombre o codigo, una fila por distribucion o variante. Emite chosen(id)
+// Lista para agregar algo a una lista de opciones, debajo de su fila (Fase 10
+// B3 para las distribuciones del teclado, LayoutList; Fase 11 B5 tambien para
+// las aplicaciones fijadas, ChipList): busqueda por nombre o codigo, una fila
+// por entrada { id, label, detail?, icon? (ruta de imagen) }. Emite chosen(id)
 // y closed().
 import QtQuick
+import Quickshell.Widgets
 import ".." // Colors.qml, Tokens.qml
 
 Column {
@@ -9,13 +12,15 @@ Column {
 
     property var entries: []
     property var taken: []
+    property string placeholder: "Buscar…"
     signal chosen(string id)
     signal closed
 
     readonly property var shown: {
         const q = search.text.trim().toLowerCase();
         const pool = root.entries.filter(e => root.taken.indexOf(e.id) < 0);
-        return q ? pool.filter(e => e.label.toLowerCase().indexOf(q) >= 0 || e.id.toLowerCase().indexOf(q) >= 0) : pool;
+        return q ? pool.filter(e => e.label.toLowerCase().indexOf(q) >= 0 || e.id.toLowerCase().indexOf(q) >= 0
+            || (e.detail || "").toLowerCase().indexOf(q) >= 0) : pool;
     }
 
     spacing: Tokens.space.xs
@@ -25,7 +30,7 @@ Column {
         id: search
         width: parent.width
         size: "regular"
-        placeholder: "Buscar una distribución (spanish, latam, dvorak…)"
+        placeholder: root.placeholder
         keyHandler: (event) => {
             if (event.key === Qt.Key_Escape) { root.closed(); return true; }
             if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && root.shown.length) {
@@ -58,9 +63,18 @@ Column {
             radius: Tokens.radius.sm
             color: "transparent"
             StateLayer { hovered: optMouse.containsMouse; pressed: optMouse.pressed }
-            Text {
+            IconImage {
+                id: optIcon
+                visible: !!opt.modelData.icon
                 anchors.left: parent.left
                 anchors.leftMargin: Tokens.space.md
+                anchors.verticalCenter: parent.verticalCenter
+                implicitSize: visible ? Tokens.icon.md : 0
+                source: opt.modelData.icon || ""
+            }
+            Text {
+                anchors.left: optIcon.right
+                anchors.leftMargin: optIcon.visible ? Tokens.space.sm : 0
                 anchors.right: code.left
                 anchors.rightMargin: Tokens.space.md
                 anchors.verticalCenter: parent.verticalCenter
@@ -75,7 +89,9 @@ Column {
                 anchors.right: parent.right
                 anchors.rightMargin: Tokens.space.md
                 anchors.verticalCenter: parent.verticalCenter
-                text: opt.modelData.id
+                width: Math.min(implicitWidth, opt.width / 2)
+                elide: Text.ElideRight
+                text: opt.modelData.detail !== undefined ? opt.modelData.detail : opt.modelData.id
                 color: Colors.textMuted
                 font.family: Tokens.font.mono
                 font.pixelSize: Tokens.type.caption

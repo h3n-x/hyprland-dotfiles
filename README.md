@@ -415,20 +415,30 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   barra lo abre), centrado bajo la barra del monitor enfocado; `Esc` o
   `SUPER+A` lo cierran. Una sola superficie con zonas, en cinco vistas:
   - **Inicio**: hora, fecha, avisos (actualizaciones y mantenimiento, que
-    abren esa vista; notificaciones, no molestar; solo si los hay) y clima; el reproductor como protagonista
-    mientras hay uno (portada grande, progreso con busqueda, cinco controles,
-    transicion al cambiar de cancion); debajo, las **zonas**, que elegis vos
+    abren esa vista; notificaciones, no molestar; solo si los hay) y clima;
+    debajo, las **zonas**, que elegis vos
     (Fase 11 B4): de fabrica el estado general del equipo ("Todo en orden" y
     cuatro medidores) y los escritorios en miniatura; ademas el calendario del
     mes y las proximas horas del clima (con ciudad). Cada una compacta o
-    ancha, en el orden que quieras, o ninguna. Sin musica, el reloj crece y
-    el panel se acorta.
+    ancha, en el orden que quieras, o ninguna. Al final, siempre, el
+    reproductor mientras hay uno (portada grande, progreso con busqueda, cinco
+    controles, transicion al cambiar de cancion): las zonas no se corren al
+    empezar o terminar la musica. Sin musica, el reloj crece y el panel se
+    acorta.
     **Editar Inicio**: el lapiz (al pasar el raton por las zonas), `Ctrl+E` o
     Configuracion -> Dashboard -> "Editar Inicio". Las zonas se ven con
     contorno punteado: arrastrar las ordena, el boton de tamano y la cruz;
     abajo, "Agregar". Con el teclado: `Tab` elige, flechas mueven, `T`
     tamano, `Supr` quita, `A` agregar (flechas + `Enter`), `Esc` / `Enter`
     terminan. Una zona que no esta no consulta nada.
+    Widgets de la Fase 11 B5a: **Perfil** (avatar, saludo y tiempo encendido;
+    clic -> el avatar en Configuracion), **Accesos rapidos** (las aplicaciones
+    y carpetas que fijes en Configuracion -> Dashboard; sin carpetas elegidas,
+    las personales), **Notas** (una nota que se guarda sola) y **Tareas**
+    (`Enter` agrega, clic la marca hecha, "Limpiar" borra las hechas). Notas y
+    tareas se guardan solo en este equipo (`~/.local/state/dotfiles/notes.json`
+    y `todo.json`, fuera del repo). `Tab` + `Enter` entra a escribir; `Esc`
+    sale del campo.
   - **Hoy**: calendario del mes y el clima con una frase ("Sensacion 30°. Hoy
     entre 18° y 33°, sin lluvia a la vista."), las proximas 12 h y 5 dias. El
     clima viene de [Open-Meteo](https://open-meteo.com) (sin clave; datos

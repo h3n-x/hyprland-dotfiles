@@ -84,6 +84,8 @@ QtObject {
         if (m.type === "int" && m.min !== undefined && m.max !== undefined && m.max - m.min <= 12) return "stepper";
         if ((m.type === "int" || m.type === "number") && m.min !== undefined && m.max !== undefined) return "slider";
         if (m.type === "path") return "path";
+        // Texto corto sin tipo especial (Fase 11 B5: el nombre del saludo).
+        if (m.type === "string" && !m.kind) return "text";
         if (m.type === "string" && String(m.kind || "").startsWith("font-")) return "font";
         if (m.type === "list" && m.kind === "xkb") return "layouts";
         if (m.type === "location") return "location";
@@ -94,6 +96,8 @@ QtObject {
         // Fase 11 B1: la disposicion de la barra y en que pantallas va.
         if (m.type === "barLayout") return "barLayout";
         if (m.type === "list" && m.kind === "screens") return "screens";
+        // Fase 11 B5: aplicaciones y carpetas fijadas (Accesos rapidos).
+        if (m.type === "list" && (m.kind === "apps" || m.kind === "folders")) return m.kind;
         // Fase 11 B4: las zonas de Inicio (resumen; se editan en el dashboard).
         if (m.type === "homeZones") return "homeZones";
         return "";
@@ -134,6 +138,8 @@ QtObject {
             return n + (n === 1 ? " módulo" : " módulos");
         }
         if (m.kind === "screens") return (v || []).length ? v.join(", ") : "Todas";
+        if (m.kind === "apps") return (v || []).length ? (v || []).map(id => AppInfo.name(id)).join(", ") : "Ninguna";
+        if (m.kind === "folders") return (v || []).length ? (v || []).map(p => p.split("/").pop()).join(", ") : "Las carpetas personales";
         if (m.type === "homeZones") {
             const n = (v || []).length;
             return n === 0 ? "Sin zonas" : n === 1 ? "1 zona" : n + " zonas";

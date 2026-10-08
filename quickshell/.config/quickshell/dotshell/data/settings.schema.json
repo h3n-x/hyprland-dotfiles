@@ -669,7 +669,15 @@
         "calendar": { "label": "Calendario", "icon": "calendar_month", "sizes": ["compact", "wide"], "view": "today",
                       "description": "El mes, como en Hoy." },
         "weather": { "label": "Próximas horas", "icon": "partly_cloudy_day", "sizes": ["wide", "compact"], "view": "today", "needs": "weather",
-                     "description": "El clima de las próximas horas. Necesita una ciudad (Clima)." }
+                     "description": "El clima de las próximas horas. Necesita una ciudad (Clima)." },
+        "profile": { "label": "Perfil", "icon": "account_circle", "sizes": ["compact", "wide"], "action": "avatar",
+                     "description": "Tu avatar, un saludo y el equipo." },
+        "quick": { "label": "Accesos rápidos", "icon": "apps", "sizes": ["compact", "wide"],
+                   "description": "Las aplicaciones y carpetas que fijes (Configuración → Dashboard)." },
+        "notes": { "label": "Notas", "icon": "sticky_note_2", "sizes": ["wide", "compact"],
+                   "description": "Una nota que se guarda sola, solo en este equipo." },
+        "todo": { "label": "Tareas", "icon": "checklist", "sizes": ["compact", "wide"],
+                  "description": "Una lista de pendientes, solo en este equipo." }
       }
     },
     "dashboard.weather.location": {
@@ -681,6 +689,31 @@
       "type": "enum", "default": "c", "values": { "c": "°C", "f": "°F" },
       "category": "dashboard", "section": "Clima", "order": 6,
       "label": "Unidades de temperatura", "keywords": ["clima", "celsius", "fahrenheit"], "apply": "live"
+    },
+    "dashboard.profile.name": {
+      "type": "string", "default": "", "maxLength": 40, "placeholder": "El de tu cuenta",
+      "category": "dashboard", "section": "Perfil", "order": 20,
+      "label": "Nombre del saludo", "description": "Vacío: el nombre de tu cuenta.",
+      "keywords": ["perfil", "nombre", "saludo", "usuario"], "apply": "live"
+    },
+    "dashboard.profile.showSystem": {
+      "type": "bool", "default": true,
+      "category": "dashboard", "section": "Perfil", "order": 21,
+      "label": "Mostrar el equipo y el tiempo encendido", "keywords": ["perfil", "uptime", "host"], "apply": "live"
+    },
+    "dashboard.quick.apps": {
+      "type": "list", "kind": "apps", "default": [], "maxItems": 12, "unique": true,
+      "items": { "type": "string", "maxLength": 200, "pattern": "[^/\\s][^/]*" },
+      "category": "dashboard", "section": "Accesos rápidos", "order": 30,
+      "label": "Aplicaciones fijadas", "description": "Las que abre la zona Accesos rápidos, en este orden.",
+      "keywords": ["accesos", "apps", "aplicaciones", "fijar", "favoritos"], "apply": "live"
+    },
+    "dashboard.quick.folders": {
+      "type": "list", "kind": "folders", "default": [], "maxItems": 6, "unique": true,
+      "items": { "type": "path" },
+      "category": "dashboard", "section": "Accesos rápidos", "order": 31,
+      "label": "Carpetas fijadas", "description": "Vacío: tus carpetas personales (Descargas, Documentos, Imágenes…).",
+      "keywords": ["accesos", "carpetas", "directorios", "fijar"], "apply": "live"
     },
     "capture.copyToClipboard": {
       "type": "bool", "default": true,

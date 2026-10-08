@@ -1,6 +1,6 @@
 // Distribuciones del teclado (Fase 10 B3, input.keyboard.layouts): una ficha
 // por distribucion, la primera es la principal; cada ficha se quita o pasa a
-// ser la principal; "Agregar" abre la lista (XkbList, debajo de la fila, como
+// ser la principal; "Agregar" abre la lista (PickList, debajo de la fila, como
 // la de Select). Nombres y variantes de /usr/share/X11/xkb/rules/base.xml,
 // leido una vez. Hasta 4 (xkb). No guarda estado: el consumidor da `value`
 // (["us", "latam:deadtilde"]) y recibe edited(lista).

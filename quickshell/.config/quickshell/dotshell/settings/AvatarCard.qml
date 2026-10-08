@@ -1,32 +1,20 @@
 // Avatar, arriba de su seccion en Apariencia (Fase 10 B2): ~/.face tal cual
-// lo usan el bloqueo, el greeter y el arranque (se relee cuando cambia), y de
-// donde sale. Elegir la fuente o la imagen rehace ~/.face al momento
+// lo usan el bloqueo, el greeter y el arranque (Avatar.qml, se relee cuando
+// cambia), y de donde sale. Elegir la fuente o la imagen rehace ~/.face al momento
 // (AvatarSync en la shell: theme-apply.sh --face). Si la imagen propia no se
 // puede leer, ~/.face queda como estaba y se dice aca.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-import Quickshell.Widgets
 import ".." // Colors.qml, Tokens.qml, SettingsState.qml
 import "../modules"
 
 Item {
     id: card
 
-    readonly property string face: Quickshell.env("HOME") + "/.face"
     readonly property bool own: SettingsState.value("appearance.avatar") === "image"
     readonly property string image: SettingsState.value("appearance.avatarImage") || ""
-    property int rev: 0
-
-    // Solo se vigila: el archivo cambia cuando theme-apply.sh lo rehace.
-    FileView {
-        path: card.face
-        preload: false
-        watchChanges: true
-        printErrors: false
-        onFileChanged: card.rev++
-    }
     // La imagen propia se prueba cargandola (la misma que se recortaria).
     Image {
         id: probe
@@ -46,19 +34,8 @@ Item {
         width: parent.width - 2 * Tokens.space.lg
         spacing: Tokens.space.lg
 
-        ClippingRectangle {
-            implicitWidth: 72
-            implicitHeight: 72
-            radius: width / 2
-            color: Colors.surfaceHigh
-            Image {
-                anchors.fill: parent
-                source: "file://" + card.face + "?v=" + card.rev
-                fillMode: Image.PreserveAspectCrop
-                sourceSize.width: 144
-                cache: false
-                asynchronous: true
-            }
+        Avatar {
+            size: 72
         }
         ColumnLayout {
             Layout.fillWidth: true

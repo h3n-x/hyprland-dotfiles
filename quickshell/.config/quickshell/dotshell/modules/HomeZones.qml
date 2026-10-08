@@ -14,9 +14,17 @@
 // cruz; abajo, lo que se puede agregar. Teclado: Tab elige zona, flechas la
 // mueven, T tamano, Supr la quita, A va a "Agregar" (flechas + Enter),
 // Esc / Enter / Ctrl+E terminan. Todo se guarda en el almacen al soltar.
+//
+// Fase 11 B5: un widget es una entrada del registro + un Component en
+// `components` (id -> Component). Una zona abre su vista (`view`), hace su
+// accion (`action`: "avatar" lleva a Configuracion) o, si su contenido es
+// interactivo (Notas, Tareas, Accesos rapidos), no es clicable. Los campos de
+// texto de una zona se quedan con sus teclas; Esc los deja (fieldDone: el
+// dashboard recupera el foco).
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
+import Quickshell
 import ".." // Colors.qml, Tokens.qml, SettingsState.qml, DashboardState.qml, DesktopState.qml, WeatherState.qml
 
 Item {
@@ -30,6 +38,8 @@ Item {
     readonly property bool editing: DashboardState.editing
     // Abrir la vista de una zona (y de cual sale, para la transicion).
     signal openView(string view, string from)
+    // Un campo de texto de una zona se dejo (Esc): el foco vuelve al dashboard.
+    signal fieldDone()
 
     readonly property var spec: (SettingsState.meta("dashboard.home.zones") || {}).widgets || ({})
     readonly property var stored: SettingsState.value("dashboard.home.zones") || []
@@ -120,6 +130,33 @@ Item {
     }
 
     implicitHeight: zones.geom.height + (zones.editing ? zones.gap + tray.implicitHeight : 0)
+
+    // ---- Abrir una zona -------------------------------------------------------------
+    // Abre algo (vista o accion) o no: las de contenido interactivo no.
+    function opens(id: string): bool {
+        const m = zones.spec[id] || {};
+        return !!(m.view || m.action);
+    }
+    // Clic o Enter: su vista, su accion o, si tiene un campo, entrar a escribir.
+    function activate(id: string): bool {
+        const m = zones.spec[id] || {};
+        if (m.view) {
+            zones.lastFrom = id;
+            zones.openView(m.view, id);
+            return true;
+        }
+        if (m.action === "avatar") {
+            DashboardState.close();
+            Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/settings-ui", "open", "appearance.avatar"]);
+            return true;
+        }
+        const s = slots.itemAt(Object.keys(zones.spec).indexOf(id));
+        if (s && s.widget && s.widget.focusField) {
+            s.widget.focusField();
+            return true;
+        }
+        return false;
+    }
 
     // ---- Edicion --------------------------------------------------------------------
     property string selected: ""
@@ -237,6 +274,7 @@ Item {
             visible: slot.placed
             z: slot.moving ? 2 : 0
             readonly property var col: zones.cols[slot.modelData]
+            readonly property Item widget: content.item
             x: slot.moving ? slot.dragX : slot.col ? slot.col.x : 0
             y: slot.moving ? slot.dragY : slot.g ? slot.g.y : 0
             width: slot.col ? slot.col.w : 0
@@ -250,11 +288,8 @@ Item {
                 id: zone
                 anchors.fill: parent
                 focused: zones.editing ? zones.selected === slot.modelData : zones.focusKey === slot.modelData
-                clickable: !zones.editing
-                onActivated: {
-                    zones.lastFrom = slot.modelData;
-                    zones.openView(slot.meta.view || "", slot.modelData);
-                }
+                clickable: !zones.editing && zones.opens(slot.modelData)
+                onActivated: zones.activate(slot.modelData)
                 Loader {
                     id: content
                     anchors.fill: parent
@@ -263,11 +298,7 @@ Item {
                     // Editando: apenas visible, el nombre de la zona encima.
                     opacity: zones.editing ? Tokens.tint.track : 1
                     Behavior on opacity { NumberAnimation { duration: Tokens.motion.short } }
-                    sourceComponent: !zones.usable(slot.modelData) ? needsC
-                        : slot.modelData === "system" ? systemC
-                        : slot.modelData === "workspaces" ? workspacesC
-                        : slot.modelData === "calendar" ? calendarC
-                        : slot.modelData === "weather" ? weatherC : null
+                    sourceComponent: !zones.usable(slot.modelData) ? needsC : zones.components[slot.modelData] || null
                     // Lo que la zona pide de alto para su ancho.
                     readonly property real ideal: content.item && content.item.ideal !== undefined ? content.item.ideal + 2 * zone.padding : zones.baseHeight
                     onIdealChanged: zones.report(slot.modelData, content.ideal)
@@ -411,57 +442,65 @@ Item {
         width: zones.width
         visible: zones.editing
         spacing: Tokens.space.sm
+        // Con muchos widgets las fichas siguen en otra linea; "Listo" queda a la derecha.
         RowLayout {
             Layout.fillWidth: true
             spacing: Tokens.space.sm
-            Text {
-                text: zones.unplaced.length ? "Agregar" : "Todo está en Inicio"
-                color: Colors.textMuted
-                font.family: Tokens.font.ui
-                font.pixelSize: Tokens.type.label
-                font.weight: Tokens.weight.medium
-            }
-            Repeater {
-                model: zones.unplaced
-                Rectangle {
-                    id: chip
-                    required property string modelData
-                    required property int index
-                    readonly property var meta: zones.spec[chip.modelData] || ({})
-                    readonly property bool picked: zones.trayIndex === chip.index
-                    implicitHeight: 32
-                    implicitWidth: chipRow.implicitWidth + Tokens.space.lg * 2
-                    radius: 16
-                    color: "transparent"
-                    border.width: chip.picked ? Tokens.focusRingWidth : 1
-                    border.color: chip.picked ? Colors.accent : Colors.divider
-                    StateLayer { hovered: chipMouse.containsMouse; pressed: chipMouse.pressed }
-                    Row {
-                        id: chipRow
-                        anchors.centerIn: parent
-                        spacing: Tokens.space.xs + 2
-                        Icon { anchors.verticalCenter: parent.verticalCenter; name: "add"; size: Tokens.icon.sm; color: Colors.textMuted }
-                        Icon { anchors.verticalCenter: parent.verticalCenter; name: chip.meta.icon || ""; size: Tokens.icon.sm; color: Colors.text }
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: chip.meta.label || chip.modelData
-                            color: Colors.text
-                            font.family: Tokens.font.ui
-                            font.pixelSize: Tokens.type.label
-                            font.weight: Tokens.weight.medium
+            Flow {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+                spacing: Tokens.space.sm
+                Text {
+                    height: 32
+                    verticalAlignment: Text.AlignVCenter
+                    text: zones.unplaced.length ? "Agregar" : "Todo está en Inicio"
+                    color: Colors.textMuted
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.label
+                    font.weight: Tokens.weight.medium
+                }
+                Repeater {
+                    model: zones.unplaced
+                    Rectangle {
+                        id: chip
+                        required property string modelData
+                        required property int index
+                        readonly property var meta: zones.spec[chip.modelData] || ({})
+                        readonly property bool picked: zones.trayIndex === chip.index
+                        implicitHeight: 32
+                        implicitWidth: chipRow.implicitWidth + Tokens.space.lg * 2
+                        radius: 16
+                        color: "transparent"
+                        border.width: chip.picked ? Tokens.focusRingWidth : 1
+                        border.color: chip.picked ? Colors.accent : Colors.divider
+                        StateLayer { hovered: chipMouse.containsMouse; pressed: chipMouse.pressed }
+                        Row {
+                            id: chipRow
+                            anchors.centerIn: parent
+                            spacing: Tokens.space.xs + 2
+                            Icon { anchors.verticalCenter: parent.verticalCenter; name: "add"; size: Tokens.icon.sm; color: Colors.textMuted }
+                            Icon { anchors.verticalCenter: parent.verticalCenter; name: chip.meta.icon || ""; size: Tokens.icon.sm; color: Colors.text }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: chip.meta.label || chip.modelData
+                                color: Colors.text
+                                font.family: Tokens.font.ui
+                                font.pixelSize: Tokens.type.label
+                                font.weight: Tokens.weight.medium
+                            }
                         }
-                    }
-                    MouseArea {
-                        id: chipMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: zones.add(chip.modelData)
+                        MouseArea {
+                            id: chipMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: zones.add(chip.modelData)
+                        }
                     }
                 }
             }
-            Item { Layout.fillWidth: true }
             Button {
+                Layout.alignment: Qt.AlignTop
                 label: "Listo"
                 icon: "check"
                 main: true
@@ -480,6 +519,16 @@ Item {
     }
 
     // ---- Contenido de cada widget (ideal: el alto que pide para su ancho) ----------------
+    // Un widget nuevo: su entrada en el registro del esquema y su Component aca.
+    readonly property var components: ({
+        system: systemC, workspaces: workspacesC, calendar: calendarC, weather: weatherC,
+        profile: profileC, quick: quickC, notes: notesC, todo: todoC
+    })
+    // Tamano con el que esta puesta una zona.
+    function wideOf(id: string): bool {
+        const z = zones.list.find(x => x.id === id);
+        return !!z && z.size === "wide" && !zones.narrow;
+    }
     property Item strip: null
     Component {
         id: systemC
@@ -534,6 +583,36 @@ Item {
                 count: wz.width < 400 ? 3 : 6
             }
             Item { Layout.fillHeight: true }
+        }
+    }
+    Component {
+        id: profileC
+        ProfileZone {
+            active: zones.active
+            wide: zones.wideOf("profile")
+        }
+    }
+    Component {
+        id: quickC
+        QuickZone {
+            wide: zones.wideOf("quick")
+        }
+    }
+    Component {
+        id: notesC
+        NotesZone {
+            active: zones.active
+            wide: zones.wideOf("notes")
+            baseHeight: zones.baseHeight - 2 * Tokens.space.lg
+            onDone: zones.fieldDone()
+        }
+    }
+    Component {
+        id: todoC
+        TodoZone {
+            active: zones.active
+            wide: zones.wideOf("todo")
+            onDone: zones.fieldDone()
         }
     }
     Component {

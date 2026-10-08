@@ -1,8 +1,10 @@
 // Inicio del dashboard (Fase 4 B7): la vista principal. Tres niveles:
 //   contexto      hora, fecha, avisos (solo si hay) y clima; sin superficie
-//   protagonista  el reproductor, solo mientras hay uno (MediaHero)
 //   zonas         estado general, escritorios y lo que se agregue (Fase 11 B4:
 //                 HomeZones, editables en el dashboard mismo)
+//   reproductor   solo mientras hay uno (MediaHero), siempre al final (Fase 11
+//                 B5a, pedido tras la prueba real: las zonas no se corren al
+//                 empezar o terminar la musica)
 //
 // Con musica el reloj se reduce a la linea de contexto y el titulo de la
 // cancion es el texto mas grande; sin musica el reloj crece al tamano del de
@@ -35,6 +37,8 @@ Item {
     property string focusKey: ""
     // Abrir una vista de detalle desde su zona (Dashboard.qml la muestra).
     signal openView(string view)
+    // Se dejo un campo de texto de una zona (Esc): el dashboard recupera el foco.
+    signal fieldDone()
     // Rectangulo de una zona en las coordenadas de "target" (de donde sale la
     // transicion de contenedor).
     function zoneRect(key: string, target: Item): rect {
@@ -86,7 +90,8 @@ Item {
 
     // ---- Apertura -------------------------------------------------------------------
     // Con algo sonando, el foco empieza en el reproductor. Las tres franjas
-    // entran escalonadas 0/40/80 ms (como los textos del reproductor en B5).
+    // entran escalonadas 0/40/80 ms, de arriba abajo (como los textos del
+    // reproductor en B5).
     function prepare(): void {
         mediaAnim.stop();
         home.mediaP = home.hasMedia ? 1 : 0;
@@ -112,13 +117,13 @@ Item {
             }
         }
         Band { target: context; delay: 0 }
-        Band { target: heroBox; delay: 40 }
-        Band { target: instruments; delay: 80 }
+        Band { target: instruments; delay: 40 }
+        Band { target: heroBox; delay: 80 }
     }
 
     // ---- Teclado --------------------------------------------------------------------
     // Las zonas de abajo son datos (Fase 11 B4, HomeZones): en su orden.
-    readonly property var zones: ["today"].concat(home.hasMedia ? ["media"] : [], instruments.order)
+    readonly property var zones: ["today"].concat(instruments.order, home.hasMedia ? ["media"] : [])
     function escapeEdit(): void {
         instruments.leave();
     }
@@ -151,13 +156,10 @@ Item {
             home.openView("today");
             return true;
         }
-        // Una zona con su vista (Sistema, Calendario, Proximas horas).
-        const view = (instruments.spec[home.focusKey] || {}).view;
-        if (enter && view && home.focusKey !== "workspaces") {
-            instruments.lastFrom = home.focusKey;
-            home.openView(view);
+        // Una zona: su vista (Sistema, Calendario, Proximas horas), su accion
+        // (Perfil) o su campo (Notas, Tareas; Fase 11 B5).
+        if (enter && home.focusKey !== "workspaces" && instruments.spec[home.focusKey] && instruments.activate(home.focusKey))
             return true;
-        }
         if (home.focusKey === "media") return hero.handleKey(event);
         if (home.focusKey === "workspaces") {
             if (instruments.strip && instruments.strip.handleKey(event)) return true;
@@ -447,6 +449,21 @@ Item {
             }
         }
 
+        // ===== Zonas (Fase 11 B4): estado general, escritorios y lo que se agregue =====
+        HomeZones {
+            id: instruments
+            property real lift: 0
+            transform: Translate { y: instruments.lift }
+            width: parent.width
+            visible: instruments.order.length > 0 || DashboardState.editing
+            active: home.active
+            narrow: home.narrow
+            screenName: home.screenName
+            focusKey: home.focusKey
+            onOpenView: (view, from) => home.openView(view)
+            onFieldDone: home.fieldDone()
+        }
+
         // ===== Reproductor =====
         Item {
             id: heroBox
@@ -469,20 +486,6 @@ Item {
                     active: home.active && home.hasMedia
                 }
             }
-        }
-
-        // ===== Zonas (Fase 11 B4): estado general, escritorios y lo que se agregue =====
-        HomeZones {
-            id: instruments
-            property real lift: 0
-            transform: Translate { y: instruments.lift }
-            width: parent.width
-            visible: instruments.order.length > 0 || DashboardState.editing
-            active: home.active
-            narrow: home.narrow
-            screenName: home.screenName
-            focusKey: home.focusKey
-            onOpenView: (view, from) => home.openView(view)
         }
     }
 }

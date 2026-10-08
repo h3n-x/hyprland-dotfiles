@@ -6,6 +6,10 @@
 // Fase 10 B2).
 //
 //   PathField { value: x; pick: "dir"; onEdited: v => x = v }
+//
+// Fase 11 B5: tambien el campo de texto corto del centro (plain: true; p. ej.
+// el nombre del saludo): letra normal, sin "~", y vacio es un valor (el
+// placeholder dice que significa).
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -17,6 +21,9 @@ Rectangle {
     property string value: ""
     // "" (solo escribir), "image" o "dir".
     property string pick: ""
+    // Texto corto en vez de ruta.
+    property bool plain: false
+    property string placeholder: ""
     signal edited(string value)
 
     // Selector del portal: corre solo mientras esta abierto.
@@ -34,6 +41,7 @@ Rectangle {
     // Con la carpeta personal abreviada, como se escribe.
     readonly property string home: Quickshell.env("HOME")
     function pretty(p: string): string {
+        if (root.plain) return p;
         return root.home && p.startsWith(root.home + "/") ? "~" + p.slice(root.home.length) : p;
     }
 
@@ -61,7 +69,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: Tokens.space.sm
         anchors.verticalCenter: parent.verticalCenter
-        name: "folder"
+        name: root.plain ? "edit" : "folder"
         size: Tokens.icon.sm
         color: Colors.textMuted
     }
@@ -72,10 +80,10 @@ Rectangle {
         anchors.right: pickBtn.visible ? pickBtn.left : parent.right
         anchors.rightMargin: Tokens.space.sm
         anchors.verticalCenter: parent.verticalCenter
-        text: root.pretty(root.value)
+        text: root.value ? root.pretty(root.value) : root.placeholder
         elide: Text.ElideMiddle
-        color: Colors.text
-        font.family: Tokens.font.mono
+        color: root.value ? Colors.text : Colors.textMuted
+        font.family: root.plain ? Tokens.font.ui : Tokens.font.mono
         font.pixelSize: Tokens.type.label
     }
     TextInput {
@@ -90,7 +98,7 @@ Rectangle {
         color: Colors.text
         selectionColor: Colors.accentContainer
         selectedTextColor: Colors.textOnAccentContainer
-        font.family: Tokens.font.mono
+        font.family: root.plain ? Tokens.font.ui : Tokens.font.mono
         font.pixelSize: Tokens.type.label
         selectByMouse: true
         // Cursor fijo, como SearchField: el parpadeo repinta sin parar.
@@ -106,7 +114,7 @@ Rectangle {
         onAccepted: {
             const t = input.text.trim();
             root.forceActiveFocus();
-            if (t && t !== root.pretty(root.value)) root.edited(t);
+            if ((t || root.plain) && t !== root.pretty(root.value)) root.edited(t);
         }
     }
     MouseArea {

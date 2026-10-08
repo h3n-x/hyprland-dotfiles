@@ -1,7 +1,8 @@
 // Campo de busqueda (Fase 4 B10; unico de la shell desde la Fase 8 B3, P8.8):
 // lo usan el Picker (lanzador, portapapeles, emoji, ventanas), la guia de
 // atajos, la galeria y la busqueda de ciudad del clima, y lo usara la
-// busqueda global del centro de configuracion (P10).
+// busqueda global del centro de configuracion (P10), y, con su icono, el
+// campo de una tarea nueva de Inicio (Fase 11 B5).
 //
 // keyHandler(event) recibe cada tecla antes que el texto: true = la consume;
 // false = sigue al campo (las flechas izquierda/derecha mueven el cursor).
@@ -16,6 +17,8 @@ import ".." // Colors.qml, Tokens.qml
 Rectangle {
     id: box
     property string placeholder: ""
+    // Icono de la izquierda (la lupa; "add" en el campo de una tarea nueva, Fase 11 B5).
+    property string icon: "search"
     property var keyHandler: null
     property var keyReleaseHandler: null
     // "large": tarjetas de busqueda (Picker, guia). "regular": dentro de una
@@ -41,7 +44,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: Tokens.space.md
         anchors.verticalCenter: parent.verticalCenter
-        name: "search"
+        name: box.icon
         color: Colors.textMuted
     }
     TextInput {
