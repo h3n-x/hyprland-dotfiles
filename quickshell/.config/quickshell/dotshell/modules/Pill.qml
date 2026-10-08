@@ -23,7 +23,9 @@ Rectangle {
     implicitWidth: root.vertical ? Tokens.pill.height : row.implicitWidth + horizontalPadding * 2
     implicitHeight: root.vertical ? row.implicitHeight + horizontalPadding * 2 : Tokens.pill.height
     radius: Tokens.radius.pill(height)
-    color: Colors.surfaceLow
+    // Solo flotante lleva fondo propio (bar.style, Fase 11 B3b): sobre una barra
+    // sólida o transparente, la píldora agrupa sin dibujar.
+    color: Tokens.bar.style === "floating" ? Colors.surfaceLow : "transparent"
 
     // Hover de la pill entera, solo para pills de accion unica (Clock, Mpris;
     // decision Q2 = A). En las de varios botones cada control lleva su propio

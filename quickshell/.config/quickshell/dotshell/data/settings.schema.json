@@ -260,6 +260,30 @@
       "label": "Grosor", "description": "Alto de la barra (o ancho, si está a un costado).",
       "keywords": ["alto", "ancho", "tamaño", "grosor"], "apply": "live"
     },
+    "bar.style": {
+      "type": "enum", "default": "floating", "values": { "floating": "Flotante", "solid": "Sólida", "transparent": "Transparente" },
+      "category": "bar", "section": "Posición", "order": 5,
+      "label": "Estilo", "description": "Flotante: píldoras sueltas. Sólida: una barra pegada al borde. Transparente: sin fondos (sobre el fondo de pantalla).",
+      "keywords": ["fondo", "sólida", "transparente", "flotante", "estilo"], "apply": "live"
+    },
+    "bar.peek": {
+      "type": "bool", "default": false,
+      "category": "bar", "section": "Posición", "order": 6,
+      "label": "Mostrar solo mientras se mantiene Super", "description": "La barra no ocupa lugar y aparece al mantener la tecla Super. Para mirarla; para usarla, déjala fija (con Super, el clic mueve ventanas).",
+      "keywords": ["ocultar", "auto", "super", "esconder"], "apply": "live"
+    },
+    "bar.peekMode": {
+      "type": "enum", "default": "overlay", "values": { "overlay": "Encima de las ventanas", "push": "Empujar las ventanas" },
+      "category": "bar", "section": "Posición", "order": 7,
+      "label": "Al mantener Super", "description": "Encima: aparece sobre lo abierto, con fondo, sin mover nada. Empujar: reserva su lugar mientras se ve y las ventanas se acomodan.",
+      "keywords": ["super", "ocultar", "empujar", "encima"], "apply": "live"
+    },
+    "bar.peekDelay": {
+      "type": "int", "default": 250, "min": 0, "max": 1000, "step": 50, "unit": "ms",
+      "category": "bar", "section": "Posición", "order": 8,
+      "label": "Esperar antes de mostrarla", "description": "Así los atajos rápidos con Super (Super+D, Super+A...) no la hacen aparecer.",
+      "keywords": ["retardo", "super", "demora"], "apply": "live", "advanced": true
+    },
     "bar.minWorkspaces": {
       "type": "int", "default": 5, "min": 1, "max": 10,
       "category": "bar", "section": "Escritorios", "order": 10,

@@ -272,13 +272,17 @@ QtObject {
         // o abajo, ancho si esta a un costado).
         property string edge: "top"
         property int height: 40
+        // Estilo (bar.style, Fase 11 B3b): "floating" (pildoras sueltas, como
+        // siempre), "solid" (una barra pegada al borde, un solo fondo) o
+        // "transparent" (sin fondos). Sólida no deja margen.
+        property string style: "floating"
         readonly property bool vertical: edge === "left" || edge === "right"
         property int marginTop
         property int marginSide
     }
     readonly property BarTokens bar: BarTokens {
-        marginTop: root.space.sm
-        marginSide: root.screenEdge
+        marginTop: style === "solid" ? 0 : root.space.sm
+        marginSide: style === "solid" ? 0 : root.screenEdge
     }
 
     component PillTokens: QtObject {

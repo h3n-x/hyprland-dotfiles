@@ -45,6 +45,11 @@ QtObject {
         property: "edge"
         value: SettingsState.value("bar.edge") || "top"
     }
+    property Binding barStyle: Binding {
+        target: Tokens.bar
+        property: "style"
+        value: SettingsState.value("bar.style") || "floating"
+    }
     property Binding barSize: Binding {
         target: Tokens.bar
         property: "height"

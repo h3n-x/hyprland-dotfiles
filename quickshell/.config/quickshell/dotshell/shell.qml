@@ -6,6 +6,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import "modules"
 
 ShellRoot {
@@ -20,6 +21,15 @@ ShellRoot {
     }
 
     // SUPER+SHIFT+B (ver binds.lua) -- reemplaza a "killall -SIGUSR1 waybar".
+    // Super mantenido (Fase 11 B3b, bar.peek): dos atajos globales en binds.lua
+    // (al apretar y al soltar Super_L) llegan aca; con la opcion apagada solo
+    // cambia este valor y nadie lo mira.
+    GlobalShortcut {
+        appid: "quickshell"
+        name: "barPeek"
+        onPressed: BarVisibility.peekHeld = true
+        onReleased: BarVisibility.peekHeld = false
+    }
     IpcHandler {
         target: "bar"
         function toggle(): void {

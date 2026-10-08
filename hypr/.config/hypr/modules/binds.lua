@@ -180,6 +180,11 @@ hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ to
 -- corren al soltarla.
 hl.bind("Caps_Lock", hl.dsp.exec_cmd("qs -c dotshell ipc call osd keys"), { non_consuming = true, release = true, desc = "Sistema · Estado de Bloq Mayús" })
 hl.bind("Num_Lock", hl.dsp.exec_cmd("qs -c dotshell ipc call osd keys"), { non_consuming = true, release = true, desc = "Sistema · Estado de Bloq Num" })
+-- Mostrar la barra mientras se mantiene Super (bar.peek, Fase 11 B3b): un atajo
+-- global al apretar y otro al soltar Super_L; no consumen la tecla ni tapan otros
+-- atajos de Super. Con la opcion apagada, la shell solo anota el estado.
+hl.bind("SUPER_L", hl.dsp.global("quickshell:barPeek"), { ignore_mods = true, transparent = true, non_consuming = true, desc = "Shell · Mostrar barra (mantener)" })
+hl.bind("SUPER_L", hl.dsp.global("quickshell:barPeek"), { ignore_mods = true, transparent = true, non_consuming = true, release = true, desc = "Shell · Mostrar barra (mantener)" })
 hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, desc = "Multimedia · Silenciar el micrófono" })
 
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"), { locked = true, repeating = true, desc = "Multimedia · Brillo" })

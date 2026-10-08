@@ -8,6 +8,19 @@ QtObject {
     id: root
 
     property bool hidden: false
+    // Super mantenido (bar.peek, Fase 11 B3b): lo pone el GlobalShortcut de shell.qml.
+    // La barra se ve (peekShown) recien si se mantiene bar.peekDelay ms: un atajo
+    // rapido con Super no la hace aparecer; al soltar se va enseguida.
+    property bool peekHeld: false
+    property bool peekShown: false
+    onPeekHeldChanged: {
+        if (root.peekHeld) peekTimer.restart();
+        else { peekTimer.stop(); root.peekShown = false; }
+    }
+    property Timer peekTimer: Timer {
+        interval: Math.max(0, SettingsState.value("bar.peekDelay") ?? 250)
+        onTriggered: root.peekShown = root.peekHeld
+    }
     // Modulo marcado en la barra mientras el centro de configuracion lo senala
     // (editor de la disposicion, Fase 11 B1; IPC bar highlight). "" = ninguno.
     property string highlight: ""

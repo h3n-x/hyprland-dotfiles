@@ -563,7 +563,11 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   borde (arriba, abajo, izquierda, derecha) y su grosor (32-48 px); a un
   costado los modulos se apilan (el reloj en dos lineas, solo iconos), y el
   centro de control, el OSD, los avisos y los menus se ubican desde ese
-  borde. En que pantallas va la barra. Reloj de 24 o
+  borde. Estilo flotante (pildoras sueltas), solida (pegada al borde, un
+  solo fondo) o transparente, y "mostrar solo mientras se mantiene Super"
+  (aparece al mantener la tecla, tras un breve retardo: encima de las
+  ventanas, con fondo, o empujandolas mientras se ve; Fase 11 B3b).
+  En que pantallas va la barra. Reloj de 24 o
   12 h y la fecha al lado, cambiar de escritorio con la rueda, y la pill de
   musica con el titulo o solo el icono (Fase 10 B4).
 - **Dashboard**: las zonas Sistema y Escritorios del inicio, la ciudad del
@@ -1036,6 +1040,7 @@ descripcion.
 | `Super` + `Shift` + `V` | Portapapeles |
 | `Super` + `.` | Emoji |
 | `Super` + `/` | Guía de atajos |
+| `SUPER_L` | Mostrar barra (mantener) |
 
 **Programas**
 

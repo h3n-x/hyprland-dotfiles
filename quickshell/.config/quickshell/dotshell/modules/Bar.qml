@@ -41,12 +41,40 @@ PanelWindow {
     // SUPER+SHIFT+B (ver binds.lua + shell.qml) -- toggle global, afecta a
     // todas las pantallas a la vez (BarVisibility es un singleton); y solo en
     // las pantallas elegidas (bar.screens, Fase 11 B1; vacio = todas).
-    readonly property bool barShown: !BarVisibility.hidden && BarVisibility.onScreen(bar.screen)
+    // bar.peek (Fase 11 B3b): solo mientras se mantiene Super (tras bar.peekDelay).
+    // Encima (bar.peekMode "overlay"): no reserva lugar y lleva fondo de panel
+    // para leerse sobre lo abierto. Empujar ("push"): reserva su lugar mientras se
+    // ve y Hyprland acomoda las ventanas (Auto: el lugar sale del tamano; Normal
+    // usaria exclusiveZone, 0, y no reservaria nada).
+    readonly property bool peek: SettingsState.value("bar.peek") === true
+    readonly property bool peekOverlay: bar.peek && SettingsState.value("bar.peekMode") !== "push"
+    // La pantalla se copia una vez: al mostrarse, la ventana vuelve a anunciar
+    // screen y leerlo aca seria un bucle de enlaces (en cada aparicion con peek).
+    property var home: null
+    Component.onCompleted: bar.home = bar.screen
+    readonly property bool barShown: !BarVisibility.hidden && BarVisibility.onScreen(bar.home) && (!bar.peek || BarVisibility.peekShown)
     visible: bar.barShown
+    exclusionMode: bar.peekOverlay ? ExclusionMode.Ignore : ExclusionMode.Auto
 
     readonly property var lay: SettingsState.value("bar.layout") || ({ "start": [], "center": [], "end": [] })
     readonly property bool startSpacer: bar.lay.start.indexOf("spacer") >= 0
     readonly property bool endSpacer: bar.lay.end.indexOf("spacer") >= 0
+
+    // Sólida (bar.style, Fase 11 B3b): un solo fondo pegado al borde.
+    Rectangle {
+        anchors.fill: parent
+        visible: Tokens.bar.style === "solid" && !bar.peekOverlay
+        color: Colors.surfaceLow
+    }
+    // Encima de las ventanas (bar.peek, modo "overlay"): un panel para que se lea
+    // sobre lo abierto, sea cual sea el estilo (sin sombra: la ventana mide justo la barra).
+    Surface {
+        anchors.fill: parent
+        visible: bar.peekOverlay
+        level: 2
+        radius: Tokens.bar.style === "solid" ? 0 : Tokens.radius.lg
+        shadowEnabled: false
+    }
 
     // Contenedor de las tres secciones (el dashboard se ancla aca).
     Item {
