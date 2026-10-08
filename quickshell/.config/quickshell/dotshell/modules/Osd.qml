@@ -27,7 +27,8 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     implicitHeight: box.implicitHeight + box.shadowMargin * 2
     margins {
-        top: Tokens.popupTop - box.shadowMargin
+        // Arriba al centro; debajo de la barra si esta arriba (Fase 11 B3: inset).
+        top: Tokens.insetTop - box.shadowMargin
     }
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"

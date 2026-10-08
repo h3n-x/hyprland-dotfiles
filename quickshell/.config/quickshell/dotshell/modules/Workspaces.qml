@@ -30,8 +30,10 @@ Item {
     readonly property bool icons: SettingsState.value("bar.workspaces.windowIcons") === true
     readonly property int maxIcons: SettingsState.value("bar.workspaces.maxIcons") || 3
 
+    // A un costado (Fase 11 B3) van en columna y el indicador baja en vez de correrse.
+    readonly property bool vertical: Tokens.bar.vertical
     implicitWidth: root.icons ? iconRow.implicitWidth : row.implicitWidth
-    implicitHeight: row.implicitHeight
+    implicitHeight: root.icons ? iconRow.implicitHeight : row.implicitHeight
 
     readonly property var slots: DesktopState.slots.filter(w => {
         const real = !w.placeholder;
@@ -51,7 +53,7 @@ Item {
     property bool settled: false
     Timer { interval: 500; running: true; onTriggered: root.settled = true }
 
-    Row {
+    BarFlow {
         id: row
         visible: !root.icons
         spacing: Tokens.space.md
@@ -78,7 +80,7 @@ Item {
                     : label.isEmpty ? "radio_button_unchecked"
                     : "circle"
                 opacity: label.isUrgent || !indicator.visible ? 1
-                    : Math.min(1, Math.abs(indicator.x - label.x) / Tokens.icon.md)
+                    : Math.min(1, (root.vertical ? Math.abs(indicator.y - label.y) : Math.abs(indicator.x - label.x)) / Tokens.icon.md)
                 filled: !label.isEmpty
                 size: label.isEmpty || label.isUrgent ? Tokens.icon.md : Tokens.icon.sm
                 width: Tokens.icon.md
@@ -112,8 +114,16 @@ Item {
         color: Colors.accent
         width: Tokens.icon.md
         height: Tokens.icon.md
-        x: Math.max(0, root.focusedIndex) * root.pitch
+        x: root.vertical ? 0 : Math.max(0, root.focusedIndex) * root.pitch
+        y: root.vertical ? Math.max(0, root.focusedIndex) * root.pitch : 0
         Behavior on x {
+            enabled: root.settled && Tokens.motion.scale > 0
+            SpringAnimation {
+                spring: Tokens.motion.spring.qmlSpring
+                damping: Tokens.motion.spring.qmlDamping
+            }
+        }
+        Behavior on y {
             enabled: root.settled && Tokens.motion.scale > 0
             SpringAnimation {
                 spring: Tokens.motion.spring.qmlSpring
@@ -123,10 +133,9 @@ Item {
     }
 
     // Con iconos: cada escritorio muestra sus ventanas (hasta maxIcons, +n el resto).
-    Row {
+    BarFlow {
         id: iconRow
         visible: root.icons
-        anchors.verticalCenter: parent.verticalCenter
         spacing: Tokens.space.sm
         Repeater {
             model: root.icons ? root.slots : []
@@ -136,13 +145,13 @@ Item {
                 readonly property bool real: !ws.modelData.placeholder
                 readonly property var wins: ws.real ? ws.modelData.toplevels.values : []
                 readonly property bool focused: ws.real && Hyprland.focusedWorkspace === ws.modelData
-                implicitWidth: Math.max(Tokens.icon.md, inner.implicitWidth) + 2 * Tokens.space.xs
-                implicitHeight: Tokens.icon.md + 2 * Tokens.space.hair
-                radius: height / 2
+                implicitWidth: root.vertical ? Tokens.icon.md + 2 * Tokens.space.hair : Math.max(Tokens.icon.md, inner.implicitWidth) + 2 * Tokens.space.xs
+                implicitHeight: root.vertical ? Math.max(Tokens.icon.md, inner.implicitHeight) + 2 * Tokens.space.xs : Tokens.icon.md + 2 * Tokens.space.hair
+                radius: Math.min(width, height) / 2
                 color: ws.focused ? Colors.tint(Colors.accent, Tokens.tint.track) : "transparent"
                 border.width: ws.focused ? 1 : 0
                 border.color: Colors.accent
-                Row {
+                BarFlow {
                     id: inner
                     anchors.centerIn: parent
                     spacing: Tokens.space.hair
@@ -155,14 +164,12 @@ Item {
                         model: ws.wins.slice(0, root.maxIcons)
                         IconImage {
                             required property var modelData
-                            anchors.verticalCenter: parent.verticalCenter
                             implicitSize: Tokens.icon.sm
                             source: AppInfo.icon(root.appOf(modelData))
                         }
                     }
                     Text {
                         visible: ws.wins.length > root.maxIcons
-                        anchors.verticalCenter: parent.verticalCenter
                         text: "+" + (ws.wins.length - root.maxIcons)
                         color: Colors.textMuted
                         font.family: Tokens.font.ui

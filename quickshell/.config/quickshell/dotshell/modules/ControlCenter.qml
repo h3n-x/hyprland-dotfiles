@@ -17,21 +17,27 @@ import ".." // Colors.qml, Tokens.qml, NotificationState.qml, ControlCenterState
 PanelWindow {
     id: window
 
-    anchors {
-        top: true
-        right: true
-    }
-    // Debajo de la barra (popupTop = margen + alto de la barra + md) y
-    // alineado con su borde derecho; mismo valor que Osd.qml y los toasts. La
+    // Junto al extremo final de la barra (Fase 11 B3): arriba a la derecha con
+    // la barra arriba (como siempre), abajo a la derecha con la barra abajo,
+    // arriba a la izquierda con la barra a la izquierda. Del lado de la barra
+    // deja su reserva (Tokens.inset*), igual que el OSD y los avisos. La
     // ventana suma el margen de la sombra alrededor de la tarjeta, asi que se
     // corre ese margen hacia afuera y solo acepta input sobre la tarjeta.
+    anchors {
+        top: Tokens.bar.edge !== "bottom"
+        bottom: Tokens.bar.edge === "bottom"
+        right: Tokens.bar.edge !== "left"
+        left: Tokens.bar.edge === "left"
+    }
     WlrLayershell.namespace: "quickshell-panel"
     // Superficie invocada (Fase 8 B6): capa Overlay, por encima de una ventana en
     // pantalla completa (ver FullscreenState).
     WlrLayershell.layer: WlrLayer.Overlay
     margins {
-        top: Tokens.popupTop - card.shadowMargin
-        right: Tokens.screenEdge - card.shadowMargin
+        top: Tokens.insetTop - card.shadowMargin
+        bottom: Tokens.insetBottom - card.shadowMargin
+        right: Tokens.insetRight - card.shadowMargin
+        left: Tokens.insetLeft - card.shadowMargin
     }
     implicitWidth: Tokens.panel.widthLg + card.shadowMargin * 2
     implicitHeight: Math.min(600, card.implicitHeight) + card.shadowMargin * 2

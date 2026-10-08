@@ -10,7 +10,8 @@ import Quickshell.Services.SystemTray
 import Quickshell.Services.Mpris
 import ".." // Colors.qml, Tokens.qml
 
-Row {
+// En fila o en columna segun la barra (BarFlow, Fase 11 B3).
+BarFlow {
     id: root
     required property var panelWindow
     spacing: Tokens.space.sm

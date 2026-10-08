@@ -38,6 +38,18 @@ QtObject {
         property: "scale"
         value: SettingsState.value("accessibility.textScale") || 1
     }
+    // Donde va la barra y su grosor (Fase 11 B3): los lee todo lo que se ubica
+    // respecto de ella (Tokens.bar, inset*). En el bloqueo y el login no hay barra.
+    property Binding barEdge: Binding {
+        target: Tokens.bar
+        property: "edge"
+        value: SettingsState.value("bar.edge") || "top"
+    }
+    property Binding barSize: Binding {
+        target: Tokens.bar
+        property: "height"
+        value: SettingsState.value("bar.size") || 40
+    }
     property Binding focusRing: Binding {
         target: Tokens
         property: "focusRing"

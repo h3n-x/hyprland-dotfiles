@@ -14,13 +14,12 @@ Item {
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
 
-    Row {
+    BarFlow {
         id: row
         spacing: Tokens.space.xs
         Icon { visible: KeyboardState.capsLock; name: "keyboard_capslock"; size: Tokens.icon.md }
         Text {
             visible: KeyboardState.numLock
-            anchors.verticalCenter: parent.verticalCenter
             text: "1"
             color: Colors.text
             font.family: Tokens.font.mono

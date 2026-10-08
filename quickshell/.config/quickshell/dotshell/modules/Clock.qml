@@ -30,47 +30,56 @@ Item {
     readonly property bool showWeather: WeatherState.configured && !!root.cur
     readonly property bool weatherDim: root.showWeather && WeatherState.isDim(clock.date.getTime() / 1000)
 
-    RowLayout {
+    GridLayout {
         id: row
-        spacing: Tokens.space.sm
+        // Fila o columna segun la barra (Fase 11 B3).
+        flow: Tokens.bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rows: Tokens.bar.vertical ? -1 : 1
+        columns: Tokens.bar.vertical ? 1 : -1
+        rowSpacing: Tokens.space.sm
+        columnSpacing: Tokens.space.sm
 
+        // A un costado (Fase 11 B3) no hay lugar para el icono ni la fecha; la
+        // hora va en dos lineas.
         Icon {
-            Layout.alignment: Qt.AlignVCenter
+            visible: !Tokens.bar.vertical
+            Layout.alignment: Qt.AlignCenter
             name: "schedule"
             size: Tokens.icon.sm
             color: Colors.textMuted
         }
         Text {
-            Layout.alignment: Qt.AlignVCenter
+            Layout.alignment: Qt.AlignCenter
             color: Colors.text
             font.family: Tokens.font.ui
             // type.title (D2): el reloj recupera el enfasis con tamano, no con un Bold.
             font.pixelSize: Tokens.type.title
             font.weight: Tokens.weight.semibold
             font.features: Tokens.tabularNumbers
-            text: Qt.formatTime(clock.date, SettingsState.value("bar.clock.format") === "12" ? "h:mm AP" : "HH:mm")
+            horizontalAlignment: Text.AlignHCenter
+            lineHeight: 0.9
+            text: Qt.formatTime(clock.date, SettingsState.value("bar.clock.format") === "12"
+                ? (Tokens.bar.vertical ? "h\nmm" : "h:mm AP") : (Tokens.bar.vertical ? "HH\nmm" : "HH:mm"))
         }
         Text {
-            visible: SettingsState.value("bar.clock.date") === true
-            Layout.alignment: Qt.AlignVCenter
+            visible: SettingsState.value("bar.clock.date") === true && !Tokens.bar.vertical
+            Layout.alignment: Qt.AlignCenter
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.body
             text: root.es.standaloneDayName(clock.date.getDay(), Locale.ShortFormat) + " " + clock.date.getDate()
         }
-        Row {
+        BarFlow {
             visible: root.showWeather
-            Layout.alignment: Qt.AlignVCenter
-            spacing: Tokens.space.xs
+            Layout.alignment: Qt.AlignCenter
+            spacing: Tokens.bar.vertical ? 0 : Tokens.space.xs
             opacity: root.weatherDim ? 0.55 : 1
             Icon {
-                anchors.verticalCenter: parent.verticalCenter
                 name: root.cur ? WeatherText.describe(root.cur.weather_code, root.cur.is_day === 1).icon : ""
                 size: Tokens.icon.sm
                 color: Colors.textMuted
             }
             Text {
-                anchors.verticalCenter: parent.verticalCenter
                 text: root.cur ? WeatherState.temp(root.cur.temperature_2m) : ""
                 color: Colors.textMuted
                 font.family: Tokens.font.ui

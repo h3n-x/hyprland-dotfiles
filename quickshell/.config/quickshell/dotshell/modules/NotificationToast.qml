@@ -53,9 +53,10 @@ PanelWindow {
         return toastWindow.maxVisible > 0 ? l.slice(0, toastWindow.maxVisible) : l;
     }
     margins {
-        top: Tokens.popupTop - toastWindow.shadowMargin
-        right: Tokens.screenEdge - toastWindow.shadowMargin
-        bottom: toastWindow.atBottom ? Tokens.screenEdge - toastWindow.shadowMargin : 0
+        // Nunca encima de la barra, este en el borde que este (Fase 11 B3: inset).
+        top: Tokens.insetTop - toastWindow.shadowMargin
+        right: Tokens.insetRight - toastWindow.shadowMargin
+        bottom: toastWindow.atBottom ? Tokens.insetBottom - toastWindow.shadowMargin : 0
     }
     implicitWidth: Tokens.panel.widthLg + toastWindow.shadowMargin * 2
     color: "transparent"

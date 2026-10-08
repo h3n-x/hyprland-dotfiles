@@ -265,11 +265,14 @@ QtObject {
 
     // ---- Tokens de componente (D14) ---------------------------------------
     component BarTokens: QtObject {
-        // Borde de la pantalla donde vive la barra: el unico lugar del que
-        // los popups anclados deducen hacia donde abrirse (AnchoredPanel,
-        // side "auto"). "top" hoy; la barra vertical (P11.3) lo vuelve opcion.
-        readonly property string edge: "top"
-        readonly property int height: 40
+        // Borde de la pantalla donde vive la barra (bar.edge, Fase 11 B3; lo pone
+        // StoreBindings): de el deducen hacia donde abrirse los popups anclados
+        // (AnchoredPanel, side "auto") y donde van el OSD, los avisos y el centro
+        // de control (inset*). height = el grosor (bar.size; alto si esta arriba
+        // o abajo, ancho si esta a un costado).
+        property string edge: "top"
+        property int height: 40
+        readonly property bool vertical: edge === "left" || edge === "right"
         property int marginTop
         property int marginSide
     }
@@ -279,9 +282,10 @@ QtObject {
     }
 
     component PillTokens: QtObject {
-        readonly property int height: 28
+        property int height: 28
     }
-    readonly property PillTokens pill: PillTokens {}
+    // La pildora sigue al grosor de la barra (40 -> 28, como siempre).
+    readonly property PillTokens pill: PillTokens { height: Math.max(22, root.bar.height - 12) }
 
     component RowTokens: QtObject {
         readonly property int height: 36        // filas de lista
@@ -297,8 +301,13 @@ QtObject {
     }
     readonly property PanelTokens panel: PanelTokens {}
 
-    // Distancia de los popups (OSD, toasts, centro de control) al borde
-    // superior: debajo de la barra + un paso de espaciado. Hoy es 60 fijo en
-    // tres archivos; con los tokens da 8 + 40 + 12 = 60.
-    readonly property int popupTop: bar.marginTop + bar.height + space.md
+    // Distancia de los popups (OSD, avisos, centro de control) a cada borde de
+    // la pantalla: del lado de la barra, su reserva (margen + grosor + un paso:
+    // 8 + 40 + 12 = 60 arriba, como siempre); de los otros, el margen de
+    // pantalla (Fase 11 B3: la barra puede estar en cualquier borde).
+    readonly property int barReserve: bar.marginTop + bar.height + space.md
+    readonly property int insetTop: bar.edge === "top" ? barReserve : screenEdge
+    readonly property int insetBottom: bar.edge === "bottom" ? barReserve : screenEdge
+    readonly property int insetLeft: bar.edge === "left" ? barReserve : screenEdge
+    readonly property int insetRight: bar.edge === "right" ? barReserve : screenEdge
 }

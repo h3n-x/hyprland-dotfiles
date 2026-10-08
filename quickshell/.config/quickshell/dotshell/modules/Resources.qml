@@ -22,12 +22,12 @@ Item {
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
 
-    Row {
+    BarFlow {
         id: row
         spacing: Tokens.space.md
         Repeater {
             model: root.show
-            Row {
+            BarFlow {
                 id: cell
                 required property string modelData
                 readonly property real pct: cell.modelData === "cpu" ? SystemState.cpu * 100
@@ -36,20 +36,18 @@ Item {
                 spacing: Tokens.space.xs
                 visible: !(cell.modelData === "temp" && isNaN(SystemState.temp))
                 Icon {
-                    anchors.verticalCenter: parent.verticalCenter
                     name: ({ "cpu": "memory", "mem": "memory_alt", "temp": "device_thermostat" })[cell.modelData] || "help"
                     size: Tokens.icon.sm
                     color: cell.hot ? Colors.warning : Colors.textMuted
                 }
                 Text {
-                    anchors.verticalCenter: parent.verticalCenter
                     // Ancho fijo ("100%"): el numero cambia sin mover lo de al lado.
-                    width: Math.max(implicitWidth, wide.width)
+                    width: Tokens.bar.vertical ? implicitWidth : Math.max(implicitWidth, wide.width)
                     horizontalAlignment: Text.AlignRight
                     text: isNaN(cell.pct) ? "–" : Math.round(cell.pct) + (cell.modelData === "temp" ? "°" : "%")
                     color: cell.hot ? Colors.warning : Colors.text
                     font.family: Tokens.font.ui
-                    font.pixelSize: Tokens.type.label
+                    font.pixelSize: Tokens.bar.vertical ? Tokens.type.caption : Tokens.type.label
                     font.features: { "tnum": 1 }
                 }
             }

@@ -63,16 +63,21 @@ Item {
         onTriggered: root.refresh()
     }
 
-    RowLayout {
+    GridLayout {
         id: layout
-        spacing: Tokens.space.xs
+        // Fila o columna segun la barra (Fase 11 B3).
+        flow: Tokens.bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rows: Tokens.bar.vertical ? -1 : 1
+        columns: Tokens.bar.vertical ? 1 : -1
+        rowSpacing: Tokens.space.xs
+        columnSpacing: Tokens.space.xs
         anchors.centerIn: parent
 
         Icon {
             name: "cable"
             filled: root.portCount > 0
             color: root.portCount > 0 ? Colors.accent : Colors.text
-            Layout.alignment: Qt.AlignVCenter
+            Layout.alignment: Qt.AlignCenter
         }
 
         Text {
@@ -83,7 +88,7 @@ Item {
             font.pixelSize: Tokens.type.caption
             font.weight: Tokens.weight.semibold
             font.features: Tokens.tabularNumbers
-            Layout.alignment: Qt.AlignVCenter
+            Layout.alignment: Qt.AlignCenter
         }
     }
 

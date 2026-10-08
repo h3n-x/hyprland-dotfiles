@@ -16,16 +16,16 @@ Item {
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
 
-    Row {
+    BarFlow {
         id: row
         spacing: Tokens.space.xs
-        Icon { anchors.verticalCenter: parent.verticalCenter; name: "keyboard"; size: Tokens.icon.sm }
+        Icon { name: "keyboard"; size: Tokens.icon.sm }
         Text {
-            anchors.verticalCenter: parent.verticalCenter
-            text: KeyboardState.code
+            // A un costado (Fase 11 B3) no entra "LATAM": tres letras, mas chicas.
+            text: Tokens.bar.vertical ? KeyboardState.code.slice(0, 3) : KeyboardState.code
             color: Colors.text
             font.family: Tokens.font.ui
-            font.pixelSize: Tokens.type.label
+            font.pixelSize: Tokens.bar.vertical ? Tokens.type.caption : Tokens.type.label
             font.weight: Tokens.weight.medium
         }
     }

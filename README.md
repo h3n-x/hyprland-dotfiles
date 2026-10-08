@@ -559,7 +559,11 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   Escritorios: solo los de cada pantalla, sin los vacios, o con el icono de
   cada ventana. Informacion al pasar el raton (la fecha completa, la bateria,
   el titulo entero...) y la rueda sobre la barra para volumen o brillo,
-  apagadas de fabrica. En que pantallas va la barra. Reloj de 24 o
+  apagadas de fabrica. **Posicion** (Fase 11 B3): la barra en cualquier
+  borde (arriba, abajo, izquierda, derecha) y su grosor (32-48 px); a un
+  costado los modulos se apilan (el reloj en dos lineas, solo iconos), y el
+  centro de control, el OSD, los avisos y los menus se ubican desde ese
+  borde. En que pantallas va la barra. Reloj de 24 o
   12 h y la fecha al lado, cambiar de escritorio con la rueda, y la pill de
   musica con el titulo o solo el icono (Fase 10 B4).
 - **Dashboard**: las zonas Sistema y Escritorios del inicio, la ciudad del

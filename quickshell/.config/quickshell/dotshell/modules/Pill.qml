@@ -13,12 +13,15 @@ Rectangle {
     default property alias content: row.data
     property real horizontalPadding: Tokens.pad.pillH
     property real spacing: Tokens.gap.inline
+    // En una barra a un costado (Fase 11 B3) los modulos van en columna y la
+    // pildora tiene el ancho fijo y el alto de su contenido.
+    property bool vertical: false
 
     // Alto fijo (Tokens.pill.height, D14), no derivado del contenido: si cada
     // Pill midiera su alto segun lo que tiene adentro, los de iconos y los de
     // texto quedan de alturas distintas uno al lado del otro.
-    implicitWidth: row.implicitWidth + horizontalPadding * 2
-    implicitHeight: Tokens.pill.height
+    implicitWidth: root.vertical ? Tokens.pill.height : row.implicitWidth + horizontalPadding * 2
+    implicitHeight: root.vertical ? row.implicitHeight + horizontalPadding * 2 : Tokens.pill.height
     radius: Tokens.radius.pill(height)
     color: Colors.surfaceLow
 
@@ -32,17 +35,20 @@ Rectangle {
     readonly property var parts: row.children
     StateLayer { hovered: root.hovered; pressed: root.pressed }
 
-    // RowLayout (no Row) a proposito: con Row, cada hijo se posiciona con
-    // y=0 (top-align), asi que un modulo con font.pixelSize mas chico (ej.
+    // Un layout (no Row/Column) a proposito: con Row, cada hijo se posiciona
+    // con y=0 (top-align), asi que un modulo con font.pixelSize mas chico (ej.
     // Microphone.qml, 13px) queda visualmente "mas arriba" que uno con
-    // pixelSize mas grande (ej. Network.qml, 15px) al lado -- mismo bug
-    // que ya se corrigio dentro de Audio/Mpris/Osd, esta vez entre iconos
-    // del mismo Pill. Cada hijo puesto adentro de un Pill necesita
-    // Layout.alignment: Qt.AlignVCenter (ver Bar.qml) para que esto
-    // funcione.
-    RowLayout {
+    // pixelSize mas grande (ej. Network.qml, 15px) al lado. GridLayout (Fase
+    // 11 B3) en fila o en columna segun `vertical`; cada hijo lleva
+    // Layout.alignment: Qt.AlignCenter (BarEntry) para quedar centrado en los
+    // dos sentidos.
+    GridLayout {
         id: row
         anchors.centerIn: parent
-        spacing: root.spacing
+        flow: root.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rows: root.vertical ? -1 : 1
+        columns: root.vertical ? 1 : -1
+        rowSpacing: root.spacing
+        columnSpacing: root.spacing
     }
 }

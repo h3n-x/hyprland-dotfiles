@@ -86,16 +86,35 @@ Item {
             Behavior on color { ColorAnimation { duration: Tokens.motion.short } }
         }
 
-        // La barra: tres grupos como la de verdad (izquierda, reloj, derecha).
+        // La barra: tres grupos como la de verdad (inicio, centro, fin), en el
+        // borde donde esta (Fase 11 B3).
         Item {
-            x: Tokens.bar.marginSide * thumb.k
-            y: Tokens.bar.marginTop * thumb.k
-            width: parent.width - 2 * Tokens.bar.marginSide * thumb.k
-            height: Math.max(3, Tokens.pill.height * thumb.k)
+            id: mini
+            readonly property string edge: Tokens.bar.edge
+            readonly property bool v: Tokens.bar.vertical
+            readonly property real thick: Math.max(3, Tokens.pill.height * thumb.k)
+            readonly property real near: Tokens.bar.marginTop * thumb.k
+            readonly property real ends: Tokens.bar.marginSide * thumb.k
+            x: mini.edge === "right" ? parent.width - mini.near - mini.thick : mini.v ? mini.near : mini.ends
+            y: mini.edge === "bottom" ? parent.height - mini.near - mini.thick : mini.v ? mini.ends : mini.near
+            width: mini.v ? mini.thick : parent.width - 2 * mini.ends
+            height: mini.v ? parent.height - 2 * mini.ends : mini.thick
             readonly property color pill: Colors.tint(Colors.surfaceLow, Tokens.tint.overlay)
-            Rectangle { width: parent.width * 0.2; height: parent.height; radius: height / 2; color: parent.pill }
-            Rectangle { anchors.horizontalCenter: parent.horizontalCenter; width: parent.width * 0.09; height: parent.height; radius: height / 2; color: parent.pill }
-            Rectangle { anchors.right: parent.right; width: parent.width * 0.26; height: parent.height; radius: height / 2; color: parent.pill }
+            // [posicion a lo largo (0 inicio, 0.5 centro, 1 fin), largo relativo]
+            Repeater {
+                model: [[0, 0.2], [0.5, 0.09], [1, 0.26]]
+                Rectangle {
+                    required property var modelData
+                    readonly property real len: (mini.v ? mini.height : mini.width) * modelData[1]
+                    readonly property real at: ((mini.v ? mini.height : mini.width) - len) * modelData[0]
+                    x: mini.v ? 0 : at
+                    y: mini.v ? at : 0
+                    width: mini.v ? mini.width : len
+                    height: mini.v ? len : mini.height
+                    radius: Math.min(width, height) / 2
+                    color: mini.pill
+                }
+            }
         }
 
         // Ventanas.

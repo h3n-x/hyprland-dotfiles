@@ -9,6 +9,8 @@ import ".." // Colors.qml, Tokens.qml, CaptureState.qml
 
 Pill {
     id: pill
+    // A un costado (Fase 11 B3): el punto y el tiempo en columna.
+    vertical: Tokens.bar.vertical
 
     readonly property string result: CaptureState.recordResult
     readonly property bool recording: CaptureState.isRecording
@@ -28,7 +30,7 @@ Pill {
     }
 
     Item {
-        Layout.alignment: Qt.AlignVCenter
+        Layout.alignment: Qt.AlignCenter
         implicitWidth: Tokens.icon.md
         implicitHeight: Tokens.icon.md
 
@@ -73,14 +75,16 @@ Pill {
     }
 
     Text {
-        Layout.alignment: Qt.AlignVCenter
-        text: pill.failed ? "No se pudo grabar"
+        Layout.alignment: Qt.AlignCenter
+        // A un costado (Fase 11 B3) solo el tiempo o una marca: no entra la frase.
+        text: Tokens.bar.vertical ? (pill.failed ? "!" : pill.saved ? "✓" : pill.result === "stopping" ? "…" : pill.clock(CaptureState.elapsed))
+            : pill.failed ? "No se pudo grabar"
             : pill.saved ? "Guardada · " + pill.clock(Math.round(CaptureState.recordedMs / 1000))
             : pill.result === "stopping" ? "Guardando…"
             : pill.clock(CaptureState.elapsed)
         color: pill.failed ? Colors.textOnDangerContainer : pill.saved ? Colors.textOnSuccessContainer : Colors.text
         font.family: Tokens.font.ui
-        font.pixelSize: Tokens.type.body
+        font.pixelSize: Tokens.bar.vertical ? Tokens.type.caption : Tokens.type.body
         font.weight: Tokens.weight.medium
         font.features: Tokens.tabularNumbers
     }

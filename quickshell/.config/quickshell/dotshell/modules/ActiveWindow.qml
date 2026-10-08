@@ -20,16 +20,16 @@ Item {
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
 
-    Row {
+    BarFlow {
         id: row
         spacing: Tokens.space.sm
         IconImage {
-            anchors.verticalCenter: parent.verticalCenter
             implicitSize: Tokens.icon.sm
             source: root.toplevel && root.toplevel.appId ? AppInfo.icon(root.toplevel.appId) : ""
         }
+        // A un costado (Fase 11 B3): solo el icono de la aplicacion.
         Text {
-            anchors.verticalCenter: parent.verticalCenter
+            visible: !Tokens.bar.vertical
             width: Math.min(implicitWidth, SettingsState.value("bar.activeWindow.maxWidth") || 320)
             text: root.toplevel ? (root.toplevel.title || AppInfo.name(root.toplevel.appId)) : ""
             elide: Text.ElideRight

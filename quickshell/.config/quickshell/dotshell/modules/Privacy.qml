@@ -48,7 +48,7 @@ Item {
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
 
-    Row {
+    BarFlow {
         id: row
         spacing: Tokens.space.xs
         Icon { visible: root.screenShared; name: "screen_share"; size: Tokens.icon.md; filled: true; color: Colors.warning }

@@ -17,19 +17,25 @@ import ".." // Colors.qml, Tokens.qml, FullscreenState.qml, DashboardState.qml
 PanelWindow {
     id: bar
 
+    // En cualquier borde (bar.edge, Fase 11 B3): pegada a ese borde y a lo largo
+    // de el. Geometria del design system (D14): el grosor (40), 8 hacia el
+    // borde y 12 en los extremos -- el mismo gaps_out de Hyprland, asi los
+    // bordes de la barra quedan alineados con los de las ventanas.
+    readonly property string edge: Tokens.bar.edge
+    readonly property bool vertical: Tokens.bar.vertical
     anchors {
-        top: true
-        left: true
-        right: true
+        top: bar.edge !== "bottom"
+        bottom: bar.edge !== "top"
+        left: bar.edge !== "right"
+        right: bar.edge !== "left"
     }
-    // Geometria del design system (D14): 40 de alto, 8 arriba y 12 a los
-    // costados -- el mismo gaps_out de Hyprland, asi los bordes de la barra
-    // quedan alineados con los de las ventanas.
-    implicitHeight: Tokens.bar.height
+    implicitHeight: bar.vertical ? 0 : Tokens.bar.height
+    implicitWidth: bar.vertical ? Tokens.bar.height : 0
     margins {
-        top: Tokens.bar.marginTop
-        left: Tokens.bar.marginSide
-        right: Tokens.bar.marginSide
+        top: bar.edge === "top" ? Tokens.bar.marginTop : bar.vertical ? Tokens.bar.marginSide : 0
+        bottom: bar.edge === "bottom" ? Tokens.bar.marginTop : bar.vertical ? Tokens.bar.marginSide : 0
+        left: bar.edge === "left" ? Tokens.bar.marginTop : bar.vertical ? 0 : Tokens.bar.marginSide
+        right: bar.edge === "right" ? Tokens.bar.marginTop : bar.vertical ? 0 : Tokens.bar.marginSide
     }
     color: "transparent"
     // SUPER+SHIFT+B (ver binds.lua + shell.qml) -- toggle global, afecta a
@@ -47,37 +53,62 @@ PanelWindow {
         id: layout
         anchors.fill: parent
 
-        RowLayout {
+        // Inicio (izquierda o arriba): desde el borde hasta el centro.
+        GridLayout {
             id: startRow
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            width: Math.max(0, centerRow.x - Tokens.space.sm)
-            spacing: Tokens.space.sm
+            flow: bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+            rows: bar.vertical ? -1 : 1
+            columns: bar.vertical ? 1 : -1
+            rowSpacing: Tokens.space.sm
+            columnSpacing: Tokens.space.sm
+            x: bar.vertical ? (parent.width - width) / 2 : 0
+            y: bar.vertical ? 0 : (parent.height - height) / 2
+            // Si no entra, crece hacia el centro (lo del borde nunca queda fuera de la pantalla).
+            width: bar.vertical ? implicitWidth : Math.max(implicitWidth, centerRow.x - Tokens.space.sm)
+            height: bar.vertical ? Math.max(implicitHeight, centerRow.y - Tokens.space.sm) : implicitHeight
             Repeater {
                 model: bar.lay.start
                 delegate: itemC
             }
-            // Sin espaciador propio, lo de la izquierda queda pegado a la izquierda.
-            Item { visible: !bar.startSpacer; Layout.fillWidth: true }
+            // Sin espaciador propio, lo del inicio queda pegado al borde.
+            Item { visible: !bar.startSpacer; Layout.fillWidth: !bar.vertical; Layout.fillHeight: bar.vertical }
         }
 
-        RowLayout {
+        // Centro: al centro de la pantalla de verdad si hay lugar; si el inicio o
+        // el fin no le dejan, se corre lo justo para que nada lo tape (una barra
+        // vertical en una pantalla baja: 720 px logicos).
+        GridLayout {
             id: centerRow
-            anchors.centerIn: parent
-            spacing: Tokens.space.sm
+            flow: bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+            rows: bar.vertical ? -1 : 1
+            columns: bar.vertical ? 1 : -1
+            rowSpacing: Tokens.space.sm
+            columnSpacing: Tokens.space.sm
+            readonly property real ideal: bar.vertical ? (parent.height - height) / 2 : (parent.width - width) / 2
+            readonly property real lo: (bar.vertical ? startRow.implicitHeight : startRow.implicitWidth) + Tokens.space.sm
+            readonly property real hi: (bar.vertical ? parent.height - endRow.implicitHeight - height : parent.width - endRow.implicitWidth - width) - Tokens.space.sm
+            readonly property real along: Math.max(lo, Math.min(ideal, hi))
+            x: bar.vertical ? (parent.width - width) / 2 : along
+            y: bar.vertical ? along : (parent.height - height) / 2
             Repeater {
                 model: bar.lay.center
                 delegate: itemC
             }
         }
 
-        RowLayout {
+        // Fin (derecha o abajo): desde el centro hasta el borde.
+        GridLayout {
             id: endRow
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            width: Math.max(0, parent.width - centerRow.x - centerRow.width - Tokens.space.sm)
-            spacing: Tokens.space.sm
-            Item { visible: !bar.endSpacer; Layout.fillWidth: true }
+            flow: bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+            rows: bar.vertical ? -1 : 1
+            columns: bar.vertical ? 1 : -1
+            rowSpacing: Tokens.space.sm
+            columnSpacing: Tokens.space.sm
+            x: bar.vertical ? (parent.width - width) / 2 : parent.width - width
+            y: bar.vertical ? parent.height - height : (parent.height - height) / 2
+            width: bar.vertical ? implicitWidth : Math.max(implicitWidth, parent.width - centerRow.x - centerRow.width - Tokens.space.sm)
+            height: bar.vertical ? Math.max(implicitHeight, parent.height - centerRow.y - centerRow.height - Tokens.space.sm) : implicitHeight
+            Item { visible: !bar.endSpacer; Layout.fillWidth: !bar.vertical; Layout.fillHeight: bar.vertical }
             Repeater {
                 model: bar.lay.end
                 delegate: itemC
@@ -102,8 +133,12 @@ PanelWindow {
         visible: false
         color: "transparent"
         anchor.window: bar
-        anchor.rect.x: bar.tipItem ? bar.tipItem.mapToItem(layout, bar.tipItem.width / 2, 0).x - tipWin.implicitWidth / 2 : 0
-        anchor.rect.y: bar.height + Tokens.space.xs
+        // Del lado libre de la barra, centrada en el modulo.
+        readonly property point at: bar.tipItem ? bar.tipItem.mapToItem(layout, bar.tipItem.width / 2, bar.tipItem.height / 2) : Qt.point(0, 0)
+        anchor.rect.x: bar.vertical ? (bar.edge === "left" ? bar.width + Tokens.space.xs : -tipWin.implicitWidth - Tokens.space.xs)
+            : tipWin.at.x - tipWin.implicitWidth / 2
+        anchor.rect.y: bar.vertical ? tipWin.at.y - tipWin.implicitHeight / 2
+            : (bar.edge === "bottom" ? -tipWin.implicitHeight - Tokens.space.xs : bar.height + Tokens.space.xs)
         implicitWidth: tipText.implicitWidth + 2 * Tokens.space.md
         implicitHeight: tipText.implicitHeight + 2 * Tokens.space.sm
         Rectangle {
@@ -145,8 +180,9 @@ PanelWindow {
             id: slot
             required property var modelData
             readonly property bool shown: !!slot.item && slot.item.shown === true
-            Layout.alignment: Qt.AlignVCenter
-            Layout.fillWidth: slot.modelData === "spacer"
+            Layout.alignment: Qt.AlignCenter
+            Layout.fillWidth: !bar.vertical && slot.modelData === "spacer"
+            Layout.fillHeight: bar.vertical && slot.modelData === "spacer"
             visible: slot.modelData === "spacer" || slot.shown
             sourceComponent: slot.modelData === "spacer" ? spacerC : typeof slot.modelData === "string" ? bareC : pillC
             onLoaded: slot.item.data_ = slot.modelData
@@ -171,7 +207,10 @@ PanelWindow {
             property var data_
             readonly property var ids: data_ && data_.pill ? data_.pill : []
             readonly property bool shown: pill.parts.some(c => c.shown === true)
-            spacing: pill.ids.length > 1 ? Tokens.space.md : Tokens.gap.inline
+            // A un costado, mas juntos (Fase 11 B3): en una pantalla baja (720 px
+            // logicos) la disposicion de fabrica no entraria con 12 entre iconos.
+            spacing: pill.ids.length > 1 ? (bar.vertical ? Tokens.space.sm : Tokens.space.md) : Tokens.gap.inline
+            vertical: bar.vertical
             hovered: pill.parts.some(c => c.wholePill === true && c.hovered)
             pressed: pill.parts.some(c => c.wholePill === true && c.pressed)
             Repeater {
@@ -206,16 +245,20 @@ PanelWindow {
         id: fsHost
         screen: bar.screen
         visible: bar.hosted && DashboardState.visible && DashboardState.screen === bar.screen.name
+        // La misma geometria que la barra, en su borde.
         anchors {
-            top: true
-            left: true
-            right: true
+            top: bar.anchors.top
+            bottom: bar.anchors.bottom
+            left: bar.anchors.left
+            right: bar.anchors.right
         }
-        implicitHeight: Tokens.bar.height
+        implicitHeight: bar.implicitHeight
+        implicitWidth: bar.implicitWidth
         margins {
-            top: Tokens.bar.marginTop
-            left: Tokens.bar.marginSide
-            right: Tokens.bar.marginSide
+            top: bar.margins.top
+            bottom: bar.margins.bottom
+            left: bar.margins.left
+            right: bar.margins.right
         }
         color: "transparent"
         mask: Region {}

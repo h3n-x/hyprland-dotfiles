@@ -40,13 +40,18 @@ Item {
     onPlayingChanged: if (Tokens.motion.scale > 0) pulse.restart()
     onTitleChanged: if (Tokens.motion.scale > 0) titleFade.restart()
 
-    RowLayout {
+    GridLayout {
         id: row
-        spacing: Tokens.gap.inline
+        // Fila o columna segun la barra (Fase 11 B3).
+        flow: Tokens.bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rows: Tokens.bar.vertical ? -1 : 1
+        columns: Tokens.bar.vertical ? 1 : -1
+        rowSpacing: Tokens.gap.inline
+        columnSpacing: Tokens.gap.inline
 
         Icon {
             id: stateIcon
-            Layout.alignment: Qt.AlignVCenter
+            Layout.alignment: Qt.AlignCenter
             name: root.playing ? "equalizer" : "pause"
             filled: true
             size: Tokens.icon.sm
@@ -62,8 +67,9 @@ Item {
         Text {
             id: titleText
             // bar.media.title (Fase 10 B4): apagado, solo el icono.
-            visible: SettingsState.value("bar.media.title") !== false
-            Layout.alignment: Qt.AlignVCenter
+            // A un costado (Fase 11 B3) no hay lugar para el titulo: solo el icono.
+            visible: SettingsState.value("bar.media.title") !== false && !Tokens.bar.vertical
+            Layout.alignment: Qt.AlignCenter
             Layout.maximumWidth: 240
             color: root.playing ? Colors.text : Colors.textMuted
             font.family: Tokens.font.ui

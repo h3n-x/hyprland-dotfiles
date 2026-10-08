@@ -53,21 +53,27 @@ Item {
     onIsWarningChanged: if (root.isWarning) root.notify("Batería baja (20 %)", "critical", "battery-020", true)
     onIsFullChanged: if (root.isFull) root.notify("Batería cargada (100 %)", "normal", "battery-100-charged")
 
-    RowLayout {
+    GridLayout {
         id: label
-        spacing: Tokens.space.xs
+        // Fila o columna segun la barra (Fase 11 B3).
+        flow: Tokens.bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rows: Tokens.bar.vertical ? -1 : 1
+        columns: Tokens.bar.vertical ? 1 : -1
+        rowSpacing: Tokens.space.xs
+        columnSpacing: Tokens.space.xs
         Icon {
-            Layout.alignment: Qt.AlignVCenter
+            Layout.alignment: Qt.AlignCenter
             name: root.icon
             filled: true
             color: root.fg
         }
         Text {
-            Layout.alignment: Qt.AlignVCenter
-            text: Math.round(root.pct * 100) + "%"
+            Layout.alignment: Qt.AlignCenter
+            // A un costado (Fase 11 B3): el numero solo, mas chico.
+            text: Math.round(root.pct * 100) + (Tokens.bar.vertical ? "" : "%")
             color: root.fg
             font.family: Tokens.font.ui
-            font.pixelSize: Tokens.type.body
+            font.pixelSize: Tokens.bar.vertical ? Tokens.type.caption : Tokens.type.body
             font.weight: Tokens.weight.medium
             font.features: Tokens.tabularNumbers
         }
