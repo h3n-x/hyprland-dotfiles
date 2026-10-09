@@ -278,6 +278,7 @@ Item {
             value: row.value
             unit: row.meta.unit || ""
             labels: row.meta.labels || ({})
+            percent: !!row.meta.percent
             onMoved: (v) => row.set(row.meta.type === "int" ? Math.round(v) : v)
         }
     }

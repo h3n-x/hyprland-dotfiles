@@ -569,8 +569,8 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   propia (selector de archivos del portal, GTK).
 - **Accesibilidad**: reducir movimiento (la shell y tambien las animaciones
   de las ventanas), alto contraste, **tamano del
-  texto** (Normal, Grande 112 %, Muy grande 125 %: solo el texto, iconos y
-  alturas quedan igual; tambien el bloqueo y el login) y **foco siempre
+  texto** (de 85 % a 150 % en pasos de 5 %, 100 % normal: solo el texto,
+  iconos y alturas quedan igual; tambien el bloqueo y el login) y **foco siempre
   visible** (un anillo alrededor de lo que tiene el foco del teclado).
 - **Ventanas** (en Apariencia, Fase 10 B3): espacios, esquinas, borde,
   opacidad, desenfoque y sombras de Hyprland.

@@ -33,8 +33,8 @@ QtObject {
     }
     readonly property FontFamilies font: FontFamilies {}
 
-    // scale = tamano del texto (Fase 10 B2, accessibility.textScale: 1, 1.12
-    // o 1.25), solo para el texto: iconos, alturas y espacios no cambian. Los
+    // scale = tamano del texto (Fase 10 B2, accessibility.textScale: de 0,85
+    // a 1,5 desde la Fase 12), solo para el texto: iconos, alturas y espacios no cambian. Los
     // relojes decorativos (hero, lockClock) quedan fijos.
     component TypeScale: QtObject {
         property real scale: 1

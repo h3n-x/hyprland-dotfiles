@@ -25,6 +25,8 @@ Item {
     property string unit: ""
     // Textos para valores concretos ({"0": "Automático"}).
     property var labels: ({})
+    // Fraccion mostrada como porcentaje (1 = "100 %"; Fase 12, tamano del texto).
+    property bool percent: false
     signal moved(real value)
 
     readonly property bool log: root.from > 0 && root.to / root.from >= 50
@@ -58,6 +60,7 @@ Item {
     }
     function format(v: real): string {
         if (root.labels && root.labels.hasOwnProperty(String(v))) return root.labels[String(v)];
+        if (root.percent) return Math.round(v * 100) + " %";
         const d = root.log ? (v < 1 ? 2 : v < 10 ? 1 : 0) : root.decimals(root.stepSize);
         const n = Number(v.toFixed(d));
         return String(n).replace(".", ",") + (root.unit ? " " + root.unit : "");

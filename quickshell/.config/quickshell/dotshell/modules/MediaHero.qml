@@ -34,7 +34,8 @@ import ".." // Colors.qml, Tokens.qml, MediaState.qml, LyricsState.qml
 Item {
     id: hero
 
-    implicitHeight: 248
+    // 248 de siempre; con el texto grande (Fase 12: hasta 150 %), lo que pida la columna de texto.
+    implicitHeight: Math.max(248, info.implicitHeight + 2 * Tokens.space.lg)
 
     readonly property var player: MediaState.active
     // Visible de verdad (el dashboard lo liga a su Presence): sin esto sigue
@@ -454,6 +455,7 @@ Item {
 
     // ---- Texto, progreso y controles --------------------------------------------
     ColumnLayout {
+        id: info
         anchors.left: cover.right
         anchors.leftMargin: Tokens.space.xl
         anchors.right: parent.right

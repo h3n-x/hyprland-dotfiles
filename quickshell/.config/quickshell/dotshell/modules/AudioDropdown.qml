@@ -112,6 +112,10 @@ AnchoredPanel {
 
         Text {
             text: "SALIDA (ALTAVOCES / AURICULARES)"
+            // Con el texto grande (hasta 150 %) se corta en vez de salirse de la tarjeta.
+            Layout.fillWidth: true
+            Layout.rightMargin: Tokens.space.md
+            elide: Text.ElideRight
             color: Colors.accent
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
@@ -191,6 +195,9 @@ AnchoredPanel {
 
         Text {
             text: "ENTRADA (MICRÓFONO)"
+            Layout.fillWidth: true
+            Layout.rightMargin: Tokens.space.md
+            elide: Text.ElideRight
             color: Colors.decor
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption

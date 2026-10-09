@@ -331,7 +331,9 @@ QtObject {
         const nxt = root.lines[root.current + 1];
         if (!nxt) return;
         const rate = root.player.rate > 0 ? root.player.rate : 1;
-        lineTimer.interval = Math.max(20, (nxt.t - pos) / rate * 1000);
+        // 30 ms despues de la marca: un temporizador puede adelantarse unos ms y,
+        // leida la posicion apenas antes de la linea, se armaba otro (dos despertadas).
+        lineTimer.interval = Math.max(20, (nxt.t - pos) / rate * 1000 + 30);
         lineTimer.start();
     }
     property Timer lineTimer: Timer {

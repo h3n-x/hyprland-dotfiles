@@ -168,6 +168,7 @@ QtObject {
             const home = SettingsState.home;
             return home && String(v).startsWith(home + "/") ? "~" + String(v).slice(home.length) : String(v);
         }
+        if (m.percent) return Math.round(v * 100) + " %";
         return String(v).replace(".", ",") + (m.unit ? " " + m.unit : "");
     }
 

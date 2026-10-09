@@ -538,9 +538,11 @@ Item {
     Component {
         id: systemC
         // Arriba con su alto de siempre: junto a una zona mas alta no se estira.
+        // Con el texto grande (Fase 12: hasta 150 %), lo que pida su contenido.
         Item {
-            readonly property real ideal: zones.narrow ? 112 - 2 * Tokens.space.lg : zones.baseHeight - 2 * Tokens.space.lg
+            readonly property real ideal: Math.max(zones.narrow ? 112 - 2 * Tokens.space.lg : zones.baseHeight - 2 * Tokens.space.lg, glance.implicitHeight)
             SystemGlance {
+                id: glance
                 width: parent.width
                 height: Math.min(parent.height, parent.ideal)
                 wide: zones.narrow
