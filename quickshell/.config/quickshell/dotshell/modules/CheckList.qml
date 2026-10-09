@@ -14,7 +14,7 @@ ColumnLayout {
     property var value: []
     signal edited(var list)
 
-    implicitWidth: 360
+    implicitWidth: Tokens.px(360)
     spacing: 0
 
     function toggle(v: string): void {

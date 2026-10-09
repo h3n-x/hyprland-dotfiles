@@ -87,8 +87,8 @@ Item {
     }
 
     // ---- Contenido ----------------------------------------------------------------------------
-    readonly property int gap: 120
-    readonly property int cardWidth: 530
+    readonly property int gap: Tokens.px(120)
+    readonly property int cardWidth: Tokens.px(530)
     readonly property real left0: Math.round((width - clock.implicitWidth - stage.gap - stage.cardWidth) / 2)
 
     LoginClock {

@@ -12,6 +12,8 @@ Item {
     id: root
     // La ventana enfocada (asignable en las pruebas: offscreen no hay toplevels).
     property var toplevel: ToplevelManager.activeToplevel
+    // Lo que cede el titulo si la barra no entra (Bar.squeeze, Fase 12 A2).
+    property int squeeze: 0
     readonly property bool shown: !!root.toplevel && !!(root.toplevel.title || root.toplevel.appId)
     visible: shown
     // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
@@ -30,7 +32,7 @@ Item {
         // A un costado (Fase 11 B3): solo el icono de la aplicacion.
         Text {
             visible: !Tokens.bar.vertical
-            width: Math.min(implicitWidth, SettingsState.value("bar.activeWindow.maxWidth") || 320)
+            width: Math.min(implicitWidth, Math.max(Tokens.px(48), Tokens.px(SettingsState.value("bar.activeWindow.maxWidth") || 320) - root.squeeze))
             text: root.toplevel ? (root.toplevel.title || AppInfo.name(root.toplevel.appId)) : ""
             elide: Text.ElideRight
             color: Colors.text

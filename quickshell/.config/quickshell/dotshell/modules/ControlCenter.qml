@@ -43,7 +43,7 @@ PanelWindow {
         left: Tokens.insetLeft - card.shadowMargin
     }
     implicitWidth: Tokens.panel.widthLg + card.shadowMargin * 2
-    implicitHeight: Math.min(600, card.implicitHeight) + card.shadowMargin * 2
+    implicitHeight: Math.min(Tokens.px(600), card.implicitHeight) + card.shadowMargin * 2
     color: "transparent"
     mask: Region { item: card }
     exclusionMode: ExclusionMode.Ignore
@@ -176,7 +176,7 @@ PanelWindow {
             }
             Flickable {
                 Layout.fillWidth: true
-                Layout.preferredHeight: Math.min(300, historyList.implicitHeight)
+                Layout.preferredHeight: Math.min(Tokens.px(300), historyList.implicitHeight)
                 contentWidth: width
                 contentHeight: historyList.implicitHeight
                 clip: true

@@ -56,7 +56,7 @@ Loader {
     }
 
     Component { id: workspacesC; Workspaces { screenName: entry.panelWindow && entry.panelWindow.screen ? entry.panelWindow.screen.name : "" } }
-    Component { id: mediaC; Mpris {} }
+    Component { id: mediaC; Mpris { squeeze: entry.panelWindow && entry.panelWindow.squeeze || 0 } }
     Component { id: clockC; Clock {} }
     Component { id: recordingC; RecordingPill {} }
     Component { id: updatesC; Update {} }
@@ -70,7 +70,7 @@ Loader {
     Component { id: powerC; Power {} }
     Component { id: keyboardC; KeyboardLayout {} }
     Component { id: lockKeysC; LockKeys {} }
-    Component { id: activeWindowC; ActiveWindow {} }
+    Component { id: activeWindowC; ActiveWindow { squeeze: entry.panelWindow && entry.panelWindow.squeeze || 0 } }
     Component { id: notificationsC; NotificationBell {} }
     Component { id: privacyC; Privacy {} }
     Component { id: launcherC; LauncherButton {} }

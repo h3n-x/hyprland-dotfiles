@@ -38,8 +38,8 @@ Pill {
             id: dot
             visible: pill.recording && pill.result !== "stopping"
             anchors.centerIn: parent
-            width: 10
-            height: 10
+            width: Tokens.px(10)
+            height: Tokens.px(10)
             radius: 5
             color: Colors.danger
             // Late con el segundo: lleno en los pares, 45 % en los impares. Sin
@@ -51,8 +51,8 @@ Pill {
         Rectangle {
             id: ring
             anchors.centerIn: parent
-            width: 10
-            height: 10
+            width: Tokens.px(10)
+            height: Tokens.px(10)
             radius: width / 2
             color: "transparent"
             border.width: 2

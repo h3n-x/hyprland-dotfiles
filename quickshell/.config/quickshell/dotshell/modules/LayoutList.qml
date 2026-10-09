@@ -61,7 +61,7 @@ Flow {
     }
 
     spacing: Tokens.space.xs
-    width: 360
+    width: Tokens.px(360)
 
     Repeater {
         model: root.value
@@ -82,7 +82,7 @@ Flow {
                 spacing: Tokens.space.xs
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    width: Math.min(implicitWidth, 220)
+                    width: Math.min(implicitWidth, Tokens.px(220))
                     elide: Text.ElideRight
                     text: root.labelOf(chip.modelData)
                     color: chip.main ? Colors.textOnAccentAltContainer : Colors.text

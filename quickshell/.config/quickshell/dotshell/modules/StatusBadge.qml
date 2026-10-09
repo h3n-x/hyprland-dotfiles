@@ -26,7 +26,7 @@ Rectangle {
         { l: "Acción importante", i: "priority_high", bg: Colors.dangerContainer, fg: Colors.textOnDangerContainer }
     ][Math.max(0, Math.min(3, root.level))]
 
-    implicitHeight: 24
+    implicitHeight: Tokens.px(24)
     implicitWidth: row.implicitWidth + Tokens.space.lg
     radius: Tokens.radius.pill(height)
     color: root.spec.bg
@@ -37,7 +37,7 @@ Rectangle {
         id: row
         anchors.centerIn: parent
         spacing: Tokens.space.xs
-        Icon { anchors.verticalCenter: parent.verticalCenter; name: root.spec.i; size: 14; filled: true; color: root.spec.fg }
+        Icon { anchors.verticalCenter: parent.verticalCenter; name: root.spec.i; size: Tokens.px(14); filled: true; color: root.spec.fg }
         Text {
             anchors.verticalCenter: parent.verticalCenter
             text: root.label || root.spec.l

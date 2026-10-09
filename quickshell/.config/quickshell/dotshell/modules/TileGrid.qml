@@ -339,7 +339,7 @@ Item {
             Layout.fillWidth: true
             spacing: Tokens.space.xs
             Text {
-                height: 28
+                height: Tokens.control.sm
                 verticalAlignment: Text.AlignVCenter
                 text: grid.unplaced.length ? "Agregar" : "Están todos"
                 color: Colors.textMuted
@@ -355,9 +355,9 @@ Item {
                     required property int index
                     readonly property var meta: grid.spec[chip.modelData] || ({})
                     readonly property bool picked: grid.trayIndex === chip.index
-                    height: 28
+                    height: Tokens.control.sm
                     width: chipRow.implicitWidth + Tokens.space.md * 2
-                    radius: 14
+                    radius: height / 2
                     color: "transparent"
                     border.width: chip.picked ? Tokens.focusRingWidth : 1
                     border.color: chip.picked ? Colors.accent : Colors.divider

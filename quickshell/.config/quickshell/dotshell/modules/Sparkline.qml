@@ -31,7 +31,7 @@ Item {
     // Texto de un valor al pasar el raton.
     property var format: (v) => Math.round(v * 100) + " %"
 
-    implicitHeight: 40
+    implicitHeight: Tokens.px(40)
 
     readonly property real last: {
         void root.rev;

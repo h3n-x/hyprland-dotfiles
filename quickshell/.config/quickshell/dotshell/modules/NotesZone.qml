@@ -15,9 +15,9 @@ ColumnLayout {
     // El dashboard se ve: solo entonces se pide (y se lee) la nota.
     property bool active: false
     property bool wide: false
-    property int baseHeight: 116
+    property int baseHeight: Tokens.px(116)
     // Alto que pide: crece con el texto hasta un tope, despues se desplaza.
-    readonly property real ideal: Math.max(root.baseHeight, Math.min(title.implicitHeight + root.spacing + area.contentHeight + Tokens.space.sm, 300))
+    readonly property real ideal: Math.max(root.baseHeight, Math.min(title.implicitHeight + root.spacing + area.contentHeight + Tokens.space.sm, Tokens.px(300)))
     signal done()
     spacing: Tokens.space.sm
 

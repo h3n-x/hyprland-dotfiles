@@ -8,9 +8,9 @@ Rectangle {
     id: eb
     property string icon
     signal clicked()
-    implicitWidth: 28
-    implicitHeight: 28
-    radius: 14
+    implicitWidth: Tokens.control.sm
+    implicitHeight: Tokens.control.sm
+    radius: width / 2
     color: Colors.surfaceHigh
     StateLayer { hovered: ebMouse.containsMouse; pressed: ebMouse.pressed }
     Icon { anchors.centerIn: parent; name: eb.icon; size: Tokens.icon.sm; color: Colors.text }

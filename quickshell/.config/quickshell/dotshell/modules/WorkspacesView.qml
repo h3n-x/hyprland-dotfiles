@@ -134,9 +134,9 @@ ColumnLayout {
                     spacing: Tokens.space.sm
                     opacity: view.chosenId && view.chosenId !== cell.modelData.id ? 0.4 : 1
                     Rectangle {
-                        implicitWidth: Math.max(22, wsNum.implicitWidth + 12)
-                        implicitHeight: 22
-                        radius: 11
+                        implicitWidth: Math.max(Tokens.px(22), wsNum.implicitWidth + Tokens.px(12))
+                        implicitHeight: Tokens.px(22)
+                        radius: Tokens.px(11)
                         color: cell.focusedWs ? Colors.accent : Colors.surfaceHighest
                         Text {
                             id: wsNum
@@ -152,9 +152,9 @@ ColumnLayout {
                         model: cell.apps.slice(0, 4)
                         Image {
                             required property string modelData
-                            Layout.preferredWidth: 18
-                            Layout.preferredHeight: 18
-                            sourceSize: Qt.size(36, 36)
+                            Layout.preferredWidth: Tokens.px(18)
+                            Layout.preferredHeight: Tokens.px(18)
+                            sourceSize: Qt.size(Tokens.px(36), Tokens.px(36))
                             source: AppInfo.icon(modelData)
                             asynchronous: true
                         }
@@ -218,9 +218,9 @@ ColumnLayout {
             Rectangle {
                 id: chip
                 required property var modelData
-                implicitWidth: 44
-                implicitHeight: 28
-                radius: 14
+                implicitWidth: Tokens.px(44)
+                implicitHeight: Tokens.px(28)
+                radius: Tokens.px(14)
                 color: "transparent"
                 border.width: 1
                 border.color: Colors.divider
@@ -229,7 +229,7 @@ ColumnLayout {
                 Row {
                     anchors.centerIn: parent
                     spacing: 2
-                    Icon { anchors.verticalCenter: parent.verticalCenter; name: "add"; size: 14; color: Colors.textMuted }
+                    Icon { anchors.verticalCenter: parent.verticalCenter; name: "add"; size: Tokens.px(14); color: Colors.textMuted }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: chip.modelData.id

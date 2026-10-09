@@ -45,15 +45,15 @@ Item {
         spacing: Tokens.space.lg
 
         ClippingRectangle {
-            implicitWidth: 176
-            implicitHeight: 99
+            implicitWidth: Tokens.px(176)
+            implicitHeight: Tokens.px(99)
             radius: Tokens.radius.md
             color: Colors.surfaceHigh
             Image {
                 anchors.fill: parent
                 source: card.wallpaper ? "file://" + card.wallpaper : ""
                 fillMode: Image.PreserveAspectCrop
-                sourceSize.width: 352
+                sourceSize.width: Tokens.px(352)
                 asynchronous: true
                 cache: false
             }

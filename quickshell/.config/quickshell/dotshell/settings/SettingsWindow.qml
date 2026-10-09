@@ -128,7 +128,7 @@ Rectangle {
     Item {
         id: header
         width: parent.width
-        height: 72
+        height: Tokens.px(72)
         Text {
             x: Tokens.space.xl
             anchors.verticalCenter: parent.verticalCenter
@@ -143,7 +143,7 @@ Rectangle {
             anchors.right: parent.right
             anchors.rightMargin: Tokens.space.xl
             anchors.verticalCenter: parent.verticalCenter
-            width: 420
+            width: Tokens.px(420)
             size: "regular"
             placeholder: "Buscar en la configuración (Ctrl+F)"
             keyHandler: (event) => results.handleKey(event)
@@ -157,7 +157,7 @@ Rectangle {
         id: railFlick
         x: Tokens.space.md
         y: header.height
-        width: 220
+        width: Tokens.px(220)
         height: win.height - y - Tokens.space.md
         contentHeight: rail.implicitHeight
         boundsBehavior: Flickable.StopAtBounds

@@ -143,7 +143,7 @@ ColumnLayout {
                         Rectangle {
                             id: pkg
                             required property var modelData
-                            height: 24
+                            height: Tokens.px(24)
                             width: pkgText.implicitWidth + Tokens.space.md
                             radius: Tokens.radius.xs
                             color: Colors.tint(Colors.background, Tokens.tint.well)
@@ -195,7 +195,7 @@ ColumnLayout {
                         Layout.fillWidth: true
                         T { Layout.fillWidth: true; text: srcRow.modelData.exe; font.family: Tokens.font.mono; size: Tokens.type.label; wrapMode: Text.NoWrap }
                         T { text: "desde el " + Qt.formatDate(new Date(srcRow.modelData.first * 1000), "dd/MM"); size: Tokens.type.caption; color: Colors.border }
-                        T { Layout.preferredWidth: 96; horizontalAlignment: Text.AlignRight; size: Tokens.type.label; wt: Tokens.weight.medium
+                        T { Layout.preferredWidth: Tokens.px(96); horizontalAlignment: Text.AlignRight; size: Tokens.type.label; wt: Tokens.weight.medium
                             text: MaintenanceState.plural(srcRow.modelData.stored, "volcado", "volcados") }
                     }
                 }
@@ -250,8 +250,8 @@ ColumnLayout {
                 spacing: Tokens.space.sm
                 Rectangle {
                     Layout.alignment: Qt.AlignVCenter
-                    width: 12
-                    height: 12
+                    width: Tokens.px(12)
+                    height: Tokens.px(12)
                     radius: 6
                     // Veredicto (N7): nada o solo informacion = success; recomendaciones =
                     // neutro; advertencia y accion importante con sus colores fijos.
@@ -270,7 +270,7 @@ ColumnLayout {
             }
             T {
                 Layout.fillWidth: true
-                Layout.leftMargin: 20
+                Layout.leftMargin: Tokens.px(20)
                 visible: !!MaintenanceState.recommendation
                 text: MaintenanceState.recommendation
                 color: Colors.textMuted
@@ -329,13 +329,13 @@ ColumnLayout {
                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: view.toggle(infoRow.modelData.id) }
                 }
             }
-            T { visible: infoRow.open_; Layout.leftMargin: 24; Layout.fillWidth: true; text: infoRow.modelData.why; size: Tokens.type.caption; color: Colors.border }
+            T { visible: infoRow.open_; Layout.leftMargin: Tokens.px(24); Layout.fillWidth: true; text: infoRow.modelData.why; size: Tokens.type.caption; color: Colors.border }
             Repeater {
                 model: infoRow.open_ && infoRow.modelData.units ? infoRow.modelData.units : []
                 RowLayout {
                     id: infoUnit
                     required property var modelData
-                    Layout.leftMargin: 24
+                    Layout.leftMargin: Tokens.px(24)
                     Layout.fillWidth: true
                     T { Layout.fillWidth: true; text: infoUnit.modelData.name; font.family: Tokens.font.mono; size: Tokens.type.caption; color: Colors.textMuted; wrapMode: Text.NoWrap }
                     Button { label: "Ver registro"; icon: "article"

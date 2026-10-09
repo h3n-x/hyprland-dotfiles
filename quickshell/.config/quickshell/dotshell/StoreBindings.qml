@@ -1,7 +1,7 @@
 // Las opciones del almacen que cambian el design system en vivo (Fase 10 B2;
 // antes, la de movimiento estaba copiada en shell.qml, lock.qml y
-// settings.qml): reducir movimiento, fuentes, tamano del texto y foco
-// visible. Una instancia en la raiz de cada proceso que dibuja con Tokens
+// settings.qml): reducir movimiento, fuentes, escala de la interfaz, tamano del
+// texto y foco visible. Una instancia en la raiz de cada proceso que dibuja con Tokens
 // (shell, bloqueo, centro). Tokens no lee el almacen: lo comparte el greeter
 // de SDDM, que recibe lo mismo por su theme.conf (sddm-theme-stage).
 //
@@ -33,6 +33,12 @@ QtObject {
         property: "mono"
         value: root.family("appearance.font.mono", "Maple Mono NF")
     }
+    // Escala de la interfaz (Fase 12 A2): Tokens la aplica a todas sus familias.
+    property Binding uiScale: Binding {
+        target: Tokens
+        property: "uiScale"
+        value: SettingsState.value("accessibility.uiScale") || 1
+    }
     property Binding textScale: Binding {
         target: Tokens.type
         property: "scale"
@@ -52,7 +58,7 @@ QtObject {
     }
     property Binding barSize: Binding {
         target: Tokens.bar
-        property: "height"
+        property: "size"
         value: SettingsState.value("bar.size") || 40
     }
     property Binding focusRing: Binding {

@@ -19,7 +19,7 @@ Item {
     property bool capture: true
     // Tamano maximo de la captura (pixeles logicos).
     property size constraintSize: Qt.size(preview.width, preview.height)
-    property int iconSize: 32
+    property int iconSize: Tokens.px(32)
     readonly property bool hasContent: shot.hasContent
 
     readonly property var toplevel: DesktopState.toplevelOf(preview.address)

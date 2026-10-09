@@ -27,7 +27,7 @@ Item {
         x: bell.width - width / 2 - (root.asNumber ? 0 : 2)
         y: root.asNumber ? -2 : 1
         width: root.asNumber ? Math.max(height, num.implicitWidth + 6) : 7
-        height: root.asNumber ? 14 : 7
+        height: root.asNumber ? Tokens.px(14) : Tokens.px(7)
         radius: height / 2
         // Neutro: "hay avisos" es un estado, no identidad (principio 23).
         color: Colors.text

@@ -14,7 +14,7 @@ Item {
 
     readonly property real maxY: Math.max(0, bar.flickable.contentHeight - bar.flickable.height)
     readonly property bool active: area.containsMouse || area.pressed
-    readonly property real thumbH: Math.min(bar.height, Math.max(32, bar.height * bar.flickable.height / Math.max(1, bar.flickable.contentHeight)))
+    readonly property real thumbH: Math.min(bar.height, Math.max(Tokens.px(32), bar.height * bar.flickable.height / Math.max(1, bar.flickable.contentHeight)))
     readonly property real thumbY: bar.maxY > 0 ? bar.flickable.contentY / bar.maxY * (bar.height - bar.thumbH) : 0
     // Donde se agarro el pulgar (desde su borde de arriba) mientras se arrastra.
     property real grab: 0
@@ -27,7 +27,7 @@ Item {
     }
 
     visible: bar.maxY > 0
-    implicitWidth: 14
+    implicitWidth: Tokens.px(14)
 
     Rectangle {
         anchors.right: parent.right

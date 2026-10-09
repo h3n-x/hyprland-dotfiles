@@ -76,7 +76,7 @@ Item {
         if (v !== root.value) root.moved(v);
     }
 
-    implicitWidth: 200 + Tokens.space.md + valueBox.width
+    implicitWidth: Tokens.px(200) + Tokens.space.md + valueBox.width
     implicitHeight: Tokens.pill.height
     activeFocusOnTab: true
 
@@ -98,7 +98,7 @@ Item {
         anchors.right: valueBox.left
         anchors.rightMargin: Tokens.space.md
         anchors.verticalCenter: parent.verticalCenter
-        height: 16
+        height: Tokens.px(16)
 
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
@@ -128,7 +128,7 @@ Item {
             id: knob
             x: parent.width * root.frac - width / 2
             anchors.verticalCenter: parent.verticalCenter
-            width: mouse.pressed ? 18 : (mouse.containsMouse ? 16 : 14)
+            width: mouse.pressed ? Tokens.px(18) : (mouse.containsMouse ? Tokens.px(16) : Tokens.px(14))
             height: width
             radius: width / 2
             color: Colors.accent
@@ -157,7 +157,7 @@ Item {
         id: valueBox
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        width: 84
+        width: Tokens.px(84)
         height: Tokens.pill.height
         radius: Tokens.radius.sm
         color: edit.activeFocus ? Colors.surfaceHighest : "transparent"

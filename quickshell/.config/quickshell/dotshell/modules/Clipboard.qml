@@ -333,7 +333,7 @@ OverlayWindow {
         property int count
         property bool on
         signal clicked()
-        implicitHeight: 28
+        implicitHeight: Tokens.px(28)
         implicitWidth: chipRow.implicitWidth + Tokens.space.md * 2
         radius: Tokens.radius.sm
         color: chip.on ? Colors.accentAltContainer : "transparent"
@@ -393,8 +393,8 @@ OverlayWindow {
         anchors.centerIn: parent
         presence: window.presence
         model: window.shown
-        listWidth: 480
-        previewWidth: 340
+        listWidth: Tokens.px(480)
+        previewWidth: Tokens.px(340)
         placeholder: "Buscar en el portapapeles..."
         emptyText: window.loading ? "" : (window.entries.length === 0 ? "El historial está vacío" : "Sin resultados")
         hints: "↑↓ navegar   ⏎ copiar   supr borrar   tab filtro   ctrl+p pausar   ctrl+supr vaciar   esc cerrar"
@@ -410,7 +410,7 @@ OverlayWindow {
                 Rectangle {
                     visible: ClipboardState.paused
                     Layout.fillWidth: true
-                    implicitHeight: 36
+                    implicitHeight: Tokens.px(36)
                     radius: Tokens.radius.md
                     // Mas privacidad, no un aviso: neutro con icono y texto (D11).
                     color: Colors.surfaceHighest
@@ -657,7 +657,7 @@ OverlayWindow {
                     Rectangle {
                         visible: !!window.current && window.current.kind === "color"
                         Layout.fillWidth: true
-                        implicitHeight: 96
+                        implicitHeight: Tokens.px(96)
                         radius: Tokens.radius.md
                         color: window.current && window.current.kind === "color" ? window.current.text : "transparent"
                         border.width: 1
@@ -732,8 +732,8 @@ OverlayWindow {
 
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                implicitWidth: 56
-                implicitHeight: 56
+                implicitWidth: Tokens.px(56)
+                implicitHeight: Tokens.px(56)
                 radius: width / 2
                 color: Colors.dangerContainer
                 Icon {

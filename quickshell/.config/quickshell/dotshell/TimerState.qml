@@ -171,7 +171,7 @@ QtObject {
     readonly property bool countdownIdle: !root.countdown.running && !(root.countdown.left > 0)
     function setCountdown(minutes: int): void {
         if (!root.countdownIdle) return;
-        root.put("countdown", Object.assign({}, root.countdown, { total: Math.max(1, Math.min(600, minutes)) * root.unit }));
+        root.put("countdown", Object.assign({}, root.countdown, { total: Math.max(1, Math.min(600, minutes)) * root.unit }));   // minutos (px-ok)
     }
     function toggleCountdown(): void {
         const c = Object.assign({}, root.countdown);

@@ -93,7 +93,7 @@ QtObject {
     // Solo ventanas de al menos 24x24: capturar una mas chica (dwindle con
     // muchas ventanas da tamanos minimos o negativos) crea un buffer de 0x0 y
     // tira la conexion Wayland de la shell entera (KI-L18).
-    readonly property int minCaptureSize: 24
+    readonly property int minCaptureSize: 24   // pixeles de captura, no de interfaz (px-ok)
 
     function addr(a: string): string {
         return a.startsWith("0x") ? a : "0x" + a;

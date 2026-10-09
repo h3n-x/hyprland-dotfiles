@@ -47,10 +47,10 @@ AnchoredPanel {
     escapeHandler: () => panel.back()
 
     readonly property int contentWidth: panel.scr
-        ? Math.max(640, Math.min(960, panel.scr.width - 2 * Tokens.screenEdge)) - 2 * panel.padding : 640
+        ? Math.max(Tokens.px(640), Math.min(Tokens.px(960), panel.scr.width - 2 * Tokens.screenEdge)) - 2 * panel.padding : Tokens.px(640)
     // Lo que deja la pantalla segun el lado del panel (barra arriba o a un costado).
     readonly property int maxContentHeight: panel.maxBodyHeight
-    readonly property bool narrow: panel.contentWidth + 2 * panel.padding < 820
+    readonly property bool narrow: panel.contentWidth + 2 * panel.padding < Tokens.px(820)
 
     // Datos solo mientras se ve (Fase 8 B3): estado del equipo y escritorios.
     // Solo si su zona esta en Inicio o se mira su vista (Fase 11 B4).
@@ -271,12 +271,12 @@ AnchoredPanel {
                 // Cabecera: volver, titulo, contexto, puntos de lugar.
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 40
+                    Layout.preferredHeight: Tokens.px(40)
                     spacing: Tokens.space.sm
                     Rectangle {
-                        implicitWidth: 36
-                        implicitHeight: 36
-                        radius: 18
+                        implicitWidth: Tokens.control.md
+                        implicitHeight: Tokens.control.md
+                        radius: width / 2
                         color: Colors.tint(Colors.text, Tokens.tint.faint)
                         StateLayer { hovered: backMouse.containsMouse; pressed: backMouse.pressed }
                         Icon { anchors.centerIn: parent; name: "arrow_back"; size: Tokens.icon.md; color: Colors.text }
@@ -312,7 +312,7 @@ AnchoredPanel {
                                 required property string modelData
                                 readonly property bool here: modelData === panel.detail
                                 anchors.verticalCenter: parent.verticalCenter
-                                width: here ? 18 : 6
+                                width: here ? Tokens.px(18) : Tokens.px(6)
                                 height: 6
                                 radius: 3
                                 color: here ? Colors.accent : Colors.divider

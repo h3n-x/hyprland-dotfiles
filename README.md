@@ -568,10 +568,13 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   fabrica y Diagnostico lo dice) y el **avatar**: del fondo o una imagen
   propia (selector de archivos del portal, GTK).
 - **Accesibilidad**: reducir movimiento (la shell y tambien las animaciones
-  de las ventanas), alto contraste, **tamano del
-  texto** (de 85 % a 150 % en pasos de 5 %, 100 % normal: solo el texto,
-  iconos y alturas quedan igual; tambien el bloqueo y el login) y **foco siempre
-  visible** (un anillo alrededor de lo que tiene el foco del teclado).
+  de las ventanas), alto contraste, **escala de la interfaz** (de 85 % a
+  150 % en pasos de 5 %: todo crece junto, texto, iconos, la barra, filas,
+  espacios y paneles; si la barra no entra, los titulos largos ceden antes de
+  tapar el reloj), **tamano del texto** (de 85 % a 150 %, un extra solo para
+  el texto encima de la escala), ambos tambien en el bloqueo y el login, y
+  **foco siempre visible** (un anillo alrededor de lo que tiene el foco del
+  teclado).
 - **Ventanas** (en Apariencia, Fase 10 B3): espacios, esquinas, borde,
   opacidad, desenfoque y sombras de Hyprland.
 - **Teclado y raton**: distribuciones del teclado (la primera es la principal;

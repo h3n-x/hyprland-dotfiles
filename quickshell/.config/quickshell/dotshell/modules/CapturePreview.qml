@@ -249,7 +249,7 @@ Scope {
             anchors.bottom: parent.bottom
             anchors.rightMargin: Tokens.screenEdge
             anchors.bottomMargin: Tokens.screenEdge
-            width: 380
+            width: Tokens.px(380)
             height: card.implicitHeight
 
             HoverHandler { id: cardHover }
@@ -312,9 +312,9 @@ Scope {
                             anchors.right: parent.right
                             anchors.top: parent.top
                             anchors.margins: Tokens.space.sm
-                            width: 28
-                            height: 28
-                            radius: 14
+                            width: Tokens.control.sm
+                            height: Tokens.control.sm
+                            radius: width / 2
                             color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
                             StateLayer { hovered: closeMouse.containsMouse; pressed: closeMouse.pressed }
                             Icon {
@@ -359,8 +359,8 @@ Scope {
                             id: mainBtn
                             readonly property string icon: card.trashed ? "undo" : thumb.video ? "play_arrow" : "edit"
                             readonly property string label: card.trashed ? "Deshacer" : thumb.video ? "Reproducir" : "Anotar"
-                            implicitHeight: 36
-                            implicitWidth: mainRow.implicitWidth + 28
+                            implicitHeight: Tokens.px(36)
+                            implicitWidth: mainRow.implicitWidth + Tokens.px(28)
                             radius: Tokens.radius.pill(height)
                             color: Colors.accent
                             StateLayer { hovered: mainMouse.containsMouse; pressed: mainMouse.pressed; contentColor: Colors.textOnAccent }
@@ -416,9 +416,9 @@ Scope {
                                 required property var modelData
                                 readonly property bool done: card.status === "copied:" + iconBtn.modelData.id
                                 readonly property bool danger: iconBtn.modelData.id === "trash"
-                                implicitWidth: 36
-                                implicitHeight: 36
-                                radius: 18
+                                implicitWidth: Tokens.control.md
+                                implicitHeight: Tokens.control.md
+                                radius: width / 2
                                 enabled: !card.trashed
                                 opacity: iconBtn.enabled ? 1 : Tokens.opacity.disabled
                                 // Hecho (copiado): resultado = success (P8.7).

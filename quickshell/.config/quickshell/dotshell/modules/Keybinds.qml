@@ -29,9 +29,9 @@ OverlayWindow {
             id: content
 
             // Columnas: la opcion, o segun el ancho disponible.
-            readonly property int maxWidth: Math.min(1240, content.width - 2 * Tokens.screenEdge)
+            readonly property int maxWidth: Math.min(Tokens.px(1240), content.width - 2 * Tokens.screenEdge)
             readonly property int columns: KeybindState.options.columns > 0 ? KeybindState.options.columns
-                : content.maxWidth >= 1100 ? 4 : content.maxWidth >= 820 ? 3 : 2
+                : content.maxWidth >= Tokens.px(1100) ? 4 : content.maxWidth >= Tokens.px(820) ? 3 : 2
             // Reparto equilibrado: los grupos mas grandes primero, cada uno a la
             // columna mas corta; dentro de cada columna, el orden de siempre.
             readonly property var layoutCols: {
@@ -126,7 +126,7 @@ OverlayWindow {
                         }
                         SearchField {
                             id: search
-                            Layout.preferredWidth: 320
+                            Layout.preferredWidth: Tokens.px(320)
                             placeholder: "Buscar un atajo…"
                             keyHandler: (event) => content.handleKey(event)
                             onTextChanged: KeybindState.query = search.text

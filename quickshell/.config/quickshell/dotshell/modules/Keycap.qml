@@ -17,7 +17,7 @@ Rectangle {
     readonly property var icons: cap.label === "@arrows" ? ["arrow_left", "arrow_drop_up", "arrow_drop_down", "arrow_right"]
                                  : cap.isIcon ? [cap.label.slice(1)] : []
 
-    implicitHeight: 24
+    implicitHeight: Tokens.px(24)
     implicitWidth: cap.isIcon ? iconRow.implicitWidth + Tokens.space.sm + 2 : Math.max(cap.implicitHeight, text.implicitWidth + Tokens.space.md)
     radius: Tokens.radius.xs + 2
     color: Colors.surfaceHighest

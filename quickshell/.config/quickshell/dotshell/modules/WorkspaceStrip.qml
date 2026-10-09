@@ -27,7 +27,9 @@ ColumnLayout {
     // Ventana enfocada, solo si esta en el workspace enfocado.
     readonly property var activeWindow: Hyprland.focusedWorkspace
         ? DesktopState.windows.find(w => w.focused && w.wsId === Hyprland.focusedWorkspace.id) || null : null
-    readonly property real tileWidth: Math.max(72, (row.width - (strip.count - 1) * Tokens.space.sm) / Math.max(strip.count, 5))
+    // El piso de 72 no escala con la interfaz (px-ok): decide cuantas entran
+    // antes de desplazar, y a 150 % cinco siguen entrando en una zona compacta.
+    readonly property real tileWidth: Math.max(72, (row.width - (strip.count - 1) * Tokens.space.sm) / Math.max(strip.count, 5))   // px-ok
 
     function reset(): void {
         strip.selected = -1;

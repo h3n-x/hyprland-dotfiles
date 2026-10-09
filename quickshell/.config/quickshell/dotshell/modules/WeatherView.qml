@@ -91,7 +91,7 @@ Item {
         property string icon: ""
         property bool danger: false
         signal clicked()
-        implicitHeight: 28
+        implicitHeight: Tokens.px(28)
         implicitWidth: tbRow.implicitWidth + Tokens.space.md * 2
         radius: Tokens.radius.sm
         color: "transparent"
@@ -131,7 +131,7 @@ Item {
                 visible: !!wv.desc
                 Layout.alignment: Qt.AlignTop
                 name: wv.desc ? wv.desc.icon : ""
-                size: 48
+                size: Tokens.px(48)
                 filled: true
                 color: wv.cur && wv.cur.is_day === 1 ? Colors.accent : Colors.decor
             }
@@ -268,12 +268,12 @@ Item {
                     RowLayout {
                         required property var modelData
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 28
+                        Layout.preferredHeight: Tokens.px(28)
                         spacing: Tokens.space.md
-                        Text { Layout.preferredWidth: 44; text: modelData.label; color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium }
+                        Text { Layout.preferredWidth: Tokens.px(44); text: modelData.label; color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium }
                         Icon { name: WeatherText.describe(modelData.code, true).icon; size: Tokens.icon.md; color: Colors.textMuted }
-                        Text { Layout.preferredWidth: 40; text: modelData.rain >= 30 ? modelData.rain + " %" : ""; color: Colors.decor; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
-                        Text { Layout.preferredWidth: 36; horizontalAlignment: Text.AlignRight; text: WeatherState.temp(modelData.min); color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.features: Tokens.tabularNumbers }
+                        Text { Layout.preferredWidth: Tokens.px(40); text: modelData.rain >= 30 ? modelData.rain + " %" : ""; color: Colors.decor; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; font.features: Tokens.tabularNumbers }
+                        Text { Layout.preferredWidth: Tokens.px(36); horizontalAlignment: Text.AlignRight; text: WeatherState.temp(modelData.min); color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.features: Tokens.tabularNumbers }
                         Item {
                             Layout.fillWidth: true
                             implicitHeight: 4
@@ -291,7 +291,7 @@ Item {
                                 }
                             }
                         }
-                        Text { Layout.preferredWidth: 36; text: WeatherState.temp(modelData.max); color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium; font.features: Tokens.tabularNumbers }
+                        Text { Layout.preferredWidth: Tokens.px(36); text: WeatherState.temp(modelData.max); color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium; font.features: Tokens.tabularNumbers }
                     }
                 }
             }
@@ -321,7 +321,7 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             Layout.topMargin: Tokens.space.sm
             name: "partly_cloudy_day"
-            size: 48
+            size: Tokens.px(48)
             color: Colors.textMuted
         }
         Text {

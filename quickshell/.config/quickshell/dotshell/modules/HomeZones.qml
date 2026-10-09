@@ -63,8 +63,8 @@ Item {
     readonly property var unplaced: Object.keys(zones.spec).filter(id => !zones.list.some(z => z.id === id))
 
     readonly property int gap: Tokens.space.md
-    readonly property int compactWidth: 272
-    readonly property int baseHeight: 148
+    readonly property int compactWidth: Tokens.zone.compact
+    readonly property int baseHeight: Tokens.px(148)
 
     // ---- Geometria ------------------------------------------------------------------
     // Primero filas y anchos (no dependen de los altos); despues los altos, con
@@ -374,9 +374,9 @@ Item {
                 // Nombre al centro, sobre el contenido atenuado.
                 Rectangle {
                     anchors.centerIn: parent
-                    implicitHeight: 36
+                    implicitHeight: Tokens.px(36)
                     implicitWidth: nameRow.implicitWidth + Tokens.space.lg * 2
-                    radius: 18
+                    radius: Tokens.px(18)
                     color: Colors.surfaceHigh
                     Row {
                         id: nameRow
@@ -446,7 +446,7 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
                 spacing: Tokens.space.sm
                 Text {
-                    height: 32
+                    height: Tokens.px(32)
                     verticalAlignment: Text.AlignVCenter
                     text: zones.unplaced.length ? "Agregar" : "Todo está en Inicio"
                     color: Colors.textMuted
@@ -462,9 +462,9 @@ Item {
                         required property int index
                         readonly property var meta: zones.spec[chip.modelData] || ({})
                         readonly property bool picked: zones.trayIndex === chip.index
-                        implicitHeight: 32
+                        implicitHeight: Tokens.px(32)
                         implicitWidth: chipRow.implicitWidth + Tokens.space.lg * 2
-                        radius: 16
+                        radius: Tokens.px(16)
                         color: "transparent"
                         border.width: chip.picked ? Tokens.focusRingWidth : 1
                         border.color: chip.picked ? Colors.accent : Colors.divider
@@ -540,7 +540,7 @@ Item {
         // Arriba con su alto de siempre: junto a una zona mas alta no se estira.
         // Con el texto grande (Fase 12: hasta 150 %), lo que pida su contenido.
         Item {
-            readonly property real ideal: Math.max(zones.narrow ? 112 - 2 * Tokens.space.lg : zones.baseHeight - 2 * Tokens.space.lg, glance.implicitHeight)
+            readonly property real ideal: Math.max(zones.narrow ? Tokens.px(112) - 2 * Tokens.space.lg : zones.baseHeight - 2 * Tokens.space.lg, glance.implicitHeight)
             SystemGlance {
                 id: glance
                 width: parent.width
@@ -570,7 +570,7 @@ Item {
                 id: cal
                 anchors.horizontalCenter: parent.horizontalCenter
                 active: zones.active
-                cell: Math.max(28, Math.min(40, Math.floor(parent.width / 7)))
+                cell: Math.max(Tokens.px(28), Math.min(Tokens.px(40), Math.floor(parent.width / 7)))
             }
         }
     }
@@ -587,7 +587,7 @@ Item {
             ZoneTitle { Layout.fillWidth: true; text: "Próximas horas"; detail: WeatherState.location ? WeatherState.location.name : ""; opens: true }
             WeatherHours {
                 Layout.fillWidth: true
-                count: wz.width < 400 ? 3 : 6
+                count: wz.width < Tokens.px(400) ? 3 : 6
             }
             Item { Layout.fillHeight: true }
         }

@@ -22,7 +22,7 @@ Item {
         // Sincronica: el primer cuadro ya trae el fondo (V0-7c).
         asynchronous: false
         // El mismo tamano en todas las pantallas: una sola decodificacion compartida.
-        sourceSize.width: 1920
+        sourceSize.width: 1920   // px-ok: decodificacion
         visible: false
     }
     MultiEffect {

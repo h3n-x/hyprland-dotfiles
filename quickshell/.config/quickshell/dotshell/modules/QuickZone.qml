@@ -83,14 +83,14 @@ ColumnLayout {
             Rectangle {
                 id: app
                 required property var modelData
-                width: 44
-                height: 44
+                width: Tokens.px(44)
+                height: Tokens.px(44)
                 radius: Tokens.radius.md
                 color: "transparent"
                 StateLayer { hovered: appMouse.containsMouse; pressed: appMouse.pressed }
                 IconImage {
                     anchors.centerIn: parent
-                    implicitSize: 32
+                    implicitSize: Tokens.px(32)
                     source: AppInfo.entryIcon(app.modelData.entry)
                 }
                 MouseArea {
@@ -105,8 +105,8 @@ ColumnLayout {
         }
         // Agregar (o la invitacion, sin ninguna): al centro, a la lista.
         Rectangle {
-            width: root.apps.length ? 44 : addRow.implicitWidth + Tokens.space.lg * 2
-            height: 44
+            width: root.apps.length ? Tokens.px(44) : addRow.implicitWidth + Tokens.space.lg * 2
+            height: Tokens.px(44)
             radius: Tokens.radius.md
             color: "transparent"
             border.color: Colors.divider
@@ -143,7 +143,7 @@ ColumnLayout {
             Rectangle {
                 id: folder
                 required property string modelData
-                height: 32
+                height: Tokens.px(32)
                 width: Math.min(folderRow.implicitWidth + Tokens.space.md * 2, root.width)
                 radius: Tokens.radius.pill(height)
                 color: "transparent"

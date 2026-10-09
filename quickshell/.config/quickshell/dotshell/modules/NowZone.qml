@@ -34,8 +34,8 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: Tokens.space.md
         Rectangle {
-            implicitWidth: 44
-            implicitHeight: 44
+            implicitWidth: Tokens.px(44)
+            implicitHeight: Tokens.px(44)
             radius: Tokens.radius.md
             color: Colors.accentAltContainer
             Icon {

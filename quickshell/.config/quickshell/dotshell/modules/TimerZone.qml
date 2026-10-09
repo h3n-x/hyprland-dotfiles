@@ -64,11 +64,11 @@ ColumnLayout {
                     id: modeBtn
                     required property var modelData
                     readonly property bool sel: root.mode === modeBtn.modelData[0]
-                    width: 28
-                    height: 28
-                    radius: 14
+                    width: Tokens.control.sm
+                    height: Tokens.control.sm
+                    radius: width / 2
                     color: modeBtn.sel ? Colors.accentAltContainer : "transparent"
-                    StateLayer { radius: 14; hovered: modeMouse.containsMouse; pressed: modeMouse.pressed }
+                    StateLayer { radius: parent.radius; hovered: modeMouse.containsMouse; pressed: modeMouse.pressed }
                     Icon {
                         anchors.centerIn: parent
                         name: modeBtn.modelData[1]

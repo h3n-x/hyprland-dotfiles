@@ -218,7 +218,7 @@ Item {
             id: context
             // Alto que pide (HomeZones): 132 sin musica, 48 con ella. El clic
             // (a Hoy), el anillo de foco y el resalte son de su zona.
-            readonly property real ideal: home.lerp(132, 48, home.mediaP)
+            readonly property real ideal: home.lerp(Tokens.px(132), Tokens.px(48), home.mediaP)
 
             Scaled {
                 id: timeBlock
@@ -304,9 +304,9 @@ Item {
                             id: chip
                             required property var modelData
                             readonly property string label: (home.mediaP > 0.5 || context.noticesCompact) && chip.modelData.n > 0 ? String(chip.modelData.n) : chip.modelData.full
-                            implicitHeight: 26
+                            implicitHeight: Tokens.px(26)
                             implicitWidth: chipRow.implicitWidth + Tokens.space.md * 2
-                            radius: 13
+                            radius: Tokens.px(13)
                             color: chip.modelData.filled ? Colors.accentAltContainer : "transparent"
                             border.width: chip.modelData.filled ? 0 : 1
                             border.color: Colors.divider
@@ -367,7 +367,7 @@ Item {
                         k: home.lerp(1, 0.55, home.mediaP)
                         Icon {
                             name: wx.desc ? wx.desc.icon : ""
-                            size: 40
+                            size: Tokens.px(40)
                             color: Colors.decor
                         }
                     }
@@ -417,7 +417,7 @@ Item {
     Component {
         id: mediaC
         Item {
-            readonly property real ideal: home.mediaP > 0 ? Math.round(hero.implicitHeight * home.mediaP) : 64
+            readonly property real ideal: home.mediaP > 0 ? Math.round(hero.implicitHeight * home.mediaP) : Tokens.px(64)
             clip: true
             function handleKey(event: var): bool {
                 return hero.handleKey(event);

@@ -79,7 +79,7 @@ Rectangle {
     Text {
         id: valueText
         anchors.centerIn: parent
-        width: Math.max(56, metrics.advanceWidth + Tokens.space.sm)
+        width: Math.max(Tokens.px(56), metrics.advanceWidth + Tokens.space.sm)
         horizontalAlignment: Text.AlignHCenter
         text: root.format(root.value)
         color: Colors.text

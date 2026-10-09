@@ -105,7 +105,7 @@ Column {
                     : tile.tone === "warning" ? Colors.textOnWarningContainer : Colors.textOnAccentContainer
 
                 width: tiles.tileWidth
-                height: 96
+                height: Tokens.px(96)
                 radius: Tokens.radius.pill(height)
                 color: Colors.tint(mouse.containsMouse ? Colors.surfaceHighest : Colors.surfaceHigh, Tokens.opacity.surface)
                 Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
@@ -141,15 +141,15 @@ Column {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: Tokens.space.md
                     Rectangle {
-                        width: 60
-                        height: 60
-                        radius: 30
+                        width: Tokens.px(60)
+                        height: Tokens.px(60)
+                        radius: Tokens.px(30)
                         anchors.verticalCenter: parent.verticalCenter
                         color: tile.toneColor
                         Icon {
                             anchors.centerIn: parent
                             name: tile.icon
-                            size: 26
+                            size: Tokens.px(26)
                             filled: true
                             color: tile.onTone
                         }
@@ -160,7 +160,7 @@ Column {
                         Text {
                             text: tile.title
                             // Un titulo largo (la cancion en el bloqueo) se corta.
-                            width: Math.min(implicitWidth, 150)
+                            width: Math.min(implicitWidth, Tokens.px(150))
                             elide: Text.ElideRight
                             color: Colors.text
                             font.family: Tokens.font.ui
@@ -170,7 +170,7 @@ Column {
                         }
                         Text {
                             text: tile.sub
-                            width: 150
+                            width: Tokens.px(150)
                             elide: Text.ElideRight
                             color: Colors.textMuted
                             font.family: Tokens.font.ui

@@ -9,7 +9,7 @@ AnchoredPanel {
     popupId: "ports"
     align: "end"
     padding: Tokens.pad.card
-    heightCap: 450
+    heightCap: Tokens.px(450)
     property var ports: []
     property string filterMode: "dev"
 
@@ -162,7 +162,7 @@ AnchoredPanel {
         Flickable {
             visible: popup.ports.length > 0
             Layout.fillWidth: true
-            implicitHeight: Math.min(340, portCol.implicitHeight)
+            implicitHeight: Math.min(Tokens.px(340), portCol.implicitHeight)
             contentHeight: portCol.implicitHeight
             contentWidth: width
             clip: true
@@ -196,7 +196,7 @@ AnchoredPanel {
                             Rectangle {
                                 readonly property bool tcp: portRow.modelData.proto === "TCP"
                                 implicitWidth: protoText.implicitWidth + Tokens.space.sm * 2
-                                implicitHeight: 20
+                                implicitHeight: Tokens.px(20)
                                 radius: Tokens.radius.xs
                                 color: tcp ? Colors.accentAltContainer : Colors.decorContainer
 

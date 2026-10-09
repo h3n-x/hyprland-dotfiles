@@ -523,7 +523,7 @@ PanelWindow {
                                 source: "file://" + window.thumbOf(cell.modelData)
                                 fillMode: Image.PreserveAspectCrop
                                 asynchronous: true
-                                sourceSize: Qt.size(480, 270)
+                                sourceSize: Qt.size(Tokens.px(480), Tokens.px(270))
                             }
 
                             StateLayer { hovered: cellMouse.containsMouse; pressed: cellMouse.pressed }

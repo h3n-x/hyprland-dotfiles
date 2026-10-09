@@ -50,11 +50,13 @@ Item {
     readonly property string user: userModel.lastUser || root.userNames[0] || ""
     property int session: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
 
-    // Tipografia y tamano del texto del usuario (Fase 10 B2): los escribe
+    // Tipografia, escala de la interfaz (Fase 12 A2) y tamano del texto del
+    // usuario (Fase 10 B2): los escribe
     // sddm-theme-stage en theme.conf (SDDM lo expone como `config`); sin ellos,
     // los de fabrica de Tokens.
     Binding { target: Tokens.font; property: "ui"; value: config.uiFont; when: !!config.uiFont }
     Binding { target: Tokens.font; property: "mono"; value: config.monoFont; when: !!config.monoFont }
+    Binding { target: Tokens; property: "uiScale"; value: Number(config.uiScale); when: Number(config.uiScale) > 0 }
     Binding { target: Tokens.type; property: "scale"; value: Number(config.textScale); when: Number(config.textScale) > 0 }
 
     SddmAuth {

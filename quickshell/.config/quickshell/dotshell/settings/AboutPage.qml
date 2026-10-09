@@ -105,7 +105,7 @@ ColumnLayout {
                     implicitHeight: Math.max(k.implicitHeight, v.implicitHeight)
                     Text {
                         id: k
-                        width: 140
+                        width: Tokens.px(140)
                         text: cellItem.modelData[0]
                         color: Colors.textMuted
                         font.family: Tokens.font.ui
@@ -113,7 +113,7 @@ ColumnLayout {
                     }
                     Text {
                         id: v
-                        x: 140 + Tokens.space.xl
+                        x: Tokens.px(140) + Tokens.space.xl
                         width: parent.width - x
                         text: cellItem.modelData[1]
                         elide: Text.ElideRight

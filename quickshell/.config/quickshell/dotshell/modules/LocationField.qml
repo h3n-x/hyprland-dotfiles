@@ -23,7 +23,7 @@ Row {
 
     Text {
         anchors.verticalCenter: parent.verticalCenter
-        width: Math.min(implicitWidth, 220)
+        width: Math.min(implicitWidth, Tokens.px(220))
         elide: Text.ElideRight
         text: root.value ? root.value.name : "Sin ciudad"
         color: root.value ? Colors.text : Colors.textMuted

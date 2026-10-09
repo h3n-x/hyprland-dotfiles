@@ -90,7 +90,7 @@ ColumnLayout {
             required property var modelData
             required property int index
             Layout.fillWidth: true
-            implicitHeight: 44
+            implicitHeight: Tokens.px(44)
             radius: Tokens.radius.md
             color: res.index === 0 ? Colors.accentAltContainer : "transparent"
             StateLayer { hovered: resMouse.containsMouse; pressed: resMouse.pressed }

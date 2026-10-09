@@ -33,9 +33,9 @@ ColumnLayout {
                 id: chip
                 required property var modelData
                 readonly property var info: summary.widgets[chip.modelData.id] || ({})
-                implicitHeight: 28
+                implicitHeight: Tokens.px(28)
                 implicitWidth: chipRow.implicitWidth + Tokens.space.md * 2
-                radius: 14
+                radius: Tokens.px(14)
                 color: Colors.tint(Colors.surfaceHighest, Tokens.tint.well)
                 Row {
                     id: chipRow

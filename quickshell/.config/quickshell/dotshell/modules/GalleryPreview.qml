@@ -113,7 +113,7 @@ ColumnLayout {
             source: root.thumb ? "file://" + root.thumb : ""
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
-            sourceSize: Qt.size(480, 270)
+            sourceSize: Qt.size(Tokens.px(480), Tokens.px(270))
         }
 
         // Mini escritorio: barra, reloj y un panel con toggles y filas, con los

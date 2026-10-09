@@ -45,7 +45,7 @@ Rectangle {
         return root.home && p.startsWith(root.home + "/") ? "~" + p.slice(root.home.length) : p;
     }
 
-    implicitWidth: 300 + (pickBtn.visible ? pickBtn.width : 0)
+    implicitWidth: Tokens.px(300) + (pickBtn.visible ? pickBtn.width : 0)
     implicitHeight: Tokens.pill.height
     radius: Tokens.radius.sm
     color: input.activeFocus ? Colors.surfaceHighest : "transparent"

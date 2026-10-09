@@ -35,10 +35,10 @@ OverlayWindow {
     onDismissed: SwitcherState.close()
 
     readonly property int columns: 4
-    readonly property int cardWidth: 264
-    readonly property int cardHeight: 214
+    readonly property int cardWidth: Tokens.px(264)
+    readonly property int cardHeight: Tokens.px(214)
     // Tamano fijo de la vista previa (no depende del layout).
-    readonly property size previewSize: Qt.size(window.cardWidth - 24, window.cardHeight - 64)
+    readonly property size previewSize: Qt.size(window.cardWidth - Tokens.px(24), window.cardHeight - Tokens.px(64))
 
     // true mientras se supone Super apretado (soltarlo cambia de ventana).
     property bool hold: true
@@ -264,8 +264,8 @@ OverlayWindow {
                                     anchors.top: parent.top
                                     anchors.margins: Tokens.space.xs
                                     width: badge.implicitWidth + Tokens.space.sm * 2
-                                    height: 22
-                                    radius: 11
+                                    height: Tokens.px(22)
+                                    radius: Tokens.px(11)
                                     color: card.modelData.urgent ? Colors.danger : Colors.accentContainer
                                     Text {
                                         id: badge
@@ -283,7 +283,7 @@ OverlayWindow {
                                 Layout.fillWidth: true
                                 spacing: Tokens.space.sm
                                 IconImage {
-                                    implicitSize: 20
+                                    implicitSize: Tokens.px(20)
                                     source: AppInfo.icon(card.modelData.cls)
                                 }
                                 Text {

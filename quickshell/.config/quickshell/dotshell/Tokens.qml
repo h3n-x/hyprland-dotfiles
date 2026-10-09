@@ -18,6 +18,17 @@ import QtQuick
 QtObject {
     id: root
 
+    // ---- Escala de la interfaz (Fase 12 A2, accessibility.uiScale) ----------
+    // De 0,85 a 1,5: multiplica todas las familias de abajo (texto, espacios,
+    // radios, iconos, filas, pildoras, paneles, grosor de la barra), cada una
+    // redondeada a pixeles enteros. La pone StoreBindings (y el greeter, desde
+    // su theme.conf). Un tamano que no es token pasa por px(n), nunca un
+    // numero suelto (lint de la suite). Duraciones y opacidades no escalan.
+    property real uiScale: 1
+    function px(n: real): int {
+        return Math.round(n * uiScale);
+    }
+
     // ---- Tipografia (D1, D2) ----------------------------------------------
     // Interfaz = Plus Jakarta Sans; codigo/terminal = Maple Mono NF; iconos =
     // Material Symbols Rounded. Nombres de familia tal cual los expone
@@ -34,21 +45,24 @@ QtObject {
     readonly property FontFamilies font: FontFamilies {}
 
     // scale = tamano del texto (Fase 10 B2, accessibility.textScale: de 0,85
-    // a 1,5 desde la Fase 12), solo para el texto: iconos, alturas y espacios no cambian. Los
-    // relojes decorativos (hero, lockClock) quedan fijos.
+    // a 1,5 desde la Fase 12), un extra solo para el texto sobre la escala de
+    // la interfaz (ui): texto = base x ui x scale. Los relojes decorativos
+    // (hero, lockClock) siguen solo a la interfaz.
     component TypeScale: QtObject {
         property real scale: 1
-        readonly property int caption: Math.round(11 * scale)   // timestamps, metadata, badges
-        readonly property int label: Math.round(12 * scale)     // labels secundarios, botones
-        readonly property int body: Math.round(13 * scale)      // texto por defecto, items de lista
-        readonly property int title: Math.round(15 * scale)     // titulos de panel/seccion, reloj de la barra
-        readonly property int headline: Math.round(18 * scale)  // valores del OSD, titulares de tarjeta
-        readonly property int display: Math.round(24 * scale)   // dashboard, numeros grandes
-        readonly property int displayLarge: Math.round(32 * scale)
-        readonly property int hero: 80      // reloj grande del dashboard
-        readonly property int lockClock: 190 // reloj apilado (horas / minutos) del bloqueo, Fase 9 B2
+        property real ui: 1
+        readonly property real k: scale * ui
+        readonly property int caption: Math.round(11 * k)   // timestamps, metadata, badges
+        readonly property int label: Math.round(12 * k)     // labels secundarios, botones
+        readonly property int body: Math.round(13 * k)      // texto por defecto, items de lista
+        readonly property int title: Math.round(15 * k)     // titulos de panel/seccion, reloj de la barra
+        readonly property int headline: Math.round(18 * k)  // valores del OSD, titulares de tarjeta
+        readonly property int display: Math.round(24 * k)   // dashboard, numeros grandes
+        readonly property int displayLarge: Math.round(32 * k)
+        readonly property int hero: Math.round(80 * ui)       // reloj grande del dashboard
+        readonly property int lockClock: Math.round(190 * ui) // reloj apilado (horas / minutos) del bloqueo, Fase 9 B2
     }
-    readonly property TypeScale type: TypeScale {}
+    readonly property TypeScale type: TypeScale { ui: root.uiScale }
 
     component FontWeights: QtObject {
         readonly property int regular: Font.Normal     // 400
@@ -66,16 +80,17 @@ QtObject {
     // QML no admite propiedades numericas: hair=2, xs=4 (1), sm=8 (2),
     // md=12 (3), lg=16 (4), xl=24 (5), xxl=32 (6).
     component SpaceScale: QtObject {
+        property real ui: 1
         readonly property int none: 0
-        readonly property int hair: 2
-        readonly property int xs: 4
-        readonly property int sm: 8
-        readonly property int md: 12
-        readonly property int lg: 16
-        readonly property int xl: 24
-        readonly property int xxl: 32
+        readonly property int hair: Math.round(2 * ui)
+        readonly property int xs: Math.round(4 * ui)
+        readonly property int sm: Math.round(8 * ui)
+        readonly property int md: Math.round(12 * ui)
+        readonly property int lg: Math.round(16 * ui)
+        readonly property int xl: Math.round(24 * ui)
+        readonly property int xxl: Math.round(32 * ui)
     }
-    readonly property SpaceScale space: SpaceScale {}
+    readonly property SpaceScale space: SpaceScale { ui: root.uiScale }
 
     // Alias semanticos: los componentes usan estos, no la escala cruda.
     component GapTokens: QtObject {
@@ -102,19 +117,20 @@ QtObject {
 
     // = gaps_out de Hyprland (hypr/.config/hypr/modules/lookandfeel.lua), asi
     // los bordes de la barra y de los popups quedan alineados con las ventanas.
-    readonly property int screenEdge: 12
+    readonly property int screenEdge: px(12)
 
     // ---- Radios: escala Material 3 (D4) -----------------------------------
     // md = rounding de las ventanas de Hyprland (12 desde P1.4). Regla de
     // anidado: radio interno = radio del padre - padding del padre (minimo xs),
     // ver nested(). Para pildoras usar pill(height), no un numero fijo.
     component RadiusScale: QtObject {
+        property real ui: 1
         readonly property int none: 0
-        readonly property int xs: 4
-        readonly property int sm: 8
-        readonly property int md: 12
-        readonly property int lg: 16
-        readonly property int xl: 24
+        readonly property int xs: Math.round(4 * ui)
+        readonly property int sm: Math.round(8 * ui)
+        readonly property int md: Math.round(12 * ui)
+        readonly property int lg: Math.round(16 * ui)
+        readonly property int xl: Math.round(24 * ui)
 
         function pill(height) {
             return height / 2;
@@ -124,7 +140,7 @@ QtObject {
             return Math.max(xs, parentRadius - parentPadding);
         }
     }
-    readonly property RadiusScale radius: RadiusScale {}
+    readonly property RadiusScale radius: RadiusScale { ui: root.uiScale }
 
     // ---- Elevacion (D5, D6) -----------------------------------------------
     // Nivel -> rol de superficie vive en Colors (P1.9); aca solo lo que no es
@@ -191,7 +207,7 @@ QtObject {
     // con el foco del teclado lleva un anillo de acento de focusRingWidth
     // (StateLayer, DashZone). Apagado = solo la capa de foco de arriba.
     property bool focusRing: false
-    readonly property int focusRingWidth: 2
+    readonly property int focusRingWidth: Math.max(2, px(2))
 
     // ---- Movimiento (D7, D8, D9) ------------------------------------------
     // Mismas curvas que hl.curve() en lookandfeel.lua, asi la shell se mueve
@@ -246,10 +262,11 @@ QtObject {
     // Material Symbols Rounded (fuente variable). Relleno 0 = apagado/inactivo,
     // 1 = encendido/activo. Se aplican con font.variableAxes.
     component IconTokens: QtObject {
-        readonly property int sm: 16
-        readonly property int md: 20
-        readonly property int lg: 24
-        readonly property int xl: 40   // OSD
+        property real ui: 1
+        readonly property int sm: Math.round(16 * ui)
+        readonly property int md: Math.round(20 * ui)
+        readonly property int lg: Math.round(24 * ui)
+        readonly property int xl: Math.round(40 * ui)   // OSD
 
         // Ejes de Material Symbols (I2): opsz sigue al tamano del icono, peso
         // 400 por defecto (500 junto a texto activo/semibold). Los iconos se
@@ -261,17 +278,20 @@ QtObject {
                      "GRAD": 0, "opsz": size === undefined ? md : size };
         }
     }
-    readonly property IconTokens icon: IconTokens {}
+    readonly property IconTokens icon: IconTokens { ui: root.uiScale }
 
     // ---- Tokens de componente (D14) ---------------------------------------
     component BarTokens: QtObject {
         // Borde de la pantalla donde vive la barra (bar.edge, Fase 11 B3; lo pone
         // StoreBindings): de el deducen hacia donde abrirse los popups anclados
         // (AnchoredPanel, side "auto") y donde van el OSD, los avisos y el centro
-        // de control (inset*). height = el grosor (bar.size; alto si esta arriba
-        // o abajo, ancho si esta a un costado).
+        // de control (inset*). size = bar.size (lo pone StoreBindings); height =
+        // el grosor ya escalado con la interfaz (alto si esta arriba o abajo,
+        // ancho si esta a un costado).
         property string edge: "top"
-        property int height: 40
+        property int size: 40
+        property real ui: 1
+        readonly property int height: Math.round(size * ui)
         // Estilo (bar.style, Fase 11 B3b): "floating" (pildoras sueltas, como
         // siempre), "solid" (una barra pegada al borde, un solo fondo) o
         // "transparent" (sin fondos). Sólida no deja margen.
@@ -281,6 +301,7 @@ QtObject {
         property int marginSide
     }
     readonly property BarTokens bar: BarTokens {
+        ui: root.uiScale
         marginTop: style === "solid" ? 0 : root.space.sm
         marginSide: style === "solid" ? 0 : root.screenEdge
     }
@@ -289,21 +310,46 @@ QtObject {
         property int height: 28
     }
     // La pildora sigue al grosor de la barra (40 -> 28, como siempre).
-    readonly property PillTokens pill: PillTokens { height: Math.max(22, root.bar.height - 12) }
+    readonly property PillTokens pill: PillTokens { height: Math.max(root.px(22), root.bar.height - root.px(12)) }
 
     component RowTokens: QtObject {
-        readonly property int height: 36        // filas de lista
-        readonly property int heightLarge: 44   // toggles tamaño tactil
+        property real ui: 1
+        readonly property int height: Math.round(36 * ui)        // filas de lista
+        readonly property int heightLarge: Math.round(44 * ui)   // toggles tamaño tactil
     }
-    readonly property RowTokens row: RowTokens {}
+    readonly property RowTokens row: RowTokens { ui: root.uiScale }
 
     component PanelTokens: QtObject {
-        readonly property int widthSm: 280
-        readonly property int widthMd: 320
-        readonly property int widthLg: 360
-        readonly property int launcherWidth: 560
+        property real ui: 1
+        readonly property int widthSm: Math.round(280 * ui)
+        readonly property int widthMd: Math.round(320 * ui)
+        readonly property int widthLg: Math.round(360 * ui)
+        readonly property int launcherWidth: Math.round(560 * ui)
     }
-    readonly property PanelTokens panel: PanelTokens {}
+    readonly property PanelTokens panel: PanelTokens { ui: root.uiScale }
+
+    // Botones redondos y chips de edicion (Fase 12 A2: el 28 / 36 que se
+    // repetia suelto en los modulos).
+    component ControlTokens: QtObject {
+        property real ui: 1
+        readonly property int sm: Math.round(28 * ui)
+        readonly property int md: Math.round(36 * ui)
+    }
+    readonly property ControlTokens control: ControlTokens { ui: root.uiScale }
+
+    // Portada grande del reproductor del dashboard (MediaHero).
+    component CoverTokens: QtObject {
+        property real ui: 1
+        readonly property int hero: Math.round(216 * ui)
+    }
+    readonly property CoverTokens cover: CoverTokens { ui: root.uiScale }
+
+    // Ancho de una zona compacta de Inicio (HomeZones).
+    component ZoneTokens: QtObject {
+        property real ui: 1
+        readonly property int compact: Math.round(272 * ui)
+    }
+    readonly property ZoneTokens zone: ZoneTokens { ui: root.uiScale }
 
     // Distancia de los popups (OSD, avisos, centro de control) a cada borde de
     // la pantalla: del lado de la barra, su reserva (margen + grosor + un paso:

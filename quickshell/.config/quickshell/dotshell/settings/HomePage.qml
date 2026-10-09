@@ -52,15 +52,15 @@ ColumnLayout {
             width: parent.width - 2 * Tokens.space.lg
             spacing: Tokens.space.xl
             ClippingRectangle {
-                implicitWidth: 224
-                implicitHeight: 126
+                implicitWidth: Tokens.px(224)
+                implicitHeight: Tokens.px(126)
                 radius: Tokens.radius.md
                 color: Colors.surfaceHigh
                 Image {
                     anchors.fill: parent
                     source: Colors.image ? "file://" + Colors.image : ""
                     fillMode: Image.PreserveAspectCrop
-                    sourceSize.width: 448
+                    sourceSize.width: Tokens.px(448)
                     asynchronous: true
                     cache: false
                 }
@@ -223,7 +223,7 @@ ColumnLayout {
                                 }
                             }
                             Text {
-                                Layout.maximumWidth: 260
+                                Layout.maximumWidth: Tokens.px(260)
                                 text: page.model.format(ch.modelData, SettingsState.value(ch.modelData))
                                 elide: Text.ElideMiddle
                                 color: Colors.text

@@ -21,8 +21,8 @@ Rectangle {
     Keys.onReturnPressed: root.toggled()
     Keys.onEnterPressed: root.toggled()
 
-    implicitWidth: 36
-    implicitHeight: 20
+    implicitWidth: Tokens.px(36)
+    implicitHeight: Tokens.px(20)
     radius: Tokens.radius.pill(height)
     color: checked ? Colors.accent : Colors.surfaceHighest
     border.width: checked ? 0 : 1
@@ -56,8 +56,8 @@ Rectangle {
 
     Rectangle {
         id: knob
-        width: 16
-        height: 16
+        width: Tokens.px(16)
+        height: Tokens.px(16)
         radius: Tokens.radius.pill(height)
         anchors.verticalCenter: parent.verticalCenter
         x: root.checked ? root.width - width - 2 : 2

@@ -20,7 +20,7 @@ Item {
         id: probe
         visible: false
         source: card.own && card.image ? "file://" + card.image : ""
-        sourceSize.width: 64
+        sourceSize.width: Tokens.px(64)
         asynchronous: true
     }
     readonly property bool unreadable: card.own && (probe.status === Image.Error || (probe.status === Image.Null && !!card.image))
@@ -35,7 +35,7 @@ Item {
         spacing: Tokens.space.lg
 
         Avatar {
-            size: 72
+            size: Tokens.px(72)
         }
         ColumnLayout {
             Layout.fillWidth: true

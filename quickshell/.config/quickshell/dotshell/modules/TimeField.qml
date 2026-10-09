@@ -49,7 +49,7 @@ Row {
         objectName: "time-minutes"
         from: 0
         to: 11
-        value: Math.min(11, Math.round(root.minutes / 5))
+        value: Math.min(11, Math.round(root.minutes / 5))   // indice del menu, no pixeles (px-ok)
         labels: root.minuteLabels
         onMoved: (v) => root.edited(root.pad(root.hours) + ":" + root.pad(v * 5))
     }

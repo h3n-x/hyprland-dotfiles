@@ -82,7 +82,7 @@ Item {
         spacing: Tokens.space.lg
 
         Avatar {
-            size: root.wide ? 72 : 56
+            size: root.wide ? Tokens.px(72) : Tokens.px(56)
         }
         ColumnLayout {
             Layout.fillWidth: true

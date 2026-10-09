@@ -38,13 +38,13 @@ Item {
     property Component header: null
     property Component preview: null
     property int listWidth: Tokens.panel.launcherWidth
-    property int previewWidth: 340
+    property int previewWidth: Tokens.px(340)
     readonly property bool fixedHeight: root.preview !== null
     property var keyHandler: null
     property var keyReleaseHandler: null
     property string layout: "list" // list | grid
     property int columns: 10
-    property int cellSize: 48
+    property int cellSize: Tokens.px(48)
     property int cellHeight: root.cellSize
     // Reusar celdas al filtrar (emoji); el selector de ventanas lo apaga.
     property bool reuseCells: true
@@ -109,7 +109,7 @@ Item {
     readonly property int rowHeight: Tokens.row.heightLarge + Tokens.space.hair
     readonly property int visibleRows: root.fixedHeight ? root.maxVisibleRows : Math.max(1, Math.min(root.maxVisibleRows, root.count))
     readonly property int listHeight: root.layout === "grid" ? root.maxVisibleRows * root.cellHeight
-        : ((root.count > 0 || root.fixedHeight) ? root.visibleRows * root.rowHeight : 56)
+        : ((root.count > 0 || root.fixedHeight) ? root.visibleRows * root.rowHeight : Tokens.px(56))
 
     width: root.listWidth + (root.preview ? root.previewWidth + Tokens.space.md : 0)
     // margenes (md*2) + searchBox + [header] + lista/"sin resultados" + footer

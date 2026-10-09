@@ -41,7 +41,7 @@ Rectangle {
     }
 
     implicitHeight: Tokens.pill.height - Tokens.space.xs
-    implicitWidth: Math.min(260, pickRow.implicitWidth + Tokens.space.md * 2)
+    implicitWidth: Math.min(Tokens.px(260), pickRow.implicitWidth + Tokens.space.md * 2)
     radius: Tokens.radius.pill(height)
     color: root.open ? Colors.accentAltContainer : "transparent"
     border.color: root.open ? "transparent" : root.activeFocus ? Colors.accent : Colors.divider
@@ -55,7 +55,7 @@ Rectangle {
         spacing: Tokens.space.hair
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            width: Math.min(implicitWidth, 260 - Tokens.space.md * 2 - Tokens.icon.sm)
+            width: Math.min(implicitWidth, Tokens.px(260) - Tokens.space.md * 2 - Tokens.icon.sm)
             elide: Text.ElideRight
             text: root.current
             color: root.open ? Colors.textOnAccentAltContainer : Colors.text

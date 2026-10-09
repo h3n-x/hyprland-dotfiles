@@ -161,7 +161,7 @@ ColumnLayout {
                 required property string modelData
                 required property int index
                 readonly property bool sel: sw.modelData.toLowerCase() === root.seed
-                width: root.noColor ? 28 : 32
+                width: root.noColor ? Tokens.px(28) : Tokens.px(32)
                 height: width + 7
                 // Anillo del elegido.
                 Rectangle {

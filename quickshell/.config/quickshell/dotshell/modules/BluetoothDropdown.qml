@@ -13,7 +13,7 @@ AnchoredPanel {
     popupId: "bluetooth"
     align: "end"
     padding: Tokens.pad.card
-    heightCap: 400
+    heightCap: Tokens.px(400)
 
     // Ancho del contenido (la tarjeta suma el margen interior).
     readonly property int contentWidth: Tokens.panel.widthSm - 2 * Tokens.pad.card

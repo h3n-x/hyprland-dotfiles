@@ -175,8 +175,8 @@ OverlayWindow {
                     required property var modelData
                     required property int index
                     readonly property bool selected: tile.index === window.sel
-                    implicitWidth: 112
-                    implicitHeight: 116
+                    implicitWidth: Tokens.px(112)
+                    implicitHeight: Tokens.px(116)
                     radius: Tokens.radius.lg
                     color: tile.selected ? Colors.accentAltContainer : "transparent"
                     Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
@@ -232,8 +232,8 @@ OverlayWindow {
 
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                implicitWidth: 56
-                implicitHeight: 56
+                implicitWidth: Tokens.px(56)
+                implicitHeight: Tokens.px(56)
                 radius: width / 2
                 color: Colors.dangerContainer
                 Icon {

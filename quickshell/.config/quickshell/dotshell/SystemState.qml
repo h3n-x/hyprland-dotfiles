@@ -134,7 +134,7 @@ QtObject {
     property string cpuModel: ""
     property int cpuThreads: 1
     property int clockTicks: 100
-    property int pageSize: 4096
+    property int pageSize: 4096   // bytes, no pixeles (px-ok)
     property string igpuName: ""
     property string dgpuName: ""
     property var paths: ({ cpuTemp: "", gpuTemp: "", gpuBusy: "", nvmeTemp: "", dgpuPower: "" })

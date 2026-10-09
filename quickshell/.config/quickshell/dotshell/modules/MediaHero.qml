@@ -35,7 +35,7 @@ Item {
     id: hero
 
     // 248 de siempre; con el texto grande (Fase 12: hasta 150 %), lo que pida la columna de texto.
-    implicitHeight: Math.max(248, info.implicitHeight + 2 * Tokens.space.lg)
+    implicitHeight: Math.max(Tokens.px(248), info.implicitHeight + 2 * Tokens.space.lg)
 
     readonly property var player: MediaState.active
     // Visible de verdad (el dashboard lo liga a su Presence): sin esto sigue
@@ -44,7 +44,7 @@ Item {
     readonly property bool hasLength: !!hero.player && hero.player.lengthSupported && hero.player.length > 0
     readonly property bool canSeek: hero.hasLength && hero.player.canSeek && hero.player.positionSupported
     readonly property string playerName: MediaState.nameOf(hero.player)
-    readonly property int coverSize: 216
+    readonly property int coverSize: Tokens.cover.hero
     // Letra abierta (Fase 12 B1) y la lista de candidatos ("Otra letra").
     readonly property bool lyricsOpen: LyricsState.viewOpen && !!hero.player
     property bool picking: false
@@ -203,8 +203,8 @@ Item {
             if (ctl.nudge !== 0 && Tokens.motion.scale > 0) nudgeAnim.restart();
             ctl.clicked();
         }
-        implicitWidth: ctl.big ? 56 : 40
-        implicitHeight: ctl.big ? 56 : 40
+        implicitWidth: ctl.big ? Tokens.px(56) : Tokens.px(40)
+        implicitHeight: ctl.big ? Tokens.px(56) : Tokens.px(40)
 
         Rectangle {
             id: face
@@ -466,7 +466,7 @@ Item {
         // Reproductor: estado + nombre; con mas de uno, chips para elegir.
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 28
+            Layout.preferredHeight: Tokens.px(28)
             spacing: Tokens.space.xs
             Icon {
                 name: hero.player && hero.player.isPlaying ? "equalizer" : "pause"
@@ -496,9 +496,9 @@ Item {
                         id: chip
                         required property var modelData
                         readonly property bool on: chip.modelData === hero.player
-                        implicitHeight: 26
+                        implicitHeight: Tokens.px(26)
                         implicitWidth: chipText.implicitWidth + Tokens.space.md * 2
-                        radius: 13
+                        radius: Tokens.px(13)
                         color: chip.on ? Colors.accentAltContainer : "transparent"
                         border.width: chip.on ? 0 : 1
                         border.color: Colors.divider
@@ -526,9 +526,9 @@ Item {
             // "Letra": al pasar el raton o con la letra abierta (de fabrica no se ve).
             Rectangle {
                 visible: heroHover.hovered || hero.lyricsOpen
-                implicitHeight: 26
+                implicitHeight: Tokens.px(26)
                 implicitWidth: lyrRow.implicitWidth + Tokens.space.md * 2
-                radius: 13
+                radius: Tokens.px(13)
                 color: hero.lyricsOpen ? Colors.accentAltContainer : "transparent"
                 border.width: hero.lyricsOpen ? 0 : 1
                 border.color: Colors.divider
@@ -612,7 +612,7 @@ Item {
             visible: hero.hasLength
             Layout.fillWidth: true
             Layout.topMargin: Tokens.space.lg
-            implicitHeight: 16
+            implicitHeight: Tokens.px(16)
             readonly property real frac: seekMouse.pressed ? track.dragPos
                 : (hero.hasLength ? hero.barPos / hero.player.length : 0)
             property real dragPos: 0
@@ -635,7 +635,7 @@ Item {
                 visible: hero.canSeek
                 x: parent.width * Math.max(0, Math.min(1, track.frac)) - width / 2
                 anchors.verticalCenter: parent.verticalCenter
-                width: seekMouse.pressed ? 18 : (seekMouse.containsMouse ? 16 : 14)
+                width: seekMouse.pressed ? Tokens.px(18) : (seekMouse.containsMouse ? Tokens.px(16) : Tokens.px(14))
                 height: width
                 radius: width / 2
                 color: Colors.accent

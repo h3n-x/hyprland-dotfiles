@@ -77,12 +77,20 @@
       "description": "Se usa con «Imagen propia»; se recorta al centro.",
       "keywords": ["foto", "perfil"], "apply": "live"
     },
+    "accessibility.uiScale": {
+      "type": "number", "default": 1, "min": 0.85, "max": 1.5, "step": 0.05, "percent": true,
+      "labels": { "1": "100 % · normal" },
+      "category": "accessibility", "section": "Tamaño", "order": 25,
+      "label": "Escala de la interfaz",
+      "description": "De 85 % a 150 %. Todo crece junto: texto, iconos, la barra, filas, espacios y paneles. Solo la shell; para las apps, Pantallas → Escala.",
+      "keywords": ["tamaño", "grande", "zoom", "escala", "baja visión", "iconos", "barra"], "apply": "live"
+    },
     "accessibility.textScale": {
       "type": "number", "default": 1, "min": 0.85, "max": 1.5, "step": 0.05, "percent": true,
       "labels": { "1": "100 % · normal" },
-      "category": "accessibility", "section": "Texto", "order": 30,
+      "category": "accessibility", "section": "Tamaño", "order": 30,
       "label": "Tamaño del texto",
-      "description": "De 85 % a 150 %. Solo el texto: iconos y alturas no cambian (por eso no baja ni sube más: se dejaría de leer o de caber).",
+      "description": "De 85 % a 150 %, solo el texto, encima de la escala de la interfaz (por ejemplo, todo al 125 % y el texto un poco más).",
       "keywords": ["letra", "grande", "legibilidad", "baja visión", "zoom"], "apply": "live"
     },
     "accessibility.focusRing": {

@@ -73,7 +73,7 @@ PanelWindow {
             Rectangle {
                 visible: OsdState.value >= 0
                 Layout.alignment: Qt.AlignVCenter
-                implicitWidth: 128
+                implicitWidth: Tokens.px(128)
                 implicitHeight: Tokens.space.xs
                 radius: Tokens.radius.pill(height)
                 color: Colors.accentAltContainer

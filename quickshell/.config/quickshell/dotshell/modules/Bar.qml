@@ -60,6 +60,33 @@ PanelWindow {
     readonly property bool startSpacer: bar.lay.start.indexOf("spacer") >= 0
     readonly property bool endSpacer: bar.lay.end.indexOf("spacer") >= 0
 
+    // Si no entra todo a lo largo (pantalla angosta, interfaz grande: Fase 12
+    // A2), los titulos largos (musica, ventana activa) ceden lo que falta, asi
+    // el centro sigue al centro de verdad y nada lo tapa. Se recalcula despues
+    // de cada cambio de ancho (Qt.callLater: el ancho de los titulos depende
+    // de squeeze). Un lado sin titulos que ceder no lo mueve.
+    property int squeeze: 0
+    function squeezersIn(list: var): int {
+        return list.reduce((n, e) => n + (typeof e === "string" ? [e] : (e && e.pill) || [])
+            .filter(id => id === "media" || id === "activeWindow").length, 0);
+    }
+    function refit(): void {
+        const nS = bar.squeezersIn(bar.lay.start), nC = bar.squeezersIn(bar.lay.center), nE = bar.squeezersIn(bar.lay.end);
+        if (bar.vertical || nS + nC + nE === 0) {
+            bar.squeeze = 0;
+            return;
+        }
+        const gap = Tokens.space.sm;
+        // Lo que sobra (negativo) o falta: en total y, con algo al centro, en cada mitad.
+        let step = (startRow.implicitWidth + centerRow.implicitWidth + endRow.implicitWidth + 2 * gap - layout.width) / (nS + nC + nE);
+        if (centerRow.implicitWidth > 0) {
+            const left = centerRow.ideal, right = layout.width - centerRow.ideal - centerRow.implicitWidth;
+            if (nS) step = Math.max(step, (startRow.implicitWidth + gap - left) / nS);
+            if (nE) step = Math.max(step, (endRow.implicitWidth + gap - right) / nE);
+        }
+        bar.squeeze = Math.max(0, Math.min(Tokens.px(192), bar.squeeze + Math.ceil(step)));
+    }
+
     // Sólida (bar.style, Fase 11 B3b): un solo fondo pegado al borde.
     Rectangle {
         anchors.fill: parent
@@ -80,10 +107,12 @@ PanelWindow {
     Item {
         id: layout
         anchors.fill: parent
+        onWidthChanged: Qt.callLater(bar.refit)
 
         // Inicio (izquierda o arriba): desde el borde hasta el centro.
         GridLayout {
             id: startRow
+            onImplicitWidthChanged: Qt.callLater(bar.refit)
             flow: bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
             rows: bar.vertical ? -1 : 1
             columns: bar.vertical ? 1 : -1
@@ -107,6 +136,7 @@ PanelWindow {
         // vertical en una pantalla baja: 720 px logicos).
         GridLayout {
             id: centerRow
+            onImplicitWidthChanged: Qt.callLater(bar.refit)
             flow: bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
             rows: bar.vertical ? -1 : 1
             columns: bar.vertical ? 1 : -1
@@ -127,6 +157,7 @@ PanelWindow {
         // Fin (derecha o abajo): desde el centro hasta el borde.
         GridLayout {
             id: endRow
+            onImplicitWidthChanged: Qt.callLater(bar.refit)
             flow: bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
             rows: bar.vertical ? -1 : 1
             columns: bar.vertical ? 1 : -1

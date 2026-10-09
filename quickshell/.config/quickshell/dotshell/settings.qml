@@ -26,9 +26,9 @@ ShellRoot {
     FloatingWindow {
         id: window
         title: "Configuración"
-        implicitWidth: 1100
-        implicitHeight: 720
-        minimumSize: Qt.size(900, 560)
+        implicitWidth: Tokens.px(1100)
+        implicitHeight: Tokens.px(720)
+        minimumSize: Qt.size(Tokens.px(900), Tokens.px(560))
         visible: true
         color: Colors.surfaceLowest
         onClosed: Qt.quit()

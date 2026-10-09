@@ -16,7 +16,7 @@ Item {
     id: card
     property bool active: true
     readonly property var es: Qt.locale("es_ES")
-    property int cell: 40
+    property int cell: Tokens.px(40)
 
     implicitWidth: col.implicitWidth
     implicitHeight: col.implicitHeight
@@ -49,8 +49,8 @@ Item {
         id: nav
         property string icon
         signal clicked()
-        implicitWidth: 32
-        implicitHeight: 32
+        implicitWidth: Tokens.px(32)
+        implicitHeight: Tokens.px(32)
         radius: width / 2
         color: "transparent"
         StateLayer { hovered: navMouse.containsMouse; pressed: navMouse.pressed }
@@ -82,7 +82,7 @@ Item {
             // "Hoy": solo si se esta mirando otro mes.
             Rectangle {
                 visible: !card.viewingToday
-                implicitHeight: 28
+                implicitHeight: Tokens.px(28)
                 implicitWidth: todayRow.implicitWidth + Tokens.space.md * 2
                 radius: Tokens.radius.sm
                 color: "transparent"

@@ -53,8 +53,10 @@ for pair in uiFont:appearance.font.ui monoFont:appearance.font.mono; do
     echo "sddm-theme-stage: $f no esta instalada para todo el sistema; el greeter usa la de fabrica" >&2
   fi
 done
-s=$("$SETTINGS" get accessibility.textScale 2>/dev/null || true)
-[ -n "$s" ] && printf 'textScale=%s\n' "$s" >> "$tmp/theme.conf"
+for pair in uiScale:accessibility.uiScale textScale:accessibility.textScale; do
+  s=$("$SETTINGS" get "${pair#*:}" 2>/dev/null || true)
+  [ -n "$s" ] && printf '%s=%s\n' "${pair%%:*}" "$s" >> "$tmp/theme.conf"
+done
 
 # El greeter corre como el usuario "sddm": no puede leer el home (700).
 wp=$(grep -oP '(?<=path = ).*' "$WALLPAPER_CONF" 2>/dev/null | head -1 | sed "s|^~|$HOME|" || true)

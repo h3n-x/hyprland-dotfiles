@@ -42,13 +42,13 @@ Rectangle {
         Row {
             spacing: Tokens.space.md
             Item {
-                width: 34
-                height: 34
+                width: Tokens.px(34)
+                height: Tokens.px(34)
                 Image {
                     id: face
                     anchors.fill: parent
                     source: card.avatar
-                    sourceSize.width: 68
+                    sourceSize.width: Tokens.px(68)
                     fillMode: Image.PreserveAspectCrop
                     cache: false
                     visible: false
@@ -71,7 +71,7 @@ Rectangle {
                     anchors.centerIn: parent
                     visible: face.status !== Image.Ready
                     name: "account_circle"
-                    size: 34
+                    size: Tokens.px(34)
                     color: Colors.textMuted
                 }
             }
@@ -96,7 +96,7 @@ Rectangle {
         Rectangle {
             id: field
             width: parent.width
-            height: 64
+            height: Tokens.px(64)
             radius: Tokens.radius.pill(height)
             color: Colors.surfaceHighest
             border.width: 2
@@ -155,8 +155,8 @@ Rectangle {
                     Repeater {
                         model: card.dots
                         Rectangle {
-                            width: 10
-                            height: 10
+                            width: Tokens.px(10)
+                            height: Tokens.px(10)
                             radius: 5
                             anchors.verticalCenter: parent.verticalCenter
                             color: Colors.text
@@ -167,8 +167,8 @@ Rectangle {
                     }
                     Rectangle {
                         id: ghostDot
-                        width: 10
-                        height: 10
+                        width: Tokens.px(10)
+                        height: Tokens.px(10)
                         radius: 5
                         anchors.verticalCenter: parent.verticalCenter
                         color: Colors.text
@@ -182,7 +182,7 @@ Rectangle {
         // ---- Mensaje y Enter --------------------------------------------------------------------
         Item {
             width: parent.width
-            height: 48
+            height: Tokens.px(48)
             Text {
                 anchors.left: parent.left
                 anchors.leftMargin: Tokens.space.sm
@@ -201,7 +201,7 @@ Rectangle {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 width: enterText.implicitWidth + 2 * Tokens.space.xl
-                height: 48
+                height: Tokens.px(48)
                 radius: Tokens.radius.pill(height)
                 color: Colors.accent
                 Text {

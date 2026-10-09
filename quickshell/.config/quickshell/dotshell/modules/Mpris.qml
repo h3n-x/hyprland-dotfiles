@@ -12,6 +12,8 @@ import ".." // Colors.qml, Tokens.qml, MediaState.qml
 Item {
     id: root
     readonly property var player: MediaState.active
+    // Lo que cede el titulo si la barra no entra (Bar.squeeze, Fase 12 A2).
+    property int squeeze: 0
     // Condicion de datos para el Pill contenedor (ver Bar.qml). No usar
     // "visible" para eso: en QML visible es la visibilidad EFECTIVA -- si el
     // Pill arranca oculto (la lista de reproductores llega unos ms despues
@@ -70,7 +72,7 @@ Item {
             // A un costado (Fase 11 B3) no hay lugar para el titulo: solo el icono.
             visible: SettingsState.value("bar.media.title") !== false && !Tokens.bar.vertical
             Layout.alignment: Qt.AlignCenter
-            Layout.maximumWidth: 240
+            Layout.maximumWidth: Math.max(Tokens.px(48), Tokens.px(240) - root.squeeze)
             color: root.playing ? Colors.text : Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.body

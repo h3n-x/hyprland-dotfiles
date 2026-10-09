@@ -162,7 +162,7 @@ OverlayWindow {
                 presence: window.presence
                 layout: "grid"
                 columns: 10
-                cellSize: 48
+                cellSize: Tokens.px(48)
                 maxVisibleRows: 6
                 model: content.shown
                 placeholder: "Buscar emoji..."
@@ -183,7 +183,7 @@ OverlayWindow {
                                 required property var modelData
                                 readonly property bool on: !picker.query && content.category === tab.modelData.id
                                 Layout.fillWidth: true
-                                implicitHeight: 36
+                                implicitHeight: Tokens.px(36)
                                 radius: Tokens.radius.md
                                 color: tab.on ? Colors.accentAltContainer : "transparent"
                                 Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
@@ -223,9 +223,9 @@ OverlayWindow {
                     Image {
                         id: cellImage
                         anchors.centerIn: parent
-                        width: 28
-                        height: 28
-                        sourceSize: Qt.size(56, 56)
+                        width: Tokens.px(28)
+                        height: Tokens.px(28)
+                        sourceSize: Qt.size(Tokens.px(56), Tokens.px(56))
                         asynchronous: true
                         source: EmojiState.imageOf(cell.modelData)
                     }
@@ -236,7 +236,7 @@ OverlayWindow {
                         anchors.centerIn: parent
                         text: visible ? window.glyph(cell.modelData) : ""
                         font.family: Tokens.font.emoji
-                        font.pixelSize: 28
+                        font.pixelSize: Tokens.px(28)
                     }
                     MouseArea {
                         id: cellMouse
@@ -251,7 +251,7 @@ OverlayWindow {
                 // Emoji elegido: grande, nombre, claves y el tono.
                 detail: Component {
                     Rectangle {
-                        implicitHeight: 64
+                        implicitHeight: Tokens.px(64)
                         radius: Tokens.radius.md
                         color: Colors.surfaceHighest
                         RowLayout {
@@ -260,8 +260,8 @@ OverlayWindow {
                             anchors.rightMargin: Tokens.space.md
                             spacing: Tokens.space.md
                             Item {
-                                implicitWidth: 40
-                                implicitHeight: 40
+                                implicitWidth: Tokens.px(40)
+                                implicitHeight: Tokens.px(40)
                                 Image {
                                     id: bigImage
                                     anchors.fill: parent
@@ -273,7 +273,7 @@ OverlayWindow {
                                     anchors.centerIn: parent
                                     text: visible && content.current ? window.glyph(content.current) : ""
                                     font.family: Tokens.font.emoji
-                                    font.pixelSize: 40
+                                    font.pixelSize: Tokens.px(40)
                                 }
                             }
                             ColumnLayout {
@@ -314,8 +314,8 @@ OverlayWindow {
                                         id: dot
                                         required property int index
                                         readonly property bool on: dot.index === EmojiState.tone
-                                        width: 24
-                                        height: 24
+                                        width: Tokens.px(24)
+                                        height: Tokens.px(24)
                                         // Aro separado del punto: se ve sobre cualquier color.
                                         Rectangle {
                                             anchors.fill: parent
@@ -327,7 +327,7 @@ OverlayWindow {
                                         }
                                         Rectangle {
                                             anchors.centerIn: parent
-                                            width: dot.on ? 16 : 14
+                                            width: dot.on ? Tokens.px(16) : Tokens.px(14)
                                             height: width
                                             radius: width / 2
                                             color: window.toneColors[dot.index]

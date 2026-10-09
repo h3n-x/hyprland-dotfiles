@@ -15,7 +15,7 @@ AnchoredPanel {
     popupId: "network"
     align: "end"
     padding: Tokens.pad.card
-    heightCap: 420
+    heightCap: Tokens.px(420)
     readonly property var wifiDevice: NetworkState.wifiDevice
     readonly property var wiredDevice: NetworkState.wiredDevice
 

@@ -249,13 +249,13 @@ ColumnLayout {
                 RowLayout {
                     Layout.fillWidth: true
                     ZoneTitle { Layout.fillWidth: true; text: "Aplicaciones"; detail: "· lo que más usa ahora" }
-                    Text { text: "CPU"; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; Layout.preferredWidth: 44; horizontalAlignment: Text.AlignRight }
-                    Text { text: "Memoria"; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; Layout.preferredWidth: 64; horizontalAlignment: Text.AlignRight }
+                    Text { text: "CPU"; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; Layout.preferredWidth: Tokens.px(44); horizontalAlignment: Text.AlignRight }
+                    Text { text: "Memoria"; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; Layout.preferredWidth: Tokens.px(64); horizontalAlignment: Text.AlignRight }
                 }
                 ListView {
                     id: appList
                     Layout.fillWidth: true
-                    implicitHeight: 5 * 32
+                    implicitHeight: 5 * Tokens.px(32)
                     interactive: false
                     model: ListModel { id: appModel }
                     // Cambia el ranking: las filas se deslizan a su lugar.
@@ -269,17 +269,17 @@ ColumnLayout {
                         required property real mem
                         required property real rel
                         width: appList.width
-                        height: 32
+                        height: Tokens.px(32)
                         spacing: Tokens.space.sm
                         Image {
-                            Layout.preferredWidth: 20
-                            Layout.preferredHeight: 20
-                            sourceSize: Qt.size(40, 40)
+                            Layout.preferredWidth: Tokens.px(20)
+                            Layout.preferredHeight: Tokens.px(20)
+                            sourceSize: Qt.size(Tokens.px(40), Tokens.px(40))
                             source: parent.icon
                             asynchronous: true
                         }
                         Text {
-                            Layout.preferredWidth: 150
+                            Layout.preferredWidth: Tokens.px(150)
                             text: parent.name
                             color: Colors.text
                             font.family: Tokens.font.ui
@@ -293,7 +293,7 @@ ColumnLayout {
                             tint: Colors.accentContainer
                         }
                         Text {
-                            Layout.preferredWidth: 44
+                            Layout.preferredWidth: Tokens.px(44)
                             horizontalAlignment: Text.AlignRight
                             text: parent.cpu < 0.01 ? (parent.cpu > 0 ? "< 1 %" : "0 %") : (parent.cpu * 100).toFixed(parent.cpu < 0.1 ? 1 : 0).replace(".", ",") + " %"
                             color: Colors.text
@@ -302,7 +302,7 @@ ColumnLayout {
                             font.features: Tokens.tabularNumbers
                         }
                         Text {
-                            Layout.preferredWidth: 64
+                            Layout.preferredWidth: Tokens.px(64)
                             horizontalAlignment: Text.AlignRight
                             text: SystemState.bytes(parent.mem)
                             color: Colors.textMuted
@@ -316,7 +316,7 @@ ColumnLayout {
         }
 
         ColumnLayout {
-            Layout.preferredWidth: view.narrow ? -1 : 300
+            Layout.preferredWidth: view.narrow ? -1 : Tokens.px(300)
             Layout.fillWidth: view.narrow
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignTop
@@ -409,7 +409,7 @@ ColumnLayout {
                     Sparkline {
                         visible: view.charted("gpu") && !!SystemState.paths.gpuBusy
                         Layout.fillWidth: true
-                        implicitHeight: 32
+                        implicitHeight: Tokens.px(32)
                         series: view.hist("gpu")
                         rev: SystemState.historyRev
                         span: SystemState.historyMs
@@ -440,7 +440,7 @@ ColumnLayout {
                     Sparkline {
                         visible: view.charted("gpu") && !!SystemState.dgpuName && !!SystemState.paths.dgpuPower
                         Layout.fillWidth: true
-                        implicitHeight: 10
+                        implicitHeight: Tokens.px(10)
                         mode: "strip"
                         color: Colors.decor
                         series: view.hist("dgpu")

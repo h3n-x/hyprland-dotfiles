@@ -12,7 +12,7 @@ import ".." // Colors.qml, Tokens.qml
 
 ClippingRectangle {
     id: root
-    property int size: 72
+    property int size: Tokens.px(72)
     readonly property string face: Quickshell.env("HOME") + "/.face"
     property int rev: 0
 

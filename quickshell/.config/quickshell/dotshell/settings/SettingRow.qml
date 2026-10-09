@@ -205,7 +205,7 @@ Item {
         id: chip
         property string icon
         property string label
-        height: 20
+        height: Tokens.px(20)
         width: chipRow.implicitWidth + Tokens.space.md
         radius: Tokens.radius.pill(height)
         color: "transparent"
@@ -214,7 +214,7 @@ Item {
             id: chipRow
             anchors.centerIn: parent
             spacing: Tokens.space.xs
-            Icon { anchors.verticalCenter: parent.verticalCenter; name: chip.icon; size: 12; color: Colors.textMuted }
+            Icon { anchors.verticalCenter: parent.verticalCenter; name: chip.icon; size: Tokens.px(12); color: Colors.textMuted }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: chip.label
@@ -270,7 +270,7 @@ Item {
         id: sliderC
         Slider {
             objectName: "control-slider"
-            implicitWidth: 260 + Tokens.space.md + 84
+            implicitWidth: Tokens.px(260) + Tokens.space.md + Tokens.px(84)
             from: row.meta.min
             to: row.meta.max
             step: row.meta.step || 0

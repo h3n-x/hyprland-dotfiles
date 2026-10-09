@@ -18,7 +18,7 @@ Rectangle {
     property color ink: Colors.textMuted
     property color edge: Colors.divider
     signal clicked()
-    implicitHeight: 32
+    implicitHeight: Tokens.px(32)
     implicitWidth: btnRow.implicitWidth + Tokens.space.lg + Tokens.space.xs
     radius: Tokens.radius.pill(height)
     color: btn.main ? Colors.accent : "transparent"

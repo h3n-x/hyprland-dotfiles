@@ -90,7 +90,7 @@ Item {
         visible: thumb.badge && !!thumb.kinds[thumb.kind]
         x: Tokens.space.sm
         y: Tokens.space.sm
-        height: 24
+        height: Tokens.px(24)
         width: kindRow.implicitWidth + Tokens.space.lg
         radius: Tokens.radius.pill(height)
         color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
@@ -120,15 +120,15 @@ Item {
     Rectangle {
         visible: thumb.video
         anchors.centerIn: parent
-        width: 52
-        height: 52
-        radius: 26
+        width: Tokens.px(52)
+        height: Tokens.px(52)
+        radius: Tokens.px(26)
         color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
         Icon {
             anchors.centerIn: parent
             name: "play_arrow"
             filled: true
-            size: 30
+            size: Tokens.px(30)
         }
     }
     Rectangle {
@@ -136,8 +136,8 @@ Item {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.margins: Tokens.space.sm
-        height: 22
-        width: durText.implicitWidth + 14
+        height: Tokens.px(22)
+        width: durText.implicitWidth + Tokens.px(14)
         radius: Tokens.radius.pill(height)
         color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
         Text {

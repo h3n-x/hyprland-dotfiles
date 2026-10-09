@@ -87,7 +87,7 @@ Column {
     }
     Rectangle {
         width: dateText.implicitWidth + 2 * Tokens.space.xl
-        height: 52
+        height: Tokens.px(52)
         radius: Tokens.radius.pill(height)
         color: Colors.accentContainer
         Text {

@@ -10,7 +10,7 @@ AnchoredPanel {
     popupId: "audio"
     align: "end"
     padding: Tokens.pad.card
-    heightCap: 460
+    heightCap: Tokens.px(460)
 
     property var audioData: ({ sinks: [], sources: [] })
     readonly property string managerScript: Quickshell.env("HOME") + "/.config/hypr/scripts/audio-manager.sh"

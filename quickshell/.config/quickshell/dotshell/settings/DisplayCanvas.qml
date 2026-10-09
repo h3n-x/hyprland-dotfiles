@@ -50,7 +50,7 @@ Item {
         return [Math.round(bx), Math.round(by)];
     }
 
-    implicitHeight: 200
+    implicitHeight: Tokens.px(200)
 
     Rectangle {
         anchors.fill: parent

@@ -41,7 +41,7 @@ Item {
     readonly property string monitorName: !thumb.placeholder && thumb.slot.monitor ? thumb.slot.monitor.name : thumb.screenName
     readonly property var mon: DesktopState.monitors[thumb.monitorName]
         || DesktopState.monitors[thumb.screenName]
-        || { width: 1280, height: 720, reserved: [0, 0, 0, 0] }
+        || { width: 1280, height: 720, reserved: [0, 0, 0, 0] }   // px-ok: geometria de pantalla
     readonly property real k: thumb.width / thumb.mon.width
     readonly property var deco: DesktopState.decoration
     readonly property var wins: DesktopState.windows
@@ -75,7 +75,7 @@ Item {
             source: Colors.image ? "file://" + Colors.image : ""
             fillMode: Image.PreserveAspectCrop
             // Decodificado chico una vez por fondo (lo comparten las miniaturas).
-            sourceSize: Qt.size(320, 180)
+            sourceSize: Qt.size(Tokens.px(320), Tokens.px(180))
             asynchronous: true
             smooth: true
         }
@@ -173,7 +173,7 @@ Item {
                         cls: win.modelData.cls
                         capturable: win.modelData.capturable
                         constraintSize: Qt.size(winFace.width * 2, winFace.height * 2)
-                        iconSize: Math.min(40, winFace.height * 0.5)
+                        iconSize: Math.min(Tokens.px(40), winFace.height * 0.5)
                     }
                 }
                 Item {
@@ -189,9 +189,9 @@ Item {
                 Image {
                     visible: !thumb.detailed
                     anchors.centerIn: parent
-                    width: Math.min(22, parent.height * 0.5, parent.width * 0.5)
+                    width: Math.min(Tokens.px(22), parent.height * 0.5, parent.width * 0.5)
                     height: width
-                    sourceSize: Qt.size(44, 44)
+                    sourceSize: Qt.size(Tokens.px(44), Tokens.px(44))
                     source: AppInfo.icon(win.modelData.cls)
                     asynchronous: true
                 }
@@ -203,7 +203,7 @@ Item {
                     spacing: 3
                     Rectangle {
                         visible: DesktopState.mediaWindow === win.modelData.address
-                        width: thumb.detailed ? 22 : 14
+                        width: thumb.detailed ? Tokens.px(22) : Tokens.px(14)
                         height: width
                         radius: width / 2
                         color: Colors.accent
@@ -211,11 +211,11 @@ Item {
                     }
                     Rectangle {
                         visible: thumb.detailed && win.modelData.history === 1
-                        width: 22
-                        height: 22
-                        radius: 11
+                        width: Tokens.px(22)
+                        height: Tokens.px(22)
+                        radius: Tokens.px(11)
                         color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
-                        Icon { anchors.centerIn: parent; name: "history"; size: 16; color: Colors.textMuted }
+                        Icon { anchors.centerIn: parent; name: "history"; size: Tokens.icon.sm; color: Colors.textMuted }
                     }
                 }
                 // Titulo al pasar el mouse (vista Escritorios).
@@ -292,8 +292,8 @@ Item {
         x: Tokens.space.xs
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Tokens.space.xs
-        width: 16
-        height: 16
+        width: Tokens.px(16)
+        height: Tokens.px(16)
         radius: 8
         color: Colors.tint(Colors.surfaceHighest, Tokens.tint.overlay)
         opacity: thumb.veiled ? 0.4 : 1
@@ -302,7 +302,7 @@ Item {
             text: thumb.wsId
             color: Colors.textMuted
             font.family: Tokens.font.ui
-            font.pixelSize: 10
+            font.pixelSize: Tokens.px(10)
             font.weight: Tokens.weight.semibold
         }
     }

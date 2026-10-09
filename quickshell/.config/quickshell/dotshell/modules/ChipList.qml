@@ -61,7 +61,7 @@ Item {
     }
 
     // A lo ancho de la fila (va apilada bajo el titulo; la fila le da el ancho).
-    implicitWidth: 360
+    implicitWidth: Tokens.px(360)
     implicitHeight: flow.implicitHeight
 
     Flow {
@@ -100,7 +100,7 @@ Item {
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        width: Math.min(implicitWidth, 220)
+                        width: Math.min(implicitWidth, Tokens.px(220))
                         elide: Text.ElideMiddle
                         text: root.labelOf(chip.modelData)
                         color: Colors.text
