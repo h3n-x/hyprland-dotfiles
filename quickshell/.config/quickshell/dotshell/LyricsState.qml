@@ -26,7 +26,7 @@ QtObject {
 
     readonly property bool online: SettingsState.value("media.lyrics.enabled") === true
     readonly property string dir: SettingsState.value("media.lyrics.dir") || ""
-    readonly property string script: Quickshell.env("HOME") + "/.config/hypr/scripts/lyrics-fetch"
+    readonly property string script: Quickshell.env("LYRICS_FETCH") || (Quickshell.env("HOME") + "/.config/hypr/scripts/lyrics-fetch")
     readonly property string cacheDir: Quickshell.env("LYRICS_CACHE") || (Quickshell.env("HOME") + "/.cache/dotfiles/lyrics")
 
     // La columna de la letra en la pestana Musica (tecla L o "Letra"; Fase 12 B2:
@@ -93,11 +93,31 @@ QtObject {
     // ---- Busqueda ------------------------------------------------------------------------
     function demandMoved(): void {
         if (root.demand.active) {
-            if (root.loadedKey !== root.key) root.load();
+            // Otra cancion, o la anterior quedo sin poder consultar: buscar de nuevo.
+            if (root.loadedKey !== root.key || root.status === "offline") root.load();
             root.resync();
         } else {
             lineTimer.stop();
+            retryTimer.stop();
         }
+    }
+    // Falla pasajera (sin red, LRCLIB con error o pidiendo esperar): se vuelve a
+    // intentar sola a los 30 s, 2 min y 5 min mientras la letra se mira.
+    property int retries: 0
+    readonly property var retryMs: [30000, 120000, 300000]
+    property Timer retryTimer: Timer {
+        onTriggered: {
+            if (!root.demand.active || root.loadedKey !== root.key || root.status !== "offline") return;
+            root.retries++;
+            root.status = "searching";
+            fetcher.req = root.req;
+            fetcher.running = true;
+        }
+    }
+    function scheduleRetry(): void {
+        if (root.retries >= root.retryMs.length || !root.demand.active) return;
+        retryTimer.interval = Number(Quickshell.env("LYRICS_RETRY_MS")) || root.retryMs[root.retries];
+        retryTimer.restart();
     }
     onKeyChanged: if (root.demand.active) root.load()
     // Al cargar los recuerdos (la eleccion a mano manda sobre la busqueda).
@@ -117,6 +137,8 @@ QtObject {
     property int req: 0
     function load(): void {
         root.reset();
+        retryTimer.stop();
+        root.retries = 0;
         root.req++;
         root.loadedKey = root.key;
         if (!root.key) {
@@ -253,7 +275,9 @@ QtObject {
                 try { d = JSON.parse(fetchOut.text); } catch (e) {}
                 if (d && root.useResult(d, "lrclib")) return;
             }
-            root.status = code === 1 ? "none" : code === 2 ? "off" : "offline";
+            // Exit 0 sin una letra que se pueda leer: como "no hay".
+            root.status = code === 0 || code === 1 ? "none" : code === 2 ? "off" : "offline";
+            if (root.status === "offline") root.scheduleRetry();
         }
     }
     function useLrc(text: string, source: string): bool {

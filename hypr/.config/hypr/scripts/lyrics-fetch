@@ -13,8 +13,9 @@
 # Salida de --get / --id: {source, id, track, artist, duration, synced, plain,
 # instrumental} en stdout y en la cache. Codigos: 0 encontrada, 1 no hay
 # (queda anotado 7 dias: no se vuelve a preguntar en cada reproduccion),
-# 2 apagado (media.lyrics.enabled en falso: no sale nada a la red), 3 sin red
-# o error (no se anota: se reintenta la proxima vez).
+# 2 apagado (media.lyrics.enabled en falso: no sale nada a la red), 3 falla
+# pasajera: sin red, LRCLIB con error o pidiendo esperar (429); no se anota y
+# LyricsState vuelve a intentar.
 #
 # Privacidad: solo se envian el titulo, el artista y la duracion (los que da
 # el reproductor, ya normalizados por quien llama), y solo con la opcion
@@ -41,10 +42,16 @@ write_atomic() { local f=$1 tmp; mkdir -p "$(dirname "$f")"; tmp=$(mktemp "$f.XX
 urienc() { jq -rn --arg v "$1" '$v|@uri'; }
 
 # GET a la API; deja el cuerpo en $BODY y devuelve el codigo HTTP (000 = sin red).
-# Se llama dentro de $( ): el temporal ya tiene que existir afuera.
+# Se llama dentro de $( ): el temporal ya tiene que existir afuera. Si curl
+# falla, su -w ya escribio "000": se reemplaza, no se agrega (antes quedaba
+# "000000" y una falta de red pasaba por "no hay letra").
 http() {
-    curl -sS --max-time 10 -H "User-Agent: $UA" -o "$BODY" -w '%{http_code}' "$API$1" 2>/dev/null || echo 000
+    local c
+    c=$(curl -sS --max-time 10 -H "User-Agent: $UA" -o "$BODY" -w '%{http_code}' "$API$1" 2>/dev/null) || c=000
+    echo "$c"
 }
+# Falla pasajera (sin red, el servicio caido o pidiendo esperar): no se anota.
+transient() { [[ $1 == 000 || $1 == 5* || $1 == 429 ]]; }
 
 # Un resultado de LRCLIB -> nuestro formato.
 shape='{source: "lrclib", id: (.id|tostring), track: .trackName, artist: .artistName, duration: .duration,
@@ -70,10 +77,10 @@ case ${1:-} in
     if [[ $code == 200 ]] && jq -e '.id' "$BODY" >/dev/null 2>&1; then
         jq -c "$shape + {fetched_at: now|floor}" "$BODY" | write_atomic "$file"; cat "$file"; exit 0
     fi
-    [[ $code == 000 || $code == 5* ]] && exit 3
+    transient "$code" && exit 3
     for q in "/api/search?track_name=$t&artist_name=$a" "/api/search?q=$(urienc "$title $artist")"; do
         code=$(http "$q")
-        [[ $code == 000 || $code == 5* ]] && exit 3
+        transient "$code" && exit 3
         [[ $code == 200 ]] || continue
         r=$(best "$dur")
         if [[ -n $r ]]; then

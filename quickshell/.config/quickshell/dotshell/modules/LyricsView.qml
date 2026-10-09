@@ -21,7 +21,7 @@ Item {
         if (s === "searching") return "Buscando la letra…";
         if (s === "off") return "Sin letra en tu equipo. Puedes buscarla en internet: Configuración → Multimedia → Letras.";
         if (s === "none") return "No se encontró la letra de esta canción.";
-        if (s === "offline") return "Sin conexión: no se pudo buscar la letra.";
+        if (s === "offline") return "No se pudo consultar LRCLIB ahora (sin conexión o el servicio no respondió). Se vuelve a intentar solo.";
         if (LyricsState.instrumental) return "Instrumental";
         return "";
     }
