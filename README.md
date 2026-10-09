@@ -480,7 +480,13 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
     Multimedia -> Portada; las onduladas giran un poco con cada cancion), el
     reproductor (titulo, artista, album, progreso con busqueda, cinco
     controles, chips con mas de un reproductor) y la letra al lado (debajo si
-    no entra). Sin nada sonando, lo dice; no corre nada. **Barras de audio**
+    no entra), sobre el color del panel (sin fondo difuminado). **Colores de
+    la portada** (Fase 12 B4, de fabrica encendido): la barra de progreso, el
+    boton de reproducir y las barras toman el color de la portada armonizado
+    con el fondo (`hypr/.config/hypr/scripts/local-palette`, cache en
+    `~/.cache/dotfiles/local-palette`); una portada gris o un color que se
+    confunda con un aviso usan el de siempre. Sin nada sonando, lo dice; no
+    corre nada. **Barras de audio**
     alrededor de la portada (Fase 12 B3; Configuracion -> Multimedia ->
     Visualizador, apagadas de fabrica): siguen la forma de la portada; las
     da [cava](https://github.com/karlstav/cava), que corre solo mientras la
@@ -659,7 +665,7 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   ambos: una mezcla temporal de PipeWire que se quita al terminar) y 30 o
   60 fotogramas.
 - **Multimedia**: el reproductor preferido (el que la barra y el dashboard
-  muestran si esta abierto), ignorar los navegadores, la forma de la portada,
+  muestran si esta abierto), ignorar los navegadores, la forma y los colores de la portada,
   las barras de audio (y cuantas) y el volumen maximo con las teclas (100, 125 o 150 %).
 - **Notificaciones**: donde aparecen (arriba a la derecha, arriba al centro,
   abajo a la derecha), cuantas a la vez (las demas esperan), un sonido al

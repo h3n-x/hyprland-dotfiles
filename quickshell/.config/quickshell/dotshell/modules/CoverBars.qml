@@ -3,11 +3,11 @@
 // (CoverShape.radiusAt: sigue la forma y su giro) hacia afuera, tan larga como
 // su valor dentro del anillo libre (ring). Todas en un solo trazo
 // (PathMultiline): un cambio por cuadro, no uno por barra. Puntas redondas;
-// color de identidad (Colors.accent; con B4, el de la portada).
+// el acento de la portada (MediaColors, B4; sin uno valido, Colors.accent).
 // No corre nada propio: dibuja lo que llega mientras CavaState corre.
 import QtQuick
 import QtQuick.Shapes
-import ".." // Colors.qml, Tokens.qml, CavaState.qml
+import ".." // Colors.qml, Tokens.qml, CavaState.qml, MediaColors.qml
 
 Item {
     id: bars
@@ -44,7 +44,7 @@ Item {
         preferredRendererType: Shape.CurveRenderer
         ShapePath {
             strokeWidth: bars.stroke
-            strokeColor: Colors.accent
+            strokeColor: MediaColors.accent
             fillColor: "transparent"
             capStyle: ShapePath.RoundCap
             PathMultiline { paths: bars.segments }

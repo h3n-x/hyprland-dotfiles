@@ -4,7 +4,7 @@
 // barra. thin = solo la linea, sin tirador ni tiempos (tarjeta de Inicio).
 import QtQuick
 import QtQuick.Layouts
-import ".." // Colors.qml, Tokens.qml
+import ".." // Colors.qml, Tokens.qml, MediaColors.qml
 
 ColumnLayout {
     id: root
@@ -38,7 +38,9 @@ ColumnLayout {
             width: parent.width * Math.max(0, Math.min(1, track.frac))
             height: track.lineH
             radius: height / 2
-            color: Colors.accent
+            // El acento de la portada (B4; sin uno valido, el de siempre).
+            color: MediaColors.accent
+            Behavior on color { ColorAnimation { duration: Tokens.motion.medium } }
         }
         Rectangle {
             visible: root.canSeek
@@ -47,8 +49,9 @@ ColumnLayout {
             width: seekMouse.pressed ? Tokens.px(18) : (seekMouse.containsMouse ? Tokens.px(16) : Tokens.px(14))
             height: width
             radius: width / 2
-            color: Colors.accent
+            color: MediaColors.accent
             Behavior on width { NumberAnimation { duration: Tokens.motion.fast } }
+            Behavior on color { ColorAnimation { duration: Tokens.motion.medium } }
         }
         MouseArea {
             id: seekMouse

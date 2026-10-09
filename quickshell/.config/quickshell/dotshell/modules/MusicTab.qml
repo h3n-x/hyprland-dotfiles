@@ -1,8 +1,8 @@
 // Pestana Musica del dashboard (Fase 12 B2, P12.2 / P12.4): portada con
 // forma (media.cover.shape) y un anillo libre alrededor para las barras de
 // B3 · el reproductor (titulo, artista, album, progreso, controles, chips con
-// mas de uno) · la letra en su columna (B1; solo aca, D-R-3). Fondo: la
-// portada difuminada. Angosta: portada y reproductor lado a lado, la letra
+// mas de uno) · la letra en su columna (B1; solo aca, D-R-3). Sin fondo propio
+// (B4: ni portada difuminada ni halo). Angosta: portada y reproductor lado a lado, la letra
 // debajo.
 //
 // Sin nada sonando la pestana queda (un lugar fijo) y lo dice; no corre nada.
@@ -44,6 +44,8 @@ Item {
         active: tab.active
     }
     Subscription { demand: LyricsState.demand; active: tab.active && tab.lyricsShown }
+    // El acento de la portada (B4): solo mientras se ve.
+    Subscription { demand: MediaColors.demand; active: tab.active && tab.hasPlayer }
     // Visualizador (Fase 12 B3): solo visible, sonando, con la opcion y sin "reducir movimiento".
     readonly property bool barsOn: SettingsState.value("media.visualizer.enabled") === true && Tokens.motion.scale > 0
     Subscription { demand: CavaState.demand; active: tab.active && tab.barsOn && session.playing }
@@ -79,12 +81,6 @@ Item {
             cursorShape: Qt.PointingHandCursor
             onClicked: lt.clicked()
         }
-    }
-
-    MediaBackdrop {
-        anchors.fill: parent
-        visible: tab.hasPlayer
-        images: cover.images
     }
 
     // ---- Nada suena -----------------------------------------------------------------
@@ -141,6 +137,9 @@ Item {
                 id: cover
                 anchors.centerIn: parent
                 session: session
+                // Sin halo ni fondo difuminado (pedido del usuario, B4): la portada
+                // con su forma y las barras sobre el color de siempre.
+                halo: false
                 size: tab.stacked ? Math.round(Tokens.cover.music * 0.7) : Tokens.cover.music
             }
         }

@@ -6,7 +6,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Services.Mpris
-import ".." // Colors.qml, Tokens.qml, MediaState.qml
+import ".." // Colors.qml, Tokens.qml, MediaState.qml, MediaColors.qml
 
 RowLayout {
     id: root
@@ -45,7 +45,8 @@ RowLayout {
             id: face
             anchors.fill: parent
             radius: ctl.big && !root.compact ? Tokens.radius.lg : width / 2
-            color: ctl.big ? Colors.accent : (ctl.on ? Colors.accentAltContainer : "transparent")
+            // El grande lleva el acento de la portada (B4; sin uno valido, el de siempre).
+            color: ctl.big ? MediaColors.accent : (ctl.on ? Colors.accentAltContainer : "transparent")
             opacity: ctl.usable ? 1 : 0.35
             scale: ctlMouse.pressed && ctl.usable ? 0.92 : 1
             Behavior on scale { NumberAnimation { duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
@@ -55,14 +56,14 @@ RowLayout {
             StateLayer {
                 hovered: ctlMouse.containsMouse && ctl.usable
                 pressed: ctlMouse.pressed && ctl.usable
-                contentColor: ctl.big ? Colors.textOnAccent : Colors.text
+                contentColor: ctl.big ? MediaColors.onAccent : Colors.text
             }
             Icon {
                 anchors.centerIn: parent
                 name: ctl.icon
                 filled: ctl.big || ctl.on
                 size: ctl.big && !root.compact ? Tokens.icon.lg : Tokens.icon.md
-                color: ctl.big ? Colors.textOnAccent : (ctl.on ? Colors.textOnAccentAltContainer : Colors.textMuted)
+                color: ctl.big ? MediaColors.onAccent : (ctl.on ? Colors.textOnAccentAltContainer : Colors.textMuted)
                 opacity: ctl.altIcon && ctl.showAlt ? 0 : 1
                 scale: ctl.altIcon && ctl.showAlt ? 0.6 : 1
                 Behavior on opacity { NumberAnimation { duration: Tokens.motion.short } }
@@ -74,7 +75,7 @@ RowLayout {
                 name: ctl.altIcon
                 filled: true
                 size: ctl.big && !root.compact ? Tokens.icon.lg : Tokens.icon.md
-                color: ctl.big ? Colors.textOnAccent : Colors.textMuted
+                color: ctl.big ? MediaColors.onAccent : Colors.textMuted
                 opacity: ctl.showAlt ? 1 : 0
                 scale: ctl.showAlt ? 1 : 0.6
                 Behavior on opacity { NumberAnimation { duration: Tokens.motion.short } }

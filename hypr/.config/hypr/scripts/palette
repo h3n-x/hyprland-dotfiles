@@ -427,9 +427,10 @@ def check_code(rep):
                         used[i] += 1
                 else:
                     rep.add("FALLO", "PC-Q4", where, "un estado elige un color de identidad: " + code.strip()[:90])
-            # Q5 paletas locales solo donde la arquitectura lo permite.
-            if "LocalPalette" in code and rel not in q["localAccentConsumers"]:
-                rep.add("FALLO", "PC-Q5", where, "LocalPalette fuera de los elementos permitidos")
+            # Q5 paletas locales (LocalPalette, MediaColors de P12.5) solo donde la
+            # arquitectura lo permite (P8.7 §3.4); el productor no cuenta.
+            if re.search(r"\b(LocalPalette|MediaColors)\b", code) and rel not in q["localAccentConsumers"] and base != "MediaColors.qml":
+                rep.add("FALLO", "PC-Q5", where, "paleta local fuera de los elementos permitidos")
             # Q6 alias inexistente.
             if base not in q["m3Allowed"]:
                 for x in names:

@@ -23,6 +23,8 @@ Item {
         id: session
         active: card.active
     }
+    // El acento de la portada (B4): solo mientras se ve.
+    Subscription { demand: MediaColors.demand; active: card.active && !!session.player }
 
     function handleKey(event: var): bool {
         if (!session.player) return false;

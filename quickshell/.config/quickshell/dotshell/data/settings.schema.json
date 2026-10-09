@@ -888,6 +888,13 @@
       "label": "Forma de la portada", "description": "En la pestaña Música y en la tarjeta de Inicio. Las onduladas giran un poco con cada canción.",
       "keywords": ["portada", "forma", "círculo", "galleta", "carátula"], "apply": "live"
     },
+    "media.colors.fromCover": {
+      "type": "bool", "default": true,
+      "category": "media", "section": "Portada", "order": 31,
+      "label": "Colores de la portada",
+      "description": "La barra de progreso, el botón de reproducir y las barras de audio toman el color de la portada, armonizado con tu fondo. Una portada gris o un color que se confunda con un aviso usan el de siempre.",
+      "keywords": ["color", "portada", "acento", "adaptativo"], "apply": "live"
+    },
     "media.visualizer.enabled": {
       "type": "bool", "default": false,
       "category": "media", "section": "Visualizador", "order": 35,
