@@ -1,6 +1,8 @@
 // Visualizador de audio (Fase 12 B3, P12.3, D-B3-3): cava como proceso, salida
-// cruda en texto (una linea por cuadro, valores separados por ;), mono, 30
-// cuadros por segundo, media.visualizer.bars barras. Corre solo mientras
+// cruda en texto (una linea por cuadro, valores separados por ;), mono, 20
+// cuadros por segundo (30 costaba mas de 1 % de un nucleo en vivo, D-B3-5),
+// media.visualizer.bars barras. Un cuadro igual al anterior (silencio) no se
+// vuelve a dibujar. Corre solo mientras
 // alguien lo pide (Demand "cava": la pestana Musica visible, sonando, la
 // opcion encendida y sin "reducir movimiento"); al soltarlo se detiene y los
 // valores vuelven a cero. La configuracion se escribe en XDG_RUNTIME_DIR al
@@ -20,6 +22,7 @@ QtObject {
     readonly property string conf: Quickshell.env("CAVA_CONF") || ((Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/dotshell-cava.conf")
     // 0..1 por barra; vacio sin proceso.
     property var values: []
+    property string last: ""
     // null = sin saber todavia; false = no esta instalado.
     property var available: null
     readonly property bool running: root.proc.running
@@ -31,7 +34,7 @@ QtObject {
     onBarsChanged: if (root.proc.running) { root.proc.running = false; root.sync(); }
 
     function config(): string {
-        return ["[general]", "framerate = 30", "bars = " + root.bars, "autosens = 1",
+        return ["[general]", "framerate = 20", "bars = " + root.bars, "autosens = 1",
                 "[output]", "method = raw", "raw_target = /dev/stdout", "data_format = ascii", "ascii_max_range = 1000",
                 "channels = mono", "mono_option = average", "bar_delimiter = 59", "frame_delimiter = 10",
                 "[smoothing]", "monstercat = 1", "noise_reduction = 77", ""].join("\n");
@@ -62,6 +65,8 @@ QtObject {
         command: ["sh", "-c", "printf '%s' \"$1\" > \"$2\" && exec \"$3\" -p \"$2\"", "sh", root.config(), root.conf, root.cmd]
         stdout: SplitParser {
             onRead: (line) => {
+                if (line === root.last) return;
+                root.last = line;
                 const parts = line.split(";");
                 const out = [];
                 for (const p of parts) {
@@ -72,6 +77,6 @@ QtObject {
                 if (out.length) root.values = out;
             }
         }
-        onRunningChanged: if (!root.proc.running) root.values = []
+        onRunningChanged: if (!root.proc.running) { root.values = []; root.last = ""; }
     }
 }
