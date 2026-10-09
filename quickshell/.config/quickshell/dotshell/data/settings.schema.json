@@ -841,6 +841,20 @@
       "category": "media", "section": "Reproductor", "order": 20,
       "label": "Ignorar los navegadores", "description": "Los videos del navegador no aparecen como reproductor.", "keywords": ["firefox", "chrome", "zen", "youtube"], "apply": "live"
     },
+    "media.lyrics.enabled": {
+      "type": "bool", "default": false,
+      "category": "media", "section": "Letras", "order": 40,
+      "label": "Buscar letras en internet",
+      "description": "Si no hay una letra en tu equipo, la busca en lrclib.net (abierto, sin cuenta). Se envían el título, el artista y la duración de la canción; nada más.",
+      "keywords": ["letra", "lyrics", "lrclib", "canción", "karaoke"], "apply": "live"
+    },
+    "media.lyrics.dir": {
+      "type": "path", "kind": "dir", "default": "~/Music/Lyrics",
+      "category": "media", "section": "Letras", "order": 41,
+      "label": "Carpeta de letras",
+      "description": "Archivos .lrc («Artista - Título.lrc», también en subcarpetas). Solo se leen. Un .lrc junto al archivo de la canción también vale.",
+      "keywords": ["letra", "lrc", "carpeta"], "apply": "live"
+    },
     "media.volumeLimit": {
       "type": "number", "default": 1, "min": 1, "max": 1.5, "presets": [[1, "100 %"], [1.25, "125 %"], [1.5, "150 %"]],
       "category": "media", "section": "Volumen", "order": 30,

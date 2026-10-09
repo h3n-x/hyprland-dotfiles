@@ -420,6 +420,17 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   pausa. Las teclas multimedia (`binds.lua`) usan el mismo reproductor via
   `qs -c dotshell ipc call media next|previous|playPause`, tambien con la
   pantalla bloqueada. Se ignoran los reproductores "proxy" (playerctld).
+  **Letras** (Fase 12 B1): en el reproductor del dashboard, `L` (o "Letra",
+  que aparece al pasar el raton) muestra la letra en el lugar del titulo, la
+  linea actual al centro; clic en una linea va ahi; "Otra letra" elige entre
+  otras versiones y `-`/`+` (o `[`/`]`) corrige el desfase, que se recuerda
+  por cancion (`~/.local/state/dotfiles/lyrics.json`). Busca primero un
+  `.lrc` junto al archivo de la cancion, despues en `~/Music/Lyrics`
+  ("Artista - Titulo.lrc", tambien en subcarpetas) y, solo si se activa en
+  Configuracion -> Multimedia -> Letras, en [LRCLIB](https://lrclib.net)
+  (abierto, sin cuenta; se envian titulo, artista y duracion) via
+  `hypr/.config/hypr/scripts/lyrics-fetch` (cache en `~/.cache/dotfiles/lyrics`;
+  una cancion sin letra no se vuelve a preguntar en 7 dias).
 - **Dashboard** (`modules/Dashboard.qml` y sus vistas, `DashboardState.qml`):
   el centro de la shell. **Se abre solo con `SUPER+A`** (ningun modulo de la
   barra lo abre), centrado bajo la barra del monitor enfocado; `Esc` o

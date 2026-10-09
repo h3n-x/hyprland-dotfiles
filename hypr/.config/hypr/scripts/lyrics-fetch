@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# Letras de canciones (Fase 12 B1, P12.1): la unica pieza que habla con la
+# red para esto, como weather-fetch para el clima. Fuente: LRCLIB
+# (https://lrclib.net, abierta y sin clave). Lo pide LyricsState.qml, una
+# vez por cancion, solo si no hay una letra local ni en la cache.
+#
+#   lyrics-fetch --get TITULO ARTISTA DURACION   la mejor letra: /api/get, despues
+#                                                /api/search por campos, despues ?q=
+#   lyrics-fetch --search TITULO ARTISTA         candidatos (JSON en stdout)
+#   lyrics-fetch --id N                          una letra elegida de los candidatos
+#   lyrics-fetch --key TITULO ARTISTA DURACION   el nombre del archivo de cache (sin red)
+#
+# Salida de --get / --id: {source, id, track, artist, duration, synced, plain,
+# instrumental} en stdout y en la cache. Codigos: 0 encontrada, 1 no hay
+# (queda anotado 7 dias: no se vuelve a preguntar en cada reproduccion),
+# 2 apagado (media.lyrics.enabled en falso: no sale nada a la red), 3 sin red
+# o error (no se anota: se reintenta la proxima vez).
+#
+# Privacidad: solo se envian el titulo, el artista y la duracion (los que da
+# el reproductor, ya normalizados por quien llama), y solo con la opcion
+# encendida.
+#
+# Cache: ~/.cache/dotfiles/lyrics/<md5 de "artista\ttitulo\tduracion">.json
+# (escritura atomica). Pruebas: LYRICS_API_BASE, LYRICS_CACHE y las
+# SETTINGS_* del motor.
+set -uo pipefail
+
+API=${LYRICS_API_BASE:-https://lrclib.net}
+CACHE=${LYRICS_CACHE:-$HOME/.cache/dotfiles/lyrics}
+SETTINGS="$(dirname "$(readlink -f "$0")")/settings"
+UA="dotfiles-shell (Quickshell; letras de canciones)"
+NEGATIVE_DAYS=7
+
+BODY=$(mktemp)
+trap 'rm -f "$BODY"' EXIT
+
+enabled() { [[ $("$SETTINGS" get media.lyrics.enabled 2>/dev/null) == true ]]; }
+# La misma clave que LyricsState.qml (Qt.md5 de "artista\ttitulo\tduracion").
+key() { printf '%s\t%s\t%s' "$2" "$1" "$3" | md5sum | cut -d' ' -f1; }
+write_atomic() { local f=$1 tmp; mkdir -p "$(dirname "$f")"; tmp=$(mktemp "$f.XXXXXX") && cat > "$tmp" && mv -f "$tmp" "$f"; }
+urienc() { jq -rn --arg v "$1" '$v|@uri'; }
+
+# GET a la API; deja el cuerpo en $BODY y devuelve el codigo HTTP (000 = sin red).
+# Se llama dentro de $( ): el temporal ya tiene que existir afuera.
+http() {
+    curl -sS --max-time 10 -H "User-Agent: $UA" -o "$BODY" -w '%{http_code}' "$API$1" 2>/dev/null || echo 000
+}
+
+# Un resultado de LRCLIB -> nuestro formato.
+shape='{source: "lrclib", id: (.id|tostring), track: .trackName, artist: .artistName, duration: .duration,
+        synced: (.syncedLyrics // ""), plain: (.plainLyrics // ""), instrumental: (.instrumental // false)}'
+
+# El mejor de una lista: con letra, duracion a +-3 s (si se sabe), sincronizada antes que plana, la mas cercana.
+best() {
+    jq --argjson d "${1:-0}" '[.[] | select((.syncedLyrics // "") != "" or (.plainLyrics // "") != "" or (.instrumental // false))
+        | select($d <= 0 or ((.duration // 0) - $d | fabs) <= 3)]
+        | sort_by([(if (.syncedLyrics // "") != "" then 0 else 1 end), (if $d > 0 then ((.duration // 0) - $d | fabs) else 0 end)])
+        | first // empty' "$BODY"
+}
+
+case ${1:-} in
+--key)
+    key "$2" "$3" "$4"; exit 0 ;;
+--get)
+    title=$2 artist=$3 dur=${4:-0}
+    enabled || exit 2
+    file="$CACHE/$(key "$title" "$artist" "$dur").json"
+    t=$(urienc "$title") a=$(urienc "$artist") di=$(printf '%.0f' "$dur")
+    code=$(http "/api/get?track_name=$t&artist_name=$a&duration=$di")
+    if [[ $code == 200 ]] && jq -e '.id' "$BODY" >/dev/null 2>&1; then
+        jq -c "$shape + {fetched_at: now|floor}" "$BODY" | write_atomic "$file"; cat "$file"; exit 0
+    fi
+    [[ $code == 000 || $code == 5* ]] && exit 3
+    for q in "/api/search?track_name=$t&artist_name=$a" "/api/search?q=$(urienc "$title $artist")"; do
+        code=$(http "$q")
+        [[ $code == 000 || $code == 5* ]] && exit 3
+        [[ $code == 200 ]] || continue
+        r=$(best "$dur")
+        if [[ -n $r ]]; then
+            jq -c "$shape + {fetched_at: now|floor}" <<<"$r" | write_atomic "$file"; cat "$file"; exit 0
+        fi
+    done
+    jq -nc --argjson until "$(( $(date +%s) + NEGATIVE_DAYS * 86400 ))" '{none: true, until: $until, fetched_at: now|floor}' | write_atomic "$file"
+    exit 1 ;;
+--search)
+    enabled || exit 2
+    code=$(http "/api/search?track_name=$(urienc "$2")&artist_name=$(urienc "$3")")
+    [[ $code == 200 ]] || code=$(http "/api/search?q=$(urienc "$2 $3")")
+    [[ $code == 200 ]] || exit 3
+    jq -c '[.[] | {id: (.id|tostring), track: .trackName, artist: .artistName, album: .albumName, duration: .duration,
+              synced: ((.syncedLyrics // "") != ""), instrumental: (.instrumental // false)}] | .[:20]' "$BODY"
+    exit 0 ;;
+--id)
+    enabled || exit 2
+    code=$(http "/api/get/$(urienc "$2")")
+    [[ $code == 200 ]] || { [[ $code == 404 ]] && exit 1; exit 3; }
+    file="$CACHE/id-$2.json"
+    jq -c "$shape + {fetched_at: now|floor}" "$BODY" | write_atomic "$file"; cat "$file"; exit 0 ;;
+*)
+    sed -n '2,/^set /p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 64 ;;
+esac

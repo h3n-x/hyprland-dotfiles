@@ -19,11 +19,17 @@
 //
 // Teclas (con el foco en el reproductor, via handleKey): Espacio reproduce o
 // pausa, izquierda/derecha buscan -/+10 s, N / P siguiente / anterior.
+//
+// Letra (Fase 12 B1, P12.2): L la abre o la cierra (tambien "Letra", que
+// aparece al pasar el raton). Ocupa el lugar del titulo (LyricsView); el
+// titulo pasa a la linea del reproductor y, en la de los tiempos, de donde
+// viene, "Otra letra" (elegir entre los candidatos de LRCLIB) y el desfase
+// (- / +, tambien con [ y ]). LyricsState trabaja solo mientras se ve.
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell.Services.Mpris
-import ".." // Colors.qml, Tokens.qml, MediaState.qml
+import ".." // Colors.qml, Tokens.qml, MediaState.qml, LyricsState.qml
 
 Item {
     id: hero
@@ -38,6 +44,12 @@ Item {
     readonly property bool canSeek: hero.hasLength && hero.player.canSeek && hero.player.positionSupported
     readonly property string playerName: MediaState.nameOf(hero.player)
     readonly property int coverSize: 216
+    // Letra abierta (Fase 12 B1) y la lista de candidatos ("Otra letra").
+    readonly property bool lyricsOpen: LyricsState.viewOpen && !!hero.player
+    property bool picking: false
+    onLyricsOpenChanged: if (!hero.lyricsOpen) hero.picking = false
+    Subscription { demand: LyricsState.demand; active: hero.active && hero.lyricsOpen }
+    HoverHandler { id: heroHover }
 
     function fmt(seconds: real): string {
         const s = Math.max(0, Math.round(seconds));
@@ -149,6 +161,26 @@ Item {
         }
     }
 
+    // Texto chico clicable de la linea de la letra.
+    component LinkText: Text {
+        id: lt
+        property bool plain: false
+        signal clicked()
+        color: lt.plain ? Colors.border : ltMouse.containsMouse ? Colors.text : Colors.textMuted
+        font.family: Tokens.font.ui
+        font.pixelSize: Tokens.type.caption
+        font.weight: lt.plain ? Tokens.weight.regular : Tokens.weight.medium
+        font.features: Tokens.tabularNumbers
+        MouseArea {
+            id: ltMouse
+            anchors.fill: parent
+            enabled: !lt.plain
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: lt.clicked()
+        }
+    }
+
     // ---- Controles ----------------------------------------------------------
     // Texto de ayuda de un control no disponible (bajo los controles).
     property string hint: ""
@@ -244,6 +276,12 @@ Item {
             nextCtl.press();
         } else if (event.key === Qt.Key_P) {
             prevCtl.press();
+        } else if (event.key === Qt.Key_L) {
+            LyricsState.viewOpen = !LyricsState.viewOpen;
+        } else if (hero.lyricsOpen && event.key === Qt.Key_BracketLeft) {
+            LyricsState.nudge(-0.5);
+        } else if (hero.lyricsOpen && event.key === Qt.Key_BracketRight) {
+            LyricsState.nudge(0.5);
         } else {
             return false;
         }
@@ -438,7 +476,8 @@ Item {
             Text {
                 Layout.fillWidth: true
                 visible: MediaState.players.length <= 1
-                text: hero.playerName
+                // Con la letra abierta, el titulo va aca (su lugar es de la letra).
+                text: hero.lyricsOpen ? hero.playerName + " · " + hero.shownTitle + (hero.shownArtist ? " — " + hero.shownArtist : "") : hero.playerName
                 color: hero.player && hero.player.isPlaying ? Colors.accent : Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
@@ -482,10 +521,51 @@ Item {
                     }
                 }
             }
+            // "Letra": al pasar el raton o con la letra abierta (de fabrica no se ve).
+            Rectangle {
+                visible: heroHover.hovered || hero.lyricsOpen
+                implicitHeight: 26
+                implicitWidth: lyrRow.implicitWidth + Tokens.space.md * 2
+                radius: 13
+                color: hero.lyricsOpen ? Colors.accentAltContainer : "transparent"
+                border.width: hero.lyricsOpen ? 0 : 1
+                border.color: Colors.divider
+                StateLayer { hovered: lyrMouse.containsMouse; pressed: lyrMouse.pressed }
+                Row {
+                    id: lyrRow
+                    anchors.centerIn: parent
+                    spacing: Tokens.space.xs
+                    Icon { anchors.verticalCenter: parent.verticalCenter; name: "lyrics"; size: Tokens.icon.sm; color: hero.lyricsOpen ? Colors.textOnAccentAltContainer : Colors.textMuted }
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Letra"
+                        color: hero.lyricsOpen ? Colors.textOnAccentAltContainer : Colors.textMuted
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.caption
+                        font.weight: Tokens.weight.medium
+                    }
+                }
+                MouseArea {
+                    id: lyrMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: LyricsState.viewOpen = !LyricsState.viewOpen
+                }
+            }
         }
 
+        // Letra abierta: en el lugar del titulo, con su mismo alto (el reproductor no cambia de tamano).
+        LyricsView {
+            visible: hero.lyricsOpen
+            Layout.fillWidth: true
+            Layout.topMargin: Tokens.space.sm
+            Layout.preferredHeight: textBlock.implicitHeight
+            canSeek: hero.canSeek
+        }
         ColumnLayout {
             id: textBlock
+            visible: !hero.lyricsOpen
             Layout.fillWidth: true
             Layout.topMargin: Tokens.space.sm
             spacing: Tokens.space.hair
@@ -591,7 +671,33 @@ Item {
                 font.pixelSize: Tokens.type.caption
                 font.features: Tokens.tabularNumbers
             }
+            // Con la letra: de donde viene, "Otra letra" y el desfase.
+            Row {
+                visible: hero.lyricsOpen && !hero.hint
+                Layout.fillWidth: true
+                spacing: Tokens.space.sm
+                LinkText {
+                    text: ({ file: "Junto al archivo", folder: "Tu carpeta", cache: "LRCLIB", lrclib: "LRCLIB" })[LyricsState.source] || ""
+                    plain: true
+                }
+                LinkText {
+                    visible: LyricsState.online && LyricsState.status !== "searching"
+                    text: "Otra letra"
+                    onClicked: {
+                        hero.picking = true;
+                        LyricsState.search();
+                    }
+                }
+                LinkText { visible: LyricsState.synced; text: "−"; onClicked: LyricsState.nudge(-0.5) }
+                LinkText {
+                    visible: LyricsState.synced
+                    plain: true
+                    text: (LyricsState.offset > 0 ? "+" : "") + LyricsState.offset.toFixed(1).replace(".", ",") + " s"
+                }
+                LinkText { visible: LyricsState.synced; text: "+"; onClicked: LyricsState.nudge(0.5) }
+            }
             Text {
+                visible: !hero.lyricsOpen || !!hero.hint
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 text: hero.hint || (hero.canSeek ? "" : "sin búsqueda")
@@ -671,6 +777,86 @@ Item {
                 usable: !!hero.player && hero.player.loopSupported
                 on: !!hero.player && hero.player.loopSupported && hero.player.loopState !== MprisLoopState.None
                 onClicked: MediaState.cycleLoop()
+            }
+        }
+    }
+
+    // ---- "Otra letra": los candidatos de LRCLIB, sobre la columna de texto ----------------
+    Rectangle {
+        visible: hero.picking
+        anchors.left: cover.right
+        anchors.leftMargin: Tokens.space.lg
+        anchors.right: parent.right
+        anchors.rightMargin: Tokens.space.lg
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.margins: Tokens.space.md
+        radius: Tokens.radius.md
+        color: Colors.surfaceHigh
+        z: 5
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: Tokens.space.md
+            spacing: Tokens.space.xs
+            RowLayout {
+                Layout.fillWidth: true
+                Text {
+                    Layout.fillWidth: true
+                    text: LyricsState.searching ? "Buscando…" : LyricsState.candidates.length ? "Elige la letra de esta canción" : "No hay otras"
+                    color: Colors.text
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.label
+                    font.weight: Tokens.weight.semibold
+                }
+                LinkText { text: "Cerrar"; onClicked: hero.picking = false }
+            }
+            ListView {
+                id: cands
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                model: LyricsState.candidates
+                delegate: Rectangle {
+                    id: cand
+                    required property var modelData
+                    width: cands.width
+                    height: Tokens.row.height
+                    radius: Tokens.radius.sm
+                    color: "transparent"
+                    StateLayer { hovered: candMouse.containsMouse; pressed: candMouse.pressed }
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: Tokens.space.sm
+                        anchors.rightMargin: Tokens.space.sm
+                        spacing: Tokens.space.sm
+                        Icon { name: cand.modelData.synced ? "lyrics" : "notes"; size: Tokens.icon.sm; color: Colors.textMuted }
+                        Text {
+                            Layout.fillWidth: true
+                            text: cand.modelData.track + " — " + cand.modelData.artist + (cand.modelData.album ? " · " + cand.modelData.album : "")
+                            elide: Text.ElideRight
+                            color: Colors.text
+                            font.family: Tokens.font.ui
+                            font.pixelSize: Tokens.type.label
+                        }
+                        Text {
+                            text: hero.fmt(cand.modelData.duration || 0)
+                            color: Colors.textMuted
+                            font.family: Tokens.font.ui
+                            font.pixelSize: Tokens.type.caption
+                            font.features: Tokens.tabularNumbers
+                        }
+                    }
+                    MouseArea {
+                        id: candMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            hero.picking = false;
+                            LyricsState.choose(cand.modelData.id);
+                        }
+                    }
+                }
             }
         }
     }

@@ -48,10 +48,12 @@ QtObject {
     // Al soltar: lo pendiente se guarda y se olvida lo leido.
     function forget(): void {
         sf.flush();
-        sf.opened = false;
         sf.readOnly = false;
         sf.data = null;
         sf.loaded = false;
+        // El archivo se cierra una vuelta despues: cerrarlo en el mismo instante que la
+        // escritura de flush() podia perderla (Fase 12 B1; un archivo nuevo, sobre todo).
+        Qt.callLater(() => { if (!sf.enabled) sf.opened = false; });
     }
     // Abierto: desde que se pide hasta forget() (no al soltar la Demand, que
     // apaga `enabled` antes de avisar: se perderia lo pendiente).
