@@ -20,18 +20,21 @@ Rectangle {
     // peor que opaca (el contenido de atras se cuela como ruido, P1.6).
     property bool translucent: false
     property bool shadowEnabled: true
+    // Pegada al marco (Fase 13 B2): del color del marco, opaca, sin borde ni
+    // sombra, asi tarjeta y marco se ven como una sola forma.
+    property bool framed: false
 
     readonly property var shadowSpec: Tokens.elevationShadow[root.level] ?? null
     // Alcance de la sombra fuera de la tarjeta: desenfoque + desplazamiento.
-    readonly property int shadowMargin: root.shadowEnabled && root.shadowSpec ? root.shadowSpec.blur + root.shadowSpec.offsetY : 0
+    readonly property int shadowMargin: root.shadowEnabled && !root.framed && root.shadowSpec ? root.shadowSpec.blur + root.shadowSpec.offsetY : 0
     readonly property color baseColor: root.level >= 3 ? Colors.surfaceHigh : Colors.surface
 
-    color: root.translucent ? Colors.tint(root.baseColor, Tokens.opacity.surface) : root.baseColor
+    color: root.framed ? Colors.surfaceLow : root.translucent ? Colors.tint(root.baseColor, Tokens.opacity.surface) : root.baseColor
     border.color: Colors.divider
-    border.width: 1
+    border.width: root.framed ? 0 : 1
 
     // MultiEffect: shadowBlur es relativo a blurMax, de ahi blur / 32.
-    layer.enabled: root.shadowEnabled && !!root.shadowSpec
+    layer.enabled: root.shadowEnabled && !root.framed && !!root.shadowSpec
     layer.effect: MultiEffect {
         shadowEnabled: true
         blurMax: 32

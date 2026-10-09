@@ -52,13 +52,23 @@ PanelWindow {
         const l = NotificationState.activeToasts.filter(n => NotificationState.shownOn(n, toastWindow.screenName));
         return toastWindow.maxVisible > 0 ? l.slice(0, toastWindow.maxVisible) : l;
     }
+    // Pegados al marco (Fase 13 B2, estilo Marco): la pila es una sola columna
+    // al ras de la barra y del lado fino (su esquina) o colgada del borde de
+    // arriba (al centro), sin espacio entre avisos, con orejas donde se junta y
+    // solo la esquina de afuera redonda; cada aviso sale del lado del marco.
+    readonly property bool attached: Tokens.frame.on
+    readonly property bool centered: toastWindow.position === "top-center"
+    readonly property int ear: toastWindow.attached ? Tokens.frame.radius : 0
+    function edgeGap(side: string): int {
+        return side === Tokens.bar.edge ? Tokens.bar.height : Tokens.frame.thickness;
+    }
     margins {
         // Nunca encima de la barra, este en el borde que este (Fase 11 B3: inset).
-        top: Tokens.insetTop - toastWindow.shadowMargin
-        right: Tokens.insetRight - toastWindow.shadowMargin
-        bottom: toastWindow.atBottom ? Tokens.insetBottom - toastWindow.shadowMargin : 0
+        top: toastWindow.attached ? toastWindow.edgeGap("top") : Tokens.insetTop - toastWindow.shadowMargin
+        right: toastWindow.attached ? toastWindow.edgeGap("right") : Tokens.insetRight - toastWindow.shadowMargin
+        bottom: toastWindow.atBottom ? (toastWindow.attached ? toastWindow.edgeGap("bottom") : Tokens.insetBottom - toastWindow.shadowMargin) : 0
     }
-    implicitWidth: Tokens.panel.widthLg + toastWindow.shadowMargin * 2
+    implicitWidth: Tokens.panel.widthLg + (!toastWindow.attached ? toastWindow.shadowMargin * 2 : toastWindow.centered ? 2 * toastWindow.ear : toastWindow.ear)
     color: "transparent"
     mask: Region { item: column }
     exclusionMode: ExclusionMode.Ignore
@@ -67,13 +77,37 @@ PanelWindow {
     // Column (posicionador) y no ColumnLayout: el layout ubica a los hijos
     // desde C++ y saltea cualquier Behavior on y, asi que el reacomodo no se
     // animaba. Column dispara su transicion "move" cuando sale un toast.
+    // Orejas (pegados): en la esquina (CornerEars, alineadas con la columna) o a
+    // los costados de arriba (al centro).
+    CornerEars {
+        id: ears
+        on: toastWindow.attached && !toastWindow.centered
+        corner: toastWindow.atBottom ? "br" : "tr"
+        x: column.x - ears.cardX
+        y: column.y - ears.cardY
+        cardW: column.width
+        cardH: column.height
+    }
+    Repeater {
+        model: toastWindow.attached && toastWindow.centered ? 2 : 0
+        FrameCorner {
+            required property int index
+            x: index === 0 ? column.x - toastWindow.ear : column.x + column.width
+            y: 0
+            width: toastWindow.ear; height: toastWindow.ear
+            v: "top"; h: index === 0 ? "right" : "left"
+            color: Colors.surfaceLow
+        }
+    }
+
     Column {
         id: column
-        x: toastWindow.shadowMargin
+        x: !toastWindow.attached ? toastWindow.shadowMargin : toastWindow.centered ? toastWindow.ear : ears.cardX
         // Abajo: la pila crece hacia arriba desde el borde inferior.
-        y: toastWindow.atBottom ? toastWindow.height - column.height - toastWindow.shadowMargin : toastWindow.shadowMargin
+        y: toastWindow.atBottom ? toastWindow.height - column.height - (toastWindow.attached ? 0 : toastWindow.shadowMargin)
+                                : (toastWindow.attached ? 0 : toastWindow.shadowMargin)
         width: Tokens.panel.widthLg
-        spacing: Tokens.space.sm
+        spacing: toastWindow.attached ? 0 : Tokens.space.sm
 
         // Reacomodo de la pila con el spring calibrado (guia 3.6.1).
         move: Transition {
@@ -97,13 +131,32 @@ PanelWindow {
             Surface {
                 id: toast
                 required property var modelData
+                required property int index
                 readonly property bool critical: toast.modelData.urgency === NotificationUrgency.Critical
                 width: column.width
                 implicitHeight: content.implicitHeight + Tokens.space.md * 2
                 level: 3
                 translucent: true
+                framed: toastWindow.attached
                 radius: Tokens.radius.lg
                 border.color: toast.critical ? Colors.danger : Colors.divider
+                // Pegados: el critico conserva su borde (dice algo).
+                border.width: toast.critical ? 1 : toastWindow.attached ? 0 : 1
+                // Pegados: redonda solo la esquina de afuera de la columna (abajo en
+                // el primero o ultimo segun crezca), el resto recto.
+                readonly property bool last: toast.index === toastWindow.toasts.length - 1
+                readonly property bool first: toast.index === 0
+                readonly property int r: Tokens.radius.lg
+                topLeftRadius: !toastWindow.attached ? toast.r : (toastWindow.atBottom && toast.first ? toast.r : 0)
+                topRightRadius: !toastWindow.attached ? toast.r : 0
+                bottomLeftRadius: !toastWindow.attached ? toast.r : (!toastWindow.atBottom && toast.last ? toast.r : 0)
+                bottomRightRadius: !toastWindow.attached ? toast.r : (toastWindow.centered && toast.last ? toast.r : 0)
+                // Pegados: una linea entre avisos.
+                Rectangle {
+                    visible: toastWindow.attached && !toast.first
+                    width: parent.width; height: 1
+                    color: Colors.divider
+                }
 
                 // Entrada al aparecer; al cerrarlo (click o timer) primero anima
                 // la salida y recien despues se descarta la notificacion. Si la
@@ -122,10 +175,14 @@ PanelWindow {
                         else toast.modelData.dismiss();
                     }
                 }
-                opacity: presence.progress
-                scale: presence.contentScale
+                // Pegados: sale del lado del marco (a la derecha; al centro, de arriba).
+                opacity: toastWindow.attached ? 1 : presence.progress
+                scale: toastWindow.attached ? 1 : presence.contentScale
                 transformOrigin: Item.TopRight
-                transform: Translate { y: presence.offsetY }
+                transform: Translate {
+                    x: toastWindow.attached && !toastWindow.centered ? (1 - presence.progress) * toast.width : 0
+                    y: !toastWindow.attached ? presence.offsetY : toastWindow.centered ? -(1 - presence.progress) * toast.height : 0
+                }
 
                 Timer {
                     running: !toast.critical

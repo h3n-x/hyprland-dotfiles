@@ -22,6 +22,13 @@
 // Alto: nunca mas que el espacio de la pantalla (maxHeight); si el contenido
 // no entra, se desplaza adentro (scrollable). El dashboard maneja su propio
 // desplazamiento (scrollable: false) y usa maxHeight para su vista.
+//
+// Pegado al marco (Fase 13 B2; bar.style "marco" y anclado a la barra): la
+// tarjeta va al ras de la barra, del color del marco, sin sombra, con las
+// esquinas del lado de la barra rectas y dos "orejas" concavas (FrameCorner)
+// donde se junta con ella; la ventana es un radio mas ancha de cada lado para
+// dibujarlas (la mascara cubre solo la tarjeta). Al abrir sale del borde de la
+// barra deslizandose (la ventana la recorta), sin fundido ni escala.
 import QtQuick
 import Quickshell
 import ".." // Colors.qml, Tokens.qml, PopupState.qml
@@ -67,6 +74,9 @@ PopupWindow {
     readonly property string resolvedSide: popup.side !== "auto" ? popup.side
         : ({ top: "below", bottom: "above", left: "right", right: "left" })[Tokens.bar.edge] || "below"
     readonly property bool vertical: popup.resolvedSide === "below" || popup.resolvedSide === "above"
+    // Pegado al marco: con el estilo Marco y colgado de la barra (frameHost).
+    readonly property bool attached: Tokens.frame.on && !!popup.hostWindow && popup.hostWindow.frameHost === true
+    readonly property int ear: popup.attached ? Tokens.frame.radius : 0
 
     // ---- Estado (PopupState) ---------------------------------------------------------------
     property bool open: popup.popupId !== "" && PopupState.isOpen(popup.popupId, popup.hostScreenName)
@@ -120,31 +130,34 @@ PopupWindow {
     // se ensancha la sombra a cada costado, asi "start"/"end" alinean la
     // tarjeta (no la ventana) con el elemento.
     function place(): void {
-        const r = popup.anchorRect(popup.anchorItem, card.shadowMargin);
+        // Pegado: a lo largo, las orejas; del lado de la barra, nada (al ras).
+        const r = popup.attached ? popup.anchorRect(popup.anchorItem, popup.ear, 0)
+                                 : popup.anchorRect(popup.anchorItem, card.shadowMargin, card.shadowMargin);
         if (!r) return;
         popup.anchor.rect = r;
         popup.anchor.updateAnchor();
     }
-    // Rectangulo del ancla (relativo al elemento) hasta el borde de la ventana,
-    // menos "inset" (el margen de la sombra de la tarjeta; 0 para un menu).
-    function anchorRect(item: Item, inset: real): rect {
+    // Rectangulo del ancla (relativo al elemento) hasta el borde de la ventana:
+    // "along" lo ensancha a lo largo del lado (sombra u orejas a cada costado),
+    // "side" compensa lo que la ventana sobra del lado del ancla (la sombra; 0
+    // para un menu o pegado al marco).
+    function anchorRect(item: Item, along: real, side: real): rect {
         const win = popup.hostWindow;
         if (!item || !win || !win.contentItem) return Qt.rect(0, 0, 0, 0);
         const p = item.mapToItem(win.contentItem, 0, 0);
-        const sm = inset;
         let r;
         switch (popup.resolvedSide) {
         case "above":
-            r = Qt.rect(-sm, -p.y + sm, item.width + 2 * sm, item.height + p.y - sm);
+            r = Qt.rect(-along, -p.y + side, item.width + 2 * along, item.height + p.y - side);
             break;
         case "right":
-            r = Qt.rect(0, -sm, popup.hostWidth - p.x - sm, item.height + 2 * sm);
+            r = Qt.rect(0, -along, popup.hostWidth - p.x - side, item.height + 2 * along);
             break;
         case "left":
-            r = Qt.rect(-p.x + sm, -sm, item.width + p.x - sm, item.height + 2 * sm);
+            r = Qt.rect(-p.x + side, -along, item.width + p.x - side, item.height + 2 * along);
             break;
         default: // below
-            r = Qt.rect(-sm, -sm, item.width + 2 * sm, popup.hostHeight - p.y);
+            r = Qt.rect(-along, -side, item.width + 2 * along, popup.hostHeight - p.y);
         }
         return r;
     }
@@ -153,7 +166,7 @@ PopupWindow {
     function anchorMenu(menuAnchor: var, item: Item): void {
         menuAnchor.anchor.window = popup.hostWindow;
         menuAnchor.anchor.item = item;
-        menuAnchor.anchor.rect = popup.anchorRect(item, 0);
+        menuAnchor.anchor.rect = popup.anchorRect(item, 0, 0);
         menuAnchor.anchor.edges = popup.anchor.edges;
         menuAnchor.anchor.gravity = popup.anchor.gravity;
         menuAnchor.anchor.adjustment = popup.anchor.adjustment;
@@ -181,16 +194,35 @@ PopupWindow {
     readonly property int maxBodyHeight: popup.maxHeight - 2 * popup.padding
 
     readonly property int cardWidth: body.childrenRect.width + popup.padding * 2
-    implicitWidth: popup.cardWidth + card.shadowMargin * 2
-    implicitHeight: card.implicitHeight + card.shadowMargin * 2
+    // Pegado: un radio de mas a cada lado a lo largo de la barra (las orejas).
+    implicitWidth: popup.attached ? popup.cardWidth + (popup.vertical ? 2 * popup.ear : 0) : popup.cardWidth + card.shadowMargin * 2
+    implicitHeight: popup.attached ? card.implicitHeight + (popup.vertical ? 0 : 2 * popup.ear) : card.implicitHeight + card.shadowMargin * 2
     color: "transparent"
     mask: Region { item: card }
     grabFocus: true
 
+    // Las orejas (pegado): del lado de la barra, a cada costado de la tarjeta.
+    Repeater {
+        model: popup.attached ? 2 : 0
+        FrameCorner {
+            required property int index
+            readonly property bool first: index === 0
+            width: popup.ear
+            height: popup.ear
+            // below/above: a la izquierda y a la derecha; right/left: arriba y abajo.
+            x: popup.vertical ? (first ? 0 : popup.ear + popup.cardWidth) : (popup.resolvedSide === "left" ? popup.cardWidth - popup.ear : 0)
+            y: popup.vertical ? (popup.resolvedSide === "above" ? card.implicitHeight - popup.ear : 0) : (first ? 0 : popup.ear + card.implicitHeight)
+            v: popup.vertical ? (popup.resolvedSide === "above" ? "bottom" : "top") : (first ? "bottom" : "top")
+            h: popup.vertical ? (first ? "right" : "left") : (popup.resolvedSide === "left" ? "right" : "left")
+            color: Colors.surfaceLow
+            opacity: presence.progress
+        }
+    }
+
     Surface {
         id: card
-        x: card.shadowMargin
-        y: card.shadowMargin
+        x: popup.attached ? (popup.vertical ? popup.ear : 0) : card.shadowMargin
+        y: popup.attached ? (popup.vertical ? 0 : popup.ear) : card.shadowMargin
         width: popup.cardWidth
         implicitHeight: (popup.scrollable ? Math.min(body.childrenRect.height, popup.maxBodyHeight) : body.childrenRect.height) + popup.padding * 2
         Behavior on implicitHeight {
@@ -199,14 +231,24 @@ PopupWindow {
         }
         level: 2
         translucent: true
+        framed: popup.attached
         radius: popup.cardRadius
+        // Pegado: rectas las esquinas del lado de la barra.
+        topLeftRadius: popup.attached && (popup.resolvedSide === "below" || popup.resolvedSide === "right") ? 0 : popup.cardRadius
+        topRightRadius: popup.attached && (popup.resolvedSide === "below" || popup.resolvedSide === "left") ? 0 : popup.cardRadius
+        bottomLeftRadius: popup.attached && (popup.resolvedSide === "above" || popup.resolvedSide === "right") ? 0 : popup.cardRadius
+        bottomRightRadius: popup.attached && (popup.resolvedSide === "above" || popup.resolvedSide === "left") ? 0 : popup.cardRadius
         // Entrada/salida: se acerca space.sm hacia el ancla y crece desde 0.98.
-        opacity: presence.progress
-        scale: presence.contentScale
+        // Pegado: sale del borde de la barra (todo su tamano, recortada por la ventana).
+        opacity: popup.attached ? 1 : presence.progress
+        scale: popup.attached ? 1 : presence.contentScale
         transformOrigin: ({ below: Item.Top, above: Item.Bottom, right: Item.Left, left: Item.Right })[popup.resolvedSide]
+        readonly property real hidden: 1 - presence.progress
         transform: Translate {
-            x: popup.resolvedSide === "right" ? presence.offsetY : popup.resolvedSide === "left" ? -presence.offsetY : 0
-            y: popup.resolvedSide === "below" ? presence.offsetY : popup.resolvedSide === "above" ? -presence.offsetY : 0
+            x: popup.attached ? (popup.resolvedSide === "right" ? -card.hidden * card.width : popup.resolvedSide === "left" ? card.hidden * card.width : 0)
+               : (popup.resolvedSide === "right" ? presence.offsetY : popup.resolvedSide === "left" ? -presence.offsetY : 0)
+            y: popup.attached ? (popup.resolvedSide === "below" ? -card.hidden * card.implicitHeight : popup.resolvedSide === "above" ? card.hidden * card.implicitHeight : 0)
+               : (popup.resolvedSide === "below" ? presence.offsetY : popup.resolvedSide === "above" ? -presence.offsetY : 0)
         }
 
         MouseArea { anchors.fill: parent }

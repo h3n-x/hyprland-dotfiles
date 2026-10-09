@@ -36,14 +36,20 @@ PanelWindow {
     // Superficie invocada (Fase 8 B6): capa Overlay, por encima de una ventana en
     // pantalla completa (ver FullscreenState).
     WlrLayershell.layer: WlrLayer.Overlay
-    margins {
-        top: Tokens.insetTop - card.shadowMargin
-        bottom: Tokens.insetBottom - card.shadowMargin
-        right: Tokens.insetRight - card.shadowMargin
-        left: Tokens.insetLeft - card.shadowMargin
+    // Pegado al marco (Fase 13 B2, estilo Marco): en la esquina, al ras de la
+    // barra y del lado fino, con dos orejas (CornerEars); sin sombra.
+    readonly property bool attached: Tokens.frame.on
+    function edgeGap(side: string): int {
+        return side === Tokens.bar.edge ? Tokens.bar.height : Tokens.frame.thickness;
     }
-    implicitWidth: Tokens.panel.widthLg + card.shadowMargin * 2
-    implicitHeight: Math.min(Tokens.px(600), card.implicitHeight) + card.shadowMargin * 2
+    margins {
+        top: window.attached ? window.edgeGap("top") : Tokens.insetTop - card.shadowMargin
+        bottom: window.attached ? window.edgeGap("bottom") : Tokens.insetBottom - card.shadowMargin
+        right: window.attached ? window.edgeGap("right") : Tokens.insetRight - card.shadowMargin
+        left: window.attached ? window.edgeGap("left") : Tokens.insetLeft - card.shadowMargin
+    }
+    implicitWidth: Tokens.panel.widthLg + (window.attached ? ears.extra : card.shadowMargin * 2)
+    implicitHeight: Math.min(Tokens.px(600), card.implicitHeight) + (window.attached ? ears.extra : card.shadowMargin * 2)
     color: "transparent"
     mask: Region { item: card }
     exclusionMode: ExclusionMode.Ignore
@@ -60,20 +66,39 @@ PanelWindow {
     // Nivel de elevacion 2 (surface_container translucida sobre blur, sombra sm),
     // igual que los desplegables. Padding 16 = radio lg: los hijos no necesitan
     // radio anidado (Q1).
+    CornerEars {
+        id: ears
+        on: window.attached
+        cardW: card.width
+        cardH: card.height
+        reveal: presence.progress
+    }
+
     Surface {
         id: card
-        x: card.shadowMargin
-        y: card.shadowMargin
+        x: window.attached ? ears.cardX : card.shadowMargin
+        y: window.attached ? ears.cardY : card.shadowMargin
         width: Tokens.panel.widthLg
         implicitHeight: layout.implicitHeight + Tokens.pad.panel * 2
         level: 2
         translucent: true
+        framed: window.attached
         radius: Tokens.radius.lg
+        // Pegado: solo la esquina de afuera es redonda.
+        topLeftRadius: window.attached && ears.free !== "tl" ? 0 : Tokens.radius.lg
+        topRightRadius: window.attached && ears.free !== "tr" ? 0 : Tokens.radius.lg
+        bottomLeftRadius: window.attached && ears.free !== "bl" ? 0 : Tokens.radius.lg
+        bottomRightRadius: window.attached && ears.free !== "br" ? 0 : Tokens.radius.lg
         // Entrada/salida: sube space.sm hacia la barra y crece desde su esquina.
-        opacity: presence.progress
-        scale: presence.contentScale
+        // Pegado: sale del borde de la barra (recortada por la ventana).
+        opacity: window.attached ? 1 : presence.progress
+        scale: window.attached ? 1 : presence.contentScale
         transformOrigin: Item.TopRight
-        transform: Translate { y: presence.offsetY }
+        readonly property real hidden: 1 - presence.progress
+        transform: Translate {
+            x: !window.attached ? 0 : Tokens.bar.edge === "left" ? -card.hidden * card.width : Tokens.bar.edge === "right" ? card.hidden * card.width : 0
+            y: !window.attached ? presence.offsetY : Tokens.bar.edge === "top" ? -card.hidden * card.height : Tokens.bar.edge === "bottom" ? card.hidden * card.height : 0
+        }
 
         // Editando: las teclas son del editor (Esc termina sin cerrar el panel).
         Item {

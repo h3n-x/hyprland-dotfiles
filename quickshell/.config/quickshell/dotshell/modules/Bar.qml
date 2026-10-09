@@ -16,6 +16,8 @@ import ".." // Colors.qml, Tokens.qml, FullscreenState.qml, DashboardState.qml
 
 PanelWindow {
     id: bar
+    // Los popups anclados que cuelgan de la barra se pegan al marco (Fase 13 B2).
+    readonly property bool frameHost: true
 
     // En cualquier borde (bar.edge, Fase 11 B3): pegada a ese borde y a lo largo
     // de el. Geometria del design system (D14): el grosor (40), 8 hacia el

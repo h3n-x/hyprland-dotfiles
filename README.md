@@ -654,7 +654,9 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   solo fondo), transparente o **marco** (Fase 13: la barra es el lado grueso
   de un marco alrededor de la pantalla, con las esquinas de adentro redondas;
   grosor de 2 a 16 px y radio de las esquinas a elegir; las ventanas quedan
-  adentro, con sus gaps de siempre), y "mostrar solo mientras se mantiene Super"
+  adentro, con sus gaps de siempre; los menus de la barra, el dashboard, el
+  centro de control, el OSD y los avisos salen del marco deslizandose y quedan
+  pegados a el, con las uniones redondeadas), y "mostrar solo mientras se mantiene Super"
   (aparece al mantener la tecla, tras un breve retardo: encima de las
   ventanas, con fondo, o empujandolas mientras se ve; Fase 11 B3b).
   En que pantallas va la barra. Reloj de 24 o

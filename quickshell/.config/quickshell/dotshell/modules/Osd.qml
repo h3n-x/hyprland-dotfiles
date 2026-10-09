@@ -25,10 +25,15 @@ PanelWindow {
     // Superficie respuesta (Fase 8 B6): capa Overlay, por encima de una ventana en
     // pantalla completa (ver FullscreenState).
     WlrLayershell.layer: WlrLayer.Overlay
-    implicitHeight: box.implicitHeight + box.shadowMargin * 2
+    // Pegado al marco (Fase 13 B2, estilo Marco): al ras del borde de arriba (la
+    // barra, o el lado fino si la barra esta en otro borde), con dos orejas, y
+    // sale de ese borde deslizandose; sin sombra.
+    readonly property bool attached: Tokens.frame.on
+    readonly property int ear: osd.attached ? Tokens.frame.radius : 0
+    implicitHeight: box.implicitHeight + (osd.attached ? 0 : box.shadowMargin * 2)
     margins {
         // Arriba al centro; debajo de la barra si esta arriba (Fase 11 B3: inset).
-        top: Tokens.insetTop - box.shadowMargin
+        top: osd.attached ? (Tokens.bar.edge === "top" ? Tokens.bar.height : Tokens.frame.thickness) : Tokens.insetTop - box.shadowMargin
     }
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
@@ -40,19 +45,36 @@ PanelWindow {
 
     // Nivel de elevacion 3 (surface_container_high translucida sobre blur,
     // sombra md), forma de pildora.
+    Repeater {
+        model: osd.attached ? 2 : 0
+        FrameCorner {
+            required property int index
+            x: index === 0 ? box.x - osd.ear : box.x + box.width
+            y: 0
+            width: osd.ear; height: osd.ear
+            v: "top"; h: index === 0 ? "right" : "left"
+            color: Colors.surfaceLow
+            opacity: presence.progress
+        }
+    }
+
     Surface {
         id: box
         anchors.horizontalCenter: parent.horizontalCenter
-        y: box.shadowMargin
+        y: osd.attached ? 0 : box.shadowMargin
         implicitWidth: content.implicitWidth + Tokens.pad.panel * 2
         implicitHeight: content.implicitHeight + Tokens.space.sm * 2
         level: 3
         translucent: true
+        framed: osd.attached
         radius: Tokens.radius.pill(height)
-        opacity: presence.progress
-        scale: presence.contentScale
+        // Pegado: rectas las esquinas de arriba (contra el borde).
+        topLeftRadius: osd.attached ? 0 : Tokens.radius.pill(height)
+        topRightRadius: osd.attached ? 0 : Tokens.radius.pill(height)
+        opacity: osd.attached ? 1 : presence.progress
+        scale: osd.attached ? 1 : presence.contentScale
         transformOrigin: Item.Top
-        transform: Translate { y: presence.offsetY }
+        transform: Translate { y: osd.attached ? -(1 - presence.progress) * box.height : presence.offsetY }
 
         RowLayout {
             id: content
