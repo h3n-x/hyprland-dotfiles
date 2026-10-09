@@ -38,9 +38,14 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     // Pegado al marco (Fase 13 B2, estilo Marco): en la esquina, al ras de la
     // barra y del lado fino, con dos orejas (CornerEars); sin sombra.
-    readonly property bool attached: Tokens.frame.on
+    // Solo si su pantalla tiene el marco ahora (B3: con barra y sin pantalla
+    // completa). La pantalla se copia una vez (leer screen aca seria un bucle al
+    // mapearse la ventana, como en Bar.qml).
+    property var home: null
+    Component.onCompleted: window.home = window.screen
+    readonly property bool attached: BarVisibility.framed(window.home)
     function edgeGap(side: string): int {
-        return side === Tokens.bar.edge ? Tokens.bar.height : Tokens.frame.thickness;
+        return BarVisibility.edgeSize(side);
     }
     margins {
         top: window.attached ? window.edgeGap("top") : Tokens.insetTop - card.shadowMargin

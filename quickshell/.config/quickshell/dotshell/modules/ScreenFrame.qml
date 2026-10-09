@@ -31,15 +31,15 @@ Scope {
     readonly property bool active: Tokens.frame.on && BarVisibility.onScreen(frame.screen)
     readonly property string edge: Tokens.bar.edge
     readonly property bool horizontal: !Tokens.bar.vertical
-    // La barra se ve en esta pantalla (asoma con peek solo mientras se mantiene Super: entonces cuenta como oculta).
-    readonly property bool barShown: !BarVisibility.hidden && SettingsState.value("bar.peek") !== true
+    // La barra se ve (asoma con peek solo mientras se mantiene Super: entonces cuenta como oculta).
+    readonly property bool barShown: BarVisibility.barSeen
     readonly property int t: Tokens.frame.thickness
     readonly property int r: Tokens.frame.radius
     readonly property color fill: Colors.surfaceLow
 
-    // Grosor de cada lado.
+    // Grosor de cada lado (BarVisibility.edgeSize: el mismo que usan los paneles pegados).
     function th(side: string): int {
-        return side === frame.edge && frame.barShown ? Tokens.bar.height : frame.t;
+        return BarVisibility.edgeSize(side);
     }
     // Lados largos: los de la barra y su opuesto (de punta a punta).
     function isLong(side: string): bool {

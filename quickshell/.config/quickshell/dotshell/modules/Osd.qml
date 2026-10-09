@@ -28,12 +28,14 @@ PanelWindow {
     // Pegado al marco (Fase 13 B2, estilo Marco): al ras del borde de arriba (la
     // barra, o el lado fino si la barra esta en otro borde), con dos orejas, y
     // sale de ese borde deslizandose; sin sombra.
-    readonly property bool attached: Tokens.frame.on
+    property var home: null
+    Component.onCompleted: osd.home = osd.screen
+    readonly property bool attached: BarVisibility.framed(osd.home)
     readonly property int ear: osd.attached ? Tokens.frame.radius : 0
     implicitHeight: box.implicitHeight + (osd.attached ? 0 : box.shadowMargin * 2)
     margins {
         // Arriba al centro; debajo de la barra si esta arriba (Fase 11 B3: inset).
-        top: osd.attached ? (Tokens.bar.edge === "top" ? Tokens.bar.height : Tokens.frame.thickness) : Tokens.insetTop - box.shadowMargin
+        top: osd.attached ? BarVisibility.edgeSize("top") : Tokens.insetTop - box.shadowMargin
     }
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"

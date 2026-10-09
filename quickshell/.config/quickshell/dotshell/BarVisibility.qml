@@ -43,4 +43,17 @@ QtObject {
         if (!s || root.screens.length === 0) return true;
         return root.screens.indexOf(s.name) >= 0 || root.screens.indexOf(root.screenKey(s)) >= 0;
     }
+
+    // ---- Marco (Fase 13): un solo lugar para "cuanto mide cada borde" -------------------
+    // La barra se ve de verdad (oculta o asomando con bar.peek, su lado es un lado fino).
+    readonly property bool barSeen: !root.hidden && SettingsState.value("bar.peek") !== true
+    function edgeSize(side: string): int {
+        return side === Tokens.bar.edge && root.barSeen ? Tokens.bar.height : Tokens.frame.thickness;
+    }
+    // Esa pantalla tiene el marco ahora: estilo Marco, con barra, y sin una ventana a
+    // pantalla completa (ahi Hyprland no muestra el marco: lo que aparece encima,
+    // como el OSD o un aviso, vuelve a flotar).
+    function framed(s: var): bool {
+        return Tokens.frame.on && !!s && root.onScreen(s) && !FullscreenState.isFullscreen(s.name);
+    }
 }

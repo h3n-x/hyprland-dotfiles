@@ -77,6 +77,8 @@ PanelWindow {
             .filter(id => id === "media" || id === "activeWindow").length, 0);
     }
     function refit(): void {
+        // Llamado con Qt.callLater: si la barra ya se destruyo (se desconecto la pantalla), nada.
+        if (typeof bar.squeezersIn !== "function") return;
         const nS = bar.squeezersIn(bar.lay.start), nC = bar.squeezersIn(bar.lay.center), nE = bar.squeezersIn(bar.lay.end);
         if (bar.vertical || nS + nC + nE === 0) {
             bar.squeeze = 0;

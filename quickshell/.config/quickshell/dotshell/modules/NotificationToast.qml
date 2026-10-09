@@ -43,8 +43,8 @@ PanelWindow {
     // ocultar la ventana y leerlo en "toasts" (que decide visible) cerraria
     // un ciclo.
     property string screenName: ""
-    onScreenChanged: if (toastWindow.screen && toastWindow.screen.name !== toastWindow.screenName) toastWindow.screenName = toastWindow.screen.name
-    Component.onCompleted: toastWindow.screenName = toastWindow.screen ? toastWindow.screen.name : ""
+    onScreenChanged: if (toastWindow.screen && toastWindow.screen.name !== toastWindow.screenName) { toastWindow.screenName = toastWindow.screen.name; toastWindow.home = toastWindow.screen; }
+    Component.onCompleted: { toastWindow.screenName = toastWindow.screen ? toastWindow.screen.name : ""; toastWindow.home = toastWindow.screen; }
     // Hasta notifications.maxVisible a la vez (0 = sin limite); los demas
     // esperan su turno (su tiempo corre al aparecer).
     readonly property int maxVisible: Number(SettingsState.value("notifications.maxVisible") || 0)
@@ -56,11 +56,12 @@ PanelWindow {
     // al ras de la barra y del lado fino (su esquina) o colgada del borde de
     // arriba (al centro), sin espacio entre avisos, con orejas donde se junta y
     // solo la esquina de afuera redonda; cada aviso sale del lado del marco.
-    readonly property bool attached: Tokens.frame.on
+    property var home: null
+    readonly property bool attached: BarVisibility.framed(toastWindow.home)
     readonly property bool centered: toastWindow.position === "top-center"
     readonly property int ear: toastWindow.attached ? Tokens.frame.radius : 0
     function edgeGap(side: string): int {
-        return side === Tokens.bar.edge ? Tokens.bar.height : Tokens.frame.thickness;
+        return BarVisibility.edgeSize(side);
     }
     margins {
         // Nunca encima de la barra, este en el borde que este (Fase 11 B3: inset).
