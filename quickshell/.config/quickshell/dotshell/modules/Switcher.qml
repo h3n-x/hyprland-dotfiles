@@ -231,7 +231,8 @@ OverlayWindow {
                         radius: Tokens.radius.lg
                         color: card.selected ? Colors.accentAltContainer : "transparent"
                         border.width: card.selected ? 2 : 0
-                        border.color: Colors.accent
+                        // El anillo de la elegida, con el acento de su app (P5.6; sin uno, el de siempre).
+                        border.color: AppColors.accent(card.modelData.cls)
                         Behavior on color { ColorAnimation { duration: Tokens.motion.fast } }
 
                         StateLayer { hovered: cardMouse.containsMouse; pressed: cardMouse.pressed }
@@ -282,9 +283,23 @@ OverlayWindow {
                             RowLayout {
                                 Layout.fillWidth: true
                                 spacing: Tokens.space.sm
-                                IconImage {
-                                    implicitSize: Tokens.px(20)
-                                    source: AppInfo.icon(card.modelData.cls)
+                                // Fondito del icono con el color de la app (P5.6), solo si lo tiene.
+                                // (detras del icono y sin ocupar lugar).
+                                Item {
+                                    implicitWidth: Tokens.px(20)
+                                    implicitHeight: Tokens.px(20)
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        anchors.margins: -Tokens.space.xs
+                                        radius: Tokens.radius.sm
+                                        visible: AppColors.has(card.modelData.cls)
+                                        color: AppColors.container(card.modelData.cls)
+                                    }
+                                    IconImage {
+                                        anchors.fill: parent
+                                        implicitSize: Tokens.px(20)
+                                        source: AppInfo.icon(card.modelData.cls)
+                                    }
                                 }
                                 Text {
                                     Layout.fillWidth: true

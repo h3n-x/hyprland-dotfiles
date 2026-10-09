@@ -33,6 +33,13 @@
       "description": "Cómo se arma la paleta a partir del wallpaper; cada wallpaper puede tener su excepción. No cambia los colores de estado.",
       "keywords": ["matugen", "paleta", "tema"], "apply": "next-use"
     },
+    "appearance.appColors": {
+      "type": "bool", "default": true,
+      "category": "appearance", "section": "Color", "order": 25,
+      "label": "Colores de las apps",
+      "description": "Cada app aporta su color, sacado de su icono y armonizado con tu fondo: el anillo de la ventana elegida al cambiar de ventana, un punto bajo la app activa en la barra, el fondito de su icono en los avisos y el lanzador. Solo en detalles; un icono gris usa el color de siempre.",
+      "keywords": ["color", "app", "icono", "acento", "adaptativo"], "apply": "live"
+    },
     "appearance.contrast": {
       "type": "number", "default": 0, "min": 0, "max": 1, "presets": [[0, "Estándar"], [0.33, "Medio"], [0.66, "Alto"], [1, "Máximo"]],
       "category": "appearance", "section": "Color", "order": 30,

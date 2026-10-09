@@ -242,7 +242,7 @@
       "textOnSuccessContainer"
     ],
     "stateWords": "warn|crit|critical|low|error|fail|failed|urgent|stale|danger|healthy|success|severity|sev\\b",
-    "localAccentConsumers": ["modules/MediaProgress.qml", "modules/MediaControls.qml", "modules/CoverBars.qml", "modules/MusicTab.qml", "modules/MediaCard.qml"]
+    "localAccentConsumers": ["modules/MediaProgress.qml", "modules/MediaControls.qml", "modules/CoverBars.qml", "modules/MusicTab.qml", "modules/MediaCard.qml", "modules/Switcher.qml", "modules/WorkspaceThumb.qml", "modules/Workspaces.qml", "modules/NotificationToast.qml", "modules/Launcher.qml"]
   },
   "templates": [
     {

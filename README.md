@@ -594,8 +594,14 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   la galeria trae aca) --, la fuente de la interfaz y la de codigo (las
   instaladas que cubren el castellano, cada una escrita en si misma; la
   shell, el bloqueo y el login las usan; si una se desinstala, vuelve la de
-  fabrica y Diagnostico lo dice) y el **avatar**: del fondo o una imagen
-  propia (selector de archivos del portal, GTK).
+  fabrica y Diagnostico lo dice), el **avatar**: del fondo o una imagen
+  propia (selector de archivos del portal, GTK), y los **colores de las apps**
+  (P5.6, de fabrica encendido): cada app aporta un color sacado de su icono
+  (el del tema de iconos en uso) y armonizado con el fondo, solo en detalles:
+  el anillo de la ventana elegida al cambiar de ventana, un punto bajo la app
+  activa en la barra (con iconos de ventanas), el fondito de su icono en los
+  avisos, el lanzador y Escritorios, y el reproductor cuando la portada no da
+  color. Un icono gris usa el color de siempre.
 - **Accesibilidad**: reducir movimiento (la shell y tambien las animaciones
   de las ventanas), alto contraste, **escala de la interfaz** (de 85 % a
   150 % en pasos de 5 %: todo crece junto, texto, iconos, la barra, filas,

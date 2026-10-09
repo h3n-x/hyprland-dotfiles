@@ -25,10 +25,14 @@ QtObject {
 
     property var palette: null
     readonly property bool valid: root.enabled && !!root.palette && root.palette.valid === true
-    readonly property color accent: root.valid ? root.palette.accent : Colors.accent
-    readonly property color onAccent: root.valid ? root.palette.onAccent : Colors.textOnAccent
-    readonly property color container: root.valid ? root.palette.container : Colors.accentContainer
-    readonly property color onContainer: root.valid ? root.palette.onContainer : Colors.textOnAccentContainer
+    // Sin una de la portada (sin portada, gris...): la de la app del reproductor
+    // (AppColors, P5.6), y si tampoco, la del fondo.
+    readonly property string app: MediaState.active ? (MediaState.active.desktopEntry || MediaState.active.identity || "") : ""
+    readonly property bool appValid: root.enabled && !root.valid && !!root.app && AppColors.has(root.app)
+    readonly property color accent: root.valid ? root.palette.accent : root.appValid ? AppColors.accent(root.app) : Colors.accent
+    readonly property color onAccent: root.valid ? root.palette.onAccent : root.appValid ? AppColors.onAccent(root.app) : Colors.textOnAccent
+    readonly property color container: root.valid ? root.palette.container : root.appValid ? AppColors.container(root.app) : Colors.accentContainer
+    readonly property color onContainer: root.valid ? root.palette.onContainer : root.appValid ? AppColors.onContainer(root.app) : Colors.textOnAccentContainer
 
     property Demand demand: Demand {
         name: "mediacolors"

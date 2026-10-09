@@ -163,9 +163,20 @@ Item {
                     Repeater {
                         model: ws.wins.slice(0, root.maxIcons)
                         IconImage {
+                            id: winIcon
                             required property var modelData
                             implicitSize: Tokens.icon.sm
                             source: AppInfo.icon(root.appOf(modelData))
+                            // La ventana activa: un punto con el color de su app (P5.6), solo si lo tiene.
+                            Rectangle {
+                                readonly property string app: root.appOf(winIcon.modelData)
+                                visible: !!winIcon.modelData.activated && AppColors.has(app)
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.top: parent.bottom
+                                anchors.topMargin: 1
+                                width: 4; height: 4; radius: 2
+                                color: AppColors.accent(app)
+                            }
                         }
                     }
                     Text {

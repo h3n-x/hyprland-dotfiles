@@ -186,6 +186,15 @@ Item {
                         radius: winFace.radius
                     }
                 }
+                // La ventana enfocada: un fondito con el color de su app (P5.6), solo si lo tiene.
+                Rectangle {
+                    visible: !thumb.detailed && win.modelData.focused && AppColors.has(win.modelData.cls)
+                    anchors.centerIn: parent
+                    width: Math.min(Tokens.px(22), parent.height * 0.5, parent.width * 0.5) + 2 * Tokens.space.xs   // detras, sin ocupar lugar
+                    height: width
+                    radius: Tokens.radius.sm
+                    color: AppColors.container(win.modelData.cls)
+                }
                 Image {
                     visible: !thumb.detailed
                     anchors.centerIn: parent

@@ -90,10 +90,26 @@ OverlayWindow {
                 spacing: Tokens.space.md
 
                 // Icono de la aplicacion (tema de iconos, no Material: identifica la app).
-                IconImage {
+                // La fila elegida: un fondito del color de la app (P5.6), solo si lo tiene.
+                // (detras del icono y sin ocupar lugar: apagado, la fila es la de siempre).
+                Item {
+                    readonly property string app: appRow.modelData.entry ? appRow.modelData.entry.id : ""
+                    readonly property bool tinted: appRow.selected && !!app && AppColors.has(app)
                     Layout.alignment: Qt.AlignVCenter
-                    implicitSize: Tokens.space.xxl
-                    source: AppInfo.entryIcon(appRow.modelData.entry)
+                    implicitWidth: Tokens.space.xxl
+                    implicitHeight: Tokens.space.xxl
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: -Tokens.space.xs
+                        radius: Tokens.radius.md
+                        visible: parent.tinted
+                        color: AppColors.container(parent.app)
+                    }
+                    IconImage {
+                        anchors.fill: parent
+                        implicitSize: Tokens.space.xxl
+                        source: AppInfo.entryIcon(appRow.modelData.entry)
+                    }
                 }
 
                 ColumnLayout {

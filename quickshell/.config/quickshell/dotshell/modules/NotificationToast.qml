@@ -204,14 +204,30 @@ PanelWindow {
                         // Icono de la app que manda la notificacion (identifica
                         // el origen; no es iconografia de la shell).
                         // Sin icono propio: el de su aplicacion (AppInfo), si se conoce.
-                        IconImage {
-                            id: appIconImage
-                            readonly property string src: toast.modelData.appIcon ? Quickshell.iconPath(toast.modelData.appIcon)
-                                : AppInfo.entry(toast.modelData.appName) ? AppInfo.icon(toast.modelData.appName) : ""
+                        // Con un fondito del color de la app (P5.6), si se conoce y lo tiene.
+                        // (detras del icono y sin ocupar lugar: el aviso mide lo mismo).
+                        Item {
+                            readonly property string app: AppInfo.entry(toast.modelData.appName) ? toast.modelData.appName : ""
+                            readonly property bool tinted: !!app && AppColors.has(app)
                             visible: !!appIconImage.src
                             Layout.alignment: Qt.AlignVCenter
-                            implicitSize: Tokens.icon.md
-                            source: appIconImage.src
+                            implicitWidth: Tokens.icon.md
+                            implicitHeight: Tokens.icon.md
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: -Tokens.space.xs
+                                radius: Tokens.radius.sm
+                                visible: parent.tinted
+                                color: AppColors.container(parent.app)
+                            }
+                            IconImage {
+                                id: appIconImage
+                                readonly property string src: toast.modelData.appIcon ? Quickshell.iconPath(toast.modelData.appIcon)
+                                    : AppInfo.entry(toast.modelData.appName) ? AppInfo.icon(toast.modelData.appName) : ""
+                                anchors.fill: parent
+                                implicitSize: Tokens.icon.md
+                                source: appIconImage.src
+                            }
                         }
 
                         Text {

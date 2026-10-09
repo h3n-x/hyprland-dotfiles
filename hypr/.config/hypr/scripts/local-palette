@@ -13,11 +13,15 @@
 # success; antes se prueba corriendo el tono 15° para un lado y para el otro).
 #
 #   local-palette IMAGEN|URL   -> {valid, accent, onAccent, container, onContainer, source, harmonized}
+#   local-palette --icon NOMBRE -> lo mismo para el icono de una app (P5.6): el
+#      nombre se busca en el tema de iconos en uso (el IconTheme de la shell,
+#      sus Inherits, hicolor y /usr/share/pixmaps); el SVG o el PNG mas grande.
 #
 # Una URL http(s) (la portada que da el reproductor) se baja una vez a la cache.
 # Cache: ~/.cache/dotfiles/local-palette/ (resultado por imagen x fondo x modo x
-# contraste x esquema; las imagenes bajadas en art/). Pruebas: LOCAL_PALETTE_CACHE,
-# QS_COLORS_JSON, STATUS_JSON, SETTINGS_CMD.
+# contraste x esquema; las imagenes bajadas en art/, los SVG rasterizados en
+# icons/). Pruebas: LOCAL_PALETTE_CACHE, QS_COLORS_JSON, STATUS_JSON, SETTINGS_CMD,
+# LOCAL_PALETTE_ICON_THEME, LOCAL_PALETTE_ICON_DIRS (bases separadas por ":").
 set -uo pipefail
 
 CACHE=${LOCAL_PALETTE_CACHE:-$HOME/.cache/dotfiles/local-palette}
@@ -25,7 +29,7 @@ COLORS=${QS_COLORS_JSON:-$HOME/.cache/matugen/quickshell-colors.json}
 STATUS=${STATUS_JSON:-$HOME/.cache/matugen/status.json}
 SETTINGS=${SETTINGS_CMD:-"$(dirname "$(readlink -f "$0")")/settings"}
 
-src=${1:?uso: local-palette IMAGEN|URL}
+src=${1:?uso: local-palette IMAGEN|URL | --icon NOMBRE}
 out=""
 # Invalido; una vez conocida la clave, tambien queda en la cache (no se recalcula).
 invalid() {
@@ -34,6 +38,60 @@ invalid() {
     exit 0
 }
 mkdir -p "$CACHE/art"
+
+# ---- Un icono por nombre (P5.6) ------------------------------------------------
+if [[ $src == --icon ]]; then
+    name=${2:?uso: local-palette --icon NOMBRE}
+    theme=${LOCAL_PALETTE_ICON_THEME:-$(grep -oP '^//@ pragma IconTheme \K\S+' "$HOME/.config/quickshell/dotshell/shell.qml" 2>/dev/null)}
+    file=$(python3 -I - "$name" "${theme:-hicolor}" "${LOCAL_PALETTE_ICON_DIRS:-$HOME/.local/share/icons:$HOME/.icons:/usr/share/icons}" <<'PY'
+import sys, os, re
+name, theme, bases = sys.argv[1], sys.argv[2], sys.argv[3].split(":")
+if name.startswith("/"):
+    print(name if os.path.isfile(name) else ""); sys.exit()
+def inherits(t):
+    for b in bases:
+        f = os.path.join(b, t, "index.theme")
+        if os.path.isfile(f):
+            m = re.search(r"^Inherits=(.*)$", open(f, errors="ignore").read(), re.M)
+            return [x.strip() for x in m.group(1).split(",")] if m else []
+    return []
+order, todo = [], [theme]
+while todo:
+    t = todo.pop(0)
+    if t in order: continue
+    order.append(t); todo += inherits(t)
+if "hicolor" not in order: order.append("hicolor")
+def size(path):
+    m = re.search(r"/(\d+)x\d+/", path)
+    return 10000 if path.endswith(".svg") else int(m.group(1)) if m else 0
+for t in order:
+    found = []
+    for b in bases:
+        root = os.path.join(b, t)
+        if not os.path.isdir(root): continue
+        for d, _, files in os.walk(root):
+            for ext in (".svg", ".png"):
+                if name + ext in files: found.append(os.path.join(d, name + ext))
+    if found:
+        print(max(found, key=size)); sys.exit()
+for ext in (".png", ".svg", ".xpm"):
+    p = "/usr/share/pixmaps/" + name + ext
+    if os.path.isfile(p): print(p); sys.exit()
+print("")
+PY
+)
+    [[ -n $file ]] || invalid "sin icono"
+    # Un SVG se rasteriza una vez (la cache de abajo se fija en su tamano y fecha).
+    if [[ $file == *.svg ]]; then
+        png="$CACHE/icons/$(printf '%s' "$file" | md5sum | cut -d' ' -f1).png"
+        if [[ ! -s $png || $png -ot $file ]]; then
+            mkdir -p "$CACHE/icons"
+            magick -background none "$file" -resize 128x128 "$png" 2>/dev/null || invalid "el icono no se pudo leer"
+        fi
+        file=$png
+    fi
+    src=$file
+fi
 
 # ---- La imagen ---------------------------------------------------------------
 case $src in
