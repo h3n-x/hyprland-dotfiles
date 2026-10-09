@@ -6,6 +6,8 @@
 // debajo.
 //
 // Sin nada sonando la pestana queda (un lugar fijo) y lo dice; no corre nada.
+// Barras de audio alrededor de la portada (B3, media.visualizer.*): cava corre
+// solo mientras la pestana se ve y suena (CavaState).
 // Con algo sonando: la posicion cada 500 ms (MediaSession) y el temporizador
 // de la letra (LyricsState), solo mientras la pestana se ve.
 //
@@ -42,6 +44,9 @@ Item {
         active: tab.active
     }
     Subscription { demand: LyricsState.demand; active: tab.active && tab.lyricsShown }
+    // Visualizador (Fase 12 B3): solo visible, sonando, con la opcion y sin "reducir movimiento".
+    readonly property bool barsOn: SettingsState.value("media.visualizer.enabled") === true && Tokens.motion.scale > 0
+    Subscription { demand: CavaState.demand; active: tab.active && tab.barsOn && session.playing }
 
     function handleKey(event: var): bool {
         if (!tab.hasPlayer) return false;
@@ -125,6 +130,13 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             implicitWidth: tab.stacked ? Tokens.cover.music * 0.7 : tab.coverBox
             implicitHeight: implicitWidth
+            // Barras de audio alrededor (B3): en el anillo libre y un poco mas
+            // (el margen de la pestana), detras de la portada.
+            CoverBars {
+                anchors.fill: parent
+                outline: cover.outline
+                ring: (tab.stacked ? 0 : tab.ring) + Tokens.space.md
+            }
             MediaCover {
                 id: cover
                 anchors.centerIn: parent
@@ -276,7 +288,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.topMargin: Tokens.space.lg
                 session: session
-                hint: tab.hint
+                hint: tab.hint || (tab.barsOn && CavaState.available === false ? "Sin cava: instálalo para ver las barras" : "")
             }
             MediaControls {
                 id: controls

@@ -15,6 +15,10 @@
 // de la barra de nivel, y la red y las graficas su grafico (Sparkline: cambia
 // en escalones, una vez por muestra, nunca se desliza). Cuales, en
 // dashboard.system.charts; sin bateria o sin lectura de la grafica, no hay.
+//
+// Estilo "Anillos" (Fase 12 B3, dashboard.system.style): los cuatro de arriba
+// como anillos (Ring) con la cifra adentro y la temperatura como arco fino
+// por fuera; los mismos datos y palabras. Sin historia en ese estilo.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -44,6 +48,11 @@ ColumnLayout {
         return SystemState.series(k);
     }
     readonly property real diskFrac: view.disk && view.disk.size > 0 ? view.disk.used / view.disk.size : 0
+    readonly property bool rings: SettingsState.value("dashboard.system.style") === "anillos"
+    // Temperatura -> arco de afuera: 30 a 100 °C.
+    function tempFrac(t: real): real {
+        return isNaN(t) ? NaN : Math.max(0, Math.min(1, (t - 30) / 70));
+    }
 
     // Frase que explica el estado, en palabras.
     readonly property string summary: {
@@ -69,10 +78,85 @@ ColumnLayout {
         property string note: ""
         // Serie de la historia (Fase 11 B5c; "" = la barra de nivel).
         property string series: ""
-        implicitHeight: insCol.implicitHeight + 2 * ins.padding
+        // Temperatura en °C (NaN = no hay): el arco de afuera en "Anillos".
+        property real temp: NaN
+        readonly property color levelColor: ins.level >= 2 ? Colors.danger : ins.level === 1 ? Colors.warning : Colors.textMuted
+        implicitHeight: (view.rings ? ringCol.implicitHeight : insCol.implicitHeight) + 2 * ins.padding
+
+        // ---- Anillos (Fase 12 B3) ----
+        ColumnLayout {
+            id: ringCol
+            visible: view.rings
+            anchors.left: parent.left
+            anchors.right: parent.right
+            spacing: Tokens.space.sm
+            RowLayout {
+                spacing: Tokens.space.sm
+                Icon { name: ins.icon; size: Tokens.icon.sm; color: Colors.textMuted }
+                Text {
+                    Layout.fillWidth: true
+                    text: ins.label
+                    color: Colors.textMuted
+                    font.family: Tokens.font.ui
+                    font.pixelSize: Tokens.type.label
+                    font.weight: Tokens.weight.semibold
+                    elide: Text.ElideRight
+                }
+            }
+            Ring {
+                Layout.alignment: Qt.AlignHCenter
+                fraction: ins.fraction
+                outer: view.tempFrac(ins.temp)
+                color: ins.level >= 2 ? Colors.danger : ins.level === 1 ? Colors.warning : Colors.accent
+                outerColor: ins.temp >= 90 ? Colors.danger : ins.temp >= 80 ? Colors.warning : Colors.accentAlt
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    spacing: 0
+                    Text {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: ins.value
+                        color: Colors.text
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.title
+                        font.weight: Tokens.weight.semibold
+                        font.features: Tokens.tabularNumbers
+                    }
+                    Text {
+                        visible: !isNaN(ins.temp)
+                        Layout.alignment: Qt.AlignHCenter
+                        text: Math.round(ins.temp) + "°"
+                        color: Colors.textMuted
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.caption
+                        font.features: Tokens.tabularNumbers
+                    }
+                }
+            }
+            Text {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                text: ins.word
+                color: ins.levelColor
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.body
+                font.weight: Tokens.weight.medium
+                elide: Text.ElideRight
+                Behavior on color { ColorAnimation { duration: Tokens.motion.medium } }
+            }
+            Text {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                text: [ins.unit, ins.note].filter(x => x).join(" · ")
+                color: Colors.border
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.caption
+                elide: Text.ElideRight
+            }
+        }
 
         ColumnLayout {
             id: insCol
+            visible: !view.rings
             anchors.left: parent.left
             anchors.right: parent.right
             spacing: Tokens.space.xs
@@ -112,7 +196,7 @@ ColumnLayout {
             }
             Text {
                 text: ins.word
-                color: ins.level >= 2 ? Colors.danger : ins.level === 1 ? Colors.warning : Colors.textMuted
+                color: ins.levelColor
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
                 font.weight: Tokens.weight.medium
@@ -184,7 +268,8 @@ ColumnLayout {
             level: SystemState.cpuHighCount >= 3 ? 1 : 0
             fraction: SystemState.cpu
             series: view.charted("cpu") ? "cpu" : ""
-            note: (isNaN(SystemState.temp) ? "" : Math.round(SystemState.temp) + "° · ") + SystemState.cpuModel
+            temp: SystemState.temp
+            note: (isNaN(SystemState.temp) || view.rings ? "" : Math.round(SystemState.temp) + "° · ") + SystemState.cpuModel
         }
         Instrument {
             Layout.fillWidth: true
@@ -209,8 +294,9 @@ ColumnLayout {
             word: view.disk ? SystemState.diskWord(view.diskFrac) : ""
             level: view.diskFrac >= 0.92 ? 1 : 0
             fraction: view.diskFrac
+            temp: SystemState.nvmeTemp
             note: (view.disk ? "de " + SystemState.bytes(view.disk.size) + " en " + view.disk.mount : "")
-                + (isNaN(SystemState.nvmeTemp) ? "" : " · disco a " + Math.round(SystemState.nvmeTemp) + "°")
+                + (isNaN(SystemState.nvmeTemp) || view.rings ? "" : " · disco a " + Math.round(SystemState.nvmeTemp) + "°")
         }
         Instrument {
             Layout.fillWidth: true

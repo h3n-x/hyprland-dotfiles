@@ -802,6 +802,12 @@
       "label": "Sonido al terminar", "description": "Además del aviso. Necesita pw-play (PipeWire) y el tema de sonidos freedesktop.",
       "keywords": ["pomodoro", "alarma", "sonido"], "apply": "live"
     },
+    "dashboard.system.style": {
+      "type": "enum", "default": "instrumentos", "values": { "instrumentos": "Instrumentos", "anillos": "Anillos" },
+      "category": "dashboard", "section": "Sistema", "order": 59,
+      "label": "Estilo de los cuatro de arriba", "description": "Instrumentos: la cifra, una palabra y la barra o la historia. Anillos: la cifra dentro de un anillo y la temperatura por fuera (sin historia).",
+      "keywords": ["anillos", "círculos", "medidores", "sistema", "estilo"], "apply": "live"
+    },
     "dashboard.system.history": {
       "type": "bool", "default": true,
       "category": "dashboard", "section": "Sistema", "order": 60,
@@ -881,6 +887,20 @@
       "category": "media", "section": "Portada", "order": 30,
       "label": "Forma de la portada", "description": "En la pestaña Música y en la tarjeta de Inicio. Las onduladas giran un poco con cada canción.",
       "keywords": ["portada", "forma", "círculo", "galleta", "carátula"], "apply": "live"
+    },
+    "media.visualizer.enabled": {
+      "type": "bool", "default": false,
+      "category": "media", "section": "Visualizador", "order": 35,
+      "label": "Barras de audio alrededor de la portada",
+      "description": "En la pestaña Música, mientras suena algo. Necesita cava; corre solo mientras la ves (y no con «reducir movimiento»).",
+      "keywords": ["cava", "visualizador", "barras", "espectro", "audio"], "apply": "live"
+    },
+    "media.visualizer.bars": {
+      "type": "int", "default": 64, "min": 32, "max": 96, "step": 8,
+      "category": "media", "section": "Visualizador", "order": 36,
+      "label": "Cantidad de barras",
+      "description": "Más barras, más finas.",
+      "keywords": ["cava", "barras"], "apply": "live"
     },
     "media.volumeLimit": {
       "type": "number", "default": 1, "min": 1, "max": 1.5, "presets": [[1, "100 %"], [1.25, "125 %"], [1.5, "150 %"]],

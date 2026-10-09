@@ -480,7 +480,11 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
     Multimedia -> Portada; las onduladas giran un poco con cada cancion), el
     reproductor (titulo, artista, album, progreso con busqueda, cinco
     controles, chips con mas de un reproductor) y la letra al lado (debajo si
-    no entra). Sin nada sonando, lo dice; no corre nada.
+    no entra). Sin nada sonando, lo dice; no corre nada. **Barras de audio**
+    alrededor de la portada (Fase 12 B3; Configuracion -> Multimedia ->
+    Visualizador, apagadas de fabrica): siguen la forma de la portada; las
+    da [cava](https://github.com/karlstav/cava), que corre solo mientras la
+    pestana se ve y algo suena (nunca con "reducir movimiento").
   - **Hoy**: calendario del mes y el clima con una frase ("Sensacion 30°. Hoy
     entre 18° y 33°, sin lluvia a la vista."), las proximas 12 h y 5 dias. El
     clima viene de [Open-Meteo](https://open-meteo.com) (sin clave; datos
@@ -498,7 +502,9 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
     barra de nivel, y la red y las graficas su grafico (la NVIDIA, franjas
     donde estuvo activa). No se mide nada aparte: se guarda lo que ya se lee
     mientras miras el dashboard (por eso hay huecos), solo en memoria. Cuantos
-    minutos y que graficos, en Configuracion -> Dashboard -> Sistema.
+    minutos y que graficos, en Configuracion -> Dashboard -> Sistema. Estilo
+    **Anillos** (Fase 12 B3): los cuatro de arriba como anillos con la cifra
+    adentro y la temperatura como un arco fino por fuera.
   - **Escritorios**: cada workspace como la pantalla real a escala (fondo,
     barra, gaps, bordes y la captura de cada ventana, tomada una vez al abrir
     la vista); clic en una ventana va a esa ventana, en el fondo al
@@ -645,7 +651,7 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   En que pantallas va la barra. Reloj de 24 o
   12 h y la fecha al lado, cambiar de escritorio con la rueda, y la pill de
   musica con el titulo o solo el icono (Fase 10 B4).
-- **Dashboard**: las pestanas y en cual se abre, las zonas Sistema y Escritorios del inicio, la ciudad del
+- **Dashboard**: las pestanas y en cual se abre, el estilo de Sistema (instrumentos o anillos), las zonas Sistema y Escritorios del inicio, la ciudad del
   clima (la misma busqueda que en la vista Hoy; "Quitar" deja de consultar)
   y °C / °F.
 - **Capturas**: copiar al portapapeles, congelar la pantalla al elegir, PNG o
@@ -653,8 +659,8 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   ambos: una mezcla temporal de PipeWire que se quita al terminar) y 30 o
   60 fotogramas.
 - **Multimedia**: el reproductor preferido (el que la barra y el dashboard
-  muestran si esta abierto), ignorar los navegadores, la forma de la portada
-  y el volumen maximo con las teclas (100, 125 o 150 %).
+  muestran si esta abierto), ignorar los navegadores, la forma de la portada,
+  las barras de audio (y cuantas) y el volumen maximo con las teclas (100, 125 o 150 %).
 - **Notificaciones**: donde aparecen (arriba a la derecha, arriba al centro,
   abajo a la derecha), cuantas a la vez (las demas esperan), un sonido al
   llegar y avisos del sistema en el OSD: Bloq Mayus, cambio de distribucion

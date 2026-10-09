@@ -23,9 +23,10 @@
 // (bajo 820, una sola regla de reacomodo); alto maximo = pantalla - barra -
 // margen, y si el contenido no entra, se desplaza adentro.
 //
-// Cerrado no corre nada. Inicio vive mientras el panel esta abierto; otra
-// pestana existe solo mientras se ve (y durante su transicion), asi sus datos
-// (SystemState, DesktopState, la letra...) se piden y se sueltan con ella.
+// Cerrado no corre nada. Inicio vive mientras el panel esta abierto (pausado
+// mientras otra pestana lo tapa); otra pestana existe solo mientras se ve (y
+// durante su transicion), asi sus datos (SystemState, DesktopState, la
+// letra...) se piden y se sueltan con ella.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -54,9 +55,11 @@ AnchoredPanel {
     readonly property bool narrow: panel.contentWidth + 2 * panel.padding < Tokens.px(820)
 
     // Datos solo mientras se ve (Fase 8 B3): estado del equipo y escritorios.
-    // Solo si su zona esta en Inicio o se mira su vista (Fase 11 B4).
-    property Subscription systemData: Subscription { demand: SystemState.basic; active: panel.active && (home.placed("system") || panel.detail === "system") }
-    property Subscription desktopData: Subscription { demand: DesktopState.live; active: panel.active && (home.placed("workspaces") || panel.detail === "workspaces") }
+    // Solo si su zona se ve en Inicio o se mira su pestana (Fase 11 B4; Fase
+    // 12 B3: Inicio tapado por otra pestana no cuenta).
+    readonly property bool homeSeen: panel.active && panel.viewP < 1
+    property Subscription systemData: Subscription { demand: SystemState.basic; active: panel.active && ((panel.homeSeen && home.placed("system")) || panel.detail === "system") }
+    property Subscription desktopData: Subscription { demand: DesktopState.live; active: panel.active && ((panel.homeSeen && home.placed("workspaces")) || panel.detail === "workspaces") }
     onActiveChanged: {
         // Termino de cerrarse: sin vista montada (se sueltan sus datos y capturas).
         if (!panel.active && panel.detail) {
@@ -298,7 +301,9 @@ AnchoredPanel {
             DashboardHome {
                 id: home
                 width: stack.width
-                active: panel.active
+                // Tapado por otra pestana se pausa (Fase 12 B3): sus zonas sueltan
+                // lo que piden y vuelven en cuanto Inicio empieza a volver.
+                active: panel.homeSeen
                 screenName: panel.scr ? panel.scr.name : ""
                 narrow: panel.narrow
                 onOpenView: (view) => DashboardState.showTab(view, "zone")
