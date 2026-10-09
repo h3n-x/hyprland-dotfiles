@@ -1,5 +1,5 @@
 // Deslizador de un valor numerico (Fase 10 B1): riel, relleno y perilla con
-// el mismo dibujo que la barra de progreso de la musica (MediaHero), y el
+// el mismo dibujo que la barra de progreso de la musica (MediaProgress), y el
 // valor a la derecha. Clic en el valor = escribirlo (lo valida quien lo
 // guarda: el motor de opciones muestra el motivo si no vale). No guarda
 // estado: el consumidor da `value` y recibe moved(v) al soltar, con cada

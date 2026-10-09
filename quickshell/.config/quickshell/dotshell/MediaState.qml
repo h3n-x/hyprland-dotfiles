@@ -1,6 +1,6 @@
 // Reproductor (Fase 4 B5, P4.8): un solo lugar para "que reproductor" y sus
 // acciones. Lo usan la pill de la barra (Mpris.qml), el reproductor del
-// dashboard (MediaHero.qml, Fase 4 B7) y el IpcHandler "media" de shell.qml
+// dashboard (pestana Musica y tarjeta de Inicio, Fase 12 B2) y el IpcHandler "media" de shell.qml
 // (teclas multimedia): todos actuan sobre el MISMO reproductor.
 //
 // Reproductor activo: el que eligio el usuario (se mantiene mientras exista);

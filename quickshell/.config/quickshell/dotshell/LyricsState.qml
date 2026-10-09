@@ -29,8 +29,9 @@ QtObject {
     readonly property string script: Quickshell.env("HOME") + "/.config/hypr/scripts/lyrics-fetch"
     readonly property string cacheDir: Quickshell.env("LYRICS_CACHE") || (Quickshell.env("HOME") + "/.cache/dotfiles/lyrics")
 
-    // La letra abierta en el reproductor (tecla L o "Letra"); dura mientras corre la shell.
-    property bool viewOpen: false
+    // La columna de la letra en la pestana Musica (tecla L o "Letra"; Fase 12 B2:
+    // abierta de fabrica); dura mientras corre la shell.
+    property bool viewOpen: true
     property Demand demand: Demand {
         name: "lyrics"
         onActiveChanged: root.demandMoved()
@@ -340,7 +341,7 @@ QtObject {
         repeat: false
         onTriggered: root.resync()
     }
-    // El reproductor refresca su posicion mientras se ve (MediaHero): un salto
+    // El reproductor refresca su posicion mientras se ve (MediaSession): un salto
     // de mas de un segundo respecto de lo esperado es una busqueda.
     property Connections seeks: Connections {
         target: root.running ? root.player : null

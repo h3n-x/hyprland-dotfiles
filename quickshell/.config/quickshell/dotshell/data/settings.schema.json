@@ -665,6 +665,19 @@
       "category": "bar", "section": "Música", "order": 50,
       "label": "Título en la píldora de música", "description": "Apagado: solo el icono.", "keywords": ["mpris", "canción"], "apply": "live"
     },
+    "dashboard.tabs": {
+      "type": "list", "kind": "checks", "default": ["music", "system", "workspaces"], "unique": true,
+      "items": { "type": "enum", "values": { "music": "Música", "today": "Hoy", "system": "Sistema", "workspaces": "Escritorios", "maintenance": "Mantenimiento" } },
+      "category": "dashboard", "section": "Pestañas", "order": 0,
+      "label": "Pestañas", "description": "Las que se ven en la barra del dashboard, después de Inicio. Las que no, se abren igual desde su zona o su letra.",
+      "keywords": ["pestaña", "tab", "música", "sistema", "escritorios", "hoy", "mantenimiento"], "apply": "live"
+    },
+    "dashboard.openOn": {
+      "type": "enum", "default": "home", "values": { "home": "Inicio", "last": "La última que miraste" },
+      "category": "dashboard", "section": "Pestañas", "order": 0,
+      "label": "Al abrir", "description": "En qué pestaña se abre el dashboard (la última se recuerda mientras corre la shell).",
+      "keywords": ["pestaña", "abrir", "recordar"], "apply": "live"
+    },
     "dashboard.home.zones": {
       "type": "homeZones",
       "default": [{ "id": "context", "size": "full" }, { "id": "system", "size": "compact" }, { "id": "workspaces", "size": "wide" }, { "id": "media", "size": "full" }],
@@ -674,8 +687,8 @@
       "widgets": {
         "context": { "label": "Hora y avisos", "icon": "schedule", "sizes": ["full"], "bare": true, "view": "today",
                      "description": "La hora, la fecha, los avisos (solo si los hay) y el clima." },
-        "media": { "label": "Música", "icon": "music_note", "sizes": ["full"], "bare": true, "needs": "media",
-                   "description": "El reproductor; aparece mientras suena algo." },
+        "media": { "label": "Música", "icon": "music_note", "sizes": ["full"], "bare": true, "needs": "media", "view": "music",
+                   "description": "Lo que suena, en una tarjeta; el reproductor entero y la letra, en la pestaña Música." },
         "system": { "label": "Sistema", "icon": "monitor_heart", "sizes": ["compact", "wide"], "view": "system",
                     "description": "Estado, procesador, memoria, temperatura y batería." },
         "workspaces": { "label": "Escritorios", "icon": "space_dashboard", "sizes": ["wide", "compact"], "view": "workspaces",
@@ -862,6 +875,12 @@
       "label": "Carpeta de letras",
       "description": "Archivos .lrc («Artista - Título.lrc», también en subcarpetas). Solo se leen. Un .lrc junto al archivo de la canción también vale.",
       "keywords": ["letra", "lrc", "carpeta"], "apply": "live"
+    },
+    "media.cover.shape": {
+      "type": "enum", "default": "rounded", "values": { "rounded": "Cuadrada", "circle": "Círculo", "cookie4": "Galleta de 4", "cookie7": "Galleta de 7", "cookie9": "Galleta de 9", "burst": "Estallido suave" },
+      "category": "media", "section": "Portada", "order": 30,
+      "label": "Forma de la portada", "description": "En la pestaña Música y en la tarjeta de Inicio. Las onduladas giran un poco con cada canción.",
+      "keywords": ["portada", "forma", "círculo", "galleta", "carátula"], "apply": "live"
     },
     "media.volumeLimit": {
       "type": "number", "default": 1, "min": 1, "max": 1.5, "presets": [[1, "100 %"], [1.25, "125 %"], [1.5, "150 %"]],

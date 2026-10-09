@@ -420,9 +420,9 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   pausa. Las teclas multimedia (`binds.lua`) usan el mismo reproductor via
   `qs -c dotshell ipc call media next|previous|playPause`, tambien con la
   pantalla bloqueada. Se ignoran los reproductores "proxy" (playerctld).
-  **Letras** (Fase 12 B1): en el reproductor del dashboard, `L` (o "Letra",
-  que aparece al pasar el raton) muestra la letra en el lugar del titulo, la
-  linea actual al centro; clic en una linea va ahi; "Otra letra" elige entre
+  **Letras** (Fase 12 B1): en la pestana Musica del dashboard, en su propia
+  columna (`L` o "Letra" la muestran u ocultan; desde Inicio, `L` abre Musica
+  con la letra), la linea actual al centro; clic en una linea va ahi; "Otra letra" elige entre
   otras versiones y `-`/`+` (o `[`/`]`) corrige el desfase, que se recuerda
   por cancion (`~/.local/state/dotfiles/lyrics.json`). Busca primero un
   `.lrc` junto al archivo de la cancion, despues en `~/Music/Lyrics`
@@ -434,17 +434,22 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
 - **Dashboard** (`modules/Dashboard.qml` y sus vistas, `DashboardState.qml`):
   el centro de la shell. **Se abre solo con `SUPER+A`** (ningun modulo de la
   barra lo abre), centrado bajo la barra del monitor enfocado; `Esc` o
-  `SUPER+A` lo cierran. Una sola superficie con zonas, en cinco vistas:
+  `SUPER+A` lo cierran. Una sola superficie con **pestanas** arriba (Fase 12
+  B2): de fabrica **Inicio · Musica · Sistema · Escritorios**; Hoy y
+  Mantenimiento se suman en Configuracion -> Dashboard -> Pestanas (si no,
+  se abren igual desde su zona o su letra y aparecen mientras se ven). Se
+  abre en Inicio (o en la ultima, si se elige):
   - **Inicio**: hora, fecha, avisos (actualizaciones y mantenimiento, que
     abren esa vista; notificaciones, no molestar; solo si los hay) y clima;
     debajo, las **zonas**, que elegis vos
     (Fase 11 B4): de fabrica el estado general del equipo ("Todo en orden" y
     cuatro medidores) y los escritorios en miniatura; ademas el calendario del
     mes y las proximas horas del clima (con ciudad). Cada una compacta o
-    ancha, en el orden que quieras, o ninguna. El reproductor (portada
-    grande, progreso con busqueda, cinco controles, transicion al cambiar de
-    cancion) va de fabrica al final, mientras hay uno: las zonas no se corren
-    al empezar o terminar la musica. La linea de hora/fecha/avisos/clima y el
+    ancha, en el orden que quieras, o ninguna. La **tarjeta de musica**
+    (portada chica, titulo, artista, progreso, anterior / reproducir /
+    siguiente; clic o `Enter` abren la pestana Musica) va de fabrica al final,
+    mientras hay un reproductor: las zonas no se corren al empezar o terminar
+    la musica. La linea de hora/fecha/avisos/clima y el
     reproductor tambien son zonas: se quitan, se mueven y se vuelven a agregar
     como las demas. Sin musica (o sin la zona Musica), el reloj crece y el
     panel se acorta.
@@ -470,6 +475,12 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
     lluvia en las proximas 3 h, tareas pendientes, calor o helada, la puesta
     de sol; aparece solo cuando hay algo). La barra puede llevar el modulo
     **Temporizador** (lo que queda, por minuto; clic pausa).
+  - **Musica**: la portada recortada con la forma que elijas (cuadrada,
+    circulo, galletas de 4, 7 o 9 lobulos, estallido suave; Configuracion ->
+    Multimedia -> Portada; las onduladas giran un poco con cada cancion), el
+    reproductor (titulo, artista, album, progreso con busqueda, cinco
+    controles, chips con mas de un reproductor) y la letra al lado (debajo si
+    no entra). Sin nada sonando, lo dice; no corre nada.
   - **Hoy**: calendario del mes y el clima con una frase ("Sensacion 30°. Hoy
     entre 18° y 33°, sin lluvia a la vista."), las proximas 12 h y 5 dias. El
     clima viene de [Open-Meteo](https://open-meteo.com) (sin clave; datos
@@ -502,10 +513,16 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
     (paquetes, servicios, comandos exactos) solo al desplegar. **Las acciones
     abren una terminal visible** que muestra los comandos y pide
     confirmacion; `sudo` pide la contrasena ahi, nunca desde la shell.
-  Teclado: `Tab` recorre las zonas de Inicio, `Enter` abre la vista de la
-  zona, `H`/`S`/`E`/`M` abren Hoy/Sistema/Escritorios/Mantenimiento desde cualquier lugar,
-  `Esc`/`Retroceso` vuelven; `1`-`9` van a ese workspace; con el foco en el
-  reproductor, `Espacio`, flechas (-/+10 s), `N`/`P`. Cerrado no corre nada
+  Teclado: `Ctrl+Tab` / `Ctrl+Mayus+Tab` (o `Ctrl+AvPag` / `Ctrl+RePag`)
+  pasan de pestana, `Alt+1`..`Alt+6` van a la n-esima; tambien la rueda sobre
+  la barra de pestanas o deslizar dos dedos a los lados. `Tab` recorre las
+  zonas de Inicio, `Enter` abre la pestana de la zona (la zona crece hasta
+  ocupar el panel), `H`/`S`/`E`/`M` abren Hoy/Sistema/Escritorios/Mantenimiento
+  desde cualquier lugar, `L` abre Musica con la letra; `Esc`/`Retroceso`
+  vuelven a Inicio; `1`-`9` van a ese workspace; en Musica (o con el foco en
+  la tarjeta), `Espacio`, flechas (-/+10 s), `N`/`P`.
+  `qs -c dotshell ipc call dashboard tab music` abre (o cambia) a una pestana,
+  para atajos propios. Cerrado no corre nada
   (ni muestreo del equipo ni seguimiento de ventanas); todo respeta "reducir
   movimiento".
 - **Capturas y grabacion** (`CaptureState.qml`, `modules/CapturePreview.qml`,
@@ -628,7 +645,7 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   En que pantallas va la barra. Reloj de 24 o
   12 h y la fecha al lado, cambiar de escritorio con la rueda, y la pill de
   musica con el titulo o solo el icono (Fase 10 B4).
-- **Dashboard**: las zonas Sistema y Escritorios del inicio, la ciudad del
+- **Dashboard**: las pestanas y en cual se abre, las zonas Sistema y Escritorios del inicio, la ciudad del
   clima (la misma busqueda que en la vista Hoy; "Quitar" deja de consultar)
   y °C / °F.
 - **Capturas**: copiar al portapapeles, congelar la pantalla al elegir, PNG o
@@ -636,8 +653,8 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   ambos: una mezcla temporal de PipeWire que se quita al terminar) y 30 o
   60 fotogramas.
 - **Multimedia**: el reproductor preferido (el que la barra y el dashboard
-  muestran si esta abierto), ignorar los navegadores y el volumen maximo con
-  las teclas (100, 125 o 150 %).
+  muestran si esta abierto), ignorar los navegadores, la forma de la portada
+  y el volumen maximo con las teclas (100, 125 o 150 %).
 - **Notificaciones**: donde aparecen (arriba a la derecha, arriba al centro,
   abajo a la derecha), cuantas a la vez (las demas esperan), un sonido al
   llegar y avisos del sistema en el OSD: Bloq Mayus, cambio de distribucion

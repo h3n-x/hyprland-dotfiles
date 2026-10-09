@@ -5,13 +5,15 @@
 // superficie (AnchoredPanel con radio xl y la entrada larga que el spec
 // reserva al dashboard) con zonas adentro, no tarjetas.
 //
-// Vistas: Inicio y, desde sus zonas, las de detalle: Hoy (fecha y clima),
-// Sistema y Escritorios. Sin pestanas: se entra abriendo una zona (clic,
-// Enter o su letra: H, S, E) y se vuelve con Esc, Retroceso o la flecha. La
-// transicion es de contenedor: la zona crece desde su lugar hasta ocupar el
-// panel mientras Inicio se retira, y el contenido de la vista aparece encima;
-// al volver, al reves. Entre dos vistas (su letra), un fundido cruzado con la
-// altura animada. Los puntos de la cabecera solo dicen donde se esta.
+// Pestanas (Fase 12 B2): Inicio · Musica · Sistema · Escritorios (y Hoy,
+// Mantenimiento si se eligen; dashboard.tabs) en una barra arriba (DashTabs).
+// Se cambia con clic, Ctrl+Tab / Ctrl+Mayus+Tab, Ctrl+AvPag / Ctrl+RePag,
+// Alt+1..6, las letras (H, S, E, M; L = Musica con la letra), la rueda sobre
+// la barra o deslizando dos dedos a los lados. Esc o Retroceso vuelven a
+// Inicio; en Inicio, Esc cierra.
+// Transiciones: desde una zona de Inicio, de contenedor (la zona crece hasta
+// ocupar el panel mientras Inicio se retira); por la barra o las teclas, el
+// contenido se desliza hacia el lado del cambio. Una sola animacion por cambio.
 //
 // Las zonas de Inicio son datos (Fase 11 B4, HomeZones): se editan aca mismo
 // (lapiz, Ctrl+E o "dashboard edit"); editando, todas las teclas son de la
@@ -21,10 +23,9 @@
 // (bajo 820, una sola regla de reacomodo); alto maximo = pantalla - barra -
 // margen, y si el contenido no entra, se desplaza adentro.
 //
-// Cerrado no corre nada: el muestreo del equipo (SystemState) y el
-// seguimiento de ventanas (DesktopState) se piden al mostrarse, solo si su
-// zona esta en Inicio o se mira su vista, y se sueltan al ocultarse; la
-// vista Sistema pide su detalle solo mientras se ve.
+// Cerrado no corre nada. Inicio vive mientras el panel esta abierto; otra
+// pestana existe solo mientras se ve (y durante su transicion), asi sus datos
+// (SystemState, DesktopState, la letra...) se piden y se sueltan con ella.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -48,8 +49,8 @@ AnchoredPanel {
 
     readonly property int contentWidth: panel.scr
         ? Math.max(Tokens.px(640), Math.min(Tokens.px(960), panel.scr.width - 2 * Tokens.screenEdge)) - 2 * panel.padding : Tokens.px(640)
-    // Lo que deja la pantalla segun el lado del panel (barra arriba o a un costado).
-    readonly property int maxContentHeight: panel.maxBodyHeight
+    // Lo que deja la pantalla segun el lado del panel (barra arriba o a un costado), sin la barra de pestanas.
+    readonly property int maxContentHeight: panel.maxBodyHeight - tabBar.implicitHeight - Tokens.space.md
     readonly property bool narrow: panel.contentWidth + 2 * panel.padding < Tokens.px(820)
 
     // Datos solo mientras se ve (Fase 8 B3): estado del equipo y escritorios.
@@ -66,19 +67,19 @@ AnchoredPanel {
         }
     }
 
-    // ---- Vistas ---------------------------------------------------------------------
-    // detail: la vista de detalle montada (se queda mientras se vuelve a Inicio).
-    // viewP: 0 = Inicio, 1 = la vista. origin: la zona de Inicio de donde sale.
-    readonly property string view: DashboardState.view
+
+    // ---- Pestanas ---------------------------------------------------------------------
+    // detail: la pestana montada que no es Inicio (se queda mientras se vuelve).
+    // viewP: 0 = Inicio, 1 = la pestana. origin: la zona de Inicio de donde sale.
+    // viaZone: se llego desde una zona (transicion de contenedor) o no (desliza).
+    readonly property string tab: DashboardState.tab
+    property string shown: "home"
     property string detail: ""
     property real viewP: 0
     property rect origin: Qt.rect(0, 0, 0, 0)
-    readonly property var titles: ({
-        today: "Hoy",
-        system: "Sistema",
-        workspaces: "Escritorios",
-        maintenance: "Mantenimiento"
-    })
+    property bool viaZone: false
+    // Hacia donde se mueve el contenido entre dos pestanas: 1 = a la derecha.
+    property int dir: 1
     readonly property var letters: ({ [Qt.Key_H]: "today", [Qt.Key_S]: "system", [Qt.Key_E]: "workspaces", [Qt.Key_M]: "maintenance" })
 
     function back(): bool {
@@ -87,20 +88,26 @@ AnchoredPanel {
             home.escapeEdit();
             return true;
         }
-        if (DashboardState.view === "home") return false;
-        DashboardState.showView("home");
+        if (DashboardState.tab === "home") return false;
+        DashboardState.showTab("home", "back");
         return true;
     }
-    onViewChanged: {
-        const toDetail = panel.view !== "home";
-        // De una vista a otra: fundido cruzado.
-        if (toDetail && panel.detail && panel.viewP === 1 && panel.detail !== panel.view) {
-            if (!panel.active || Tokens.motion.scale === 0) panel.detail = panel.view;
+    onTabChanged: {
+        const prev = panel.shown, next = panel.tab, all = DashboardState.all;
+        panel.shown = next;
+        panel.dir = all.indexOf(next) >= all.indexOf(prev) ? 1 : -1;
+        const toDetail = next !== "home";
+        // Volver (Esc) deshace como se llego; si no, segun de donde viene.
+        if (DashboardState.via !== "back") panel.viaZone = DashboardState.via === "zone";
+        // De una pestana a otra: sale una, entra la otra (se desliza). Si Inicio
+        // estaba volviendo, no: la nueva sale de ahi (la animacion se invierte).
+        if (toDetail && panel.detail && panel.viewP === 1 && !viewAnim.running && panel.detail !== next) {
+            if (!panel.active || Tokens.motion.scale === 0) panel.detail = next;
             else swap.restart();
             return;
         }
-        if (toDetail) panel.detail = panel.view;
-        if (panel.detail) panel.origin = home.zoneRect(panel.detail, stack);
+        if (toDetail) panel.detail = next;
+        if (panel.detail && panel.viaZone) panel.origin = home.zoneRect(panel.detail, stack);
         if (!panel.active || Tokens.motion.scale === 0) {
             viewAnim.stop();
             panel.viewP = toDetail ? 1 : 0;
@@ -111,14 +118,16 @@ AnchoredPanel {
         viewAnim.restart();
         if (!toDetail) panel.focusPanel();
     }
-    // Fundido entre vistas: sale la actual, cambia (la altura se anima) y entra la otra.
+    // Entre dos pestanas: sale la actual hacia un lado, cambia (la altura se
+    // anima) y entra la otra desde el otro.
     property real swapFade: 1
     property bool swapping: false
+    property bool swapIn: false
     SequentialAnimation {
         id: swap
-        ScriptAction { script: panel.swapping = true }
+        ScriptAction { script: { panel.swapping = true; panel.swapIn = false; } }
         NumberAnimation { target: panel; property: "swapFade"; to: 0; duration: Tokens.motion.fast; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeExit }
-        ScriptAction { script: panel.detail = panel.view }
+        ScriptAction { script: { panel.detail = panel.tab; panel.swapIn = true; } }
         NumberAnimation { target: panel; property: "swapFade"; to: 1; duration: Tokens.motion.medium; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeEnter }
         ScriptAction { script: panel.swapping = false }
     }
@@ -126,7 +135,7 @@ AnchoredPanel {
         id: viewAnim
         target: panel
         property: "viewP"
-        duration: Tokens.motion.long
+        duration: panel.viaZone ? Tokens.motion.long : Tokens.motion.medium
         easing.type: Easing.BezierSpline
         easing.bezierCurve: Tokens.motion.easeStandard
         onFinished: if (panel.viewP === 0) panel.detail = ""
@@ -138,37 +147,63 @@ AnchoredPanel {
         swap.stop();
         panel.swapFade = 1;
         panel.swapping = false;
-        panel.detail = panel.view !== "home" ? panel.view : "";
+        panel.shown = panel.tab;
+        panel.detail = panel.tab !== "home" ? panel.tab : "";
         panel.viewP = panel.detail ? 1 : 0;
+    }
+
+    readonly property Item detailItem: {
+        const l = { music: musicLoader, today: todayLoader, system: systemLoader, workspaces: workspacesLoader, maintenance: maintenanceLoader }[panel.detail];
+        return l ? l.item : null;
     }
 
     function handleKey(event: var): bool {
         // Editando Inicio, todas las teclas son de la edicion.
         if (DashboardState.editing) return home.handleKey(event);
+        const ctrl = !!(event.modifiers & Qt.ControlModifier), alt = !!(event.modifiers & Qt.AltModifier);
         const plain = !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
         // Ctrl+E: editar las zonas de Inicio (Fase 11 B4).
-        if (event.key === Qt.Key_E && (event.modifiers & Qt.ControlModifier)) {
+        if (event.key === Qt.Key_E && ctrl) {
             DashboardState.edit();
             return true;
         }
-        // H, S, E, M: esa vista, desde cualquier lugar.
-        const byLetter = plain ? panel.letters[event.key] : undefined;
-        if (byLetter) {
-            DashboardState.showView(byLetter);
+        // Pestanas: Ctrl+Tab / Ctrl+Mayus+Tab (Qt da Backtab), Ctrl+AvPag / Ctrl+RePag, Alt+1..6.
+        if (ctrl && (event.key === Qt.Key_Tab || event.key === Qt.Key_PageDown)) {
+            DashboardState.step(1);
             return true;
         }
-        if (panel.view === "home") return home.handleKey(event);
-        if (event.key === Qt.Key_Backspace) return panel.back();
-        if (panel.detail === "today") return todayView.handleKey(event);
-        if (panel.detail === "maintenance" && maintenanceLoader.item) return maintenanceLoader.item.handleKey(event);
-        if (panel.detail === "workspaces" && workspacesLoader.item) {
-            if (plain && event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
-                workspacesLoader.item.go(event.key - Qt.Key_0, "");
+        if (ctrl && (event.key === Qt.Key_Backtab || event.key === Qt.Key_PageUp)) {
+            DashboardState.step(-1);
+            return true;
+        }
+        if (alt && event.key >= Qt.Key_1 && event.key <= Qt.Key_6) {
+            const t = DashboardState.tabs[event.key - Qt.Key_1];
+            if (t) DashboardState.showTab(t, "tab");
+            return true;
+        }
+        // H, S, E, M: esa pestana, desde cualquier lugar (desde Inicio, crece su zona).
+        const byLetter = plain ? panel.letters[event.key] : undefined;
+        if (byLetter) {
+            DashboardState.showTab(byLetter, panel.tab === "home" ? "zone" : "tab");
+            return true;
+        }
+        if (panel.tab === "home") {
+            // L: la pestana Musica con la letra.
+            if (plain && event.key === Qt.Key_L) {
+                LyricsState.viewOpen = true;
+                DashboardState.showTab("music", "zone");
                 return true;
             }
-            return workspacesLoader.item.handleKey(event);
+            return home.handleKey(event);
         }
-        return false;
+        if (event.key === Qt.Key_Backspace) return panel.back();
+        const it = panel.detailItem;
+        if (!it) return false;
+        if (panel.detail === "workspaces" && plain && event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
+            it.go(event.key - Qt.Key_0, "");
+            return true;
+        }
+        return it.handleKey ? it.handleKey(event) : false;
     }
 
     function lerp(a: real, b: real, t: real): real {
@@ -181,7 +216,8 @@ AnchoredPanel {
         NumberAnimation { duration: Tokens.motion.medium; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard }
     }
 
-    // Cabecera: de que es cada vista (fecha y frescura del clima; ventanas).
+    // De que es cada pestana (a la derecha de la barra): fecha y frescura del
+    // clima; ventanas; el equipo.
     SystemClock {
         id: clock
         enabled: panel.active
@@ -216,8 +252,21 @@ AnchoredPanel {
         return "";
     }
 
+    DashTabs {
+        id: tabBar
+        width: panel.contentWidth
+        tabs: DashboardState.tabs
+        current: panel.tab
+        compact: panel.narrow
+        detail: panel.viewP > 0.5 ? panel.subtitle : ""
+        live: panel.active
+        onPicked: (id) => DashboardState.showTab(id, "tab")
+        onStepped: (delta) => DashboardState.step(delta)
+    }
+
     Flickable {
         id: scroller
+        y: tabBar.implicitHeight + Tokens.space.md
         width: panel.contentWidth
         height: Math.min(panel.stackHeight, panel.maxContentHeight)
         contentWidth: width
@@ -231,25 +280,42 @@ AnchoredPanel {
             width: scroller.width
             height: panel.stackHeight
 
+            // Dos dedos a los lados (touchpad): la pestana de al lado.
+            WheelHandler {
+                acceptedDevices: PointerDevice.TouchPad
+                orientation: Qt.Horizontal
+                enabled: !DashboardState.editing
+                property real acc: 0
+                onWheel: (event) => {
+                    acc += event.angleDelta.x;
+                    if (Math.abs(acc) >= 240) {
+                        DashboardState.step(acc < 0 ? 1 : -1);
+                        acc = 0;
+                    }
+                }
+            }
+
             DashboardHome {
                 id: home
                 width: stack.width
                 active: panel.active
                 screenName: panel.scr ? panel.scr.name : ""
                 narrow: panel.narrow
-                onOpenView: (view) => DashboardState.showView(view)
+                onOpenView: (view) => DashboardState.showTab(view, "zone")
                 onFieldDone: panel.focusPanel()
-                // Se retira: se apaga y se aleja un poco.
+                // Se retira: se apaga y se aleja un poco (hacia la zona que crece,
+                // o hacia la izquierda: Inicio es la primera pestana).
                 visible: panel.viewP < 1
                 enabled: panel.viewP === 0
                 opacity: 1 - Math.min(1, panel.viewP * 2)
-                scale: 1 - 0.03 * panel.viewP
+                scale: panel.viaZone ? 1 - 0.03 * panel.viewP : 1
                 transformOrigin: Item.Top
+                transform: Translate { x: panel.viaZone ? 0 : -Tokens.space.lg * panel.viewP }
             }
 
             // La zona que crece (transicion de contenedor).
             Rectangle {
-                visible: !!panel.detail && panel.viewP > 0 && panel.viewP < 1
+                visible: panel.viaZone && !!panel.detail && panel.viewP > 0 && panel.viewP < 1
                 x: panel.lerp(panel.origin.x, 0, panel.viewP)
                 y: panel.lerp(panel.origin.y, 0, panel.viewP)
                 width: panel.lerp(panel.origin.width, stack.width, panel.viewP)
@@ -259,99 +325,55 @@ AnchoredPanel {
                 opacity: panel.viewP < 0.7 ? 1 : 1 - (panel.viewP - 0.7) / 0.3
             }
 
-            // La vista: cabecera comun + contenido.
+            // La pestana: solo la montada existe.
             ColumnLayout {
                 id: detailCol
                 visible: !!panel.detail
                 width: stack.width
-                spacing: Tokens.space.md
-                opacity: Math.max(0, Math.min(1, (panel.viewP - 0.4) / 0.6)) * panel.swapFade
-                transform: Translate { y: (1 - panel.viewP) * Tokens.space.sm }
-
-                // Cabecera: volver, titulo, contexto, puntos de lugar.
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: Tokens.px(40)
-                    spacing: Tokens.space.sm
-                    Rectangle {
-                        implicitWidth: Tokens.control.md
-                        implicitHeight: Tokens.control.md
-                        radius: width / 2
-                        color: Colors.tint(Colors.text, Tokens.tint.faint)
-                        StateLayer { hovered: backMouse.containsMouse; pressed: backMouse.pressed }
-                        Icon { anchors.centerIn: parent; name: "arrow_back"; size: Tokens.icon.md; color: Colors.text }
-                        MouseArea {
-                            id: backMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: panel.back()
-                        }
-                    }
-                    Text {
-                        text: panel.detail ? panel.titles[panel.detail] : ""
-                        color: Colors.text
-                        font.family: Tokens.font.ui
-                        font.pixelSize: Tokens.type.title
-                        font.weight: Tokens.weight.semibold
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: panel.subtitle
-                        color: Colors.border
-                        font.family: Tokens.font.ui
-                        font.pixelSize: Tokens.type.label
-                        elide: Text.ElideRight
-                    }
-                    Row {
-                        Layout.rightMargin: Tokens.space.sm
-                        spacing: 6
-                        Repeater {
-                            model: DashboardState.views
-                            Rectangle {
-                                required property string modelData
-                                readonly property bool here: modelData === panel.detail
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: here ? Tokens.px(18) : Tokens.px(6)
-                                height: 6
-                                radius: 3
-                                color: here ? Colors.accent : Colors.divider
-                                Behavior on width { NumberAnimation { duration: Tokens.motion.short; easing.type: Easing.BezierSpline; easing.bezierCurve: Tokens.motion.easeStandard } }
-                            }
-                        }
-                    }
+                spacing: 0
+                opacity: (panel.viaZone ? Math.max(0, Math.min(1, (panel.viewP - 0.4) / 0.6)) : panel.viewP) * panel.swapFade
+                transform: Translate {
+                    x: (panel.viaZone ? 0 : Tokens.space.lg * (1 - panel.viewP))
+                       + (panel.swapIn ? 1 : -1) * panel.dir * Tokens.space.lg * (1 - panel.swapFade)
+                    y: panel.viaZone ? (1 - panel.viewP) * Tokens.space.sm : 0
                 }
 
-                TodayView {
-                    id: todayView
-                    Layout.fillWidth: true
-                    visible: panel.detail === "today"
-                    active: panel.active && panel.detail === "today"
-                    narrow: panel.narrow
-                    onBackRequested: panel.back()
-                    onLeftSearch: panel.focusPanel()
-                }
-                SystemView {
-                    Layout.fillWidth: true
-                    visible: panel.detail === "system"
-                    active: panel.active && panel.detail === "system"
-                    narrow: panel.narrow
-                }
-                // Escritorios: solo mientras es la vista (al salir, o al terminar
-                // de cerrarse el panel, se sueltan las capturas). No ligarlo a
-                // "active": cargar la vista cambia el tamano del popup y eso
-                // vuelve a tocar su visibilidad (bucle a 100 % de CPU).
-                // Mantenimiento (B9): solo mientras es la vista.
                 Loader {
-                    id: maintenanceLoader
+                    id: musicLoader
                     Layout.fillWidth: true
-                    active: panel.detail === "maintenance"
+                    active: panel.detail === "music"
                     visible: active
-                    sourceComponent: MaintenanceView {
-                        active: panel.active && panel.detail === "maintenance"
+                    sourceComponent: MusicTab {
+                        active: panel.active && panel.detail === "music"
                         narrow: panel.narrow
                     }
                 }
+                Loader {
+                    id: todayLoader
+                    Layout.fillWidth: true
+                    active: panel.detail === "today"
+                    visible: active
+                    sourceComponent: TodayView {
+                        active: panel.active && panel.detail === "today"
+                        narrow: panel.narrow
+                        onBackRequested: panel.back()
+                        onLeftSearch: panel.focusPanel()
+                    }
+                }
+                Loader {
+                    id: systemLoader
+                    Layout.fillWidth: true
+                    active: panel.detail === "system"
+                    visible: active
+                    sourceComponent: SystemView {
+                        active: panel.active && panel.detail === "system"
+                        narrow: panel.narrow
+                    }
+                }
+                // Escritorios: solo mientras es la pestana (al salir, o al terminar
+                // de cerrarse el panel, se sueltan las capturas). No ligarlo a
+                // "active": cargar la vista cambia el tamano del popup y eso
+                // vuelve a tocar su visibilidad (bucle a 100 % de CPU).
                 Loader {
                     id: workspacesLoader
                     Layout.fillWidth: true
@@ -363,6 +385,16 @@ AnchoredPanel {
                         narrow: panel.narrow
                     }
                 }
+                Loader {
+                    id: maintenanceLoader
+                    Layout.fillWidth: true
+                    active: panel.detail === "maintenance"
+                    visible: active
+                    sourceComponent: MaintenanceView {
+                        active: panel.active && panel.detail === "maintenance"
+                        narrow: panel.narrow
+                    }
+                }
             }
         }
     }
@@ -370,7 +402,7 @@ AnchoredPanel {
     Rectangle {
         visible: scroller.interactive
         x: scroller.width - 3
-        y: scroller.visibleArea.yPosition * scroller.height
+        y: scroller.y + scroller.visibleArea.yPosition * scroller.height
         width: 3
         height: scroller.visibleArea.heightRatio * scroller.height
         radius: 1.5

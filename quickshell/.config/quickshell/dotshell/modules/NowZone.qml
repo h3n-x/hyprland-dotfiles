@@ -19,7 +19,7 @@ Item {
     Subscription { demand: TimerState.minutes; active: root.active && TimerState.anyRunning && NowState.kinds.indexOf("timer") >= 0 }
 
     function focusField(): void {
-        if (root.item && root.item.view) DashboardState.showView(root.item.view);
+        if (root.item && root.item.view) DashboardState.showTab(root.item.view, "zone");
     }
 
     MouseArea {

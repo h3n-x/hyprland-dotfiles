@@ -15,7 +15,7 @@
 //
 // Teclado (Dashboard.qml le pasa las teclas): Tab / Mayus+Tab mueven el
 // anillo de foco entre zonas; con el foco en el reproductor, sus teclas
-// (MediaHero); en escritorios, izquierda/derecha + Enter (sin elegir uno:
+// (MediaCard; L o Enter abren la pestana Musica); en escritorios, izquierda/derecha + Enter (sin elegir uno:
 // la vista Escritorios); en la linea de contexto y en una zona, Enter abre su
 // vista (Hoy, Sistema...); 1-9 van a ese workspace desde cualquier lugar. Un
 // clic en la fecha o el clima abre Hoy; en una zona, su vista. Editando
@@ -190,7 +190,7 @@ Item {
     }
     function actOn(key: string): void {
         if (key === "updates" || key === "maintenance") {
-            DashboardState.showView("maintenance");
+            DashboardState.showTab("maintenance", "zone");
             return;
         }
         DashboardState.close();
@@ -412,23 +412,25 @@ Item {
     }
 
     // ===== Reproductor (zona "media", solo mientras hay uno) =====
+    // La tarjeta (Fase 12 B2; el reproductor entero esta en la pestana Musica).
     // Se pliega con mediaP (un solo movimiento con el reloj); editando sin
     // nada sonando, un lugar con su nombre.
     Component {
         id: mediaC
         Item {
-            readonly property real ideal: home.mediaP > 0 ? Math.round(hero.implicitHeight * home.mediaP) : Tokens.px(64)
+            readonly property real ideal: home.mediaP > 0 ? Math.round(mediaCard.implicitHeight * home.mediaP) : Tokens.px(64)
             clip: true
             function handleKey(event: var): bool {
-                return hero.handleKey(event);
+                return mediaCard.handleKey(event);
             }
-            MediaHero {
-                id: hero
+            MediaCard {
+                id: mediaCard
                 width: parent.width
                 height: implicitHeight
                 visible: home.mediaP > 0
                 opacity: home.mediaP
                 active: home.active && home.hasMedia
+                onOpenMusic: home.openView("music")
             }
             Text {
                 visible: home.mediaP === 0

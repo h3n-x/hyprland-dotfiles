@@ -280,6 +280,15 @@ ShellRoot {
         function edit(): void {
             DashboardState.edit();
         }
+        // Abrir en una pestana (Fase 12 B2): home, music, today, system,
+        // workspaces, maintenance. Para atajos propios.
+        function tab(id: string): bool {
+            return DashboardState.openTab(id);
+        }
+        function status(): string {
+            return JSON.stringify({ open: DashboardState.visible, screen: DashboardState.screen, tab: DashboardState.tab,
+                                    tabs: DashboardState.tabs, editing: DashboardState.editing });
+        }
     }
 
     // Capturas y grabacion (Fase 4 B8): avisos de los scripts screenshot y

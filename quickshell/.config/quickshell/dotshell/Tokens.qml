@@ -337,10 +337,11 @@ QtObject {
     }
     readonly property ControlTokens control: ControlTokens { ui: root.uiScale }
 
-    // Portada grande del reproductor del dashboard (MediaHero).
+    // Portadas (Fase 12 B2): la de la pestana Musica y la de la tarjeta de Inicio.
     component CoverTokens: QtObject {
         property real ui: 1
-        readonly property int hero: Math.round(216 * ui)
+        readonly property int music: Math.round(240 * ui)
+        readonly property int card: Math.round(72 * ui)
     }
     readonly property CoverTokens cover: CoverTokens { ui: root.uiScale }
 

@@ -460,7 +460,7 @@ ColumnLayout {
         clickable: true
         padding: Tokens.space.md
         implicitHeight: maintRow.implicitHeight + 2 * Tokens.space.md
-        onActivated: DashboardState.showView("maintenance")
+        onActivated: DashboardState.showTab("maintenance", "tab")
         RowLayout {
             id: maintRow
             width: parent.width
