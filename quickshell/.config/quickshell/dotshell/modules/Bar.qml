@@ -54,7 +54,11 @@ PanelWindow {
     Component.onCompleted: bar.home = bar.screen
     readonly property bool barShown: !BarVisibility.hidden && BarVisibility.onScreen(bar.home) && (!bar.peek || BarVisibility.peekShown)
     visible: bar.barShown
-    exclusionMode: bar.peekOverlay ? ExclusionMode.Ignore : ExclusionMode.Auto
+    // Con el marco (Fase 13) la barra no reserva: si reservara, Hyprland la
+    // ubicaria dentro de lo que ya reservaron los lados finos (al ocultarla y
+    // volver a mostrarla quedaba corrida, con huecos en sus puntas). La reserva
+    // de su lado la pone ScreenFrame, con el grosor de la barra.
+    exclusionMode: bar.peekOverlay || Tokens.frame.on ? ExclusionMode.Ignore : ExclusionMode.Auto
 
     readonly property var lay: SettingsState.value("bar.layout") || ({ "start": [], "center": [], "end": [] })
     readonly property bool startSpacer: bar.lay.start.indexOf("spacer") >= 0
@@ -87,10 +91,11 @@ PanelWindow {
         bar.squeeze = Math.max(0, Math.min(Tokens.px(192), bar.squeeze + Math.ceil(step)));
     }
 
-    // Sólida (bar.style, Fase 11 B3b): un solo fondo pegado al borde.
+    // Sólida (bar.style, Fase 11 B3b): un solo fondo pegado al borde. Marco
+    // (Fase 13): el mismo fondo, el lado grueso del marco (ScreenFrame).
     Rectangle {
         anchors.fill: parent
-        visible: Tokens.bar.style === "solid" && !bar.peekOverlay
+        visible: (Tokens.bar.style === "solid" || Tokens.frame.on) && !bar.peekOverlay
         color: Colors.surfaceLow
     }
     // Encima de las ventanas (bar.peek, modo "overlay"): un panel para que se lea

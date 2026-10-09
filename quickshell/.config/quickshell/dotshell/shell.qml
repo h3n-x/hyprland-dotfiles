@@ -367,6 +367,16 @@ ShellRoot {
         }
     }
 
+    // Marco alrededor de la pantalla (Fase 13 B1, bar.style "marco").
+    Variants {
+        model: Quickshell.screens
+
+        ScreenFrame {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
     Variants {
         model: Quickshell.screens
 

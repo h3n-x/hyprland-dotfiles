@@ -90,6 +90,10 @@ hl.layer_rule({ match = { namespace = "hyprpicker" },        no_anim = true })
 -- Hyprland, que al recrear la ventana (recarga dura de la shell) dejaba ver
 -- el color de fondo ~0.3 s. El cambio de wallpaper ya es un fundido en QML.
 hl.layer_rule({ match = { namespace = "quickshell-wallpaper" }, no_anim = true })
+-- Marco alrededor de la pantalla (Fase 13 B1): opaco como la barra solida, sin
+-- blur; sin animacion de entrada (sus trozos aparecen juntos, sin deslizarse).
+hl.layer_rule({ match = { namespace = "quickshell-frame" }, no_anim = true })
+hl.layer_rule({ match = { namespace = "quickshell-frame-zone" }, no_anim = true })
 
 -- Widgets/relojes que deben verse incluso arriba del bloqueo (ninguno por ahora)
 -- hl.layer_rule({ match = { namespace = "some-widget" }, above_lock = 1 })

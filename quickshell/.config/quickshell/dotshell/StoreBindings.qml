@@ -61,6 +61,17 @@ QtObject {
         property: "size"
         value: SettingsState.value("bar.size") || 40
     }
+    // Marco (Fase 13 B1): grosor de los lados finos y radio de las esquinas de adentro.
+    property Binding frameSize: Binding {
+        target: Tokens.frame
+        property: "size"
+        value: SettingsState.value("bar.frame.thickness") || 8
+    }
+    property Binding frameRadius: Binding {
+        target: Tokens.frame
+        property: "r"
+        value: SettingsState.value("bar.frame.radius") || 20
+    }
     property Binding focusRing: Binding {
         target: Tokens
         property: "focusRing"

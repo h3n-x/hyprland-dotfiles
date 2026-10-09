@@ -302,8 +302,25 @@ QtObject {
     }
     readonly property BarTokens bar: BarTokens {
         ui: root.uiScale
-        marginTop: style === "solid" ? 0 : root.space.sm
-        marginSide: style === "solid" ? 0 : root.screenEdge
+        // Sólida y Marco (Fase 13) van pegadas al borde, de punta a punta.
+        marginTop: style === "solid" || style === "marco" ? 0 : root.space.sm
+        marginSide: style === "solid" || style === "marco" ? 0 : root.screenEdge
+    }
+
+    // Marco alrededor de la pantalla (Fase 13 B1, bar.style "marco"): la barra es
+    // su lado grueso; los otros tres miden thickness y las esquinas de adentro
+    // son redondas (radius). size y r los pone StoreBindings (bar.frame.*).
+    component FrameTokens: QtObject {
+        property real ui: 1
+        property bool on: false
+        property int size: 8
+        property int r: 20
+        readonly property int thickness: Math.round(size * ui)
+        readonly property int radius: Math.round(r * ui)
+    }
+    readonly property FrameTokens frame: FrameTokens {
+        ui: root.uiScale
+        on: root.bar.style === "marco"
     }
 
     component PillTokens: QtObject {
@@ -357,8 +374,11 @@ QtObject {
     // 8 + 40 + 12 = 60 arriba, como siempre); de los otros, el margen de
     // pantalla (Fase 11 B3: la barra puede estar en cualquier borde).
     readonly property int barReserve: bar.marginTop + bar.height + space.md
-    readonly property int insetTop: bar.edge === "top" ? barReserve : screenEdge
-    readonly property int insetBottom: bar.edge === "bottom" ? barReserve : screenEdge
-    readonly property int insetLeft: bar.edge === "left" ? barReserve : screenEdge
-    readonly property int insetRight: bar.edge === "right" ? barReserve : screenEdge
+    // Con el marco (Fase 13 B1) los otros lados miden su grosor mas el margen,
+    // como las ventanas (que Hyprland pone a gaps_out del marco).
+    readonly property int sideInset: frame.on ? frame.thickness + screenEdge : screenEdge
+    readonly property int insetTop: bar.edge === "top" ? barReserve : sideInset
+    readonly property int insetBottom: bar.edge === "bottom" ? barReserve : sideInset
+    readonly property int insetLeft: bar.edge === "left" ? barReserve : sideInset
+    readonly property int insetRight: bar.edge === "right" ? barReserve : sideInset
 }

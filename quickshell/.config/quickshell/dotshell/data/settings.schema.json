@@ -271,10 +271,22 @@
       "keywords": ["alto", "ancho", "tamaño", "grosor"], "apply": "live"
     },
     "bar.style": {
-      "type": "enum", "default": "floating", "values": { "floating": "Flotante", "solid": "Sólida", "transparent": "Transparente" },
+      "type": "enum", "default": "floating", "values": { "floating": "Flotante", "solid": "Sólida", "transparent": "Transparente", "marco": "Marco" },
       "category": "bar", "section": "Posición", "order": 5,
-      "label": "Estilo", "description": "Flotante: píldoras sueltas. Sólida: una barra pegada al borde. Transparente: sin fondos (sobre el fondo de pantalla).",
+      "label": "Estilo", "description": "Flotante: píldoras sueltas. Sólida: una barra pegada al borde. Transparente: sin fondos (sobre el fondo de pantalla). Marco: la barra es el lado grueso de un marco alrededor de la pantalla, con las esquinas de adentro redondas.",
       "keywords": ["fondo", "sólida", "transparente", "flotante", "estilo"], "apply": "live"
+    },
+    "bar.frame.thickness": {
+      "type": "int", "default": 8, "min": 2, "max": 16, "unit": "px",
+      "category": "bar", "section": "Posición", "order": 6,
+      "label": "Grosor del marco", "description": "Solo con el estilo Marco: los tres lados que no son la barra.",
+      "keywords": ["marco", "borde", "grosor"], "apply": "live"
+    },
+    "bar.frame.radius": {
+      "type": "int", "default": 20, "min": 8, "max": 32, "step": 2, "unit": "px",
+      "category": "bar", "section": "Posición", "order": 6,
+      "label": "Esquinas del marco", "description": "Solo con el estilo Marco: el radio de las esquinas de adentro.",
+      "keywords": ["marco", "esquinas", "redondeo"], "apply": "live"
     },
     "bar.peek": {
       "type": "bool", "default": false,

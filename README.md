@@ -651,7 +651,10 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   costado los modulos se apilan (el reloj en dos lineas, solo iconos), y el
   centro de control, el OSD, los avisos y los menus se ubican desde ese
   borde. Estilo flotante (pildoras sueltas), solida (pegada al borde, un
-  solo fondo) o transparente, y "mostrar solo mientras se mantiene Super"
+  solo fondo), transparente o **marco** (Fase 13: la barra es el lado grueso
+  de un marco alrededor de la pantalla, con las esquinas de adentro redondas;
+  grosor de 2 a 16 px y radio de las esquinas a elegir; las ventanas quedan
+  adentro, con sus gaps de siempre), y "mostrar solo mientras se mantiene Super"
   (aparece al mantener la tecla, tras un breve retardo: encima de las
   ventanas, con fondo, o empujandolas mientras se ve; Fase 11 B3b).
   En que pantallas va la barra. Reloj de 24 o
