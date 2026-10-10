@@ -39,7 +39,8 @@ sudo pacman -S --needed --noconfirm satty cliphist wl-clip-persist \
   matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono ttf-material-symbols-variable \
   yazi tdf fd imagemagick 7zip resvg cava fastfetch pacman-contrib \
   dust duf procs tealdeer glow xh zellij plymouth \
-  neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
+  neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher \
+  jdk21-openjdk jdk25-openjdk gnome-keyring
 
 if command -v yay >/dev/null 2>&1; then
   info "Instalando paquetes AUR (yay)..."
@@ -86,6 +87,11 @@ ok "Stow aplicado (excepto 'git', ver nota al final)."
 if command -v xdg-mime >/dev/null 2>&1; then
   xdg-mime default org.gnome.Loupe.desktop image/png image/jpeg image/webp image/gif
   xdg-mime default mpv.desktop video/mp4 video/x-matroska video/webm
+fi
+
+if command -v archlinux-java >/dev/null 2>&1 && archlinux-java status >/dev/null 2>&1; then
+  info "Fijando Java 25 como default del sistema (archlinux-java)..."
+  sudo archlinux-java set java-25-openjdk
 fi
 
 # -----------------------------------------------------------------------

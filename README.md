@@ -70,7 +70,8 @@ sudo pacman -S --needed satty cliphist wl-clip-persist \
   matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono ttf-material-symbols-variable \
   yazi tdf fd imagemagick 7zip resvg cava fastfetch pacman-contrib \
   dust duf procs tealdeer glow xh zellij plymouth \
-  neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher
+  neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher \
+  jdk21-openjdk jdk25-openjdk
 
 yay -S --needed bibata-cursor-theme-bin papirus-folders spicetify-bin
 # Fuentes del design system: Plus Jakarta Sans (interfaz) y Maple Mono NF
@@ -135,6 +136,16 @@ Para correr algo puntual en la NVIDIA (juegos, Blender, etc.):
 
 Para ver si hay algo corriendo en la NVIDIA ahora mismo: `nvidia-smi --query-compute-apps=pid,process_name --format=csv,noheader`
 (o la vista Sistema del dashboard, `SUPER + A` y `S`, que muestra su estado sin despertarla).
+
+**Gotcha recurrente tras actualizar el kernel/el driver**: `nvidia-open-dkms` compila el
+modulo para el kernel que este instalado en ese momento, pero el que sigue *cargado en
+memoria* es el del kernel con el que arrancaste. Si `pacman -Syu` trae un kernel nuevo Y
+una version nueva de NVIDIA en la misma corrida, quedan desincronizados hasta el proximo
+reinicio -- sintoma: `nvidia-smi` tira `Failed to initialize NVML: Driver/library version
+mismatch`, y cualquier offload a la dGPU (`nvidia-offload`, Steam, juegos) falla o
+directamente usa la iGPU en silencio. Se soluciona con un reinicio normal, nada que
+reinstalar; para confirmar antes de reiniciar: `uname -r` (kernel corriendo) vs
+`pacman -Q linux-zen` (kernel instalado) -- si difieren, reinicia.
 
 ## 3. Aplicar la config con Stow
 

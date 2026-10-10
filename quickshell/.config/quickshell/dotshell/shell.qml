@@ -1,3 +1,5 @@
+//@ pragma IconTheme AnimeZen
+//@ pragma UseQApplication
 // Entry point de la barra. Quickshell.screens es reactivo (Variants la crea
 // o destruye sola si conectas/desconectas un monitor, ver doc "Reusable
 // components"). Gestionado con GNU Stow desde

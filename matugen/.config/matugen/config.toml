@@ -105,6 +105,8 @@ output_path = "~/.config/starship.toml"
 [templates.nvim]
 input_path = "~/.config/matugen/templates/nvim-colors.lua"
 output_path = "~/.config/nvim/lua/matugen_colors.lua"
+# Recarga instantánea en todas las instancias activas de Neovim vía socket IPC UNIX
+post_hook = "for s in ${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/nvim.*; do [ -S \"$s\" ] && nvim --server \"$s\" --remote-send '<C-\\><C-N>:MatugenReload<CR>' 2>/dev/null || true; done"
 
 [templates.yazi]
 input_path = "~/.config/matugen/templates/yazi-flavor.toml"

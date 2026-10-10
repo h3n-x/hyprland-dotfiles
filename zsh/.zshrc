@@ -90,6 +90,10 @@ fi
 
 
 export PATH="$HOME/.local/bin:$PATH"
+export EDITOR="nvim"
+export VISUAL="nvim"
+alias vim="nvim"
+alias vimdiff="nvim -d"
 
 # ---- ver imagenes sueltas en la terminal (kitten icat, ya incluido) ----
 command -v kitty >/dev/null 2>&1 && alias icat='kitten icat'

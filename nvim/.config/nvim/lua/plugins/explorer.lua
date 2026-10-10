@@ -1,22 +1,54 @@
--- Yazi como explorador de archivos -- reusa el yazi ya themeado con matugen
--- (ver ../../../yazi/.config/yazi/) en vez de un arbol de archivos aparte.
+-- ============================================================================
+-- Explorador de archivos del proyecto
+--
+-- JUSTIFICACIÓN DE ELECCIÓN: Snacks Explorer vs Neo-tree / Nvim-Tree
+-- 1. Cero dependencias pesadas: No arrastra nui.nvim ni árboles de procesos lentos.
+-- 2. Velocidad de apertura instantánea (<1ms) integrada con el motor asíncrono de Snacks.
+-- 3. Theming dinámico perfecto: Hereda los highlights de base16-nvim y la transparencia
+--    de ventana sin bordes discordantes ni fondos duros.
+-- 4. Coexistencia con Yazi: El atajo `<leader>e` abre el explorador tipo sidebar nativo,
+--    mientras que `<leader>-` permite abrir el gestor TUI Yazi (también sincronizado con Matugen).
+-- ============================================================================
+
 return {
-	"mikavilpas/yazi.nvim",
-	version = "*",
-	event = "VeryLazy",
-	dependencies = {
-		{ "nvim-lua/plenary.nvim", lazy = true },
+	-- Yazi como explorador TUI modal integrado con Matugen
+	{
+		"mikavilpas/yazi.nvim",
+		version = "*",
+		cmd = { "Yazi" },
+		keys = {
+			{ "<leader>-", mode = { "n", "v" }, "<cmd>Yazi<CR>", desc = "Yazi (directorio de archivo actual)" },
+			{ "<leader>cy", "<cmd>Yazi cwd<CR>", desc = "Yazi (raíz del proyecto)" },
+		},
+		opts = {
+			open_for_directories = false,
+			keymaps = { show_help = "<f1>" },
+		},
 	},
-	keys = {
-		{ "<leader>-", mode = { "n", "v" }, "<cmd>Yazi<CR>", desc = "Yazi (archivo actual)" },
-		{ "<leader>cw", "<cmd>Yazi cwd<CR>", desc = "Yazi (directorio de trabajo)" },
-		{ "<C-Up>", "<cmd>Yazi toggle<CR>", desc = "Retomar ultima sesion de yazi" },
+
+	-- Snacks Explorer como barra lateral de navegación ágil
+	{
+		"folke/snacks.nvim",
+		opts = {
+			explorer = {
+				enabled = true,
+			},
+		},
+		keys = {
+			{
+				"<leader>e",
+				function()
+					Snacks.explorer()
+				end,
+				desc = "Alternar explorador de archivos (Snacks Explorer)",
+			},
+			{
+				"<leader>fe",
+				function()
+					Snacks.explorer()
+				end,
+				desc = "Explorador de archivos lateral",
+			},
+		},
 	},
-	opts = {
-		open_for_directories = true,
-		keymaps = { show_help = "<f1>" },
-	},
-	init = function()
-		vim.g.loaded_netrwPlugin = 1
-	end,
 }

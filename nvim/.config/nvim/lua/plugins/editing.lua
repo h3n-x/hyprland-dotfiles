@@ -1,30 +1,48 @@
+-- ============================================================================
+-- Utilidades de edición y manipulación modal de texto
+-- Delimitadores inteligentes, pares automáticos y objetos de texto ampliados
+-- ============================================================================
+
 return {
+	-- Cierre automático de paréntesis, corchetes, comillas y bloques
 	{
 		"windwp/nvim-autopairs",
 		event = "InsertEnter",
-		opts = {},
-	},
-	{
-		"stevearc/conform.nvim",
-		event = { "BufWritePre" },
-		cmd = "ConformInfo",
-		keys = {
-			{
-				"<leader>cf",
-				function() require("conform").format({ async = true, lsp_format = "fallback" }) end,
-				desc = "Formatear buffer",
+		opts = {
+			check_ts = true,
+			ts_config = {
+				lua = { "string", "source" },
+				javascript = { "string", "template_string" },
+			},
+			disable_filetype = { "TelescopePrompt", "snacks_picker_input" },
+			fast_wrap = {
+				map = "<M-e>",
+				chars = { "{", "[", "(", '"', "'" },
+				pattern = [=[[%'%"%)%>%]%)%}%,]]=],
+				end_key = "$",
+				keys = "qwertyuiopzxcvbnmasdfghjkl",
+				check_comma = true,
+				highlight = "Search",
+				highlight_grey = "Comment",
 			},
 		},
+	},
+
+	-- Manipulación de delimitadores envolventes (cs"', ysiw), ds", etc.)
+	{
+		"kylechui/nvim-surround",
+		version = "*",
+		event = "VeryLazy",
+		opts = {},
+	},
+
+	-- Objetos de texto extendidos: funciones va/if, clases va/ic, argumentos va/ia
+	{
+		"echasnovski/mini.ai",
+		version = "*",
+		event = "VeryLazy",
 		opts = {
-			-- stylua/shfmt via mason (mason-tool-installer, lsp.lua). jq ya
-			-- esta instalado via pacman (README). Otros formatters (prettier,
-			-- ruff, etc.) se pueden sumar aca el dia que hagan falta.
-			formatters_by_ft = {
-				lua = { "stylua" },
-				sh = { "shfmt" },
-				json = { "jq" },
-			},
-			format_on_save = { timeout_ms = 2000, lsp_format = "fallback" },
+			n_lines = 500,
 		},
 	},
 }

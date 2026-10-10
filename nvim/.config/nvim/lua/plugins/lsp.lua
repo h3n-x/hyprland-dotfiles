@@ -1,72 +1,178 @@
--- LSP: mason instala los servers, y desde Neovim 0.11+ vim.lsp.config()/
--- vim.lsp.enable() (nativos) reemplazan al viejo patron de
--- lspconfig[server].setup() -- mason-lspconfig v2 ya no usa `handlers`,
--- solo llama vim.lsp.enable() por vos. nvim-lspconfig sigue haciendo falta:
--- es el que trae las definiciones vim.lsp.config[...] de cientos de servers.
+-- ============================================================================
+-- LSP Nativo Moderno (Neovim 0.12+)
+-- Exclusivamente vía vim.lsp.config() y vim.lsp.enable()
+-- Mason se encarga exclusivamente de la instalación automática de binarios
+-- Las configuraciones específicas residen en lsp/<server>.lua
+-- ============================================================================
+
 return {
+	-- Gestor de ejecutables LSP, DAP, linters y formatters
 	{
 		"mason-org/mason.nvim",
-		opts = { ui = { border = "rounded" } },
+		cmd = "Mason",
+		keys = { { "<leader>cm", "<cmd>Mason<CR>", desc = "Panel de Mason" } },
+		opts = {
+			ui = {
+				border = "rounded",
+				icons = {
+					package_installed = "✓",
+					package_pending = "➜",
+					package_uninstalled = "✗",
+				},
+			},
+		},
 	},
+
+	-- Instalador desatendido de herramientas complementarias
 	{
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
-		-- lazy = false (no event): dispara su instalacion via un autocmd de
-		-- VimEnter registrado en su propio plugin/ -- si se carga lazy en un
-		-- evento posterior (ej. BufReadPre), VimEnter ya paso y ese autocmd
-		-- nunca llega a registrarse a tiempo.
 		lazy = false,
 		dependencies = { "mason-org/mason.nvim" },
 		opts = {
-			-- Formatters de conform.nvim (editing.lua) via mason, para no
-			-- depender de que esten instalados aparte por pacman.
-			ensure_installed = { "stylua", "shfmt" },
+			ensure_installed = {
+				-- Formateadores
+				"stylua",
+				"shfmt",
+				"prettier",
+				"ruff",
+				"clang-format",
+				-- Linters
+				"shellcheck",
+				"markdownlint",
+				-- DAP (Debuggers)
+				"debugpy",
+				"delve",
+				"codelldb",
+			},
+			auto_update = false,
+			run_on_start = true,
 		},
 	},
-	{ "neovim/nvim-lspconfig", event = { "BufReadPre", "BufNewFile" } },
+
+	-- nvim-lspconfig: Provee metadatos y schemas globales
 	{
-		"mason-org/mason-lspconfig.nvim",
+		"neovim/nvim-lspconfig",
 		event = { "BufReadPre", "BufNewFile" },
-		dependencies = { "mason-org/mason.nvim", "neovim/nvim-lspconfig", "saghen/blink.cmp" },
+		dependencies = {
+			"mason-org/mason.nvim",
+			"mason-org/mason-lspconfig.nvim",
+			"saghen/blink.cmp",
+		},
 		config = function()
-			local capabilities = require("blink.cmp").get_lsp_capabilities()
-			vim.lsp.config("*", { capabilities = capabilities })
-			vim.lsp.config("lua_ls", {
-				settings = {
-					Lua = {
-						diagnostics = { globals = { "vim" } },
-						workspace = { checkThirdParty = false },
-						telemetry = { enable = false },
+			-- Servidores soportados para desarrollo integral
+			local servers = {
+				"lua_ls",
+				"pyright",
+				"ts_ls",
+				"rust_analyzer",
+				"gopls",
+				"clangd",
+				"bashls",
+				"jsonls",
+				"yamlls",
+				"html",
+				"cssls",
+				"marksman",
+				"dockerls",
+			}
+
+			-- Sincronizar instalación con mason-lspconfig
+			require("mason-lspconfig").setup({
+				ensure_installed = servers,
+				automatic_installation = true,
+			})
+
+			-- Inyectar capabilities avanzadas de autocompletado (blink.cmp)
+			local capabilities = vim.lsp.protocol.make_client_capabilities()
+			local blink_ok, blink = pcall(require, "blink.cmp")
+			if blink_ok and blink.get_lsp_capabilities then
+				capabilities = blink.get_lsp_capabilities(capabilities)
+			end
+
+			-- Configuración global aplicable a todos los servidores LSP nativos
+			vim.lsp.config("*", {
+				capabilities = capabilities,
+			})
+
+			-- Habilitar todos los servidores de forma 100% nativa con la API de Neovim 0.12
+			-- Neovim carga automáticamente las opciones de runtimepath lsp/<server>.lua
+			vim.lsp.enable(servers)
+
+			-- ---- Configuración visual de diagnósticos ----
+			vim.diagnostic.config({
+				severity_sort = true,
+				virtual_text = {
+					prefix = "●",
+					spacing = 4,
+				},
+				signs = {
+					text = {
+						[vim.diagnostic.severity.ERROR] = " ",
+						[vim.diagnostic.severity.WARN] = " ",
+						[vim.diagnostic.severity.HINT] = " ",
+						[vim.diagnostic.severity.INFO] = " ",
 					},
 				},
-			})
-
-			require("mason-lspconfig").setup({
-				ensure_installed = {
-					"lua_ls", "bashls", "pyright", "jsonls", "yamlls", "marksman", "taplo",
+				float = {
+					border = "rounded",
+					source = "always",
+					header = "",
+					prefix = "",
 				},
+				underline = true,
+				update_in_insert = false,
 			})
 
-			vim.diagnostic.config({
-				virtual_text = { prefix = "●" },
-				severity_sort = true,
-				float = { border = "rounded" },
-			})
-
+			-- ---- Autocomando al asociar un cliente LSP a un buffer (LspAttach) ----
 			vim.api.nvim_create_autocmd("LspAttach", {
-				callback = function(ev)
+				group = vim.api.nvim_create_augroup("DotfilesLspConfig", { clear = true }),
+				callback = function(event)
+					local client = vim.lsp.get_client_by_id(event.data.client_id)
+					local bufnr = event.buf
+
 					local map = function(mode, lhs, rhs, desc)
-						vim.keymap.set(mode, lhs, rhs, { buffer = ev.buf, desc = desc })
+						vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = "LSP: " .. desc })
 					end
-					map("n", "gd", vim.lsp.buf.definition, "Ir a definicion")
-					map("n", "gD", vim.lsp.buf.declaration, "Ir a declaracion")
-					map("n", "gr", vim.lsp.buf.references, "Referencias")
-					map("n", "gI", vim.lsp.buf.implementation, "Implementacion")
-					map("n", "K", vim.lsp.buf.hover, "Hover")
-					map("n", "<leader>rn", vim.lsp.buf.rename, "Renombrar")
-					map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, "Code action")
-					map("n", "<leader>e", vim.diagnostic.open_float, "Diagnostico (linea)")
-					map("n", "[d", function() vim.diagnostic.jump({ count = -1 }) end, "Diagnostico anterior")
-					map("n", "]d", function() vim.diagnostic.jump({ count = 1 }) end, "Diagnostico siguiente")
+
+					-- Navegación e inspección de código
+					map("n", "gd", vim.lsp.buf.definition, "Ir a definición")
+					map("n", "gD", vim.lsp.buf.declaration, "Ir a declaración")
+					map("n", "gr", vim.lsp.buf.references, "Ver referencias")
+					map("n", "gI", vim.lsp.buf.implementation, "Ir a implementación")
+					map("n", "gy", vim.lsp.buf.type_definition, "Ir a definición de tipo")
+					map("n", "K", vim.lsp.buf.hover, "Documentación flotante (Hover)")
+					map({ "n", "i" }, "<C-k>", vim.lsp.buf.signature_help, "Firma de función (Signature Help)")
+
+					-- Acciones y refactorización
+					map("n", "<leader>cr", vim.lsp.buf.rename, "Renombrar símbolo")
+					map("n", "<leader>rn", vim.lsp.buf.rename, "Renombrar símbolo")
+					map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, "Acción de código (Code Action)")
+
+					-- Diagnósticos de buffer
+					map("n", "<leader>cd", vim.diagnostic.open_float, "Diagnóstico de la línea")
+					map("n", "[d", function()
+						vim.diagnostic.jump({ count = -1, float = true })
+					end, "Diagnóstico anterior")
+					map("n", "]d", function()
+						vim.diagnostic.jump({ count = 1, float = true })
+					end, "Diagnóstico siguiente")
+
+					-- Inlay hints (pistas de tipo y argumentos inline)
+					if client and client:supports_method("textDocument/inlayHint") then
+						-- Activación automática
+						vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+
+						-- Toggle manual de Inlay Hints
+						map("n", "<leader>uh", function()
+							local is_enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr })
+							vim.lsp.inlay_hint.enable(not is_enabled, { bufnr = bufnr })
+							vim.notify(
+								"Inlay hints " .. (not is_enabled and "activados" or "desactivados"),
+								vim.log.levels.INFO,
+								{ title = "LSP Inlay Hints" }
+							)
+						end, "Alternar Inlay Hints")
+					end
 				end,
 			})
 		end,
