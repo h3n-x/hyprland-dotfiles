@@ -59,7 +59,17 @@ PanelWindow {
     implicitWidth: Tokens.panel.widthLg + (!window.attached ? card.shadowMargin * 2 : window.centered ? 2 * window.ear : ears.extra)
     implicitHeight: Math.min(Tokens.px(600), card.implicitHeight) + (!window.attached ? card.shadowMargin * 2 : window.centered ? 0 : ears.extra)
     color: "transparent"
-    mask: Region { item: card }
+    // Input solo sobre la tarjeta. La region sale de un Item sin transformar con
+    // la geometria de la tarjeta: la tarjeta entra deslizandose (Translate) y la
+    // region tomada de ella quedaba con el desplazamiento del primer cuadro,
+    // fuera de la ventana (un cambio de transform no la recalcula): con el estilo
+    // Marco no se podia hacer clic en nada.
+    mask: Region { item: hitArea }
+    Item {
+        id: hitArea
+        x: card.x; y: card.y
+        width: card.width; height: card.height
+    }
     exclusionMode: ExclusionMode.Ignore
     // El teclado solo mientras se editan los ajustes rapidos (TileGrid).
     WlrLayershell.keyboardFocus: ControlCenterState.editing ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
