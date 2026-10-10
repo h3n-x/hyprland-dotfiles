@@ -363,5 +363,33 @@
       "line": "^notification-error",
       "role": "status.error"
     }
-  ]
+  ],
+  "templateText": {
+    "note": "PC-T5 (P5.5): cada linea de texto de una plantilla, en oscuro y claro, sobre su fondo (el de la fila; el de la misma linea si trae fg y bg; el background_color de la linea siguiente). min = umbral de thresholds (text 4.5, large 3, ui 3); dimRoles: roles de texto atenuado con su propio umbral",
+    "seeds": ["#c0392b", "#e67e22", "#f1c40f", "#27ae60", "#16a085", "#2980b9", "#8e44ad", "#e84393", "#808080"],
+    "schemes": ["scheme-content", "scheme-tonal-spot", "scheme-vibrant", "scheme-expressive", "scheme-fidelity", "scheme-neutral", "scheme-monochrome", "scheme-rainbow", "scheme-fruit-salad"],
+    "dimRoles": {"colors.outline": "large"},
+    "rows": [
+      {"file": "kitty.conf", "line": "^(foreground|url_color|color([1-79]|1[0-5]))\\s", "bg": ["colors.surface"]},
+      {"file": "kitty.conf", "line": "^color8\\s", "bg": ["colors.surface"], "min": "large"},
+      {"file": "kitty.conf", "line": "^cursor\\s", "bg": ["colors.surface"], "min": "ui"},
+      {"file": "kitty.conf", "line": "^selection_foreground\\s", "bg": ["colors.primary_container"]},
+      {"file": "kitty.conf", "line": "^active_tab_foreground\\s", "bg": ["colors.primary"]},
+      {"file": "kitty.conf", "line": "^cursor_text_color\\s", "bg": ["colors.primary"]},
+      {"file": "kitty.conf", "line": "^inactive_tab_foreground\\s", "bg": ["colors.surface_container"]},
+      {"file": "nvim-colors.lua", "line": "base0([4-689A-F])\\s*=", "bg": ["colors.surface", "colors.surface_container_low"]},
+      {"file": "nvim-colors.lua", "line": "base03\\s*=", "bg": ["colors.surface"], "min": "large"},
+      {"file": "zellij-config.kdl", "line": "^\\s*(fg|red|green|yellow|blue|magenta|orange|cyan|white)\\s", "bg": ["colors.surface"]},
+      {"file": "starship.toml", "line": "fg:#", "bg": ["colors.surface"]},
+      {"file": "yazi-flavor.toml", "line": "\\bfg\\s*=", "bg": ["colors.surface", "colors.surface_container"]},
+      {"file": "glow-style.json", "line": "\\\"color\\\":", "bg": ["colors.surface", "colors.surface_container", "colors.surface_container_high"]},
+      {"file": "spicetify-color.ini", "line": "^(text|subtext|button|button-active|selected-row)\\s", "bg": ["colors.surface", "colors.surface_container"]},
+      {"file": "spicetify-color.ini", "line": "^(rosewater|flamingo|pink|maroon|red|peach|yellow|green|teal|sapphire|blue|sky|mauve|lavender)\\s", "bg": ["colors.surface", "colors.surface_container"], "min": "large"},
+      {"file": "cava.conf", "line": "^gradient_color_", "bg": ["colors.surface"], "min": "ui"},
+      {"file": "btop.theme", "line": "\\[(main_fg|title|hi_fg|graph_text|proc_misc)\\]", "bg": ["colors.surface"]},
+      {"file": "btop.theme", "line": "\\[selected_fg\\]", "bg": ["colors.primary_container"]},
+      {"file": "btop.theme", "line": "\\[(inactive_fg|process_(start|mid|end)|(cpu|free|cached|available|used|download|upload)_(start|mid|end))\\]", "bg": ["colors.surface"], "min": "large"},
+      {"file": "fzf.sh", "line": "colors\\.", "bg": ["colors.surface"]}
+    ]
+  }
 }

@@ -32,7 +32,7 @@ format = "[ $symbol$branch ]($style)"
 symbol = " "
 
 [git_status]
-style = "fg:#{{colors.tertiary_container.default.hex_stripped}}"
+style = "fg:#{{colors.tertiary.default.hex_stripped}}"
 format = "[($all_status$ahead_behind )]($style)"
 
 [nodejs]

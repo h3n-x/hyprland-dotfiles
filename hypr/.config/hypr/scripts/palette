@@ -15,7 +15,8 @@
 #       PC-P pares de contraste, PC-S invariantes de estado (sobre una paleta
 #       generada: el JSON de Quickshell o muestras de los wallpapers del
 #       historial), PC-Q reglas del QML, PC-T tabla semantica de las plantillas,
-#       PC-A lista de literales permitidos. Sin opciones: --all (sin muestras).
+#       PC-T5 texto de las plantillas legible en oscuro y claro (P5.5), PC-A lista
+#       de literales permitidos. Sin opciones: --all (sin muestras).
 #       Salida 0 limpio, 1 fallos, 2 error interno. Los AVISO no fallan.
 #
 # Datos (SOURCE): dotshell/data/palette.rules.json (semillas, umbrales, pares,
@@ -488,6 +489,85 @@ def check_templates(rep):
                 rep.add("FALLO", "PC-T3", f"{rel}:{n}", "color literal en una plantilla: " + l.strip()[:80])
 
 
+
+# T5 (P5.5): el texto de las plantillas se lee en oscuro Y en claro. Paletas de
+# semillas fijas (templateText.seeds) en todos los esquemas, sin wallpapers:
+# corre sin historial y da lo mismo en cualquier maquina.
+_TEXT_PALS = []
+
+
+def text_palettes():
+    if _TEXT_PALS:
+        return _TEXT_PALS
+    tt = RULES["templateText"]
+    cfg = os.path.join(TMP, "empty.toml")
+    if not os.path.exists(cfg):
+        open(cfg, "w").write("[config]\n[templates]\n")
+    stt = status_table()
+    for seed in tt["seeds"]:
+        for scheme in tt["schemes"]:
+            r = subprocess.run(["matugen", "-c", cfg, "color", "hex", seed, "-t", scheme, "--contrast", "0",
+                                "--dry-run", "-j", "hex", "-q"], capture_output=True, text=True, stdin=subprocess.DEVNULL)
+            try:
+                colors = json.loads(r.stdout)["colors"]
+            except (ValueError, KeyError):
+                die("matugen no devolvio la paleta de " + seed + ": " + r.stderr.strip()[:200])
+            for mode in ("dark", "light"):
+                pal = {"colors." + k: v[mode]["color"].lower() for k, v in colors.items()}
+                pal.update({"status." + k: v for k, v in stt[mode].items()})
+                _TEXT_PALS.append((f"{seed}/{scheme}/{mode}", pal))
+    return _TEXT_PALS
+
+
+REF_RE = re.compile(r"\{\{\s*((?:colors|status)\.\w+)")
+PAIR_RE = re.compile(r"\b(fg|bg)\s*=\s*\"#?\{\{\s*((?:colors|status)\.\w+)")
+NEXT_BG_RE = re.compile(r"\"background_color\":\s*\"\{\{\s*((?:colors|status)\.\w+)")
+
+
+def check_template_text(rep):
+    tt = RULES["templateText"]
+    th = RULES["thresholds"]
+    pals = text_palettes()
+    for row in tt["rows"]:
+        f = row["file"]
+        try:
+            lines = open(os.path.join(TEMPLATES, f)).read().splitlines()
+        except OSError:
+            rep.add("FALLO", "PC-T0", f, "plantilla no encontrada")
+            continue
+        hits = [(n, l) for n, l in enumerate(lines, 1) if re.search(row["line"], l)]
+        if not hits:
+            rep.add("FALLO", "PC-T5", f, f"no hay linea para {row['line']}")
+        for n, l in hits:
+            pairs = dict((k, v) for k, v in PAIR_RE.findall(l))
+            if pairs:  # fg y bg en la misma linea (yazi): fg sobre ese bg
+                fg = pairs.get("fg")
+                bgs = [pairs["bg"]] if "bg" in pairs else row["bg"]
+                if not fg or fg in bgs:
+                    continue  # marcadores llenos (fg = bg)
+                fgs = [fg]
+            else:
+                # Un fondo propio en la linea siguiente (glow: background_color).
+                nb = NEXT_BG_RE.search(lines[n]) if n < len(lines) else None
+                fgs = REF_RE.findall(l)
+                bgs = [nb.group(1)] if nb else row["bg"]
+            for fg in fgs:
+                # Texto atenuado (outline: comentarios, separadores) pide 3:1, como Material.
+                need = th[tt["dimRoles"].get(fg, row.get("min", "text"))]
+                b = bgs
+                worst = None
+                for label, pal in pals:
+                    if fg not in pal or any(x not in pal for x in b):
+                        rep.add("FALLO", "PC-T5", f"{f}:{n}", f"rol desconocido: {fg} sobre {b}")
+                        break
+                    for x in b:
+                        r = ratio(pal[fg], pal[x])
+                        if worst is None or r < worst[0]:
+                            worst = (r, label, x)
+                if worst and worst[0] < need:
+                    rep.add("FALLO", "PC-T5", f"{f}:{n}",
+                            f"{fg} sobre {worst[2]} = {worst[0]:.2f} (< {need}) en {worst[1]}: {l.strip()[:60]}")
+
 # ---- Entrada --------------------------------------------------------------------------------------
 def cmd_check(args):
     pals, do_samples, do_code, do_tpl, quiet = [], False, False, False, False
@@ -524,6 +604,7 @@ def cmd_check(args):
         check_code(rep)
     if do_tpl:
         check_templates(rep)
+        check_template_text(rep)
     extra = f" · {n} muestras" if do_samples else ""
     print(f"palette check: {rep.fail} fallos · {rep.notice} avisos{extra}")
     sys.exit(1 if rep.fail else 0)

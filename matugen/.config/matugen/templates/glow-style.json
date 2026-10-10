@@ -85,7 +85,7 @@
   "code": {
     "prefix": " ",
     "suffix": " ",
-    "color": "{{colors.tertiary_container.default.hex}}",
+    "color": "{{colors.tertiary.default.hex}}",
     "background_color": "{{colors.surface_container_high.default.hex}}"
   },
   "code_block": {
@@ -133,16 +133,16 @@
         "color": "{{status.error.default.hex}}"
       },
       "name_attribute": {
-        "color": "{{colors.tertiary_container.default.hex}}"
+        "color": "{{colors.tertiary.default.hex}}"
       },
       "name_class": {
-        "color": "{{colors.secondary_container.default.hex}}",
+        "color": "{{colors.primary.default.hex}}",
         "underline": true,
         "bold": true
       },
       "name_constant": {},
       "name_decorator": {
-        "color": "{{colors.tertiary_container.default.hex}}"
+        "color": "{{colors.secondary.default.hex}}"
       },
       "name_exception": {},
       "name_function": {
@@ -151,14 +151,14 @@
       "name_other": {},
       "literal": {},
       "literal_number": {
-        "color": "{{colors.tertiary_container.default.hex}}"
+        "color": "{{colors.primary.default.hex}}"
       },
       "literal_date": {},
       "literal_string": {
         "color": "{{colors.tertiary.default.hex}}"
       },
       "literal_string_escape": {
-        "color": "{{colors.secondary_container.default.hex}}"
+        "color": "{{colors.on_secondary_container.default.hex}}"
       },
       "generic_deleted": {
         "color": "{{status.error.default.hex}}"

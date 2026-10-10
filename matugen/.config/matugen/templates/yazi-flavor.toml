@@ -9,7 +9,7 @@
 [mgr]
 cwd = { fg = "#{{colors.primary.default.hex_stripped}}" }
 
-find_keyword  = { fg = "#{{colors.tertiary_container.default.hex_stripped}}", bold = true, italic = true, underline = true }
+find_keyword  = { fg = "#{{colors.tertiary.default.hex_stripped}}", bold = true, italic = true, underline = true }
 find_position = { fg = "#{{colors.secondary.default.hex_stripped}}", bg = "reset", bold = true, italic = true }
 
 symlink_target = { italic = true }
@@ -41,7 +41,7 @@ unset_alt  = { fg = "#{{status.error.default.hex_stripped}}", bg = "#{{colors.su
 
 [status]
 perm_type  = { fg = "#{{colors.tertiary.default.hex_stripped}}" }
-perm_read  = { fg = "#{{colors.tertiary_container.default.hex_stripped}}" }
+perm_read  = { fg = "#{{colors.primary.default.hex_stripped}}" }
 perm_write = { fg = "#{{status.error.default.hex_stripped}}" }
 perm_exec  = { fg = "#{{colors.secondary.default.hex_stripped}}" }
 perm_sep   = { fg = "#{{colors.outline.default.hex_stripped}}" }

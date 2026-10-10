@@ -26,7 +26,7 @@ themes {
         blue {{colors.secondary.default.red}} {{colors.secondary.default.green}} {{colors.secondary.default.blue}}
         magenta {{colors.primary.default.red}} {{colors.primary.default.green}} {{colors.primary.default.blue}}
         orange {{status.warning.default.red}} {{status.warning.default.green}} {{status.warning.default.blue}}
-        cyan {{colors.secondary_container.default.red}} {{colors.secondary_container.default.green}} {{colors.secondary_container.default.blue}}
+        cyan {{colors.tertiary.default.red}} {{colors.tertiary.default.green}} {{colors.tertiary.default.blue}}
         white {{colors.on_surface.default.red}} {{colors.on_surface.default.green}} {{colors.on_surface.default.blue}}
     }
 }

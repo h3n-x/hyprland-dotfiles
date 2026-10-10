@@ -5,17 +5,18 @@
 
 -- Paleta generada por matugen (../../matugen/.config/matugen/templates/hyprland-colors.lua),
 -- regenerada en cada cambio de wallpaper por scripts/theme-apply.sh.
--- Fallback si todavia no se corrio matugen una vez (modules/colors.lua no existe).
+-- Respaldo si todavia no se corrio matugen una vez (modules/colors.lua no existe)
+-- o si colors.lua es anterior a esta config y le falta una clave (P5.5: el
+-- autoreload de Hyprland puede leer esta config antes de que matugen la reescriba).
+local fallback = {
+    primary = "cba6f7",
+    secondary = "89b4fa",
+    surface = "1e1e2e",
+    outline_variant = "45475a",
+    shadow = "1a1a1a",
+}
 local ok, colors = pcall(require, "modules.colors")
-if not ok then
-    colors = {
-        primary = "cba6f7",
-        secondary = "89b4fa",
-        surface = "1e1e2e",
-        surface_variant = "45475a",
-        shadow = "1a1a1a",
-    }
-end
+colors = setmetatable(ok and colors or {}, { __index = fallback })
 
 hl.config({
     general = {
@@ -25,7 +26,7 @@ hl.config({
         border_size = 2,
         col = {
             active_border   = { colors = { "rgba(" .. colors.primary .. "ee)", "rgba(" .. colors.secondary .. "ee)" }, angle = 45 },
-            inactive_border = "rgba(" .. colors.surface_variant .. "aa)",
+            inactive_border = "rgba(" .. colors.outline_variant .. "aa)",
         },
 
         resize_on_border    = true,
