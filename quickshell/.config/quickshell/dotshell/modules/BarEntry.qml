@@ -64,7 +64,7 @@ Loader {
     Component { id: bluetoothC; Bluetooth { panelWindow: entry.panelWindow } }
     Component { id: trayC; Tray { panelWindow: entry.panelWindow } }
     Component { id: microphoneC; Microphone { panelWindow: entry.panelWindow } }
-    Component { id: batteryC; Battery {} }
+    Component { id: batteryC; Battery { panelWindow: entry.panelWindow } }
     Component { id: idleC; IdleToggle { panelWindow: entry.panelWindow } }
     Component { id: portsC; Ports { panelWindow: entry.panelWindow } }
     Component { id: powerC; Power {} }

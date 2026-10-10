@@ -1,13 +1,16 @@
 // Pill de bateria, con las notificaciones de bateria baja, critica y llena.
 // Porcentaje, carga y umbrales salen de BatteryState (UPower, sin polling),
-// los mismos que usa el estado general del dashboard.
+// los mismos que usa el estado general del dashboard. Clic: su propio menu
+// (BatteryDropdown, Fase 14 B1; antes abria el centro de control); clic del
+// medio: el siguiente perfil de energia.
 import QtQuick
 import Quickshell
 import QtQuick.Layouts
-import ".." // Colors.qml, Tokens.qml, ControlCenterState.qml, BatteryState.qml, PowerProfileState.qml
+import ".." // Colors.qml, Tokens.qml, BatteryState.qml, PowerProfileState.qml
 
 Item {
     id: root
+    required property var panelWindow
     // Si se muestra, segun su propio estado (que este en la barra lo decide bar.layout, Fase 11 B1).
     // La barra lee shown, no visible: visible depende del padre y una pill
     // oculta nunca volveria a mostrarse.
@@ -92,8 +95,14 @@ Item {
             if (mouse.button === Qt.MiddleButton) {
                 PowerProfileState.cycle();
             } else {
-                ControlCenterState.visible = !ControlCenterState.visible;
+                menu.toggle();
             }
         }
+    }
+
+    BatteryDropdown {
+        id: menu
+        anchorItem: root
+        panelWindow: root.panelWindow
     }
 }

@@ -946,7 +946,7 @@
     "notifications.position": {
       "type": "enum", "default": "top-right", "values": { "top-right": "Arriba a la derecha", "top-center": "Arriba al centro", "bottom-right": "Abajo a la derecha" },
       "category": "notifications", "section": "Avisos", "order": 30,
-      "label": "Dónde aparecen", "keywords": ["posición", "toast"], "apply": "live"
+      "label": "Dónde aparecen", "description": "También el centro de control se abre ahí.", "keywords": ["posición", "toast", "centro de control"], "apply": "live"
     },
     "notifications.maxVisible": {
       "type": "enum", "default": "0", "cast": "int", "values": { "0": "Sin límite", "3": "3", "5": "5" },

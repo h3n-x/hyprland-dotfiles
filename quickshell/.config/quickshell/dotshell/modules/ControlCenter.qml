@@ -20,24 +20,27 @@ import ".." // Colors.qml, Tokens.qml, NotificationState.qml, ControlCenterState
 PanelWindow {
     id: window
 
-    // Junto al extremo final de la barra (Fase 11 B3): arriba a la derecha con
-    // la barra arriba (como siempre), abajo a la derecha con la barra abajo,
-    // arriba a la izquierda con la barra a la izquierda. Del lado de la barra
-    // deja su reserva (Tokens.inset*), igual que el OSD y los avisos. La
+    // Donde aparecen los avisos (notifications.position, Fase 14 B1): arriba a
+    // la derecha, abajo a la derecha o arriba al centro (sin anclar a los lados,
+    // el compositor la centra), este la barra en el borde que este. Deja la
+    // reserva de la barra (Tokens.inset*), igual que el OSD y los avisos. La
     // ventana suma el margen de la sombra alrededor de la tarjeta, asi que se
     // corre ese margen hacia afuera y solo acepta input sobre la tarjeta.
+    readonly property string position: SettingsState.value("notifications.position") || "top-right"
+    readonly property bool atBottom: window.position === "bottom-right"
+    readonly property bool centered: window.position === "top-center"
     anchors {
-        top: Tokens.bar.edge !== "bottom"
-        bottom: Tokens.bar.edge === "bottom"
-        right: Tokens.bar.edge !== "left"
-        left: Tokens.bar.edge === "left"
+        top: !window.atBottom
+        bottom: window.atBottom
+        right: !window.centered
     }
     WlrLayershell.namespace: "quickshell-panel"
     // Superficie invocada (Fase 8 B6): capa Overlay, por encima de una ventana en
     // pantalla completa (ver FullscreenState).
     WlrLayershell.layer: WlrLayer.Overlay
-    // Pegado al marco (Fase 13 B2, estilo Marco): en la esquina, al ras de la
-    // barra y del lado fino, con dos orejas (CornerEars); sin sombra.
+    // Pegado al marco (Fase 13 B2, estilo Marco): en su esquina (la de los
+    // avisos), al ras de la barra o del lado fino, con dos orejas (CornerEars);
+    // al centro, colgado del borde de arriba con una oreja a cada lado; sin sombra.
     // Solo si su pantalla tiene el marco ahora (B3: con barra y sin pantalla
     // completa). La pantalla se copia una vez (leer screen aca seria un bucle al
     // mapearse la ventana, como en Bar.qml).
@@ -47,14 +50,14 @@ PanelWindow {
     function edgeGap(side: string): int {
         return BarVisibility.edgeSize(side);
     }
+    readonly property int ear: window.attached ? Tokens.frame.radius : 0
     margins {
         top: window.attached ? window.edgeGap("top") : Tokens.insetTop - card.shadowMargin
         bottom: window.attached ? window.edgeGap("bottom") : Tokens.insetBottom - card.shadowMargin
         right: window.attached ? window.edgeGap("right") : Tokens.insetRight - card.shadowMargin
-        left: window.attached ? window.edgeGap("left") : Tokens.insetLeft - card.shadowMargin
     }
-    implicitWidth: Tokens.panel.widthLg + (window.attached ? ears.extra : card.shadowMargin * 2)
-    implicitHeight: Math.min(Tokens.px(600), card.implicitHeight) + (window.attached ? ears.extra : card.shadowMargin * 2)
+    implicitWidth: Tokens.panel.widthLg + (!window.attached ? card.shadowMargin * 2 : window.centered ? 2 * window.ear : ears.extra)
+    implicitHeight: Math.min(Tokens.px(600), card.implicitHeight) + (!window.attached ? card.shadowMargin * 2 : window.centered ? 0 : ears.extra)
     color: "transparent"
     mask: Region { item: card }
     exclusionMode: ExclusionMode.Ignore
@@ -73,36 +76,52 @@ PanelWindow {
     // radio anidado (Q1).
     CornerEars {
         id: ears
-        on: window.attached
+        on: window.attached && !window.centered
+        corner: window.atBottom ? "br" : "tr"
         cardW: card.width
         cardH: card.height
         reveal: presence.progress
     }
+    Repeater {
+        model: window.attached && window.centered ? 2 : 0
+        FrameCorner {
+            required property int index
+            x: index === 0 ? 0 : window.ear + card.width
+            y: 0
+            width: window.ear; height: window.ear
+            v: "top"; h: index === 0 ? "right" : "left"
+            color: Colors.surfaceLow
+            opacity: presence.progress
+        }
+    }
 
     Surface {
         id: card
-        x: window.attached ? ears.cardX : card.shadowMargin
-        y: window.attached ? ears.cardY : card.shadowMargin
+        x: !window.attached ? card.shadowMargin : window.centered ? window.ear : ears.cardX
+        y: !window.attached ? card.shadowMargin : window.centered ? 0 : ears.cardY
         width: Tokens.panel.widthLg
         implicitHeight: layout.implicitHeight + Tokens.pad.panel * 2
         level: 2
         translucent: true
         framed: window.attached
         radius: Tokens.radius.lg
-        // Pegado: solo la esquina de afuera es redonda.
-        topLeftRadius: window.attached && ears.free !== "tl" ? 0 : Tokens.radius.lg
-        topRightRadius: window.attached && ears.free !== "tr" ? 0 : Tokens.radius.lg
-        bottomLeftRadius: window.attached && ears.free !== "bl" ? 0 : Tokens.radius.lg
-        bottomRightRadius: window.attached && ears.free !== "br" ? 0 : Tokens.radius.lg
-        // Entrada/salida: sube space.sm hacia la barra y crece desde su esquina.
-        // Pegado: sale del borde de la barra (recortada por la ventana).
+        // Pegado: solo las esquinas de afuera son redondas (al centro, las dos de abajo).
+        readonly property bool round: !window.attached
+        topLeftRadius: card.round || (!window.centered && ears.free === "tl") ? Tokens.radius.lg : 0
+        topRightRadius: card.round ? Tokens.radius.lg : 0
+        bottomLeftRadius: card.round || window.centered || ears.free === "bl" ? Tokens.radius.lg : 0
+        bottomRightRadius: card.round || window.centered ? Tokens.radius.lg : 0
+        // Entrada/salida: se acerca space.sm a su borde y crece desde su esquina.
+        // Pegado: sale del lado del marco (de la derecha; al centro, de arriba),
+        // recortada por la ventana, como los avisos.
         opacity: window.attached ? 1 : presence.progress
         scale: window.attached ? 1 : presence.contentScale
-        transformOrigin: Item.TopRight
+        transformOrigin: window.centered ? Item.Top : window.atBottom ? Item.BottomRight : Item.TopRight
         readonly property real hidden: 1 - presence.progress
         transform: Translate {
-            x: !window.attached ? 0 : Tokens.bar.edge === "left" ? -card.hidden * card.width : Tokens.bar.edge === "right" ? card.hidden * card.width : 0
-            y: !window.attached ? presence.offsetY : Tokens.bar.edge === "top" ? -card.hidden * card.height : Tokens.bar.edge === "bottom" ? card.hidden * card.height : 0
+            x: window.attached && !window.centered ? card.hidden * card.width : 0
+            y: !window.attached ? (window.atBottom ? -presence.offsetY : presence.offsetY)
+                : window.centered ? -card.hidden * card.height : 0
         }
 
         // Editando: las teclas son del editor (Esc termina sin cerrar el panel).

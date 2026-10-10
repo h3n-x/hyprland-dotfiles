@@ -26,4 +26,8 @@ QtObject {
     readonly property real secondsLeft: !root.present ? 0 : (root.charging ? root.device.timeToFull : root.device.timeToEmpty)
     // Potencia (W) que entra o sale de la bateria.
     readonly property real watts: root.present ? Math.abs(root.device.changeRate) : 0
+    // Salud (Fase 14 B1, menu de la bateria): capacidad actual / de fabrica, de
+    // la bateria real (el dispositivo combinado no la informa); -1 si no se sabe.
+    readonly property var cell: UPower.devices.values.find(d => d.isLaptopBattery && d.healthSupported) || null
+    readonly property real health: root.cell ? root.cell.healthPercentage / 100 : -1
 }

@@ -60,14 +60,33 @@ QtObject {
         // Con DND activo, la notificacion igual queda en el historial
         // (tracked=true) pero no aparece como toast temporal.
         if (root.doNotDisturb) return;
+        // Con el centro abierto (Fase 14 B1) entra directo a su lista, donde se
+        // ve: un toast en la misma esquina lo taparia. Suena igual.
+        if (ControlCenterState.visible) {
+            root.chime();
+            return;
+        }
         // Pantalla completa o captura en todas las pantallas: queda en el
         // historial y cuenta para el resumen (FullscreenState).
         if (Quickshell.screens.some(s => FullscreenState.allowsToast(n, s.name))) {
             root.showToast(n);
-            // Sonido al llegar (notifications.sound, Fase 10 B4): solo si se ve.
-            if (SettingsState.value("notifications.sound") === true)
-                Quickshell.execDetached(["paplay", "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga"]);
+            root.chime();
         } else FullscreenState.hold(n);
+    }
+    // Sonido al llegar (notifications.sound, Fase 10 B4): solo si se ve.
+    function chime(): void {
+        if (SettingsState.value("notifications.sound") === true)
+            Quickshell.execDetached(["paplay", "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga"]);
+    }
+    // Al abrir el centro, los toasts en pantalla se van (ya estan en su lista).
+    property Connections centerOpen: Connections {
+        target: ControlCenterState
+        function onVisibleChanged(): void {
+            if (ControlCenterState.visible) {
+                root.placement.clear();
+                root.activeToasts = [];
+            }
+        }
     }
 
     // Resumen al salir de pantalla completa o de una captura (FullscreenState):

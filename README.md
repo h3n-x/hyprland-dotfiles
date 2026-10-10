@@ -326,7 +326,13 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   (con DND activo, la notificación queda en el historial pero no
   aparece como toast). `ControlCenter.qml` reproduce lo que daba
   `swaync/config.json`: historial con "limpiar todo" y los **ajustes
-  rapidos** -- el unico lugar de los ajustes rapidos (Fase 11 B6). De
+  rapidos** -- el unico lugar de los ajustes rapidos (Fase 11 B6). Se abre
+  con la campana de la barra o `SUPER+N`, en el mismo lugar que los avisos
+  (Configuracion -> Notificaciones -> Donde aparecen; Fase 14 B1), pegado al
+  marco con el estilo Marco; mientras esta abierto no salen avisos: los
+  nuevos entran directo a su lista. La pill de bateria abre su propio menu
+  (nivel, tiempo restante, consumo y salud si UPower los informa, perfil de
+  energia; el clic del medio cambia de perfil). De
   fabrica: wifi, bluetooth, luz nocturna (la misma opcion que
   Configuracion -> Pantallas), modo juego, bloquear, perfil de energia y "No
   molestar". Son datos (`controlCenter.tiles`): con el lapiz (al pasar el
@@ -680,7 +686,7 @@ reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
   muestran si esta abierto), ignorar los navegadores, la forma y los colores de la portada,
   las barras de audio (y cuantas) y el volumen maximo con las teclas (100, 125 o 150 %).
 - **Notificaciones**: donde aparecen (arriba a la derecha, arriba al centro,
-  abajo a la derecha), cuantas a la vez (las demas esperan), un sonido al
+  abajo a la derecha; el centro de control se abre en el mismo lugar), cuantas a la vez (las demas esperan), un sonido al
   llegar y avisos del sistema en el OSD: Bloq Mayus, cambio de distribucion
   y cargador conectado o no (apagados de fabrica).
 - **Atajos**: la misma lista que la guia (`SUPER+/`), con busqueda; se relee
