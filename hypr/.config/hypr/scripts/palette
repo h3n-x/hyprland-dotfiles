@@ -181,9 +181,13 @@ def cmd_status(args):
         die("--mode: dark o light")
     if not -1 <= contrast <= 1:
         die("--contrast fuera de -1..1")
-    t = status_table()[mode]
+    tab = status_table()
+    t = tab[mode]
+    # status_dark / status_light (P5.5): las dos familias, para la vista previa
+    # de un tema en el otro modo (plantilla de Quickshell).
     out = {"status": {k: {"default": fmt(v)} for k, v in t.items()},
            "theme": {"mode": mode, "contrast": contrast}}
+    out.update({"status_" + m: {k: {"default": fmt(v)} for k, v in tab[m].items()} for m in ("dark", "light")})
     text = json.dumps(out, separators=(",", ":"))
     if write:
         os.makedirs(os.path.dirname(STATUS_OUT), exist_ok=True)
@@ -203,19 +207,20 @@ M3_TO_JSON = {"m3" + k.split("_")[0] + "".join(p.capitalize() for p in k.split("
     "on_error", "error_container", "on_error_container", "shadow", "scrim"]}
 M3_TO_JSON.update({"status" + "".join(p.capitalize() for p in k.split("_")): k for k in STATUS_ROLES})
 
-ALIAS_RE = re.compile(r"^\s*readonly property color (\w+): (?:root\.highContrast \? root\.(\w+) : )?root\.(\w+)\s*$")
+ALIAS_RE = re.compile(r"^\s*readonly property color (\w+): (?:root\.(highContrast|light) \? root\.(\w+) : )?root\.(\w+)\s*$")
 
 
 def aliases():
-    """alias -> (rol normal, rol en alto contraste) en nombres del JSON de la paleta."""
+    """alias -> (rol normal, rol alternativo, condicion) en nombres del JSON de la paleta.
+    Condicion: "highContrast" (el alternativo en alto contraste) o "light" (en modo claro, P5.5)."""
     path = os.path.join(QML, RULES["qml"]["semanticFile"])
     out = {}
     for line in open(path):
         m = ALIAS_RE.match(line)
-        if m and m.group(3) in M3_TO_JSON:
-            hc = M3_TO_JSON.get(m.group(2)) if m.group(2) else None
-            normal = M3_TO_JSON[m.group(3)]
-            out[m.group(1)] = (normal, hc or normal)
+        if m and m.group(4) in M3_TO_JSON:
+            alt = M3_TO_JSON.get(m.group(3)) if m.group(3) else None
+            normal = M3_TO_JSON[m.group(4)]
+            out[m.group(1)] = (normal, alt or normal, m.group(2) or "highContrast")
     return out
 
 
@@ -240,8 +245,8 @@ class Report:
 def palette_values(pal, al, hc):
     """alias -> hex para una paleta plana (claves del JSON de Quickshell)."""
     out = {}
-    for a, (normal, high) in al.items():
-        k = high if hc else normal
+    for a, (normal, alt, cond) in al.items():
+        k = alt if (pal.get("mode") == "light" if cond == "light" else hc) else normal
         if k in pal:
             out[a] = pal[k]
     return out
@@ -379,7 +384,8 @@ def qml_files():
 def check_code(rep):
     q = RULES["qml"]
     al = aliases()
-    known = set(al) | {"tint", "reload", "ready", "image", "textDisabled", "highContrast", "disabledOpacity"}
+    known = set(al) | {"tint", "reload", "ready", "image", "textDisabled", "highContrast", "disabledOpacity", "mode", "light",
+                       "familyOf"}
     ident = set(q["identity"])
     state_re = re.compile(q["stateWords"], re.I)
     allowed = allow()

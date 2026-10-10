@@ -1,6 +1,7 @@
 // Columna derecha de la galeria de wallpapers (Fase 3 B3, P3.2): vista previa
 // del wallpaper seleccionado con un mini escritorio pintado con SU paleta
-// (la de la cache de wallpaper-cache.sh, modo oscuro) y muestras de color.
+// (la de la cache de wallpaper-cache.sh, en el modo con que se aplicaria,
+// P5.5) y muestras de color.
 // Todo en memoria: no escribe ningun archivo de tema. La vista previa en vivo
 // de la shell real es el boton del ojo (B7, ThemePreview.qml). Etiquetas del wallpaper (B4): chips con quitar
 // y un campo para agregar; los cambios los escribe theme-apply.sh --tag.
@@ -45,9 +46,11 @@ ColumnLayout {
         tagField.forceActiveFocus();
     }
 
-    // Rol de la paleta candidata (modo oscuro); gris neutro mientras no hay.
+    // Modo con que se aplicaria (P5.5): el mismo calculo que la vista previa en vivo.
+    readonly property string mode: ThemePreview.modeOf(root.entry)
+    // Rol de la paleta candidata en ese modo; gris neutro mientras no hay.
     function c(role: string): color {
-        return root.colors && root.colors[role] ? root.colors[role].dark : Colors.surfaceHighest;
+        return root.colors && root.colors[role] ? root.colors[role][root.mode] : Colors.surfaceHighest;
     }
 
     spacing: Tokens.space.md

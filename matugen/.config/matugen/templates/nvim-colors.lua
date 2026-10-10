@@ -2,6 +2,11 @@
 -- Paleta base16 (RRethy/base16.nvim) mapeada a roles Material You con la
 -- tabla semantica comun (P8.7): base08 error, base09 warning y base0B success
 -- son los colores de estado fijos; el resto, identidad del wallpaper.
+-- Modo de la paleta (P5.5): base16 no lo fija; asi los plugins que miran
+-- 'background' eligen sus colores claros u oscuros. Corre cada vez que se lee
+-- este archivo (al arrancar y en cada recarga de la paleta).
+vim.o.background = "{{theme.mode}}"
+
 return {
 	base00 = "{{colors.surface.default.hex_stripped}}",
 	base01 = "{{colors.surface_container_low.default.hex_stripped}}",

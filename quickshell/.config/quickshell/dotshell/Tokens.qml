@@ -175,6 +175,10 @@ QtObject {
         property real surface: 0.92
         readonly property real scrim: 0.40       // fondo de overlays a pantalla completa
         readonly property real scrimImage: 0.60  // velo bajo texto sobre imagenes (miniaturas, portadas)
+        // Velo claro del bloqueo y el greeter (P5.5): Colors.veil en modo claro es
+        // la superficie; con 0.40 el texto oscuro quedaba a 1.8:1 sobre un fondo
+        // oscuro (medido). 0.75 lo lleva a >= 4.5 tambien sobre negro.
+        readonly property real veilLight: 0.75
         // Contenido deshabilitado (M3). Mismo valor que SemanticPalette.disabledOpacity
         // (la paleta no importa Tokens: la comparte la superficie de login).
         readonly property real disabled: 0.38

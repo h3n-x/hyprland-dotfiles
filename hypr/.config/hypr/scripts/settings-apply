@@ -18,6 +18,7 @@
 #
 #   settings-apply changed <clave>...    lo llama scripts/settings tras escribir:
 #                                        rehace lo que toca y lo aplica ya
+#                                        (applyTo "theme": theme-apply.sh --reapply, P5.5)
 #   settings-apply hypr [--all|<clave>...]  rehace los overrides y los aplica en
 #                                        vivo (hyprctl eval, sin recargar)
 #   settings-apply idle [--restart]      rehace hypridle.conf; con --restart (o si
@@ -42,7 +43,7 @@
 # SETTINGS_APPLY_POWER (carpeta de power_supply), GAMEMODE_STATE,
 # SETTINGS_APPLY_RUN (carpeta de la prueba pendiente), SETTINGS_APPLY_CONFIRM
 # (segundos), SETTINGS_APPLY_HYPRSUNSET (otro arranque; "" = no arrancar),
-# SETTINGS_APPLY_GAMEMODE (otro game-mode.sh), SETTINGS_APPLY_SUNSET_PROC (nombre del proceso
+# SETTINGS_APPLY_GAMEMODE (otro game-mode.sh), SETTINGS_APPLY_THEME (otro theme-apply.sh, P5.5), SETTINGS_APPLY_SUNSET_PROC (nombre del proceso
 # a parar), WEATHER_CACHE.
 import glob
 import json
@@ -77,6 +78,7 @@ CONFIRM_SECONDS = float(os.environ.get("SETTINGS_APPLY_CONFIRM") or 15)
 SUNSET_HOME = f"{STATE}/hyprsunset"
 SUNSET_CONF = f"{SUNSET_HOME}/hypr/hyprsunset.conf"
 HYPRSUNSET = os.environ.get("SETTINGS_APPLY_HYPRSUNSET", f"env XDG_CONFIG_HOME={SUNSET_HOME} hyprsunset")
+THEME_APPLY = os.environ.get("SETTINGS_APPLY_THEME") or os.path.join(os.path.dirname(os.path.realpath(__file__)), "theme-apply.sh")
 SUNSET_PROC = os.environ.get("SETTINGS_APPLY_SUNSET_PROC") or "hyprsunset"  # pruebas: nunca el real
 GAMEMODE_SH = os.environ.get("SETTINGS_APPLY_GAMEMODE") or f"{HERE}/game-mode.sh"
 WEATHER_CACHE = os.environ.get("WEATHER_CACHE") or f"{os.environ.get('XDG_CACHE_HOME') or HOME + '/.cache'}/dotfiles/weather.json"
@@ -552,6 +554,11 @@ if cmd == "changed":
         display_power(announce=False)
     if "nightlight" in to:
         nightlight(eff, restart=True)
+    if "theme" in to:
+        # Modo claro u oscuro (P5.5): el tema actual en el modo nuevo, por el
+        # camino de siempre (cola de theme-apply); nada si ya estaba en ese modo.
+        subprocess.Popen(["setsid", "-f", THEME_APPLY, "--reapply", "--source", "settings"], stdin=subprocess.DEVNULL,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 elif cmd == "hypr":
     render_overrides(s, eff)
     apply_hypr(s, eff, None if args[1:] in ([], ["--all"]) else set(args[1:]))

@@ -20,6 +20,9 @@
 # (theme-apply.sh --override, o el centro de configuracion) se recalcula solo
 # la paleta.
 #
+# Luminancia (P5.5): "luma", la L media OKLab (0..1) de la miniatura; con el
+# modo "Segun el fondo" decide claro u oscuro (theme-apply.sh y la vista previa).
+#
 # Salida: ~/.cache/dotfiles/wallpapers/{thumbs/,palettes.json}
 #
 # Formato real (KI-C24): se mira el contenido de cada archivo (primeros bytes)
@@ -211,6 +214,8 @@ with ThreadPoolExecutor(jobs) as ex:
         if same and "candidates" in old:
             index[name]["candidates"] = old["candidates"]
             index[name]["no_color"] = old.get("no_color", False)
+        if same and old.get("luma") is not None:
+            index[name]["luma"] = old["luma"]
 for name in files:
     index[name]["format"] = formats[name]
 save()
@@ -221,6 +226,20 @@ with ThreadPoolExecutor(jobs) as ex:
     for name, cands in zip(need, ex.map(build_candidates, need)):
         index[name]["candidates"] = cands
         index[name]["no_color"] = cands == ["#4285f4"]
+
+# Luminancia: de la miniatura, donde falte (archivos nuevos, cambiados o de una
+# cache anterior a P5.5).
+def build_luma(name):
+    r = subprocess.run(["magick", thumb_path(name), "-colorspace", "OkLab", "-channel", "R", "-separate", "+channel",
+                        "-format", "%[fx:mean]", "info:"], capture_output=True, text=True)
+    try:
+        return round(float(r.stdout.strip()), 4)
+    except ValueError:
+        return None
+need = [n for n in files if index[n].get("luma") is None and index[n].get("thumb")]
+with ThreadPoolExecutor(jobs) as ex:
+    for name, l in zip(need, ex.map(build_luma, need)):
+        index[name]["luma"] = l
 
 # Paletas: solo donde cambiaron las opciones efectivas (o no hay).
 recolor = []

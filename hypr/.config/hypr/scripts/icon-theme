@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+# Tema de iconos para cada modo (P5.5). Lo llama theme-apply.sh (desktop_mode),
+# que lo pasa a gsettings; imprime el nombre del tema a usar.
+#
+#   icon-theme dark|light [--dry-run]
+#
+# Oscuro: el tema elegido (gtk-icon-theme-name de ~/.config/gtk-3.0/settings.ini,
+# lo de siempre). Claro: su hermano claro, para que los iconos simbolicos no
+# queden claros sobre fondo claro:
+#   - "X-Dark" -> "X-Light" o "X", el primero que este instalado;
+#   - un tema que hereda de uno "-Dark" (AnimeZen hereda de Papirus-Dark) ->
+#     "<tema>-Light", generado en ~/.local/share/icons: un index.theme con la
+#     herencia cambiada a la variante clara y enlaces a las carpetas del tema
+#     (sus iconos propios son los mismos). Se rehace solo si el original cambio.
+#     Si ya existe un "<tema>-Light" de verdad (sin la marca), se usa ese;
+#   - un tema sin relacion con "-Dark": el mismo en los dos modos.
+# --dry-run: dice que tema usaria, sin generar nada.
+#
+# Pruebas: ICON_THEME_BASE (otro tema elegido), XDG_DATA_HOME, XDG_DATA_DIRS.
+import configparser, os, shutil, sys
+
+MARK = "X-Dotfiles-Generated"
+
+
+def die(msg):
+    print(f"icon-theme: {msg}", file=sys.stderr)
+    sys.exit(2)
+
+
+def chosen():
+    if os.environ.get("ICON_THEME_BASE"):
+        return os.environ["ICON_THEME_BASE"]
+    ini = configparser.ConfigParser(interpolation=None)
+    ini.read(os.path.expanduser("~/.config/gtk-3.0/settings.ini"))
+    return ini.get("Settings", "gtk-icon-theme-name", fallback="").strip()
+
+
+HOME_ICONS = os.path.join(os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share"), "icons")
+
+
+def roots():
+    out = [HOME_ICONS, os.path.expanduser("~/.icons")]
+    for d in (os.environ.get("XDG_DATA_DIRS") or "/usr/local/share:/usr/share").split(":"):
+        if d:
+            out.append(os.path.join(d, "icons"))
+    return out
+
+
+def find(name):
+    for r in roots():
+        p = os.path.join(r, name)
+        if os.path.isfile(os.path.join(p, "index.theme")):
+            return p
+    return None
+
+
+def read_index(path):
+    ini = configparser.ConfigParser(interpolation=None, strict=False)
+    ini.optionxform = str
+    ini.read(os.path.join(path, "index.theme"))
+    return ini
+
+
+def light_of(name):
+    """Variante clara instalada de un tema "-Dark" (o None)."""
+    if not name.endswith("-Dark"):
+        return None
+    stem = name[:-5]
+    for c in (stem + "-Light", stem):
+        if find(c):
+            return c
+    return None
+
+
+def build_sibling(base, base_dir, name, dry):
+    target = os.path.join(HOME_ICONS, name)
+    idx = read_index(base_dir)
+    inh = [x.strip() for x in idx.get("Icon Theme", "Inherits", fallback="").split(",") if x.strip()]
+    new_inh = [light_of(x) or x for x in inh]
+    if dry:
+        return
+    stamp = str(int(os.stat(os.path.join(base_dir, "index.theme")).st_mtime))
+    if os.path.isdir(target):
+        old = read_index(target)
+        if old.get("Icon Theme", MARK, fallback="") == stamp:
+            return
+        shutil.rmtree(target)
+    os.makedirs(target)
+    idx.set("Icon Theme", "Name", name)
+    idx.set("Icon Theme", "Inherits", ",".join(new_inh))
+    idx.set("Icon Theme", MARK, stamp)
+    for entry in os.listdir(base_dir):
+        if entry in ("index.theme", "icon-theme.cache"):
+            continue
+        os.symlink(os.path.join(os.path.realpath(base_dir), entry), os.path.join(target, entry))
+    tmp = os.path.join(target, "index.theme.tmp")
+    with open(tmp, "w") as f:
+        idx.write(f, space_around_delimiters=False)
+    os.replace(tmp, os.path.join(target, "index.theme"))
+
+
+def main():
+    args = sys.argv[1:]
+    dry = "--dry-run" in args
+    args = [a for a in args if a != "--dry-run"]
+    if len(args) != 1 or args[0] not in ("dark", "light"):
+        die("uso: icon-theme dark|light [--dry-run]")
+    base = chosen()
+    if not base:
+        die("no hay gtk-icon-theme-name en ~/.config/gtk-3.0/settings.ini")
+    if args[0] == "dark":
+        print(base)
+        return
+    direct = light_of(base)
+    if direct:
+        print(direct)
+        return
+    base_dir = find(base)
+    if not base_dir:
+        print(base)
+        return
+    inh = [x.strip() for x in read_index(base_dir).get("Icon Theme", "Inherits", fallback="").split(",")]
+    if not any(light_of(x) for x in inh):
+        print(base)
+        return
+    name = base + "-Light"
+    existing = find(name)
+    if existing and read_index(existing).get("Icon Theme", MARK, fallback="") == "":
+        print(name)
+        return
+    build_sibling(base, base_dir, name, dry)
+    print(name)
+
+
+main()

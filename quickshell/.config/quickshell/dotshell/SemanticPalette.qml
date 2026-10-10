@@ -23,6 +23,10 @@ QtObject {
     id: root
 
     // ---- Entrada: paleta (L1) ----------------------------------------------------------------
+    // Modo de la paleta ("dark" | "light", P5.5): solo para los pocos alias que
+    // dependen de el (veil). Lo fija quien instancia (Colors.qml, el greeter).
+    property string mode: "dark"
+    readonly property bool light: root.mode === "light"
     property color m3surface
     property color m3surfaceContainerLowest
     property color m3surfaceContainerLow
@@ -110,6 +114,10 @@ QtObject {
     readonly property color surfaceHighest: root.m3surfaceContainerHighest
     readonly property color scrim: root.m3scrim
     readonly property color shadow: root.m3shadow
+    // Velo bajo texto dibujado sobre el wallpaper (bloqueo y greeter, P5.5): el
+    // scrim oscurece para el texto claro del modo oscuro; en claro el texto es
+    // oscuro y el velo aclara con la superficie.
+    readonly property color veil: root.light ? root.m3surface : root.m3scrim
 
     // Transparencia de un alias con un valor de Tokens (tint, stateLayer,
     // opacity): la unica forma de aplicar alfa a un color fuera de este archivo.

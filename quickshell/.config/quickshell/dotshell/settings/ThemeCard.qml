@@ -1,5 +1,6 @@
 // Tema actual, arriba de "Color" en Apariencia (Fase 10 B2): el wallpaper
-// aplicado y con que esquema y contraste se aplico. Esquema y contraste se
+// aplicado y con que esquema, contraste y modo se aplico (el modo, P5.5, se
+// aplica al elegirlo: no espera a "Aplicar al tema actual"). Esquema y contraste se
 // usan la proxima vez que se aplique un tema; si difieren de los del tema
 // actual, "Aplicar al tema actual" lo reaplica con ellos (theme-apply.sh, el
 // camino de siempre; nunca solo). Si el wallpaper tiene su propio esquema
@@ -80,7 +81,8 @@ Item {
                 visible: !!card.current && !!card.current.scheme
                 Layout.fillWidth: true
                 text: card.current ? "Aplicado con esquema " + card.model.format("appearance.scheme", card.current.scheme).toLowerCase()
-                    + " y contraste " + card.model.format("appearance.contrast", Number(card.current.contrast || 0)).toLowerCase() : ""
+                    + ", contraste " + card.model.format("appearance.contrast", Number(card.current.contrast || 0)).toLowerCase()
+                    + " y modo " + (card.current.mode === "light" ? "claro" : "oscuro") : ""
                 wrapMode: Text.WordWrap
                 color: Colors.textMuted
                 font.family: Tokens.font.ui

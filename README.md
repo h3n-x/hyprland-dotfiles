@@ -79,10 +79,11 @@ yay -S --needed ttf-plus-jakarta-sans maplemono-nf
 
 # papirus-folders necesita una copia LOCAL del tema para no pedir sudo en
 # cada cambio de wallpaper (matugen lo llama automaticamente, sin terminal).
-# Papirus-Dark es en su mayoria symlinks relativos al tema base "Papirus"
-# (ej. 48x48 -> ../Papirus/48x48), asi que hay que copiar los dos:
+# Papirus-Dark y Papirus-Light (la del modo claro) son en su mayoria symlinks
+# relativos al tema base "Papirus" (ej. 48x48 -> ../Papirus/48x48), asi que
+# hay que copiar los tres:
 mkdir -p ~/.local/share/icons
-cp -r /usr/share/icons/Papirus /usr/share/icons/Papirus-Dark ~/.local/share/icons/
+cp -r /usr/share/icons/Papirus /usr/share/icons/Papirus-Dark /usr/share/icons/Papirus-Light ~/.local/share/icons/
 ```
 
 `pipewire`/`wireplumber` son criticos: sin ellos no funciona el audio (`wpctl`)

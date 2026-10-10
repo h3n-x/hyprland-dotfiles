@@ -1,11 +1,13 @@
 #!/bin/bash
-# Recolorea las carpetas de Papirus-Dark al color primario generado por
+# Recolorea las carpetas de Papirus-Dark (y Papirus-Light, la del modo claro,
+# P5.5) al color primario generado por
 # matugen. papirus-folders solo acepta un set fijo de nombres de color (no
 # hex arbitrario), asi que este script mapea el hex al mas cercano por tono
 # (HSV hue), usando python3/colorsys (sin dependencias extra).
 #
-# Requiere una copia LOCAL del tema en ~/.local/share/icons/Papirus-Dark
-# (ver README) para que papirus-folders no necesite sudo en cada corrida.
+# Requiere una copia LOCAL de cada tema en ~/.local/share/icons/ (ver README)
+# para que papirus-folders no necesite sudo en cada corrida; sin la copia de
+# Papirus-Light, el modo claro muestra sus carpetas con el color de fabrica.
 
 set -euo pipefail
 
@@ -51,4 +53,7 @@ print(best)
 PYEOF
 )
 
-papirus-folders -C "$COLOR" -t Papirus-Dark --once >/dev/null 2>&1 || true
+for t in Papirus-Dark Papirus-Light; do
+  [ -d "$HOME/.local/share/icons/$t" ] || continue
+  papirus-folders -C "$COLOR" -t "$t" --once >/dev/null 2>&1 || true
+done

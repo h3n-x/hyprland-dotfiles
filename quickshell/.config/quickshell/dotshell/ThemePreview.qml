@@ -28,7 +28,8 @@ Item {
     // Pedido a la capa del wallpaper (ruta absoluta) y lo que se muestra.
     property string requested: ""
     property string wallpaper: ""
-    // Rol -> color (modo oscuro) mientras se muestra un candidato; null = el JSON.
+    // Rol -> color (en el modo que tendra al aplicarse, mas "mode" y su familia
+    // de estado "status") mientras se muestra un candidato; null = el JSON.
     property var candidate: null
     // Transiciones de la sesion (pasos y cancelar) en dur.medium (decision B7c).
     property bool fast: false
@@ -67,14 +68,29 @@ Item {
         root.show(Math.max(0, Math.min(root.names.length - 1, root.index + delta)));
     }
 
+    // Modo con el que se aplicaria (P5.5), resuelto como theme-apply.sh:
+    // appearance.colorMode; "auto" con la luminancia de la cache y la banda
+    // muerta del esquema (entre los umbrales, el modo del tema actual).
+    function modeOf(entry: var): string {
+        const m = SettingsState.value("appearance.colorMode");
+        if (m === "light" || m === "dark") return m;
+        if (m !== "auto") return "dark";
+        const meta = SettingsState.meta("appearance.colorMode") || {};
+        const cur = (ThemeState.current && ThemeState.current.mode) || "dark";
+        const l = entry ? entry.luma : undefined;
+        if (typeof l !== "number") return cur;
+        return l > meta.autoLight ? "light" : l < meta.autoDark ? "dark" : cur;
+    }
+
     // La capa del wallpaper decodifico (o no pudo leer) la imagen pedida.
     function imageReady(path: string): void {
         if (!root.active || path !== root.requested) return;
         const entry = root.cache[path.split("/").pop()];
-        const pal = {};
+        const mode = root.modeOf(entry);
+        const pal = { mode: mode, status: Colors.familyOf(mode) };
         if (entry && entry.colors)
             for (const role in entry.colors)
-                pal[role] = entry.colors[role].dark;
+                pal[role] = entry.colors[role][mode];
         root.wallpaper = path;
         root.candidate = (entry && entry.colors) ? pal : null;
     }

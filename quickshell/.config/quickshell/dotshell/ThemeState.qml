@@ -86,6 +86,23 @@ Item {
             .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
     }
 
+    // ---- Modo claro u oscuro (P5.5) ------------------------------------------------------------
+    // El que tiene el tema aplicado ("dark" | "light") y la opcion elegida
+    // ("dark" | "light" | "auto"). Cambiarlo es solo escribir la opcion: el
+    // motor de opciones reaplica el tema actual (settings-apply -> theme-apply.sh
+    // --reapply). Lo usan el ajuste rapido del centro de control y la IPC.
+    readonly property string mode: (root.current && root.current.mode) || "dark"
+    readonly property string modeSetting: SettingsState.value("appearance.colorMode") || "dark"
+    function setMode(m: string): bool {
+        if (["dark", "light", "auto"].indexOf(m) < 0) return false;
+        SettingsState.set("appearance.colorMode", m);
+        return true;
+    }
+    // Al revés del que se ve (desde "Segun el fondo" tambien: queda elegido a mano).
+    function toggleMode(): void {
+        root.setMode(root.mode === "light" ? "dark" : "light");
+    }
+
     FileView {
         id: file
         path: root.path

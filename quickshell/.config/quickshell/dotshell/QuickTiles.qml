@@ -88,7 +88,7 @@ QtObject {
     readonly property var tiles: ({
         wifi: root.wifi, bluetooth: root.bluetooth, nightLight: root.nightLight, gameMode: root.gameMode, lock: root.lock,
         profile: root.profile, dnd: root.dnd, idle: root.idle, mic: root.mic, capture: root.capture, record: root.record,
-        keyboard: root.keyboard, picker: root.picker, settings: root.settings
+        keyboard: root.keyboard, picker: root.picker, settings: root.settings, darkMode: root.darkMode
     })
     property QtObject wifi: QtObject {
         readonly property bool available: true
@@ -191,6 +191,15 @@ QtObject {
         function toggle(): void {
             root.closeAnd(["sh", "-c", "c=$(hyprpicker -a -n) && [ -n \"$c\" ] && notify-send -a Color \"Color copiado\" \"$c\""]);
         }
+    }
+    // Modo oscuro (P5.5): encendido = el tema se ve oscuro. Tocarlo elige el
+    // otro modo a mano (tambien desde "Segun el fondo"); la linea dice cual manda.
+    property QtObject darkMode: QtObject {
+        readonly property bool available: true
+        readonly property bool active: ThemeState.mode !== "light"
+        readonly property string icon: active ? "dark_mode" : "light_mode"
+        readonly property string status: (ThemeState.modeSetting === "auto" ? "Según el fondo · " : "") + (active ? "Oscuro" : "Claro")
+        function toggle(): void { ThemeState.toggleMode(); }
     }
     property QtObject settings: QtObject {
         readonly property bool available: true

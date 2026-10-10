@@ -54,13 +54,15 @@ fi
 
 # papirus-folders necesita una copia LOCAL del tema para no pedir sudo en
 # cada cambio de wallpaper (matugen lo llama automaticamente, sin terminal).
-# Papirus-Dark es en su mayoria symlinks relativos a Papirus, hay que copiar
-# los dos.
-if [ -d /usr/share/icons/Papirus ] && [ ! -d ~/.local/share/icons/Papirus ]; then
-  info "Copiando tema de iconos Papirus a ~/.local/share/icons (para papirus-folders sin sudo)..."
-  mkdir -p ~/.local/share/icons
-  cp -r /usr/share/icons/Papirus /usr/share/icons/Papirus-Dark ~/.local/share/icons/
-fi
+# Papirus-Dark y Papirus-Light (modo claro, P5.5) son en su mayoria symlinks
+# relativos a Papirus, hay que copiar los tres.
+for t in Papirus Papirus-Dark Papirus-Light; do
+  if [ -d /usr/share/icons/$t ] && [ ! -d ~/.local/share/icons/$t ]; then
+    info "Copiando el tema de iconos $t a ~/.local/share/icons (para papirus-folders sin sudo)..."
+    mkdir -p ~/.local/share/icons
+    cp -r /usr/share/icons/$t ~/.local/share/icons/
+  fi
+done
 
 # -----------------------------------------------------------------------
 # 2. Stow
@@ -102,13 +104,15 @@ if [ -z "$seed" ]; then
   magick -size 1920x1080 gradient:'#1a1a2e-#8b5cf6' "$seed"
 fi
 
-# Colores de estado fijos (P8.7): las dos configs de matugen los importan
-# (import_json_files); sin este archivo matugen no renderiza.
-~/.config/hypr/scripts/palette status --write
-matugen image "$seed" --prefer saturation
+# Colores de estado fijos (P8.7): cada config de matugen importa los suyos
+# (import_json_files); sin ese archivo matugen no renderiza. La sesion arranca
+# oscura (appearance.colorMode, P5.5); el arranque y el login son siempre oscuros.
+~/.config/hypr/scripts/palette status --mode dark --write
+matugen image "$seed" --prefer saturation -m dark
 # Temas de arranque/login (SDDM, Plymouth, GRUB) van en una config aparte
 # (Fase 3 B2); su sync con sudo solo funciona tras el setup del README.
-matugen -c ~/.config/matugen/config-system.toml image "$seed" --prefer saturation
+PALETTE_STATUS_OUT=~/.cache/matugen/status-system.json ~/.config/hypr/scripts/palette status --mode dark --write
+matugen -c ~/.config/matugen/config-system.toml image "$seed" --prefer saturation -m dark
 sudo -n /usr/local/bin/sync-sddm-theme >/dev/null 2>&1 || true
 ok "Paleta generada a partir de $(basename "$seed"). Cambiala cuando quieras con SUPER+SHIFT+W."
 

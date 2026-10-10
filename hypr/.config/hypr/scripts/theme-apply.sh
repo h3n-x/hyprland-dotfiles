@@ -12,6 +12,7 @@
 #   theme-apply.sh --undo [--no-notify] [--dry-run]   (tema anterior del historial, B5)
 #   theme-apply.sh --backend quickshell|hyprpaper|status   (quien dibuja el wallpaper, B6)
 #   theme-apply.sh --face [--dry-run]   (rehace ~/.face con el avatar elegido, Fase 10 B2)
+#   theme-apply.sh --reapply [--source settings|ipc] [--dry-run]   (el tema actual en el modo del almacen, P5.5)
 #   theme-apply.sh --override <wallpaper> seed <#hex>|scheme <tipo>|reset   (excepcion por wallpaper, B8a;
 #                  "default" en seed o scheme quita solo ese campo, B8b)
 #
@@ -50,6 +51,14 @@
 # tema exacto. Entradas viejas sin semilla ("legacy") se aplican como antes
 # (--prefer saturation, tonal-spot).
 #
+# Modo claro u oscuro (P5.5): appearance.colorMode del almacen, resuelto al
+# PEDIR como el resto ("auto": la luminancia del wallpaper, con una banda
+# muerta) y guardado en el pedido y el historial. Pasa a palette status y a
+# matugen (-m) y al escritorio por gsettings (GTK, libadwaita, portales, iconos;
+# KI-S13): theme-apply escribe gsettings, nunca lo lee. Cambiar solo el modo
+# (--reapply) reaplica el tema actual sin la pasada de sistema: arranque y
+# login son siempre oscuros (D-P55-3), con su propio status-system.json.
+#
 # --dry-run no ejecuta hyprctl, magick ni matugen: solo registra lo que haria
 # (para pruebas; usar THEME_STATE_DIR/THEME_LOG_DIR para no tocar el estado
 # real, THEME_SYSTEM_DELAY para acortar la espera). --no-system no agenda la
@@ -68,6 +77,9 @@ LOCK="$STATE_DIR/theme-apply.lock"
 SYSTEM_PENDING="$STATE_DIR/system.pending"
 SYSTEM_LOCK="$STATE_DIR/theme-system.lock"
 SYSTEM_CFG="$HOME/.config/matugen/config-system.toml"
+# Colores de estado de la pasada de sistema (siempre oscura): archivo propio,
+# asi una pasada de sesion en claro nunca le pisa los suyos ni al reves.
+SYSTEM_STATUS="${XDG_CACHE_HOME:-$HOME/.cache}/matugen/status-system.json"
 SYSTEM_DELAY="${THEME_SYSTEM_DELAY:-60}"
 LOG_DIR="${THEME_LOG_DIR:-$HOME/.cache/dotfiles}"
 LOG="$LOG_DIR/theme-apply.log"
@@ -91,8 +103,8 @@ RULE="dominante"
 MATUGEN_FALLBACK="#4285f4"
 
 # Esquemas validos: los del esquema de opciones (una sola lista).
-SCHEMES="$(jq -r '.keys["appearance.scheme"].values | keys | join(" ")' \
-  "${SETTINGS_SCHEMA:-$HOME/.config/quickshell/dotshell/data/settings.schema.json}" 2>/dev/null)"
+SCHEMA="${SETTINGS_SCHEMA:-$HOME/.config/quickshell/dotshell/data/settings.schema.json}"
+SCHEMES="$(jq -r '.keys["appearance.scheme"].values | keys | join(" ")' "$SCHEMA" 2>/dev/null)"
 
 mkdir -p "$STATE_DIR" "$LOG_DIR"
 
@@ -107,7 +119,7 @@ die() {
 }
 
 usage() {
-  sed -n '7,16p' "$0" | sed 's/^# \{0,3\}//' >&2
+  sed -n '7,17p' "$0" | sed 's/^# \{0,3\}//' >&2
   exit 2
 }
 
@@ -136,22 +148,24 @@ _init_state() {
 }
 
 record_apply() { with_state_lock _record_apply "$@"; }
-# Historial (Fase 3 B5): si el tope ya es este mismo tema (wallpaper, esquema
-# y contraste) solo se refresca su fecha en vez de agregar una entrada
+# Historial (Fase 3 B5): si el tope ya es este mismo tema (wallpaper, esquema,
+# contraste, semilla y modo) solo se refresca su fecha en vez de agregar una entrada
 # (decision B5d). Cubre tambien el deshacer: --undo ya saco la entrada
 # deshecha, asi que el tema restaurado es el tope. Si no, se agrega arriba.
-_record_apply() { # wallpaper scheme contrast source seed rule
+_record_apply() { # wallpaper scheme contrast source seed rule mode
   jq --arg wp "$1" --arg scheme "$2" --arg contrast "$3" --arg source "$4" --arg seed "${5:-}" --arg rule "${6:-legacy}" \
+     --arg mode "${7:-dark}" \
      --arg now "$(date -Iseconds)" --argjson max "$HISTORY_MAX" '
     {wallpaper: $wp,
      scheme: (if $scheme == "" then null else $scheme end),
      contrast: (if $contrast == "" then null else ($contrast | tonumber) end),
      seed: (if $seed == "" then null else $seed end), rule: $rule,
-     mode: "dark", applied_at: $now, source: $source} as $e
+     mode: $mode, applied_at: $now, source: $source} as $e
     | (.history // []) as $h
     | def same($a; $b): $a != null and $b != null and $a.wallpaper == $b.wallpaper
                         and $a.scheme == $b.scheme and $a.contrast == $b.contrast
-                        and ($a.seed // null) == ($b.seed // null) and ($a.rule // "legacy") == ($b.rule // "legacy");
+                        and ($a.seed // null) == ($b.seed // null) and ($a.rule // "legacy") == ($b.rule // "legacy")
+                        and ($a.mode // "dark") == ($b.mode // "dark");
     if ($h | length) > 0 and same($h[0]; $e) then
       .history = ([$h[0] + {applied_at: $now}] + $h[1:])
       | .current = .history[0]
@@ -200,6 +214,55 @@ resolve_opts() { # wallpaper scheme contrast seed -> "scheme contrast seed"
   echo "$scheme $contrast ${seed,,}"
 }
 
+# Luminancia de un wallpaper (P5.5): L media OKLab (0..1) de la cache de la
+# galeria si el archivo no cambio; si no, se mide sobre una copia chica.
+luma_of() { # wallpaper -> numero (vacio si no se pudo)
+  local wp="$1" name mt sz
+  name="$(basename "$wp")"; mt="$(stat -c %Y "$wp")"; sz="$(stat -c %s "$wp")"
+  if [ -s "$CACHE_INDEX" ] && jq -e --arg n "$name" --argjson m "$mt" --argjson s "$sz" \
+       '.[$n] | .mtime == $m and .size == $s and .luma != null' "$CACHE_INDEX" >/dev/null 2>&1; then
+    jq -r --arg n "$name" '.[$n].luma' "$CACHE_INDEX"
+    return
+  fi
+  magick "${wp}[0]" -resize 480x270 -colorspace OkLab -channel R -separate +channel -format '%[fx:mean]' info: 2>/dev/null
+}
+
+# Modo efectivo: appearance.colorMode; con "auto", claro sobre autoLight,
+# oscuro bajo autoDark y en el medio el del tema actual (sin saltos entre
+# fondos parecidos). Los umbrales viven en el esquema (los lee tambien la
+# vista previa de la galeria).
+resolve_mode() { # wallpaper -> dark|light
+  local m cur lo hi l
+  m="$("$SETTINGS" get appearance.colorMode 2>/dev/null)"
+  case "$m" in
+    dark|light) echo "$m"; return ;;
+    auto) ;;
+    *) echo dark; return ;;
+  esac
+  cur="$(jq -r '.current.mode // "dark"' "$STATE" 2>/dev/null)"
+  read -r lo hi < <(jq -r '.keys["appearance.colorMode"] | "\(.autoDark) \(.autoLight)"' "$SCHEMA")
+  l="$(luma_of "$1")"
+  if [ -z "$l" ]; then echo "${cur:-dark}"; return; fi
+  awk -v l="$l" -v lo="$lo" -v hi="$hi" -v cur="${cur:-dark}" 'BEGIN { print (l > hi) ? "light" : (l < lo) ? "dark" : cur }'
+}
+
+# Escritorio en el modo (P5.5, KI-S13): GTK 3 (gtk-theme), libadwaita y los
+# portales (color-scheme) e iconos (el tema de settings.ini o su hermano claro,
+# scripts/icon-theme). settings.ini ya no fija tema ni oscuro: el unico dueno es esto.
+desktop_mode() { # dark|light
+  command -v gsettings >/dev/null 2>&1 || { log "  modo: falta gsettings"; return 0; }
+  local scheme gtk icons
+  if [ "$1" = light ]; then scheme=prefer-light gtk=Adwaita; else scheme=prefer-dark gtk=Adwaita-dark; fi
+  if [ "$DRY" = true ]; then
+    icons="$("$SCRIPTS_DIR/icon-theme" "$1" --dry-run 2>> "$LOG")"
+  else
+    icons="$("$SCRIPTS_DIR/icon-theme" "$1" 2>> "$LOG")"
+  fi
+  run gsettings set org.gnome.desktop.interface color-scheme "$scheme"
+  run gsettings set org.gnome.desktop.interface gtk-theme "$gtk"
+  [ -z "$icons" ] || run gsettings set org.gnome.desktop.interface icon-theme "$icons"
+}
+
 # ---- Aplicacion -----------------------------------------------------------
 
 # Avatar (Fase 10 B2): recorte cuadrado de 512 al centro del wallpaper
@@ -229,10 +292,10 @@ run() { # comando... (en --dry-run solo se registra)
   fi
 }
 
-apply() { # wallpaper scheme contrast source no_system seed rule
-  local wp="$1" scheme="$2" contrast="$3" source="$4" no_system="${5:-false}" seed="${6:-}" rule="${7:-legacy}" t0 rc
+apply() { # wallpaper scheme contrast source no_system seed rule mode
+  local wp="$1" scheme="$2" contrast="$3" source="$4" no_system="${5:-false}" seed="${6:-}" rule="${7:-legacy}" mode="${8:-dark}" t0 rc
   t0=$(date +%s%N)
-  log "aplicar: $wp (esquema=${scheme:-defecto} contraste=${contrast:-defecto} semilla=${seed:-?} regla=$rule origen=$source)$([ "$DRY" = true ] && echo " [dry-run]")"
+  log "aplicar: $wp (esquema=${scheme:-defecto} contraste=${contrast:-defecto} semilla=${seed:-?} regla=$rule modo=$mode origen=$source)$([ "$DRY" = true ] && echo " [dry-run]")"
 
   # 1. Wallpaper. Con Quickshell lo cambia la shell al leer el JSON de colores
   #    (paso 4), junto con la paleta. Con hyprpaper, por IPC (0.8.x solo
@@ -262,19 +325,21 @@ EOF
   #    los colores de estado fijos para este contraste (P8.7); sin ellos matugen
   #    no puede renderizar (import_json_files).
   local args
-  mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast" "$seed" "$rule")
+  mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast" "$seed" "$rule" "$mode")
   if [ "$DRY" = true ]; then
-    log "  dry: palette status --contrast ${contrast:-0} --write"
+    log "  dry: palette status --mode $mode --contrast ${contrast:-0} --write"
     log "  dry: matugen ${args[*]}"
     sleep "$DRY_DELAY"
     rc=0
   elif command -v matugen >/dev/null 2>&1; then
-    "$PALETTE" status --contrast "${contrast:-0}" --write 2>> "$LOG"
+    "$PALETTE" status --mode "$mode" --contrast "${contrast:-0}" --write 2>> "$LOG"
     matugen "${args[@]}" >/dev/null 2>&1
     rc=$?
   else
     rc=127
   fi
+  # GTK, portales e iconos, despues de las plantillas (gtk.css ya en el modo).
+  [ "$rc" = 0 ] && desktop_mode "$mode"
 
   # El estado e historial se escriben al PEDIR, no aca (Fase 3 B5): si no, un
   # deshacer pedido mientras se aplicaba un tema operaba sobre un historial
@@ -294,7 +359,7 @@ EOF
 
 # ---- Pasada de sistema (SDDM, Plymouth, GRUB), diferida -------------------
 
-matugen_args() { # wallpaper scheme contrast seed rule -> argumentos de matugen image
+matugen_args() { # wallpaper scheme contrast seed rule mode -> argumentos de matugen image
   local a
   if [ "${5:-legacy}" = legacy ]; then
     # Como antes de B8a: el candidato mas saturado (temas del historial viejo).
@@ -306,6 +371,7 @@ matugen_args() { # wallpaper scheme contrast seed rule -> argumentos de matugen 
     # exactamente ese candidato (o la usa tal cual si la imagen no tiene color).
     a=(image "$1" -t "$2" --contrast "$3" -r gaussian --prefer closest-to-fallback --fallback-color "$4")
   fi
+  a+=(-m "${6:-dark}")
   printf '%s\n' "${a[@]}"
 }
 
@@ -336,16 +402,17 @@ run_system() { # token esperado ("" = el que haya pendiente)
   seed="$(jq -r '.seed // ""' <<< "$job")"; rule="$(jq -r '.rule // "legacy"' <<< "$job")"
   DRY="$(jq -r .dry <<< "$job")"
   local args
-  mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast" "$seed" "$rule")
+  # Siempre oscura (D-P55-3): arranque y login no cambian con el modo.
+  mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast" "$seed" "$rule" dark)
   t0=$(date +%s%N)
   log "sistema: aplicar $wp$([ "$DRY" = true ] && echo " [dry-run]")"
   if [ "$DRY" = true ]; then
-    log "  dry: palette status --contrast ${contrast:-0} --write"
+    log "  dry: palette status --mode dark --contrast ${contrast:-0} --write ($SYSTEM_STATUS)"
     log "  dry: matugen -c $SYSTEM_CFG ${args[*]}"
     log "  dry: sddm-theme-stage && sudo -n /usr/local/bin/sync-sddm-theme"
     rc=0
   else
-    "$PALETTE" status --contrast "${contrast:-0}" --write 2>> "$LOG"
+    PALETTE_STATUS_OUT="$SYSTEM_STATUS" "$PALETTE" status --mode dark --contrast "${contrast:-0}" --write 2>> "$LOG"
     matugen -c "$SYSTEM_CFG" "${args[@]}" >/dev/null 2>&1
     rc=$?
     # El greeter (Fase 9 B3): se arma como el usuario despues de que matugen
@@ -385,7 +452,8 @@ worker() {
             "$(jq -r '.source' <<< "$req")" \
             "$(jq -r '.no_system // false' <<< "$req")" \
             "$(jq -r '.seed // ""' <<< "$req")" \
-            "$(jq -r '.rule // "legacy"' <<< "$req")"
+            "$(jq -r '.rule // "legacy"' <<< "$req")" \
+            "$(jq -r '.mode // "dark"' <<< "$req")"
     done
     flock -u 9
     exec 9>&-
@@ -427,6 +495,41 @@ if [ "${1:-}" = "--face" ]; then
   log "avatar: ~/.face rehecho"
   schedule_system "$cwp" "$(jq -r '.scheme // ""' <<< "$cur")" "$(jq -r '.contrast // ""' <<< "$cur")" \
     "$(jq -r '.seed // ""' <<< "$cur")" "$(jq -r '.rule // "legacy"' <<< "$cur")"
+  exit 0
+fi
+# Solo el modo (P5.5): el tema actual tal cual (wallpaper, esquema, contraste,
+# semilla) en el modo efectivo de ahora; nada si ya esta en ese modo. Lo llama
+# settings-apply al cambiar appearance.colorMode. Sin pasada de sistema.
+if [ "${1:-}" = "--reapply" ]; then
+  DRY=false rsource=settings
+  shift
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --source) rsource="${2:-}"; shift 2 ;;
+      --dry-run) DRY=true; shift ;;
+      *) die "opcion desconocida para --reapply: $1" ;;
+    esac
+  done
+  case "$rsource" in settings|ipc) ;; *) die "origen desconocido: $rsource" ;; esac
+  init_state
+  cur="$(jq -c '.current // empty' "$STATE")"
+  cwp="$(jq -r '.wallpaper // empty' <<< "$cur")"
+  [ -n "$cwp" ] && [ -f "$cwp" ] || { log "reaplicar: no hay un tema aplicado"; exit 0; }
+  rmode="$(resolve_mode "$cwp")"
+  if [ "$rmode" = "$(jq -r '.mode // "dark"' <<< "$cur")" ]; then
+    log "reaplicar: el tema actual ya esta en modo $rmode"
+    exit 0
+  fi
+  rscheme="$(jq -r '.scheme // ""' <<< "$cur")"; rcontrast="$(jq -r '.contrast // "" | tostring' <<< "$cur")"
+  rseed="$(jq -r '.seed // ""' <<< "$cur")"; rrule="$(jq -r '.rule // "legacy"' <<< "$cur")"
+  record_apply "$cwp" "$rscheme" "$rcontrast" "$rsource" "$rseed" "$rrule" "$rmode"
+  jq -n --arg wp "$cwp" --arg scheme "$rscheme" --arg contrast "$rcontrast" --arg seed "$rseed" --arg rule "$rrule" \
+        --arg mode "$rmode" --arg source "$rsource" --argjson dry "$DRY" \
+    '{wallpaper: $wp, scheme: $scheme, contrast: $contrast, seed: $seed, rule: $rule, mode: $mode, source: $source,
+      dry: $dry, no_system: true}' \
+    > "$REQUEST.$$" && mv "$REQUEST.$$" "$REQUEST"
+  log "reaplicar: $cwp en modo $rmode (origen=$rsource)"
+  setsid -f "$SCRIPTS_DIR/$(basename "$0")" --worker < /dev/null > /dev/null 2>&1
   exit 0
 fi
 if [ "${1:-}" = "--favorite" ]; then
@@ -487,10 +590,18 @@ if [ "${1:-}" = "--undo" ]; then
   twp="$(jq -r .wallpaper <<< "$target")"
   jq -n --argjson e "$target" \
     '{wallpaper: $e.wallpaper, scheme: $e.scheme, contrast: ($e.contrast | if . == null then null else tostring end),
-      seed: ($e.seed // null), rule: ($e.rule // "legacy"),
+      seed: ($e.seed // null), rule: ($e.rule // "legacy"), mode: ($e.mode // "dark"),
       source: "undo", dry: $dry, no_system: false}' --argjson dry "$undo_dry" \
     > "$REQUEST.$$" && mv "$REQUEST.$$" "$REQUEST"
   log "deshacer: pedido de $twp"
+  # El modo restaurado vuelve tambien al almacen (salvo "auto"): si no, el
+  # proximo wallpaper saldria en el modo deshecho. El --reapply que dispara
+  # el cambio no hace nada: el tema actual ya es el restaurado.
+  tmode="$(jq -r '.mode // "dark"' <<< "$target")"
+  smode="$("$SETTINGS" get appearance.colorMode 2>/dev/null)"
+  if [ "$undo_dry" != true ] && [ "$smode" != auto ] && [ "$smode" != "$tmode" ]; then
+    "$SETTINGS" set appearance.colorMode "$tmode" >/dev/null 2>> "$LOG" || log "deshacer: no se pudo volver el modo a $tmode"
+  fi
   [ "$notify_undo" = true ] && command -v notify-send >/dev/null 2>&1 \
     && notify-send "Tema" "Deshecho: $(basename "$twp")" -i edit-undo -t 2500
   setsid -f "$SCRIPTS_DIR/$(basename "$0")" --worker < /dev/null > /dev/null 2>&1
@@ -656,18 +767,19 @@ fi
 # Opciones efectivas (B8a), resueltas una vez: viajan en el pedido y el historial.
 init_state
 read -r scheme contrast seed <<< "$(resolve_opts "$wallpaper" "$scheme" "$contrast" "$seed")"
+mode="$(resolve_mode "$wallpaper")"
 
 # Historial al pedir (bajo el lock del estado): refleja la intencion aunque la
 # aplicacion todavia este en cola; "Actual" se ve al instante en la galeria.
-record_apply "$wallpaper" "$scheme" "$contrast" "$source" "$seed" "$RULE"
+record_apply "$wallpaper" "$scheme" "$contrast" "$source" "$seed" "$RULE" "$mode"
 
 # Pedido atomico: el ultimo en escribirse gana.
 jq -n --arg wp "$wallpaper" --arg scheme "$scheme" --arg contrast "$contrast" --arg seed "$seed" --arg rule "$RULE" \
-      --arg source "$source" --argjson dry "$DRY" --argjson no_system "$NO_SYSTEM" \
-  '{wallpaper: $wp, scheme: $scheme, contrast: $contrast, seed: $seed, rule: $rule, source: $source, dry: $dry,
+      --arg mode "$mode" --arg source "$source" --argjson dry "$DRY" --argjson no_system "$NO_SYSTEM" \
+  '{wallpaper: $wp, scheme: $scheme, contrast: $contrast, seed: $seed, rule: $rule, mode: $mode, source: $source, dry: $dry,
     no_system: $no_system}' \
   > "$REQUEST.$$" && mv "$REQUEST.$$" "$REQUEST"
-log "pedido: $wallpaper (origen=$source esquema=$scheme contraste=$contrast semilla=$seed)"
+log "pedido: $wallpaper (origen=$source esquema=$scheme contraste=$contrast semilla=$seed modo=$mode)"
 
 # Worker desacoplado: el atajo de teclado vuelve al instante.
 setsid -f "$SCRIPTS_DIR/$(basename "$0")" --worker < /dev/null > /dev/null 2>&1

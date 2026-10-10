@@ -16,7 +16,9 @@
 // de entrada (m3* y status*); los modulos usan sus alias (Colors.accent,
 // Colors.warning, Colors.textMuted...), nunca los roles crudos (palette check,
 // PC-Q2). Los colores de estado salen siempre del JSON aplicado, tambien durante
-// la vista previa: no dependen del wallpaper ni del esquema (principio 23).
+// la vista previa: no dependen del wallpaper ni del esquema (principio 23),
+// solo del modo; el JSON trae las dos familias (status_dark/status_light) y la
+// vista previa de un tema en el otro modo usa la suya (P5.5).
 pragma Singleton
 import QtQuick
 import Quickshell
@@ -83,8 +85,11 @@ SemanticPalette {
             property string on_success: "#002713"
             property string success_container: "#41a26c"
             property string on_success_container: "#000000"
-            // Condiciones con las que se genero (tema oscuro hasta P5.5).
+            // Condiciones con las que se genero (modo: appearance.colorMode, P5.5).
             property string mode: "dark"
+            // Las dos familias de estado (`palette status`), para la vista previa.
+            property var status_dark: ({})
+            property var status_light: ({})
             property real contrast: 0
             // Wallpaper de esta paleta (el que matugen acaba de usar). Lo lee
             // Wallpaper.qml (Fase 3 B6): wallpaper y colores cambian juntos.
@@ -93,12 +98,20 @@ SemanticPalette {
     }
 
     readonly property string image: json.image
-    readonly property string mode: json.mode
     readonly property real contrast: json.contrast
+    // Modo de lo que se ve: el del candidato durante la vista previa (SemanticPalette.mode).
+    mode: root.pv && root.pv.mode ? root.pv.mode : json.mode
+    // Familia de estado de un modo (la vista previa la copia en su candidato).
+    function familyOf(m: string): var {
+        const f = m === "light" ? json.status_light : json.status_dark;
+        return f && f.error ? f : null;
+    }
 
     // Vista previa (Fase 3 B7): mientras hay un candidato, sus colores (de la
     // cache de la galeria) en vez de los del JSON. El JSON se sigue leyendo.
     readonly property var pv: ThemePreview.candidate
+    // Su familia de estado (la del modo del candidato), o null: la del JSON.
+    readonly property var pvs: root.pv && root.pv.status ? root.pv.status : null
 
     // Alto contraste (accessibility.highContrast): lo aplica SemanticPalette.
     highContrast: SettingsState.value("accessibility.highContrast") === true
@@ -173,28 +186,28 @@ SemanticPalette {
     Behavior on m3shadow { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
     m3scrim: root.pv ? root.pv.scrim : json.scrim
     Behavior on m3scrim { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusError: json.error
+    statusError: root.pvs ? root.pvs.error : json.error
     Behavior on statusError { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusOnError: json.on_error
+    statusOnError: root.pvs ? root.pvs.on_error : json.on_error
     Behavior on statusOnError { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusErrorContainer: json.error_container
+    statusErrorContainer: root.pvs ? root.pvs.error_container : json.error_container
     Behavior on statusErrorContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusOnErrorContainer: json.on_error_container
+    statusOnErrorContainer: root.pvs ? root.pvs.on_error_container : json.on_error_container
     Behavior on statusOnErrorContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusWarning: json.warning
+    statusWarning: root.pvs ? root.pvs.warning : json.warning
     Behavior on statusWarning { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusOnWarning: json.on_warning
+    statusOnWarning: root.pvs ? root.pvs.on_warning : json.on_warning
     Behavior on statusOnWarning { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusWarningContainer: json.warning_container
+    statusWarningContainer: root.pvs ? root.pvs.warning_container : json.warning_container
     Behavior on statusWarningContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusOnWarningContainer: json.on_warning_container
+    statusOnWarningContainer: root.pvs ? root.pvs.on_warning_container : json.on_warning_container
     Behavior on statusOnWarningContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusSuccess: json.success
+    statusSuccess: root.pvs ? root.pvs.success : json.success
     Behavior on statusSuccess { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusOnSuccess: json.on_success
+    statusOnSuccess: root.pvs ? root.pvs.on_success : json.on_success
     Behavior on statusOnSuccess { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusSuccessContainer: json.success_container
+    statusSuccessContainer: root.pvs ? root.pvs.success_container : json.success_container
     Behavior on statusSuccessContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
-    statusOnSuccessContainer: json.on_success_container
+    statusOnSuccessContainer: root.pvs ? root.pvs.on_success_container : json.on_success_container
     Behavior on statusOnSuccessContainer { enabled: root.ready && Tokens.motion.scale > 0; ColorFade {} }
 }

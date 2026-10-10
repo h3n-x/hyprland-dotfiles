@@ -345,6 +345,12 @@ ShellRoot {
         function undo(): void {
             Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/theme-apply.sh", "--undo"]);
         }
+        // Modo claro u oscuro (P5.5): dark | light | auto | toggle | status.
+        function mode(m: string): string {
+            if (m === "toggle") ThemeState.toggleMode();
+            else if (m !== "status" && !ThemeState.setMode(m)) return "uso: theme mode dark|light|auto|toggle|status";
+            return JSON.stringify({ setting: ThemeState.modeSetting, mode: ThemeState.mode, shown: Colors.mode });
+        }
     }
 
     // Wallpaper (Fase 3 B6): capa de fondo con fundido; se oculta si el

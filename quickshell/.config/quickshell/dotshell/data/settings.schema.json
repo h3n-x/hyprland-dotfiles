@@ -23,6 +23,15 @@
       "label": "Duración del indicador de volumen y brillo",
       "keywords": ["osd", "volumen", "brillo"], "apply": "live"
     },
+    "appearance.colorMode": {
+      "type": "enum", "default": "dark",
+      "values": { "dark": "Oscuro", "light": "Claro", "auto": "Según el fondo" },
+      "autoLight": 0.62, "autoDark": 0.50,
+      "category": "appearance", "section": "Color", "order": 15,
+      "label": "Modo",
+      "description": "Claro u oscuro para la shell y las apps. Según el fondo: claro con un fondo luminoso, oscuro con uno oscuro; en los intermedios queda el que estaba. El arranque y el inicio de sesión siguen oscuros.",
+      "keywords": ["claro", "oscuro", "tema", "dark", "light", "modo noche"], "apply": "live", "applyTo": "theme"
+    },
     "appearance.scheme": {
       "type": "enum", "default": "scheme-content",
       "values": { "scheme-content": "Contenido", "scheme-tonal-spot": "Tonal", "scheme-vibrant": "Vibrante",
@@ -751,7 +760,8 @@
         "record": { "label": "Grabar", "icon": "radio_button_checked", "sizes": ["small", "wide"] },
         "keyboard": { "label": "Distribución del teclado", "icon": "keyboard", "sizes": ["small", "wide"], "needs": "layouts" },
         "picker": { "label": "Color de la pantalla", "icon": "colorize", "sizes": ["small", "wide"], "needs": "hyprpicker" },
-        "settings": { "label": "Configuración", "icon": "settings", "sizes": ["small", "wide"] }
+        "settings": { "label": "Configuración", "icon": "settings", "sizes": ["small", "wide"] },
+        "darkMode": { "label": "Modo oscuro", "icon": "dark_mode", "sizes": ["small", "wide"] }
       }
     },
     "dashboard.weather.location": {

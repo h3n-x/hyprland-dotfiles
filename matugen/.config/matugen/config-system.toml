@@ -20,10 +20,11 @@
 
 [config]
 # Colores de estado fijos (P8.7): theme-apply.sh los escribe con `palette
-# status --write` antes de cada corrida; las plantillas los leen como
-# {{status.warning.default.hex}} y {{theme.contrast}}. Solo cambian con el
-# modo: nunca con el wallpaper, el esquema ni el contraste (principio 23).
-import_json_files = ["~/.cache/matugen/status.json"]
+# status --mode dark --write` antes de cada corrida; las plantillas los leen
+# como {{status.warning.default.hex}} y {{theme.contrast}}. Esta pasada es
+# siempre oscura (P5.5, D-P55-3) y tiene su propio archivo: la de la sesion
+# (status.json, en el modo elegido) nunca se lo pisa.
+import_json_files = ["~/.cache/matugen/status-system.json"]
 
 [templates.sddm-login]
 input_path = "~/.config/matugen/templates/sddm/Colors.qml"

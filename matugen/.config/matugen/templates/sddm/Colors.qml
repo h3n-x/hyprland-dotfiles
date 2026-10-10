@@ -8,7 +8,7 @@ import QtQuick
 
 SemanticPalette {
     readonly property string image: Qt.resolvedUrl("backgrounds/wall.png").toString().replace("file://", "")
-    readonly property string mode: "{{theme.mode}}"
+    mode: "{{theme.mode}}"
     m3surface: "{{colors.surface.default.hex}}"
     m3surfaceContainerLowest: "{{colors.surface_container_lowest.default.hex}}"
     m3surfaceContainerLow: "{{colors.surface_container_low.default.hex}}"

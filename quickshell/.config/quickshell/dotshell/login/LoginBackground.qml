@@ -1,6 +1,8 @@
 // Fondo del bloqueo y del greeter (Fase 9 B3): el wallpaper (nunca una copia
 // del escritorio), difuminado y con el velo, segun `amount` (0 = nitido como el
 // escritorio, 1 = difuminado). M1/M2 lo mueven en la entrada y la salida.
+// En modo claro (P5.5) el texto es oscuro: el fondo se aclara en vez de oscurecerse
+// (Colors.veil y el brillo con el signo del modo).
 // QtQuick puro: lo usan el bloqueo (Quickshell) y el greeter (SDDM).
 import QtQuick
 import QtQuick.Effects
@@ -32,10 +34,10 @@ Item {
         blurEnabled: bg.amount > 0
         blur: 0.45 * bg.amount
         blurMax: 64
-        brightness: -0.08 * bg.amount
+        brightness: (Colors.light ? 0.08 : -0.08) * bg.amount
     }
     Rectangle {
         anchors.fill: parent
-        color: Colors.tint(Colors.scrim, Tokens.opacity.scrim * bg.amount)
+        color: Colors.tint(Colors.veil, (Colors.light ? Tokens.opacity.veilLight : Tokens.opacity.scrim) * bg.amount)
     }
 }
