@@ -61,7 +61,7 @@ ColumnLayout {
         parts.push("memoria " + SystemState.memWord(SystemState.memFrac).toLowerCase());
         if (!isNaN(SystemState.temp)) parts.push("temperatura " + SystemState.tempWord(SystemState.temp));
         let s = parts.join(", ") + ".";
-        if (SystemState.uptime > 0) s += " Encendido hace " + SystemState.duration(SystemState.uptime) + ".";
+        if (SystemState.uptime > 0) s += " Encendido hace " + I18n.duration(SystemState.uptime) + ".";
         return s;
     }
 
@@ -276,26 +276,26 @@ ColumnLayout {
             Layout.fillHeight: true
             icon: "memory_alt"
             label: "Memoria"
-            value: SystemState.bytes(SystemState.memUsed)
-            unit: "de " + SystemState.bytes(SystemState.memTotal)
+            value: I18n.bytes(SystemState.memUsed)
+            unit: "de " + I18n.bytes(SystemState.memTotal)
             word: SystemState.memWord(SystemState.memFrac)
             level: SystemState.memFrac >= 0.92 ? 1 : 0
             fraction: SystemState.memFrac
             series: view.charted("memory") ? "mem" : ""
-            note: SystemState.swapUsed > 64 * 1048576 ? "Swap en uso: " + SystemState.bytes(SystemState.swapUsed) : "Sin swap en uso"
+            note: SystemState.swapUsed > 64 * 1048576 ? "Swap en uso: " + I18n.bytes(SystemState.swapUsed) : "Sin swap en uso"
         }
         Instrument {
             Layout.fillWidth: true
             Layout.fillHeight: true
             icon: "hard_drive"
             label: "Almacenamiento"
-            value: view.disk ? SystemState.bytes(view.disk.avail) : "–"
+            value: view.disk ? I18n.bytes(view.disk.avail) : "–"
             unit: "libres"
             word: view.disk ? SystemState.diskWord(view.diskFrac) : ""
             level: view.diskFrac >= 0.92 ? 1 : 0
             fraction: view.diskFrac
             temp: SystemState.nvmeTemp
-            note: (view.disk ? "de " + SystemState.bytes(view.disk.size) + " en " + view.disk.mount : "")
+            note: (view.disk ? "de " + I18n.bytes(view.disk.size) + " en " + view.disk.mount : "")
                 + (isNaN(SystemState.nvmeTemp) || view.rings ? "" : " · disco a " + Math.round(SystemState.nvmeTemp) + "°")
         }
         Instrument {
@@ -305,7 +305,7 @@ ColumnLayout {
             label: BatteryState.present ? "Energía" : "Energía · corriente"
             value: BatteryState.present ? Math.round(BatteryState.pct * 100) + " %" : PowerProfileState.info.label
             unit: !BatteryState.present ? ""
-                : BatteryState.secondsLeft > 0 ? (BatteryState.charging ? "llena en " : "quedan ") + SystemState.duration(BatteryState.secondsLeft)
+                : BatteryState.secondsLeft > 0 ? (BatteryState.charging ? "llena en " : "quedan ") + I18n.duration(BatteryState.secondsLeft)
                 : BatteryState.charging ? "cargando" : BatteryState.onAc ? (BatteryState.pct >= 0.995 ? "cargada" : "conectada") : ""
             word: "Perfil " + PowerProfileState.info.label.toLowerCase()
             level: BatteryState.critical ? 2 : BatteryState.warning ? 1 : 0
@@ -390,7 +390,7 @@ ColumnLayout {
                         Text {
                             Layout.preferredWidth: Tokens.px(64)
                             horizontalAlignment: Text.AlignRight
-                            text: SystemState.bytes(parent.mem)
+                            text: I18n.bytes(parent.mem)
                             color: Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label

@@ -475,22 +475,7 @@ QtObject {
         return isNaN(t) ? "" : t < 60 ? "fresca" : t < 80 ? "normal" : t < 95 ? "alta" : "muy alta";
     }
 
-    // ---- Formato -------------------------------------------------------------------
-    // "3 h 20 min", "45 min".
-    function duration(seconds: real): string {
-        const m = Math.round(seconds / 60);
-        if (m < 60) return m + " min";
-        const h = Math.floor(m / 60);
-        if (h >= 48) return Math.floor(h / 24) + " días";
-        return h + " h" + (m % 60 ? " " + (m % 60) + " min" : "");
-    }
-    // "7,9 GB", "420 MB" (coma decimal, como el resto de la shell).
-    function bytes(b: real): string {
-        const gb = b / 1073741824;
-        if (gb >= 100) return Math.round(gb) + " GB";
-        if (gb >= 1) return gb.toFixed(1).replace(".", ",") + " GB";
-        return Math.round(b / 1048576) + " MB";
-    }
+    // Duraciones y bytes: I18n.duration / I18n.bytes (Fase 15 B1, con el idioma elegido).
     function rate(bps: real): string {
         if (bps >= 1048576) return (bps / 1048576).toFixed(1).replace(".", ",") + " MB/s";
         if (bps >= 1024) return Math.round(bps / 1024) + " kB/s";

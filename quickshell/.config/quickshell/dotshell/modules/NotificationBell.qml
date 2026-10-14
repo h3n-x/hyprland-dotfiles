@@ -10,7 +10,8 @@ Item {
     readonly property bool asNumber: SettingsState.value("bar.notifications.count") === "number"
     readonly property bool shown: true
     // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
-    readonly property string tooltip: NotificationState.doNotDisturb ? "No molestar" : root.count === 0 ? "Sin avisos" : root.count === 1 ? "1 aviso" : root.count + " avisos"
+    readonly property string tooltip: NotificationState.doNotDisturb ? I18n.tr("Do not disturb") : root.count === 0 ? I18n.tr("No notifications")
+        : I18n.trn("%n notification", "%n notifications", root.count)
     visible: shown
 
     implicitWidth: bell.implicitWidth + (badge.visible && root.asNumber ? badge.width - Tokens.space.xs : 0)

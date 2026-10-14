@@ -38,7 +38,7 @@ Item {
     // Al cambiar de estado, un unico pulso corto; al cambiar de cancion, el
     // titulo se funde. Titulo con ancho maximo y "..." (no estira la barra).
     readonly property bool playing: !!root.player && root.player.isPlaying
-    readonly property string title: root.player ? (root.player.trackTitle || "Sin título") : ""
+    readonly property string title: root.player ? (root.player.trackTitle || I18n.tr("Untitled")) : ""
     onPlayingChanged: if (Tokens.motion.scale > 0) pulse.restart()
     onTitleChanged: if (Tokens.motion.scale > 0) titleFade.restart()
 

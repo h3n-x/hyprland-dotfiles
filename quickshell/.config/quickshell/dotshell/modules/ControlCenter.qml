@@ -156,7 +156,7 @@ PanelWindow {
                 Layout.fillWidth: true
 
                 Text {
-                    text: "Notificaciones"
+                    text: I18n.tr("Notifications")
                     color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.title
@@ -180,7 +180,7 @@ PanelWindow {
                     Text {
                         id: clearLabel
                         anchors.centerIn: parent
-                        text: "Limpiar todo"
+                        text: I18n.tr("Clear all")
                         color: Colors.accent
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
@@ -248,7 +248,7 @@ PanelWindow {
                     Text {
                         visible: NotificationState.server.trackedNotifications.values.length === 0
                         Layout.leftMargin: Tokens.space.xs
-                        text: "Sin notificaciones"
+                        text: I18n.tr("No notifications yet")
                         color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body

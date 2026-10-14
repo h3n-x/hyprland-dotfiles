@@ -26,7 +26,7 @@ Item {
 
     onMutedChanged: {
         if (!root.armed) return;
-        OsdState.show(root.muted ? "mic_off" : "mic", root.muted ? 0 : 1, root.muted ? "Micrófono silenciado" : "Micrófono activo");
+        OsdState.show(root.muted ? "mic_off" : "mic", root.muted ? 0 : 1, root.muted ? I18n.tr("Microphone muted") : I18n.tr("Microphone on"));
     }
 
     implicitWidth: label.implicitWidth

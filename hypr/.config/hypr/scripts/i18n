@@ -1,0 +1,295 @@
+#!/usr/bin/env python3
+# Traducciones (Fase 15 B1). Los catalogos son dotshell/data/i18n/<idioma>.json,
+# con el texto fuente en ingles como clave (ver I18nCore.qml). El idioma es
+# appearance.language del almacen ("auto" = LANGUAGE / LC_ALL / LC_MESSAGES / LANG
+# de la sesion; ingles si no hay catalogo).
+#
+#   i18n tr [--ctx C] TEXTO [ARG...]   la traduccion (%1.. con ARG), para los scripts
+#   i18n trn SINGULAR PLURAL N [ARG...] con plural (%n = N)
+#   i18n lang                          el idioma efectivo
+#   i18n extract [--json]              las claves que usa el codigo (QML, esquema)
+#   i18n check [--quiet]               catalogos completos, sin claves viejas, mismos
+#                                      %1..%9 y %n, plurales de su familia, y ningun texto
+#                                      visible fuera de I18n en los archivos ya convertidos
+#                                      (data/i18n.rules.json); salida 0/1
+#   i18n stats                         cobertura por idioma
+#
+# Pruebas: I18N_DIR (catalogos), I18N_QML (carpeta dotshell), I18N_LANG (idioma
+# sin consultar el almacen), SETTINGS (otro motor de opciones).
+import json, os, re, subprocess, sys
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+QML = os.environ.get("I18N_QML") or os.path.expanduser("~/.config/quickshell/dotshell")
+CATS = os.environ.get("I18N_DIR") or os.path.join(QML, "data", "i18n")
+RULES = os.path.join(QML, "data", "i18n.rules.json")
+SEP = "\u0004"
+
+
+def die(msg, code=2):
+    print(f"i18n: {msg}", file=sys.stderr)
+    sys.exit(code)
+
+
+def available():
+    try:
+        return sorted(f[:-5] for f in os.listdir(CATS) if f.endswith(".json"))
+    except OSError:
+        return []
+
+
+def language():
+    if os.environ.get("I18N_LANG"):
+        return os.environ["I18N_LANG"]
+    settings = os.environ.get("SETTINGS") or os.path.join(HERE, "settings")
+    try:
+        v = subprocess.run([settings, "get", "appearance.language"], capture_output=True, text=True, timeout=5).stdout.strip()
+    except (OSError, subprocess.TimeoutExpired):
+        v = ""
+    langs = available()
+    if v and v != "auto":
+        return v if v in langs or v == "en" else "en"
+    wanted = (os.environ.get("LANGUAGE") or "").split(":") + [os.environ.get(k, "") for k in ("LC_ALL", "LC_MESSAGES", "LANG")]
+    for w in wanted:
+        code = w.replace("-", "_").split("_")[0].split(".")[0].lower()
+        if code == "en":
+            return "en"
+        if code in langs:
+            return code
+    return "en"
+
+
+def load(lang):
+    if lang == "en":
+        return {}
+    try:
+        return json.load(open(os.path.join(CATS, lang + ".json")))
+    except (OSError, ValueError):
+        return {}
+
+
+def category(family, n):
+    a = abs(n)
+    if family == "other":
+        return "other"
+    if family == "french":
+        return "one" if a < 2 else "other"
+    if family == "slavic":
+        if a % 1:
+            return "other"
+        m10, m100 = a % 10, a % 100
+        if m10 == 1 and m100 != 11:
+            return "one"
+        if 2 <= m10 <= 4 and not 12 <= m100 <= 14:
+            return "few"
+        return "many"
+    return "one" if a == 1 else "other"
+
+
+def fill(s, args):
+    for i, a in enumerate(args, 1):
+        s = s.replace(f"%{i}", a)
+    return s
+
+
+# ---- Extraccion ---------------------------------------------------------------------------
+STR = r'"((?:[^"\\]|\\.)*)"'
+CALLS = [
+    (re.compile(r"\bI18n\.tr\(\s*" + STR), lambda m: m.group(1)),
+    (re.compile(r"\bI18n\.trc\(\s*" + STR + r"\s*,\s*" + STR), lambda m: m.group(1) + SEP + m.group(2)),
+    (re.compile(r"\bI18n\.trn\(\s*" + STR + r"\s*,\s*" + STR), lambda m: m.group(1)),
+    (re.compile(r"\bI18n\.date\([^,]+,\s*" + STR), lambda m: "format" + SEP + m.group(1)),
+]
+PLURAL_SRC = re.compile(r"\bI18n\.trn\(\s*" + STR + r"\s*,\s*" + STR)
+
+
+def unescape(s):
+    return s.encode().decode("unicode_escape").encode("latin-1").decode("utf-8") if "\\" in s else s
+
+
+def qml_files():
+    out = []
+    for d, _, fs in os.walk(QML):
+        out += [os.path.join(d, f) for f in fs if f.endswith(".qml")]
+    return sorted(out)
+
+
+def extract():
+    keys = {}   # clave -> {"where": [...], "plural": bool}
+    def add(k, where, plural=False):
+        e = keys.setdefault(k, {"where": [], "plural": plural})
+        e["where"].append(where)
+        e["plural"] = e["plural"] or plural
+    for f in qml_files():
+        text = open(f, errors="replace").read()
+        rel = os.path.relpath(f, QML)
+        for rx, key in CALLS:
+            for m in rx.finditer(text):
+                add(unescape(key(m)), f"{rel}:{text.count(chr(10), 0, m.start()) + 1}", rx is CALLS[2][0])
+    # El nucleo arma estas claves con variables (formatos comunes).
+    for k, p in (("%n min", True), ("%n day", True), ("%1 h %2 min", False), ("%1 h", False), ("%1 GB", False), ("%1 MB", False)):
+        add(k, "I18nCore.qml", p)
+    # Nombres de los ajustes rapidos (esquema, contexto "tile").
+    try:
+        sch = json.load(open(os.path.join(QML, "data", "settings.schema.json")))
+        for w in (sch["keys"].get("controlCenter.tiles", {}).get("widgets") or {}).values():
+            add("tile" + SEP + w["label"], "settings.schema.json:controlCenter.tiles")
+    except (OSError, ValueError, KeyError):
+        pass
+    return keys
+
+
+# ---- Comprobacion -------------------------------------------------------------------------
+PH = re.compile(r"%(\d|n)")
+DATE_PATTERN = re.compile(r"^[dMyhHmsaAPt:.,/ \\n'年月日()-]+$")
+
+
+def human(s):
+    if len(s) < 2 or s.startswith(("#", "/", "~", "qrc", "file:", "image:", "http", "%", "$", "-", ".")):
+        return False
+    if re.fullmatch(r"[a-z0-9_.:/-]+", s) or re.fullmatch(r"[A-Z0-9_ -]+", s.strip()):
+        return False
+    if re.fullmatch(r"[A-Za-z]+", s) and s[0].islower():
+        return False
+    if DATE_PATTERN.match(s):
+        return False
+    if re.search(r"[{}<>=;|\\]|\b(function|return|var|const)\b", s):
+        return False
+    return bool(re.search(r"[A-Za-zÁÉÍÓÚáéíóúñ]{2,}", s)) and (" " in s or bool(re.search(r"[áéíóúñÁÉÍÓÚ¿¡]", s)) or s[0].isupper())
+
+
+def literals(path, allow):
+    """Textos visibles fuera de I18n en un archivo convertido."""
+    out = []
+    for n, line in enumerate(open(path, errors="replace"), 1):
+        t = line.strip()
+        if t.startswith(("//", "import ", "*")):
+            continue
+        # Solo se tapan los literales que son claves (el resto de la llamada, con
+        # sus parentesis anidados, sigue y se revisa).
+        code = re.sub(r"\s//\s.*$", "", line)
+        for rx, _ in CALLS:
+            code = rx.sub("I18N(", code)
+        for s in re.findall(STR, code):
+            if human(s) and s not in allow:
+                out.append((n, s))
+    return out
+
+
+def cmd_check(quiet):
+    keys = extract()
+    fails = notes = 0
+    def fail(msg):
+        nonlocal fails
+        fails += 1
+        print("FALLO " + msg)
+    for lang in available():
+        cat = load(lang)
+        meta = cat.get("@meta") or {}
+        family = meta.get("plural", "one-other")
+        if not meta.get("name"):
+            fail(f"{lang}: falta @meta.name")
+        want = {"other": {"other"}, "slavic": {"one", "few", "many"}}.get(family, {"one", "other"})
+        for k, e in keys.items():
+            v = cat.get(k)
+            if v is None or v == "":
+                fail(f"{lang}: falta {k.replace(SEP, ' | ')!r} ({e['where'][0]})")
+                continue
+            src_ph = set(PH.findall(k.split(SEP)[-1]))
+            if e["plural"]:
+                if not isinstance(v, dict) or not want <= set(v):
+                    fail(f"{lang}: {k!r} necesita las formas {sorted(want)} (familia {family})")
+                    continue
+                forms = v.values()
+                src_ph |= {"n"}
+            else:
+                if not isinstance(v, str):
+                    fail(f"{lang}: {k!r} no es un plural, va un texto")
+                    continue
+                forms = [v]
+            for f in forms:
+                ph = set(PH.findall(f))
+                # %n puede faltar en una forma (ja "other" sin numero no pasa: igual se exige).
+                if ph != src_ph:
+                    fail(f"{lang}: {k!r}: marcadores {sorted(ph)} en vez de {sorted(src_ph)}: {f!r}")
+        for k in cat:
+            if k != "@meta" and k not in keys:
+                fail(f"{lang}: clave vieja (nadie la usa): {k.replace(SEP, ' | ')!r}")
+    # Ningun texto visible fuera de I18n en lo ya convertido.
+    try:
+        rules = json.load(open(RULES))
+    except (OSError, ValueError):
+        rules = {"converted": [], "allow": []}
+    allow = {a["text"] for a in rules.get("allow", [])}
+    for rel in rules.get("converted", []):
+        p = os.path.join(QML, rel)
+        if not os.path.exists(p):
+            fail(f"convertido que no existe: {rel}")
+            continue
+        for n, s in literals(p, allow):
+            fail(f"{rel}:{n}: texto visible fuera de I18n: {s!r}")
+    if not quiet or fails:
+        print(f"i18n check: {fails} fallos · {len(keys)} claves · {len(available())} idiomas ({', '.join(['en'] + available())})")
+    sys.exit(1 if fails else 0)
+
+
+def cmd_stats():
+    keys = extract()
+    print(f"en (fuente): {len(keys)} claves")
+    for lang in available():
+        cat = load(lang)
+        have = sum(1 for k in keys if cat.get(k) not in (None, ""))
+        print(f"{lang} ({(cat.get('@meta') or {}).get('name', '?')}): {have}/{len(keys)}")
+
+
+def main():
+    a = sys.argv[1:]
+    if not a:
+        die("uso: i18n tr|trn|lang|extract|check|stats")
+    cmd, rest = a[0], a[1:]
+    if cmd == "tr":
+        ctx = None
+        if rest[:1] == ["--ctx"]:
+            if len(rest) < 2:
+                die("--ctx necesita un contexto")
+            ctx, rest = rest[1], rest[2:]
+        if not rest:
+            die("tr: falta el texto")
+        cat = load(language())
+        key = (ctx + SEP + rest[0]) if ctx else rest[0]
+        v = cat.get(key)
+        print(fill(v if isinstance(v, str) and v else rest[0], rest[1:]))
+    elif cmd == "trn":
+        if len(rest) < 3:
+            die("trn: SINGULAR PLURAL N")
+        try:
+            n = float(rest[2])
+        except ValueError:
+            die("trn: N no es un numero")
+        lang = language()
+        cat = load(lang)
+        v = cat.get(rest[0])
+        fam = (cat.get("@meta") or {}).get("plural", "one-other")
+        if isinstance(v, dict):
+            s = v.get(category(fam, n)) or v.get("other") or rest[1]
+        else:
+            s = rest[0] if abs(n) == 1 else rest[1]
+        num = str(int(n)) if n == int(n) else str(n)
+        print(fill(s.replace("%n", num), rest[3:]))
+    elif cmd == "lang":
+        print(language())
+    elif cmd == "extract":
+        keys = extract()
+        if "--json" in rest:
+            print(json.dumps(keys, ensure_ascii=False, indent=1))
+        else:
+            for k in sorted(keys):
+                print(k.replace(SEP, " | "))
+    elif cmd == "check":
+        cmd_check("--quiet" in rest)
+    elif cmd == "stats":
+        cmd_stats()
+    else:
+        die(f"orden desconocida: {cmd}")
+
+
+main()

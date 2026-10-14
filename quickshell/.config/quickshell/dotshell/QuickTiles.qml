@@ -94,7 +94,7 @@ QtObject {
         readonly property bool available: true
         readonly property bool active: Networking.wifiEnabled
         readonly property string icon: Networking.wifiEnabled ? "wifi" : "wifi_off"
-        readonly property string status: !Networking.wifiEnabled ? "Apagado" : NetworkState.connected ? NetworkState.label : "Sin conexión"
+        readonly property string status: !Networking.wifiEnabled ? I18n.tr("Off") : NetworkState.connected ? NetworkState.label : I18n.tr("Not connected")
         function toggle(): void { root.toggleWifi(); }
     }
     property QtObject bluetooth: QtObject {
@@ -102,21 +102,21 @@ QtObject {
         readonly property bool active: root.bluetoothOn
         readonly property string icon: root.bluetoothOn ? "bluetooth" : "bluetooth_disabled"
         readonly property var connected: root.adapter ? root.adapter.devices.values.filter(d => d.connected) : []
-        readonly property string status: !root.bluetoothOn ? "Apagado" : connected.length ? connected.map(d => d.name).join(", ") : "Sin dispositivos"
+        readonly property string status: !root.bluetoothOn ? I18n.tr("Off") : connected.length ? connected.map(d => d.name).join(", ") : I18n.tr("No devices")
         function toggle(): void { root.toggleBluetooth(); }
     }
     property QtObject nightLight: QtObject {
         readonly property bool available: true
         readonly property bool active: SettingsState.value("display.nightLight.enabled") === true
         readonly property string icon: "nightlight"
-        readonly property string status: active ? "Encendida" : "Apagada"
+        readonly property string status: active ? I18n.trc("night light", "On") : I18n.trc("night light", "Off")
         function toggle(): void { SettingsState.set("display.nightLight.enabled", !active); }
     }
     property QtObject gameMode: QtObject {
         readonly property bool available: true
         readonly property bool active: root.gameModeActive
         readonly property string icon: "sports_esports"
-        readonly property string status: active ? "Activo" : "Apagado"
+        readonly property string status: active ? I18n.tr("Active") : I18n.tr("Off")
         function toggle(): void {
             root.run([root.scripts + "/game-mode.sh", "toggle"]);
             root.gameRecheck.restart();
@@ -126,7 +126,7 @@ QtObject {
         readonly property bool available: true
         readonly property bool active: false
         readonly property string icon: "lock"
-        readonly property string status: "Bloquear la pantalla"
+        readonly property string status: I18n.tr("Lock the screen")
         function toggle(): void { root.closeAnd([root.scripts + "/lock", "--user"]); }
     }
     property QtObject profile: QtObject {
@@ -141,35 +141,35 @@ QtObject {
         readonly property bool available: true
         readonly property bool active: NotificationState.doNotDisturb
         readonly property string icon: active ? "do_not_disturb_on" : "do_not_disturb_off"
-        readonly property string status: active ? "Encendido" : "Apagado"
+        readonly property string status: active ? I18n.tr("On") : I18n.tr("Off")
         function toggle(): void { NotificationState.doNotDisturb = !NotificationState.doNotDisturb; }
     }
     property QtObject idle: QtObject {
         readonly property bool available: true
         readonly property bool active: IdleState.active
         readonly property string icon: active ? "visibility" : "visibility_off"
-        readonly property string status: active ? "La pantalla no se apaga" : "Apagado"
+        readonly property string status: active ? I18n.tr("The screen stays on") : I18n.tr("Off")
         function toggle(): void { IdleState.toggle(); }
     }
     property QtObject mic: QtObject {
         readonly property bool available: !!root.source
         readonly property bool active: !!root.source && !root.micMuted
         readonly property string icon: root.micMuted ? "mic_off" : "mic"
-        readonly property string status: root.micMuted ? "Silenciado" : "Activo"
+        readonly property string status: root.micMuted ? I18n.tr("Muted") : I18n.tr("Active")
         function toggle(): void { root.toggleMic(); }
     }
     property QtObject capture: QtObject {
         readonly property bool available: true
         readonly property bool active: false
         readonly property string icon: "screenshot_region"
-        readonly property string status: "Una región"
+        readonly property string status: I18n.tr("A region")
         function toggle(): void { root.closeAnd([root.scripts + "/screenshot", "region"]); }
     }
     property QtObject record: QtObject {
         readonly property bool available: true
         readonly property bool active: CaptureState.isRecording
         readonly property string icon: active ? "stop_circle" : "radio_button_checked"
-        readonly property string status: active ? "Grabando · detener" : "Una zona"
+        readonly property string status: active ? I18n.tr("Recording · stop") : I18n.tr("An area")
         function toggle(): void {
             if (active) CaptureState.stopRecording();
             else root.closeAnd([root.scripts + "/record", "toggle", "region"]);
@@ -186,10 +186,10 @@ QtObject {
         readonly property bool available: root.hasPicker
         readonly property bool active: false
         readonly property string icon: "colorize"
-        readonly property string status: "Copiar un color"
+        readonly property string status: I18n.tr("Copy a color")
         // El color queda en el portapapeles y se avisa cual (nunca en silencio).
         function toggle(): void {
-            root.closeAnd(["sh", "-c", "c=$(hyprpicker -a -n) && [ -n \"$c\" ] && notify-send -a Color \"Color copiado\" \"$c\""]);
+            root.closeAnd(["sh", "-c", "c=$(hyprpicker -a -n) && [ -n \"$c\" ] && notify-send -a Color \"$1\" \"$c\"", "sh", I18n.tr("Color copied")]);
         }
     }
     // Modo oscuro (P5.5): encendido = el tema se ve oscuro. Tocarlo elige el
@@ -198,14 +198,15 @@ QtObject {
         readonly property bool available: true
         readonly property bool active: ThemeState.mode !== "light"
         readonly property string icon: active ? "dark_mode" : "light_mode"
-        readonly property string status: (ThemeState.modeSetting === "auto" ? "Según el fondo · " : "") + (active ? "Oscuro" : "Claro")
+        readonly property string status: ThemeState.modeSetting === "auto" ? I18n.tr("From the wallpaper · %1", active ? I18n.tr("Dark") : I18n.tr("Light"))
+            : active ? I18n.tr("Dark") : I18n.tr("Light")
         function toggle(): void { ThemeState.toggleMode(); }
     }
     property QtObject settings: QtObject {
         readonly property bool available: true
         readonly property bool active: false
         readonly property string icon: "settings"
-        readonly property string status: "Abrir"
+        readonly property string status: I18n.tr("Open")
         function toggle(): void { root.closeAnd([root.scripts + "/settings-ui"]); }
     }
 }

@@ -10,7 +10,7 @@ Item {
     id: root
     readonly property bool shown: KeyboardState.layouts.length > 1
     // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
-    readonly property string tooltip: KeyboardState.keymap + " (clic: la siguiente)"
+    readonly property string tooltip: I18n.tr("%1 (click: next)", KeyboardState.keymap)
     visible: shown
 
     implicitWidth: row.implicitWidth

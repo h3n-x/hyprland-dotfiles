@@ -17,6 +17,12 @@ ColumnLayout {
     property string key: "dashboard.home.zones"
     readonly property bool tiles: summary.key === "controlCenter.tiles"
     readonly property var widgets: (SettingsState.meta(summary.key) || {}).widgets || ({})
+    function sizeName(size: string): string {
+        const names = summary.tiles
+            ? { wide: I18n.trc("tile size", "wide"), compact: I18n.trc("tile size", "compact"), small: I18n.trc("tile size", "small"), row: I18n.trc("tile size", "row") }
+            : { wide: I18n.trc("zone size", "wide"), compact: I18n.trc("zone size", "compact"), small: I18n.trc("zone size", "small"), row: I18n.trc("zone size", "row") };
+        return names[size] || size;
+    }
     readonly property var zones: (summary.value || []).filter(z => !!summary.widgets[z.id])
     readonly property string envName: summary.tiles ? "CONTROLCENTER_EDIT_CMD" : "DASHBOARD_EDIT_CMD"
     readonly property var editCmd: Quickshell.env(summary.envName) !== null && Quickshell.env(summary.envName) !== undefined
@@ -45,8 +51,9 @@ ColumnLayout {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         // "full" (la linea y la musica, Fase 11 B5): sin tamano que elegir, solo el nombre.
-                        text: (chip.info.label || chip.modelData.id) + ((chip.info.sizes || []).length < 2 ? ""
-                            : " · " + ({ wide: summary.tiles ? "ancho" : "ancha", compact: "compacta", small: "pequeño", row: "fila" })[chip.modelData.size])
+                        // Los ajustes rapidos, traducidos (Fase 15 B1); las zonas de Inicio, en la B2.
+                        text: (summary.tiles ? I18n.trc("tile", chip.info.label || chip.modelData.id) : (chip.info.label || chip.modelData.id)) + ((chip.info.sizes || []).length < 2 ? ""
+                            : " · " + summary.sizeName(chip.modelData.size))
                         color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
@@ -56,7 +63,7 @@ ColumnLayout {
         }
         Text {
             visible: summary.zones.length === 0
-            text: summary.tiles ? "Sin ajustes rápidos: el centro de control muestra solo las notificaciones." : "Sin zonas: Inicio queda vacío."
+            text: summary.tiles ? I18n.tr("No quick settings: the control center shows only the notifications.") : I18n.tr("No zones: Home stays empty.")
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.label
@@ -64,7 +71,7 @@ ColumnLayout {
     }
     Button {
         objectName: summary.tiles ? "editTiles" : "editHome"
-        label: summary.tiles ? "Editar ajustes rápidos" : "Editar Inicio"
+        label: summary.tiles ? I18n.tr("Edit quick settings") : I18n.tr("Edit Home")
         icon: "edit"
         onClicked: if (summary.editCmd.length) Quickshell.execDetached(summary.editCmd)
     }

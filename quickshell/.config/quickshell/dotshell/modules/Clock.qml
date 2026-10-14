@@ -22,9 +22,8 @@ Item {
         precision: SystemClock.Minutes
     }
 
-    readonly property var es: Qt.locale("es_ES")
     // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
-    readonly property string tooltip: clock.date.toLocaleDateString(root.es, "dddd d 'de' MMMM 'de' yyyy")
+    readonly property string tooltip: I18n.date(clock.date, "dddd, MMMM d, yyyy")
         + (root.showWeather ? " · " + WeatherText.describe(root.cur.weather_code, root.cur.is_day === 1).text : "")
     readonly property var cur: WeatherState.current
     readonly property bool showWeather: WeatherState.configured && !!root.cur
@@ -58,7 +57,7 @@ Item {
             font.features: Tokens.tabularNumbers
             horizontalAlignment: Text.AlignHCenter
             lineHeight: 0.9
-            text: Qt.formatTime(clock.date, SettingsState.value("bar.clock.format") === "12"
+            text: clock.date.toLocaleTimeString(I18n.locale, SettingsState.value("bar.clock.format") === "12"
                 ? (Tokens.bar.vertical ? "h\nmm" : "h:mm AP") : (Tokens.bar.vertical ? "HH\nmm" : "HH:mm"))
         }
         Text {
@@ -67,7 +66,7 @@ Item {
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.body
-            text: root.es.standaloneDayName(clock.date.getDay(), Locale.ShortFormat) + " " + clock.date.getDate()
+            text: I18n.trc("weekday and day of the month", "%1 %2", I18n.dayName(clock.date.getDay(), true), clock.date.getDate())
         }
         BarFlow {
             visible: root.showWeather

@@ -226,15 +226,15 @@ AnchoredPanel {
         enabled: panel.active
         precision: SystemClock.Minutes
     }
-    readonly property var es: Qt.locale("es_ES")
+    readonly property var loc: I18n.locale
     readonly property string subtitle: {
         if (panel.detail === "system")
             return [SystemState.distro, SystemState.kernel ? "Linux " + SystemState.kernel : "",
                     DesktopState.version ? "Hyprland " + DesktopState.version : ""].filter(x => x).join(" · ");
         if (panel.detail === "today") {
             const d = clock.date;
-            let s = WeatherState.cap(panel.es.standaloneDayName(d.getDay(), Locale.LongFormat)) + ", " + d.getDate() + " de "
-                + panel.es.standaloneMonthName(d.getMonth(), Locale.LongFormat);
+            let s = WeatherState.cap(panel.loc.standaloneDayName(d.getDay(), Locale.LongFormat)) + ", " + d.getDate() + " de "
+                + panel.loc.standaloneMonthName(d.getMonth(), Locale.LongFormat);
             if (WeatherState.configured && WeatherState.fetchedAt > 0)
                 s += " · clima " + WeatherState.ago(d.getTime() / 1000 - WeatherState.fetchedAt) + " · Open-Meteo";
             return s;

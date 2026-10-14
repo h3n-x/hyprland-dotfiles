@@ -1,0 +1,43 @@
+{
+ "note": "Fase 15: archivos ya convertidos (ningun texto visible fuera de I18n; i18n check). Crece en cada lote hasta cubrir todo (B4). allow: textos que no se traducen (nombres propios, marcas), con el motivo.",
+ "converted": [
+  "I18n.qml",
+  "I18nCore.qml",
+  "PowerProfileState.qml",
+  "QuickTiles.qml",
+  "modules/ActiveWindow.qml",
+  "modules/Bar.qml",
+  "modules/BarEntry.qml",
+  "modules/Battery.qml",
+  "modules/BatteryDropdown.qml",
+  "modules/Bluetooth.qml",
+  "modules/Clock.qml",
+  "modules/ControlCenter.qml",
+  "modules/DndRow.qml",
+  "modules/IdleToggle.qml",
+  "modules/KeyboardLayout.qml",
+  "modules/LauncherButton.qml",
+  "modules/LockKeys.qml",
+  "modules/Microphone.qml",
+  "modules/Mpris.qml",
+  "modules/Network.qml",
+  "modules/NotificationBell.qml",
+  "modules/Ports.qml",
+  "modules/Power.qml",
+  "modules/Privacy.qml",
+  "modules/ProfileRow.qml",
+  "modules/RecordingPill.qml",
+  "modules/Resources.qml",
+  "modules/TileGrid.qml",
+  "modules/Tray.qml",
+  "modules/Update.qml",
+  "modules/Workspaces.qml",
+  "settings/LayoutSummary.qml"
+ ],
+ "allow": [
+  {
+   "text": "Wi-Fi",
+   "why": "nombre de la tecnologia, igual en todos los idiomas"
+  }
+ ]
+}

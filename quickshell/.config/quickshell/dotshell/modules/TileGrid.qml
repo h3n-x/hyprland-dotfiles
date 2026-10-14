@@ -23,6 +23,10 @@ Item {
 
     readonly property bool editing: ControlCenterState.editing
     readonly property var spec: (SettingsState.meta("controlCenter.tiles") || {}).widgets || ({})
+    function label(id: string): string {
+        const w = grid.spec[id];
+        return w ? I18n.trc("tile", w.label) : id;
+    }
     readonly property var stored: SettingsState.value("controlCenter.tiles") || []
     property var work: null
     function availableId(id: string): bool {
@@ -229,7 +233,7 @@ Item {
                     icon: slot.tile.icon
                     active: slot.tile.active
                     wide: slot.size === "wide"
-                    label: slot.meta.label || slot.modelData
+                    label: grid.label(slot.modelData)
                     status: slot.tile.status
                     onClicked: slot.tile.toggle()
                 }
@@ -341,7 +345,7 @@ Item {
             Text {
                 height: Tokens.control.sm
                 verticalAlignment: Text.AlignVCenter
-                text: grid.unplaced.length ? "Agregar" : "Están todos"
+                text: grid.unplaced.length ? I18n.tr("Add") : I18n.tr("All added")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
@@ -369,7 +373,7 @@ Item {
                         Icon { anchors.verticalCenter: parent.verticalCenter; name: chip.meta.icon || ""; size: Tokens.icon.sm; color: Colors.text }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: chip.meta.label || chip.modelData
+                            text: grid.label(chip.modelData)
                             color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.caption
@@ -390,14 +394,15 @@ Item {
             Layout.fillWidth: true
             Text {
                 Layout.fillWidth: true
-                text: grid.trayIndex >= 0 ? "Flechas eligen · Enter agrega · Esc vuelve" : "Arrastra · Tab elige · flechas mueven · T tamaño · Supr quita · A agrega"
+                text: grid.trayIndex >= 0 ? I18n.tr("Arrows choose · Enter adds · Esc goes back")
+                    : I18n.tr("Drag · Tab chooses · arrows move · T size · Del removes · A adds")
                 color: Colors.border
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
                 wrapMode: Text.WordWrap
             }
             Button {
-                label: "Listo"
+                label: I18n.tr("Done")
                 icon: "check"
                 main: true
                 onClicked: ControlCenterState.editing = false

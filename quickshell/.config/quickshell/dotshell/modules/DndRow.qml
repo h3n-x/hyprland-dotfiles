@@ -6,7 +6,7 @@ import ".." // Colors.qml, Tokens.qml, QuickTiles.qml
 
 RowLayout {
     Text {
-        text: "No molestar"
+        text: I18n.tr("Do not disturb")
         color: Colors.text
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.body

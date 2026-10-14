@@ -16,8 +16,9 @@ Item {
     // oculta nunca volveria a mostrarse.
     readonly property bool shown: BatteryState.present
     // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
-    readonly property string tooltip: Math.round(BatteryState.pct * 100) + " %" + (BatteryState.charging ? " · cargando" : "")
-        + (BatteryState.secondsLeft > 0 ? " · " + SystemState.duration(BatteryState.secondsLeft) + (BatteryState.charging ? " para llenarse" : " restantes") : "")
+    readonly property string tooltip: I18n.tr("%1 %", Math.round(BatteryState.pct * 100)) + (BatteryState.charging ? " · " + I18n.tr("charging") : "")
+        + (BatteryState.secondsLeft > 0 ? " · " + (BatteryState.charging ? I18n.tr("%1 to full", I18n.duration(BatteryState.secondsLeft))
+                                                                       : I18n.tr("%1 left", I18n.duration(BatteryState.secondsLeft))) : "")
     visible: shown
     implicitWidth: label.implicitWidth
     implicitHeight: label.implicitHeight
@@ -52,9 +53,9 @@ Item {
             .concat(priority ? ["-h", "string:x-dotfiles-priority:1"] : []));
     }
 
-    onIsCriticalChanged: if (root.isCritical) root.notify("Batería crítica (10 %)", "critical", "battery-010", true)
-    onIsWarningChanged: if (root.isWarning) root.notify("Batería baja (20 %)", "critical", "battery-020", true)
-    onIsFullChanged: if (root.isFull) root.notify("Batería cargada (100 %)", "normal", "battery-100-charged")
+    onIsCriticalChanged: if (root.isCritical) root.notify(I18n.tr("Battery critical (%1 %)", Math.round(BatteryState.criticalAt * 100)), "critical", "battery-010", true)
+    onIsWarningChanged: if (root.isWarning) root.notify(I18n.tr("Battery low (%1 %)", Math.round(BatteryState.warnAt * 100)), "critical", "battery-020", true)
+    onIsFullChanged: if (root.isFull) root.notify(I18n.tr("Battery charged (100 %)"), "normal", "battery-100-charged")
 
     GridLayout {
         id: label

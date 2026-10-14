@@ -78,9 +78,9 @@ Pill {
         Layout.alignment: Qt.AlignCenter
         // A un costado (Fase 11 B3) solo el tiempo o una marca: no entra la frase.
         text: Tokens.bar.vertical ? (pill.failed ? "!" : pill.saved ? "✓" : pill.result === "stopping" ? "…" : pill.clock(CaptureState.elapsed))
-            : pill.failed ? "No se pudo grabar"
-            : pill.saved ? "Guardada · " + pill.clock(Math.round(CaptureState.recordedMs / 1000))
-            : pill.result === "stopping" ? "Guardando…"
+            : pill.failed ? I18n.tr("Recording failed")
+            : pill.saved ? I18n.tr("Saved · %1", pill.clock(Math.round(CaptureState.recordedMs / 1000)))
+            : pill.result === "stopping" ? I18n.tr("Saving…")
             : pill.clock(CaptureState.elapsed)
         color: pill.failed ? Colors.textOnDangerContainer : pill.saved ? Colors.textOnSuccessContainer : Colors.text
         font.family: Tokens.font.ui

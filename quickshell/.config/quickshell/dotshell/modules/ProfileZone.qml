@@ -110,8 +110,8 @@ Item {
                 visible: root.showSystem
                 // Compacta: solo el tiempo encendido (el equipo, en la ancha).
                 text: root.wide
-                    ? root.user + (root.host ? "@" + root.host : "") + (root.uptime > 0 ? " · encendido hace " + SystemState.duration(root.uptime) : "")
-                    : root.uptime > 0 ? "Encendido hace " + SystemState.duration(root.uptime) : root.host
+                    ? root.user + (root.host ? "@" + root.host : "") + (root.uptime > 0 ? " · encendido hace " + I18n.duration(root.uptime) : "")
+                    : root.uptime > 0 ? "Encendido hace " + I18n.duration(root.uptime) : root.host
                 color: Colors.border
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label

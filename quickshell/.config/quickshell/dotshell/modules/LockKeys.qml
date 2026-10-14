@@ -8,7 +8,7 @@ Item {
     id: root
     readonly property bool shown: KeyboardState.capsLock || KeyboardState.numLock
     // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
-    readonly property string tooltip: [KeyboardState.capsLock ? "Bloq Mayús activado" : "", KeyboardState.numLock ? "Bloq Num activado" : ""].filter(x => x).join(" · ")
+    readonly property string tooltip: [KeyboardState.capsLock ? I18n.tr("Caps Lock on") : "", KeyboardState.numLock ? I18n.tr("Num Lock on") : ""].filter(x => x).join(" · ")
     visible: shown
 
     implicitWidth: row.implicitWidth

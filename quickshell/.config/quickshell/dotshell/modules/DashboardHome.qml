@@ -248,8 +248,8 @@ Item {
                     wrapMode: Text.WordWrap
                     maximumLineCount: 2
                     elide: Text.ElideRight
-                    text: WeatherState.cap(home.es.standaloneDayName(clock.date.getDay(), Locale.LongFormat)) + ", "
-                        + clock.date.getDate() + " de " + home.es.standaloneMonthName(clock.date.getMonth(), Locale.LongFormat)
+                    text: WeatherState.cap(home.loc.standaloneDayName(clock.date.getDay(), Locale.LongFormat)) + ", "
+                        + clock.date.getDate() + " de " + home.loc.standaloneMonthName(clock.date.getMonth(), Locale.LongFormat)
                     color: home.mix(Colors.text, Colors.textMuted, home.mediaP)
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.headline
@@ -448,7 +448,7 @@ Item {
         enabled: home.active
         precision: SystemClock.Minutes
     }
-    readonly property var es: Qt.locale("es_ES")
+    readonly property var loc: I18n.locale
 
     Column {
         id: col

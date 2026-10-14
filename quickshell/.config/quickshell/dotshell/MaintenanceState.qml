@@ -187,7 +187,7 @@ Item {
         "pipewire.service", "wireplumber.service", "pipewire-pulse.service", "power-profiles-daemon.service", "upower.service"]
 
     function gb(bytes: real): string {
-        return SystemState.bytes(bytes);
+        return I18n.bytes(bytes);
     }
     function plural(n: int, one: string, many: string): string {
         return n + " " + (n === 1 ? one : many);

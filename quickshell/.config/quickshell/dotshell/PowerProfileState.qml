@@ -11,9 +11,9 @@ QtObject {
     id: root
 
     readonly property var profiles: [
-        { id: "power-saver", label: "Ahorro", icon: "eco" },
-        { id: "balanced", label: "Normal", icon: "balance" },
-        { id: "performance", label: "Rendimiento", icon: "rocket_launch" }
+        { id: "power-saver", label: I18n.tr("Power saver"), icon: "eco" },
+        { id: "balanced", label: I18n.tr("Balanced"), icon: "balance" },
+        { id: "performance", label: I18n.tr("Performance"), icon: "rocket_launch" }
     ]
     property string current: "balanced"
     readonly property var info: root.profiles.find(p => p.id === root.current) || root.profiles[1]
@@ -36,7 +36,7 @@ QtObject {
         const i = root.profiles.findIndex(p => p.id === root.current);
         const next = root.profiles[(i + 1) % root.profiles.length];
         root.set(next.id);
-        Quickshell.execDetached(["notify-send", "-a", "Energía", "Perfil de energía", next.label,
+        Quickshell.execDetached(["notify-send", "-a", I18n.tr("Power"), I18n.tr("Power profile"), next.label,
             "-i", "power-profile-" + next.id, "-t", "2000"]);
     }
 

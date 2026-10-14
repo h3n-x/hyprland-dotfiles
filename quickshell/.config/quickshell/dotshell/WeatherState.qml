@@ -184,7 +184,7 @@ QtObject {
         if (h < 48) return "hace " + h + " h";
         return "hace " + Math.round(h / 24) + " días";
     }
-    readonly property var es: Qt.locale("es_ES")
+    readonly property var loc: I18n.locale
     function cap(s: string): string {
         return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
     }
@@ -193,6 +193,6 @@ QtObject {
         if (index === 0) return "Hoy";
         const p = iso.split("-");
         const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
-        return root.cap(root.es.dayName(d.getDay(), Locale.ShortFormat).replace(".", ""));
+        return root.cap(root.loc.dayName(d.getDay(), Locale.ShortFormat).replace(".", ""));
     }
 }

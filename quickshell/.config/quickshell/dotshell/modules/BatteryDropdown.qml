@@ -1,4 +1,4 @@
-// Menu de la bateria (Fase 14 B1): lo abre el clic en la pill de bateria de la
+// Menu de la bateria (Fase 14 B1; textos traducibles, Fase 15 B1): lo abre el clic en la pill de bateria de la
 // barra (antes abria el centro de control). Nivel grande, estado y tiempo
 // restante, consumo y salud si UPower los informa, el perfil de energia
 // (ProfileRow, el mismo del centro de control) y un enlace a la configuracion.
@@ -15,11 +15,12 @@ AnchoredPanel {
     padding: Tokens.pad.card
 
     readonly property int contentWidth: Tokens.panel.widthMd - 2 * Tokens.pad.card
-    readonly property string stateText: BatteryState.full ? "Cargada"
-        : BatteryState.charging ? "Cargando"
-        : BatteryState.onAc ? "Enchufada" : "Con batería"
+    readonly property string stateText: BatteryState.full ? I18n.tr("Charged")
+        : BatteryState.charging ? I18n.tr("Charging")
+        : BatteryState.onAc ? I18n.tr("Plugged in") : I18n.tr("On battery")
     readonly property string timeText: BatteryState.secondsLeft <= 0 ? ""
-        : SystemState.duration(BatteryState.secondsLeft) + (BatteryState.charging ? " para llenarse" : " restantes")
+        : BatteryState.charging ? I18n.tr("%1 to full", I18n.duration(BatteryState.secondsLeft))
+        : I18n.tr("%1 left", I18n.duration(BatteryState.secondsLeft))
     // Gravedad de la barra (LevelBar): critico = danger, aviso = warning (fijos, P8.7).
     readonly property int level: BatteryState.critical ? 2 : BatteryState.warning ? 1 : 0
 
@@ -36,7 +37,7 @@ AnchoredPanel {
             spacing: Tokens.space.md
 
             Text {
-                text: Math.round(BatteryState.pct * 100) + " %"
+                text: I18n.tr("%1 %", Math.round(BatteryState.pct * 100))
                 color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.displayLarge
@@ -86,7 +87,7 @@ AnchoredPanel {
 
             Text {
                 visible: BatteryState.watts > 0
-                text: BatteryState.charging ? "Carga" : "Consumo"
+                text: BatteryState.charging ? I18n.tr("Input power") : I18n.tr("Power draw")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
@@ -95,7 +96,7 @@ AnchoredPanel {
                 visible: BatteryState.watts > 0
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight
-                text: BatteryState.watts.toFixed(1) + " W"
+                text: I18n.tr("%1 W", I18n.number(BatteryState.watts, 1))
                 color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
@@ -103,7 +104,7 @@ AnchoredPanel {
             }
             Text {
                 visible: BatteryState.health >= 0
-                text: "Salud"
+                text: I18n.tr("Health")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
@@ -112,7 +113,7 @@ AnchoredPanel {
                 visible: BatteryState.health >= 0
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight
-                text: Math.round(BatteryState.health * 100) + " % de la capacidad original"
+                text: I18n.tr("%1 % of the original capacity", Math.round(BatteryState.health * 100))
                 color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
@@ -126,7 +127,7 @@ AnchoredPanel {
             spacing: Tokens.space.xs
             Text {
                 Layout.leftMargin: Tokens.space.xs
-                text: "Perfil de energía"
+                text: I18n.tr("Power profile")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
@@ -140,7 +141,7 @@ AnchoredPanel {
         Button {
             Layout.alignment: Qt.AlignRight
             icon: "settings"
-            label: "Configuración de energía"
+            label: I18n.tr("Power settings")
             onClicked: {
                 popup.close();
                 Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/settings-ui", "open", "system.battery.warnPct"]);

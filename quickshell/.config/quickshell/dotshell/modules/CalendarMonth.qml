@@ -10,12 +10,12 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import ".." // Colors.qml, Tokens.qml, WeatherState.qml (cap, es)
+import ".." // Colors.qml, Tokens.qml, WeatherState.qml (cap), I18n.qml (locale)
 
 Item {
     id: card
     property bool active: true
-    readonly property var es: Qt.locale("es_ES")
+    readonly property var loc: I18n.locale
     property int cell: Tokens.px(40)
 
     implicitWidth: col.implicitWidth
@@ -73,7 +73,7 @@ Item {
             spacing: Tokens.space.xs
             Text {
                 Layout.fillWidth: true
-                text: WeatherState.cap(card.es.standaloneMonthName(card.month, Locale.LongFormat)) + " " + card.year
+                text: WeatherState.cap(card.loc.standaloneMonthName(card.month, Locale.LongFormat)) + " " + card.year
                 color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.title
@@ -109,7 +109,7 @@ Item {
         }
 
         DayOfWeekRow {
-            locale: card.es
+            locale: card.loc
             Layout.preferredWidth: 7 * card.cell
             delegate: Text {
                 required property var model
@@ -124,7 +124,7 @@ Item {
 
         MonthGrid {
             id: grid
-            locale: card.es
+            locale: card.loc
             month: card.month
             year: card.year
             spacing: 0
