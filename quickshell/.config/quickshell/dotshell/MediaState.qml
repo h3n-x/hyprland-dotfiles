@@ -49,7 +49,7 @@ QtObject {
     function nameOf(player: var): string {
         if (!player) return "";
         if (player.desktopEntry && AppInfo.entry(player.desktopEntry)) return AppInfo.name(player.desktopEntry);
-        const id = player.identity || "Reproductor";
+        const id = player.identity || I18n.tr("Player");
         return id.charAt(0).toUpperCase() + id.slice(1);
     }
 

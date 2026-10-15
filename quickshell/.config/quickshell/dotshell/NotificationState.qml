@@ -96,7 +96,7 @@ QtObject {
         const s = {
             id: -1, urgency: NotificationUrgency.Normal, expireTimeout: 0, appIcon: "", appName: "", hints: ({}),
             summary: text, body: "",
-            actions: [{ text: "Ver", invoke: () => { ControlCenterState.visible = true; root.dismissToast(s); } }],
+            actions: [{ text: I18n.trc("show more", "Show"), invoke: () => { ControlCenterState.visible = true; root.dismissToast(s); } }],
             expire: () => root.dismissToast(s),
             dismiss: () => root.dismissToast(s)
         };

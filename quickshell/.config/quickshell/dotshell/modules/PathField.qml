@@ -152,7 +152,7 @@ Rectangle {
             Icon { anchors.verticalCenter: parent.verticalCenter; name: root.pick === "dir" ? "folder_open" : "image"; size: Tokens.icon.sm; color: Colors.textMuted }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Elegir…"
+                text: I18n.tr("Choose…")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label

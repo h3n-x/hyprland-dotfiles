@@ -54,7 +54,7 @@ Item {
 
     function take(): void {
         const p = s.player;
-        s.title = p ? (p.trackTitle || "Sin título") : "";
+        s.title = p ? (p.trackTitle || I18n.tr("Untitled")) : "";
         s.artist = p ? (p.trackArtist || "") : "";
         s.album = p ? (p.trackAlbum || "") : "";
         s.art = p ? (p.trackArtUrl || "") : "";

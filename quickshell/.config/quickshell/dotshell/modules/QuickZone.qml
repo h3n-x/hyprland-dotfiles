@@ -53,7 +53,7 @@ ColumnLayout {
         Quickshell.execDetached([Quickshell.env("HOME") + "/.config/hypr/scripts/settings-ui", "open", key]);
     }
     function folderName(p: string): string {
-        if (p === root.home) return "Carpeta personal";
+        if (p === root.home) return I18n.tr("Home folder");
         const parts = p.replace(/\/+$/, "").split("/");
         return parts[parts.length - 1] || p;
     }
@@ -69,7 +69,7 @@ ColumnLayout {
 
     ZoneTitle {
         Layout.fillWidth: true
-        text: "Accesos rápidos"
+        text: I18n.tr("Quick access")
         // El nombre de la app bajo el raton (sin ventana emergente).
         detail: root.hoveredName
     }
@@ -119,7 +119,7 @@ ColumnLayout {
                 Text {
                     visible: !root.apps.length
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "Fijar aplicaciones"
+                    text: I18n.tr("Pin applications")
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label

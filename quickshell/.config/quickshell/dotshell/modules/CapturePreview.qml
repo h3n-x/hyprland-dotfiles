@@ -339,7 +339,7 @@ Scope {
                         Layout.fillWidth: true
                         Layout.leftMargin: Tokens.space.xs
                         text: card.status !== "" ? card.statusText
-                            : card.trashed ? "Movida a la papelera"
+                            : card.trashed ? I18n.tr("Moved to the trash")
                             : card.hint !== "" ? card.hint
                             : card.details
                         color: meta.accent ? Colors.accent : Colors.textMuted
@@ -358,7 +358,7 @@ Scope {
                         Rectangle {
                             id: mainBtn
                             readonly property string icon: card.trashed ? "undo" : thumb.video ? "play_arrow" : "edit"
-                            readonly property string label: card.trashed ? "Deshacer" : thumb.video ? "Reproducir" : "Anotar"
+                            readonly property string label: card.trashed ? I18n.tr("Undo") : thumb.video ? I18n.tr("Play") : I18n.tr("Annotate")
                             implicitHeight: Tokens.px(36)
                             implicitWidth: mainRow.implicitWidth + Tokens.px(28)
                             radius: Tokens.radius.pill(height)
@@ -404,11 +404,11 @@ Scope {
 
                         Repeater {
                             model: [
-                                { id: "copy", icon: "content_copy", hint: thumb.video ? "Copiar el archivo" : "Copiar la imagen otra vez" },
-                                { id: "path", icon: "link", hint: "Copiar la ruta del archivo" },
-                                { id: "open", icon: "open_in_new", hint: "Abrir con la aplicación predeterminada" },
-                                { id: "folder", icon: "folder_open", hint: "Mostrar en la carpeta" },
-                                { id: "trash", icon: "delete", hint: "Mover a la papelera" }
+                                { id: "copy", icon: "content_copy", hint: thumb.video ? I18n.tr("Copy the file") : I18n.tr("Copy the image again") },
+                                { id: "path", icon: "link", hint: I18n.tr("Copy the file path") },
+                                { id: "open", icon: "open_in_new", hint: I18n.tr("Open with the default application") },
+                                { id: "folder", icon: "folder_open", hint: I18n.tr("Show in the folder") },
+                                { id: "trash", icon: "delete", hint: I18n.tr("Move to the trash") }
                             ]
 
                             Rectangle {
@@ -477,8 +477,8 @@ Scope {
                     }
                 }
 
-                readonly property string statusText: card.status === "copied:copy" ? (thumb.video ? "Archivo copiado" : "Imagen copiada otra vez")
-                    : card.status === "copied:path" ? "Ruta copiada" : ""
+                readonly property string statusText: card.status === "copied:copy" ? (thumb.video ? I18n.tr("File copied") : I18n.tr("Image copied again"))
+                                : card.status === "copied:path" ? I18n.tr("Path copied") : ""
 
                 // "800 × 400 · 312 kB · 08:41"
                 readonly property string details: {
@@ -488,8 +488,8 @@ Scope {
                     const h = c.video ? c.h : thumb.imageSize.height;
                     const parts = [];
                     if (w > 0 && h > 0) parts.push(w + " × " + h);
-                    if (c.bytes > 0) parts.push(c.bytes < 1e6 ? Math.max(1, Math.round(c.bytes / 1000)) + " kB" : (c.bytes / 1e6).toFixed(1).replace(".", ",") + " MB");
-                    parts.push(Qt.formatTime(new Date(c.time), "HH:mm"));
+                    if (c.bytes > 0) parts.push(c.bytes < 1e6 ? I18n.tr("%1 kB", Math.max(1, Math.round(c.bytes / 1000))) : I18n.tr("%1 MB", I18n.number(c.bytes / 1e6, 1)));
+                    parts.push(I18n.date(new Date(c.time), "HH:mm"));
                     return parts.join("  ·  ");
                 }
             }

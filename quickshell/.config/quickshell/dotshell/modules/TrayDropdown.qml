@@ -58,7 +58,7 @@ AnchoredPanel {
             }
 
             Text {
-                text: popup.currentItem ? (popup.currentItem.title || popup.currentItem.id || "Aplicación") : ""
+                text: popup.currentItem ? (popup.currentItem.title || popup.currentItem.id || I18n.tr("Application")) : ""
                 color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.title
@@ -93,7 +93,7 @@ AnchoredPanel {
                 Icon { name: "open_in_new"; color: Colors.text }
 
                 Text {
-                    text: "Abrir ventana"
+                    text: I18n.tr("Open window")
                     color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
@@ -130,7 +130,7 @@ AnchoredPanel {
                 Icon { name: "stop_circle"; color: Colors.danger }
 
                 Text {
-                    text: "Detener aplicación"
+                    text: I18n.tr("Stop application")
                     color: Colors.danger
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
@@ -172,7 +172,7 @@ AnchoredPanel {
                 Icon { name: "menu"; color: Colors.text }
 
                 Text {
-                    text: "Menú contextual nativo"
+                    text: I18n.tr("Native context menu")
                     color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body

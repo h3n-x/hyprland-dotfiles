@@ -10,7 +10,7 @@ Column {
 
     property var families: []
     property string current: ""
-    property string sample: "Aa Bb 0123 ¿Qué tal?"
+    property string sample: I18n.tr("Aa Bb 0123 How are you?")
     signal chosen(string family)
     signal closed
 
@@ -26,7 +26,7 @@ Column {
         id: search
         width: parent.width
         size: "regular"
-        placeholder: root.families.length ? "Buscar entre " + root.families.length + " fuentes" : "Buscando fuentes…"
+        placeholder: root.families.length ? I18n.trn("Search %n font", "Search %n fonts", root.families.length) : I18n.tr("Looking for fonts…")
         keyHandler: (event) => {
             if (event.key === Qt.Key_Escape) { root.closed(); return true; }
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
@@ -109,7 +109,7 @@ Column {
     }
     Text {
         visible: root.families.length > 0 && root.shown.length === 0
-        text: "Ninguna fuente instalada coincide."
+        text: I18n.tr("No installed font matches.")
         color: Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label

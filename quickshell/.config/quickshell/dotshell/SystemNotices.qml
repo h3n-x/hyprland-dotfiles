@@ -25,7 +25,7 @@ QtObject {
         target: KeyboardState
         function onCapsLockChanged() {
             if (KeyboardState.ready && root.on("capsLock"))
-                OsdState.show("keyboard_capslock", -1, KeyboardState.capsLock ? "Bloq Mayús activado" : "Bloq Mayús desactivado");
+                OsdState.show("keyboard_capslock", -1, KeyboardState.capsLock ? I18n.tr("Caps Lock on") : I18n.tr("Caps Lock off"));
         }
         function onLayoutChanged(name) {
             if (root.on("layout") && name) OsdState.show("keyboard", -1, name);
@@ -40,7 +40,7 @@ QtObject {
         function onOnAcChanged() {
             if (root.started && BatteryState.present && BatteryState.onAc !== root.lastAc && root.on("charger"))
                 OsdState.show(BatteryState.onAc ? "power" : "battery_android_full", -1,
-                    BatteryState.onAc ? "Cargador conectado" : "Funcionando con batería");
+                    BatteryState.onAc ? I18n.tr("Charger connected") : I18n.tr("Running on battery"));
             root.lastAc = BatteryState.onAc;
         }
     }

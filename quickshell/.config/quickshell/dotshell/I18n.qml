@@ -34,15 +34,21 @@ I18nCore {
     }
     lang: root.resolve()
 
+    // Sincronico, como el esquema de SettingsState: el primer cuadro ya sale en el
+    // idioma elegido. Se lee al cambiar la ruta, el texto (otro catalogo en disco) y
+    // al crearse (la primera carga ocurre antes de que onLoaded este conectado).
+    function parse(): void {
+        try { root.catalog = root.file.path ? JSON.parse(root.file.text()) : null; } catch (e) { root.catalog = null; }
+    }
+    Component.onCompleted: root.parse()
     property FileView file: FileView {
         path: root.lang === "en" ? "" : root.dir + "/" + root.lang + ".json"
+        blockLoading: true
         watchChanges: true
-        onFileChanged: reload()
         printErrors: false
-        onLoaded: {
-            try { root.catalog = JSON.parse(this.text()); } catch (e) { root.catalog = null; }
-        }
+        onFileChanged: reload()
+        onTextChanged: root.parse()
+        onPathChanged: root.parse()
         onLoadFailed: root.catalog = null
-        onPathChanged: if (path === "") root.catalog = null
     }
 }

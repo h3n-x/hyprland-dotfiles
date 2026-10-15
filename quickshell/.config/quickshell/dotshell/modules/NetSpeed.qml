@@ -8,7 +8,7 @@ Item {
     id: root
     readonly property bool shown: true
     visible: shown
-    readonly property string tooltip: "Bajada " + SystemState.rate(SystemState.rxRate) + " · subida " + SystemState.rate(SystemState.txRate)
+    readonly property string tooltip: I18n.tr("Down %1 · up %2", SystemState.rate(SystemState.rxRate), SystemState.rate(SystemState.txRate))
 
     Subscription { demand: SystemState.net; active: true }
     // A un costado (Fase 11 B3) no entra "999 kB/s": "73k", "1,2M".
@@ -17,7 +17,7 @@ Item {
         if (bps >= 1024) return Math.round(bps / 1024) + "k";
         return Math.round(bps) + "";
     }
-    TextMetrics { id: wide; text: "999 kB/s"; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.features: { "tnum": 1 } }
+    TextMetrics { id: wide; text: I18n.tr("%1 kB/s", "999"); font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.features: { "tnum": 1 } }
 
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight

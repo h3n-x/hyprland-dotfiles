@@ -85,10 +85,10 @@ QtObject {
             }
             if (!d || typeof d !== "object" || typeof d.version !== "number") {
                 Quickshell.execDetached(["cp", "-f", sf.path, sf.path + ".bad"]);
-                sf.problem = "No se pudo leer " + sf.name + "; quedó guardado como " + sf.name + ".bad.";
+                sf.problem = I18n.tr("Couldn't read %1; it was saved as %1.bad.", sf.name);
                 sf.data = null;
             } else if (d.version > sf.version) {
-                sf.problem = sf.name + " es de una versión más nueva: solo lectura.";
+                sf.problem = I18n.tr("%1 is from a newer version: read only.", sf.name);
                 sf.readOnly = true;
                 sf.data = d;
             } else {
@@ -100,7 +100,7 @@ QtObject {
         onLoadFailed: (error) => {
             // Sin archivo todavia: se crea al primer cambio.
             sf.data = null;
-            sf.problem = error === FileViewError.FileNotFound ? "" : "No se pudo leer " + sf.name + ".";
+            sf.problem = error === FileViewError.FileNotFound ? "" : I18n.tr("Couldn't read %1.", sf.name);
             sf.readOnly = error !== FileViewError.FileNotFound;
             sf.loaded = true;
         }

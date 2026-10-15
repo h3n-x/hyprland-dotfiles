@@ -60,7 +60,7 @@ ColumnLayout {
         objectName: "weatherSearch"
         Layout.fillWidth: true
         size: "regular"
-        placeholder: "Buscar ciudad…"
+        placeholder: I18n.tr("Search a city…")
         onTextChanged: searchDelay.restart()
         keyHandler: (event) => {
             if (event.key === Qt.Key_Return) {
@@ -78,7 +78,7 @@ ColumnLayout {
     Text {
         visible: root.searching || root.failed || (field.text.trim().length >= 2 && !root.searching && root.results.length === 0)
         Layout.fillWidth: true
-        text: root.searching ? "Buscando…" : root.failed ? "No se pudo buscar (¿sin conexión?)" : "Sin resultados"
+        text: root.searching ? I18n.tr("Searching…") : root.failed ? I18n.tr("Couldn't search (offline?)") : I18n.tr("No results")
         color: Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.caption

@@ -150,15 +150,12 @@ Item {
     Text {
         visible: !root.enough && root.mode !== "strip"
         anchors.centerIn: parent
-        text: "Midiendo…"
+        text: I18n.tr("Measuring…")
         color: Colors.border
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.caption
     }
 
-    function ago(ms: real): string {
-        return ms < 5000 ? "ahora" : ms < 60000 ? "hace " + Math.round(ms / 1000) + " s" : "hace " + Math.round(ms / 60000) + " min";
-    }
     // Al pasar el raton: una regla y el valor de esa muestra ("38 % · hace 1 min").
     HoverHandler { id: hover }
     readonly property var picked: {
@@ -180,7 +177,7 @@ Item {
         visible: !!root.picked
         anchors.top: parent.top
         anchors.right: parent.right
-        text: root.picked ? root.format(root.picked.v) + " · " + root.ago(root.last - root.picked.t) : ""
+        text: root.picked ? root.format(root.picked.v) + " · " + I18n.ago((root.last - root.picked.t) / 1000, true) : ""
         color: Colors.text
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.caption

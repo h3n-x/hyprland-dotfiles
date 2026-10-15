@@ -161,9 +161,9 @@ ColumnLayout {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: cell.special ? "Especial" + (cell.main ? " · " + AppInfo.name(cell.main.cls) : "")
-                            : cell.main ? AppInfo.name(cell.main.cls) + (cell.wins.length > 1 ? " y " + (cell.wins.length - 1) + " más" : "")
-                            : "Vacío"
+                        text: cell.special ? I18n.tr("Special") + (cell.main ? " · " + AppInfo.name(cell.main.cls) : "")
+                                                : cell.main ? (cell.wins.length > 1 ? I18n.tr("%1 and %2 more", AppInfo.name(cell.main.cls), cell.wins.length - 1) : AppInfo.name(cell.main.cls))
+                                                : I18n.trc("workspace", "Empty")
                         color: cell.main ? Colors.text : Colors.border
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
@@ -208,7 +208,7 @@ ColumnLayout {
         Layout.topMargin: Tokens.space.xs
         spacing: Tokens.space.sm
         Text {
-            text: view.empties.length === 1 ? "Vacío" : "Vacíos"
+            text: view.empties.length === 1 ? I18n.trc("workspace", "Empty") : I18n.trc("workspaces", "Empty")
             color: Colors.border
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.label

@@ -24,7 +24,7 @@ QtObject {
             onStreamFinished: {
                 try {
                     for (const c of JSON.parse(this.text) || [])
-                        OsdState.show("monitor", -1, "Pantalla a " + c.hz + " Hz" + (c.battery ? " (batería)" : ""));
+                        OsdState.show("monitor", -1, c.battery ? I18n.tr("Screen at %1 Hz (battery)", c.hz) : I18n.tr("Screen at %1 Hz", c.hz));
                 } catch (e) {}
             }
         }

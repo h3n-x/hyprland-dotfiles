@@ -83,7 +83,7 @@ ColumnLayout {
                 Icon { name: "check"; size: Tokens.icon.sm; color: Colors.textOnAccentAltContainer }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "Actual"
+                    text: I18n.tr("Current")
                     color: Colors.textOnAccentAltContainer
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption
@@ -97,7 +97,7 @@ ColumnLayout {
     Text {
         visible: root.appliedAgo !== ""
         Layout.topMargin: -Tokens.space.sm
-        text: "Aplicado " + root.appliedAgo
+        text: I18n.tr("Applied %1", root.appliedAgo)
         color: Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.caption
@@ -199,8 +199,8 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Tokens.space.sm
         Repeater {
-            model: [["primary", "Primario"], ["secondary", "Secundario"], ["tertiary", "Terciario"],
-                    ["primary_container", "Contenedor"], ["surface_container", "Superficie"]]
+            model: [["primary", I18n.trc("palette role", "Primary")], ["secondary", I18n.trc("palette role", "Secondary")], ["tertiary", I18n.trc("palette role", "Tertiary")],
+                                    ["primary_container", I18n.trc("palette role", "Container")], ["surface_container", I18n.trc("palette role", "Surface")]]
             ColumnLayout {
                 required property var modelData
                 Layout.fillWidth: true
@@ -315,7 +315,7 @@ ColumnLayout {
                 anchors.left: parent.left
                 anchors.leftMargin: Tokens.space.md
                 anchors.verticalCenter: parent.verticalCenter
-                text: "+ etiqueta  (T)"
+                text: I18n.tr("+ tag  (T)")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
@@ -389,7 +389,7 @@ ColumnLayout {
                     anchors.verticalCenter: parent.verticalCenter
                     width: Math.min(implicitWidth, undoBtn.width - Tokens.space.md * 2 - undoIcon.width - Tokens.space.xs)
                     elide: Text.ElideMiddle
-                    text: root.canUndo ? root.undoTarget.replace(/\.[^.]+$/, "") : "Deshacer"
+                    text: root.canUndo ? root.undoTarget.replace(/\.[^.]+$/, "") : I18n.tr("Undo")
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label
@@ -438,7 +438,7 @@ ColumnLayout {
                 Icon { name: "wallpaper"; filled: true; color: Colors.textOnAccent }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "Aplicar"
+                    text: I18n.tr("Apply")
                     color: Colors.textOnAccent
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body

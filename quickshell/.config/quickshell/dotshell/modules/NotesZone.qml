@@ -47,9 +47,9 @@ ColumnLayout {
     ZoneTitle {
         id: title
         Layout.fillWidth: true
-        text: "Notas"
+        text: I18n.tr("Notes")
         detail: NotesState.problem ? "· " + NotesState.problem
-            : NotesState.saving ? "· guardando…" : area.length && NotesState.updated ? "· guardado" : ""
+            : NotesState.saving ? "· " + I18n.tr("saving…") : area.length && NotesState.updated ? "· " + I18n.tr("saved") : ""
     }
     Flickable {
         id: flick
@@ -88,7 +88,7 @@ ColumnLayout {
             }
             Text {
                 visible: !area.length && !area.activeFocus
-                text: "Escribe algo…"
+                text: I18n.tr("Write something…")
                 color: Colors.border
                 font: area.font
             }

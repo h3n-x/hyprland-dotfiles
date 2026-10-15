@@ -11,7 +11,7 @@ Item {
     readonly property bool shown: !!root.run
     readonly property string value: !root.run ? "" : root.run.left !== undefined ? TimerState.short(root.run.left) : TimerState.short(root.run.elapsed)
     // Texto de la informacion al pasar el raton (bar.tooltips).
-    readonly property string tooltip: root.run ? root.run.label + " · " + root.value + " · clic pausa" : ""
+    readonly property string tooltip: root.run ? root.run.label + " · " + root.value + " · " + I18n.tr("click pauses") : ""
     visible: shown
 
     Subscription { demand: TimerState.minutes; active: root.shown }

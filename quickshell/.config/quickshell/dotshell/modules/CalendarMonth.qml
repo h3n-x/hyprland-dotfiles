@@ -94,7 +94,7 @@ Item {
                     anchors.centerIn: parent
                     spacing: Tokens.space.xs
                     Icon { anchors.verticalCenter: parent.verticalCenter; name: "today"; size: Tokens.icon.sm; color: Colors.textMuted }
-                    Text { anchors.verticalCenter: parent.verticalCenter; text: "Hoy"; color: Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label }
+                    Text { anchors.verticalCenter: parent.verticalCenter; text: I18n.trc("day", "Today"); color: Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label }
                 }
                 MouseArea {
                     id: todayMouse

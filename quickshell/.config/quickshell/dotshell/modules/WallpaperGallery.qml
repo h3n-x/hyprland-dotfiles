@@ -178,14 +178,9 @@ PanelWindow {
         triggeredOnStart: true
         onTriggered: window.now = Date.now()
     }
+    // "hace..." del idioma elegido (I18n.ago, el mismo de toda la shell).
     function ago(iso: string): string {
-        if (!iso) return "";
-        const s = Math.max(0, (window.now - Date.parse(iso)) / 1000);
-        if (s < 60) return "hace unos segundos";
-        if (s < 3600) return "hace " + Math.floor(s / 60) + " min";
-        if (s < 86400) return "hace " + Math.floor(s / 3600) + " h";
-        const d = Math.floor(s / 86400);
-        return d === 1 ? "hace 1 dia" : "hace " + d + " dias";
+        return iso ? I18n.ago((window.now - Date.parse(iso)) / 1000) : "";
     }
 
     function setTag(op: string, tag: string): void {
@@ -289,7 +284,7 @@ PanelWindow {
                         id: searchField
                         Layout.fillWidth: true
                         size: "regular"
-                        placeholder: "Buscar por nombre o etiqueta  ( / )"
+                        placeholder: I18n.tr("Search by name or tag  ( / )")
                         onTextChanged: {
                             window.query = searchField.text;
                             if (searchField.hasFocus) window.jumpPending = false;
@@ -311,7 +306,7 @@ PanelWindow {
                     // Filtros: Favoritos y Recientes son interruptores independientes
                     // (se combinan); Todos los apaga a ambos.
                     Repeater {
-                        model: [["Todos", "all", ""], ["Favoritos", "fav", "favorite"], ["Recientes", "recent", "history"]]
+                        model: [[I18n.trc("wallpapers", "All"), "all", ""], [I18n.tr("Favorites"), "fav", "favorite"], [I18n.trc("wallpapers", "Recent"), "recent", "history"]]
                         Rectangle {
                             id: chip
                             required property var modelData
@@ -395,7 +390,7 @@ PanelWindow {
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "Tema global"
+                                text: I18n.tr("Global theme")
                                 color: Colors.textMuted
                                 font.family: Tokens.font.ui
                                 font.pixelSize: Tokens.type.label
@@ -543,7 +538,7 @@ PanelWindow {
                                     Icon { name: "check"; size: Tokens.icon.sm; color: Colors.textOnAccent }
                                     Text {
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: "Actual"
+                                        text: I18n.tr("Current")
                                         color: Colors.textOnAccent
                                         font.family: Tokens.font.ui
                                         font.pixelSize: Tokens.type.caption
@@ -591,9 +586,9 @@ PanelWindow {
                     Text {
                         visible: window.filtered.length === 0
                         anchors.centerIn: parent
-                        text: window.query || window.activeTag ? "Sin resultados"
-                            : window.onlyRecent && window.recentNames.length === 0 ? "Todavia no hay historial"
-                            : window.onlyFavorites ? "Todavia no hay favoritos (F para marcar)" : "Sin resultados"
+                        text: window.query || window.activeTag ? I18n.tr("No results")
+                            : window.onlyRecent && window.recentNames.length === 0 ? I18n.tr("No history yet")
+                            : window.onlyFavorites ? I18n.tr("No favorites yet (F to mark one)") : I18n.tr("No results")
                         color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
@@ -602,7 +597,8 @@ PanelWindow {
 
                 Text {
                     Layout.fillWidth: true
-                    text: window.filtered.length + " de " + window.names.length + " wallpapers   ·   ↑↓←→ mover   ⏎ aplicar   espacio vista previa   F favorito   T etiqueta   / buscar   esc cerrar"
+                    text: I18n.tr("%1 of %2 wallpapers", window.filtered.length, window.names.length) + "   ·   "
+                    + I18n.tr("↑↓←→ move   ⏎ apply   space preview   F favorite   T tag   / search   esc close")
                     elide: Text.ElideRight
                     color: Colors.textMuted
                     font.family: Tokens.font.ui

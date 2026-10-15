@@ -37,7 +37,7 @@ DashZone {
                 visible: zone.group.mode
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight
-                text: "un modo"
+                text: I18n.tr("a mode")
                 size: Tokens.type.caption
                 color: Colors.border
             }

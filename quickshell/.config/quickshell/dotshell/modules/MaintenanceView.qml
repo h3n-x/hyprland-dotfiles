@@ -159,7 +159,7 @@ ColumnLayout {
                     }
                     T {
                         visible: !!row.item.packages && row.item.packages.length > 30
-                        text: row.item.packages ? "y " + (row.item.packages.length - 30) + " más" : ""
+                        text: row.item.packages ? I18n.tr("and %1 more", row.item.packages.length - 30) : ""
                         size: Tokens.type.caption
                         color: Colors.border
                     }
@@ -180,9 +180,9 @@ ColumnLayout {
                             T { Layout.fillWidth: true; text: unitRow.modelData.description + (unitRow.modelData.lastLog ? " — " + unitRow.modelData.lastLog : "")
                                 size: Tokens.type.caption; color: Colors.border; maximumLineCount: 2 }
                         }
-                        Button { label: "Ver registro"; icon: "article"
+                        Button { label: I18n.tr("View log"); icon: "article"
                             onClicked: MaintenanceState.act("unit-log", unitRow.modelData.name, unitRow.modelData.scope === "user" ? "user" : "") }
-                        Button { label: "Ocultar"; icon: "visibility_off"; onClicked: MaintenanceState.ignoreUnit(unitRow.modelData.name) }
+                        Button { label: I18n.tr("Hide"); icon: "visibility_off"; onClicked: MaintenanceState.ignoreUnit(unitRow.modelData.name) }
                     }
                 }
 
@@ -194,9 +194,9 @@ ColumnLayout {
                         required property var modelData
                         Layout.fillWidth: true
                         T { Layout.fillWidth: true; text: srcRow.modelData.exe; font.family: Tokens.font.mono; size: Tokens.type.label; wrapMode: Text.NoWrap }
-                        T { text: "desde el " + Qt.formatDate(new Date(srcRow.modelData.first * 1000), "dd/MM"); size: Tokens.type.caption; color: Colors.border }
+                        T { text: I18n.tr("since %1", I18n.date(new Date(srcRow.modelData.first * 1000), "MM/dd")); size: Tokens.type.caption; color: Colors.border }
                         T { Layout.preferredWidth: Tokens.px(96); horizontalAlignment: Text.AlignRight; size: Tokens.type.label; wt: Tokens.weight.medium
-                            text: MaintenanceState.plural(srcRow.modelData.stored, "volcado", "volcados") }
+                            text: I18n.trn("%n dump", "%n dumps", srcRow.modelData.stored) }
                     }
                 }
 
@@ -229,7 +229,7 @@ ColumnLayout {
                 Button {
                     visible: !!row.plan
                     main: true
-                    label: "Abrir en la terminal"
+                    label: I18n.tr("Open in the terminal")
                     icon: "terminal"
                     onClicked: view.run(row.item)
                 }
@@ -278,18 +278,18 @@ ColumnLayout {
         }
         Button {
             Layout.alignment: Qt.AlignTop
-            label: MaintenanceState.checking ? "Revisando…" : "Revisar"
+            label: MaintenanceState.checking ? I18n.tr("Checking…") : I18n.tr("Check")
             icon: "refresh"
             onClicked: MaintenanceState.refresh(true)
         }
     }
 
-    SectionTitle { visible: MaintenanceState.attention.length > 0; text: "Requiere atención" }
+    SectionTitle { visible: MaintenanceState.attention.length > 0; text: I18n.tr("Needs attention") }
     Repeater {
         model: MaintenanceState.attention
         Row_ {}
     }
-    SectionTitle { visible: MaintenanceState.recommended.length > 0; text: "Recomendado" }
+    SectionTitle { visible: MaintenanceState.recommended.length > 0; text: I18n.tr("Recommended") }
     Repeater {
         model: MaintenanceState.recommended
         Row_ {}
@@ -322,7 +322,7 @@ ColumnLayout {
                 T { Layout.fillWidth: true; text: infoRow.modelData.sentence; size: Tokens.type.label; color: Colors.border }
                 T {
                     visible: !!infoRow.modelData.units
-                    text: infoRow.open_ ? "Menos" : "Ver"
+                    text: infoRow.open_ ? I18n.tr("Less") : I18n.trc("show more", "Show")
                     size: Tokens.type.label
                     wt: Tokens.weight.semibold
                     color: Colors.accent
@@ -338,9 +338,9 @@ ColumnLayout {
                     Layout.leftMargin: Tokens.px(24)
                     Layout.fillWidth: true
                     T { Layout.fillWidth: true; text: infoUnit.modelData.name; font.family: Tokens.font.mono; size: Tokens.type.caption; color: Colors.textMuted; wrapMode: Text.NoWrap }
-                    Button { label: "Ver registro"; icon: "article"
+                    Button { label: I18n.tr("View log"); icon: "article"
                         onClicked: MaintenanceState.act("unit-log", infoUnit.modelData.name, infoUnit.modelData.scope === "user" ? "user" : "") }
-                    Button { label: "Ocultar"; icon: "visibility_off"; onClicked: MaintenanceState.ignoreUnit(infoUnit.modelData.name) }
+                    Button { label: I18n.tr("Hide"); icon: "visibility_off"; onClicked: MaintenanceState.ignoreUnit(infoUnit.modelData.name) }
                 }
             }
         }
@@ -353,9 +353,9 @@ ColumnLayout {
         spacing: Tokens.space.sm
         Icon { name: "visibility_off"; size: Tokens.icon.sm; color: Colors.border }
         T { Layout.fillWidth: true; size: Tokens.type.label; color: Colors.border
-            text: "Ocultaste " + MaintenanceState.plural(MaintenanceState.ignoredUnits.length, "servicio", "servicios") + "." }
+            text: I18n.trn("You hid %n service.", "You hid %n services.", MaintenanceState.ignoredUnits.length) }
         T {
-            text: "Mostrar"
+            text: I18n.tr("Show hidden")
             size: Tokens.type.label
             wt: Tokens.weight.semibold
             color: Colors.accent

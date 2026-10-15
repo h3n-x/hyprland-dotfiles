@@ -29,12 +29,12 @@ QtObject {
     // Todas, en su orden; nombre e icono de cada una.
     readonly property var all: ["home", "music", "today", "system", "workspaces", "maintenance"]
     readonly property var meta: ({
-        home: { label: "Inicio", icon: "home" },
-        music: { label: "Música", icon: "queue_music" },
-        today: { label: "Hoy", icon: "today" },
-        system: { label: "Sistema", icon: "monitor_heart" },
-        workspaces: { label: "Escritorios", icon: "space_dashboard" },
-        maintenance: { label: "Mantenimiento", icon: "build" }
+        home: { label: I18n.trc("dashboard tab", "Home"), icon: "home" },
+        music: { label: I18n.trc("dashboard tab", "Music"), icon: "queue_music" },
+        today: { label: I18n.trc("dashboard tab", "Today"), icon: "today" },
+        system: { label: I18n.trc("dashboard tab", "System"), icon: "monitor_heart" },
+        workspaces: { label: I18n.trc("dashboard tab", "Workspaces"), icon: "space_dashboard" },
+        maintenance: { label: I18n.trc("dashboard tab", "Maintenance"), icon: "build" }
     })
     readonly property var chosen: SettingsState.value("dashboard.tabs") || ["music", "system", "workspaces"]
     // Las de la barra: Inicio, las elegidas y la que se ve (si no esta elegida).

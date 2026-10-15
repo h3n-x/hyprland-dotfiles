@@ -115,19 +115,19 @@ OverlayWindow {
                         Layout.fillWidth: true
                         spacing: Tokens.space.md
                         Icon { name: "keyboard"; size: Tokens.icon.lg; color: Colors.accent }
-                        T { text: "Atajos"; size: Tokens.type.headline; wt: Tokens.weight.semibold }
+                        T { text: I18n.tr("Shortcuts"); size: Tokens.type.headline; wt: Tokens.weight.semibold }
                         T {
                             Layout.fillWidth: true
                             size: Tokens.type.label
                             color: Colors.border
-                            text: !KeybindState.data ? "Leyendo los atajos de Hyprland…"
-                                : KeybindState.query ? (KeybindState.shownCount === 1 ? "1 resultado" : KeybindState.shownCount + " resultados")
-                                : KeybindState.total + " atajos · leídos de Hyprland al abrir"
+                            text: !KeybindState.data ? I18n.tr("Reading the Hyprland shortcuts…")
+                                : KeybindState.query ? I18n.trn("%n result", "%n results", KeybindState.shownCount)
+                                : I18n.trn("%n shortcut · read from Hyprland when opening", "%n shortcuts · read from Hyprland when opening", KeybindState.total)
                         }
                         SearchField {
                             id: search
                             Layout.preferredWidth: Tokens.px(320)
-                            placeholder: "Buscar un atajo…"
+                            placeholder: I18n.tr("Search a shortcut…")
                             keyHandler: (event) => content.handleKey(event)
                             onTextChanged: KeybindState.query = search.text
                         }
@@ -188,12 +188,12 @@ OverlayWindow {
                     T {
                         visible: !!KeybindState.data && KeybindState.shownCount === 0
                         Layout.alignment: Qt.AlignHCenter
-                        text: "Ningún atajo coincide con «" + KeybindState.query + "»"
+                        text: I18n.tr("No shortcut matches “%1”", KeybindState.query)
                         color: Colors.textMuted
                     }
                     T {
                         Layout.alignment: Qt.AlignHCenter
-                        text: "Escribe para buscar · Esc cierra · las descripciones salen de binds.lua"
+                        text: I18n.tr("Type to search · Esc closes · the descriptions come from binds.lua")
                         size: Tokens.type.caption
                         color: Colors.border
                     }

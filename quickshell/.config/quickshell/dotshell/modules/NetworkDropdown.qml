@@ -128,7 +128,7 @@ AnchoredPanel {
 
                 Icon { name: "lan"; filled: true; color: Colors.textOnAccentAltContainer }
                 Text {
-                    text: "Ethernet conectado"
+                    text: I18n.tr("Ethernet connected")
                     color: Colors.textOnAccentAltContainer
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
@@ -247,7 +247,7 @@ AnchoredPanel {
                         anchors.left: parent.left
                         anchors.leftMargin: Tokens.space.md
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "Contraseña, Enter para conectar"
+                        text: I18n.tr("Password, Enter to connect")
                         color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
@@ -277,7 +277,7 @@ AnchoredPanel {
                     color: Colors.textMuted
                 }
                 Text {
-                    text: popup.showAll ? "Menos redes" : "Más redes (" + (popup.totalNetworks - popup.shownLimit) + ")"
+                    text: popup.showAll ? I18n.tr("Fewer networks") : I18n.tr("More networks (%1)", popup.totalNetworks - popup.shownLimit)
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body

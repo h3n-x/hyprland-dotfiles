@@ -43,7 +43,7 @@ AnchoredPanel {
                 Layout.fillWidth: true
 
                 Text {
-                    text: popup.filterMode === "dev" ? "Puertos Dev / HTB" : "Todos los puertos"
+                    text: popup.filterMode === "dev" ? I18n.tr("Dev / HTB ports") : I18n.tr("All ports")
                     color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.title
@@ -55,9 +55,9 @@ AnchoredPanel {
                     text: {
                         const count = popup.ports.length;
                         if (popup.filterMode === "dev") {
-                            return count + (count === 1 ? " servicio activo" : " servicios activos");
+                            return I18n.trn("%n active service", "%n active services", count);
                         }
-                        return count + " sockets en el sistema";
+                        return I18n.trn("%n socket on the system", "%n sockets on the system", count);
                     }
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
@@ -141,7 +141,7 @@ AnchoredPanel {
                 }
 
                 Text {
-                    text: popup.filterMode === "dev" ? "Sin servidores Dev ni listeners HTB" : "No hay puertos en escucha"
+                    text: popup.filterMode === "dev" ? I18n.tr("No Dev servers or HTB listeners") : I18n.tr("No listening ports")
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label
@@ -150,7 +150,7 @@ AnchoredPanel {
 
                 Text {
                     visible: popup.filterMode === "dev"
-                    text: "(Node, Python, Netcat, Chisel, Docker, etc.)"
+                    text: I18n.tr("(Node, Python, Netcat, Chisel, Docker, etc.)")
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption

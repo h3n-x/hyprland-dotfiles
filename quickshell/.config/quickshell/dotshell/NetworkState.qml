@@ -42,9 +42,9 @@ QtObject {
         return "network_wifi_1_bar";
     }
     // "CasaNet", "Cable", "Sin conexión".
-    readonly property string label: root.wired ? "Cable"
+    readonly property string label: root.wired ? I18n.tr("Wired")
         : root.activeWifiNetwork ? root.activeWifiNetwork.name
-        : !Networking.wifiEnabled ? "Wi-Fi apagado" : "Sin conexión"
+        : !Networking.wifiEnabled ? I18n.tr("Wi-Fi off") : I18n.tr("Not connected")
     // Interfaz en uso (para /proc/net/dev): la del cable si esta conectado.
     readonly property string interfaceName: root.wired ? root.wiredDevice.name
         : root.activeWifiNetwork && root.wifiDevice ? root.wifiDevice.name : ""

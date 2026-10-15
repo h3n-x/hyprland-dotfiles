@@ -33,7 +33,7 @@ Item {
     property Component delegate
     property string placeholder: ""
     property string hints: ""
-    property string emptyText: "Sin resultados"
+    property string emptyText: I18n.tr("No results")
     property int maxVisibleRows: 8
     property Component header: null
     property Component preview: null

@@ -45,7 +45,7 @@ OverlayWindow {
 
     property string filter: "all"
     readonly property var filters: ["all", "text", "image", "link"]
-    readonly property var filterLabels: ({ all: "Todo", text: "Texto", image: "Imágenes", link: "Enlaces" })
+    readonly property var filterLabels: ({ all: I18n.tr("All"), text: I18n.tr("Text"), image: I18n.tr("Images"), link: I18n.tr("Links") })
 
     readonly property var icons: ({ text: "notes", code: "code", command: "terminal", link: "link", color: "palette",
         path: "folder", image: "image", binary: "draft", secret: "key" })
@@ -61,25 +61,25 @@ OverlayWindow {
         if (img)
             return { id, text: "", kind: "image", meta: img[2].toUpperCase() + " · " + img[1].replace("i", ""),
                 ext: img[2].toLowerCase(), w: img[3], h: img[4], sens: "",
-                hay: "imagen " + img[2].toLowerCase() + " " + img[3] + "x" + img[4] };
+                hay: I18n.trc("search word", "image").toLowerCase() + " " + img[2].toLowerCase() + " " + img[3] + "x" + img[4] };
         if (/^\[\[ binary data .* \]\]$/.test(text))
-            return { id, text: "", kind: "binary", meta: "Datos binarios", sens: "", hay: "" };
+            return { id, text: "", kind: "binary", meta: I18n.tr("Binary data"), sens: "", hay: "" };
         const sens = Sensitive.check(text);
-        if (sens) return { id, text: "", kind: "secret", meta: "Oculto · parece " + Sensitive.label(sens), sens, hay: "" };
+        if (sens) return { id, text: "", kind: "secret", meta: I18n.tr("Hidden · looks like %1", Sensitive.label(sens)), sens, hay: "" };
         const long = text.endsWith("…");
-        let kind = "text", meta = long ? "Texto largo" : "Texto · " + text.length + " caracteres";
+        let kind = "text", meta = long ? I18n.tr("Long text") : I18n.trn("Text · %n character", "Text · %n characters", text.length);
         if (/^(https?:\/\/|www\.)\S+$/.test(text)) {
             kind = "link";
             const m = /^(?:https?:\/\/)?([^\/?#]+)/.exec(text);
-            meta = "Enlace · " + (m ? m[1] : "");
+            meta = I18n.tr("Link · %1", m ? m[1] : "");
         } else if (/^(#[0-9a-fA-F]{3,4}|#[0-9a-fA-F]{6}|#[0-9a-fA-F]{8}|rgba?\([^)]*\))$/.test(text)) {
-            kind = "color"; meta = "Color";
+            kind = "color"; meta = I18n.tr("Color");
         } else if (/^(~|\/|\.\.?\/)\S*$/.test(text)) {
-            kind = "path"; meta = "Ruta";
+            kind = "path"; meta = I18n.tr("Path");
         } else if (window.commandRe.test(text)) {
-            kind = "command"; meta = "Comando";
+            kind = "command"; meta = I18n.tr("Command");
         } else if (/[{};]|=>|\(\)/.test(text)) {
-            kind = "code"; meta = "Código";
+            kind = "code"; meta = I18n.tr("Code");
         }
         return { id, text, kind, meta, sens: "", hay: text.toLowerCase() };
     }
@@ -395,9 +395,9 @@ OverlayWindow {
         model: window.shown
         listWidth: Tokens.px(480)
         previewWidth: Tokens.px(340)
-        placeholder: "Buscar en el portapapeles..."
-        emptyText: window.loading ? "" : (window.entries.length === 0 ? "El historial está vacío" : "Sin resultados")
-        hints: "↑↓ navegar   ⏎ copiar   supr borrar   tab filtro   ctrl+p pausar   ctrl+supr vaciar   esc cerrar"
+        placeholder: I18n.tr("Search the clipboard...")
+        emptyText: window.loading ? "" : (window.entries.length === 0 ? I18n.tr("The history is empty") : I18n.tr("No results"))
+        hints: I18n.tr("↑↓ navigate   ⏎ copy   del delete   tab filter   ctrl+p pause   ctrl+del clear   esc close")
         keyHandler: (event) => window.handleKey(event.key, event.modifiers, event.isAutoRepeat)
         onAccepted: (item) => window.copy(item.e)
         onDismissed: ClipboardState.close()
@@ -422,7 +422,7 @@ OverlayWindow {
                         Icon { name: "visibility_off"; size: Tokens.icon.sm; color: Colors.text }
                         Text {
                             Layout.fillWidth: true
-                            text: "Historial en pausa: lo que copies ahora no se guarda"
+                            text: I18n.tr("History paused: what you copy now isn't saved")
                             color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
@@ -430,7 +430,7 @@ OverlayWindow {
                             elide: Text.ElideRight
                         }
                         Text {
-                            text: "ctrl+p reanudar"
+                            text: I18n.tr("ctrl+p resume")
                             color: Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.caption
@@ -462,8 +462,8 @@ OverlayWindow {
                         color: Colors.textMuted
                     }
                     Text {
-                        text: (window.shown.length === window.counts.all ? "" : window.shown.length + " de ")
-                            + window.counts.all + " entradas"
+                        text: window.shown.length === window.counts.all ? I18n.trn("%n entry", "%n entries", window.counts.all)
+                            : I18n.trn("%1 of %n entry", "%1 of %n entries", window.counts.all, window.shown.length)
                         color: Colors.border
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
@@ -522,9 +522,9 @@ OverlayWindow {
                     spacing: 0
                     Text {
                         Layout.fillWidth: true
-                        text: row.hidden ? "Oculto"
-                            : row.e.kind === "image" ? "Imagen " + row.e.w + "×" + row.e.h
-                            : row.e.kind === "binary" ? "Datos binarios"
+                        text: row.hidden ? I18n.tr("Hidden")
+                            : row.e.kind === "image" ? I18n.tr("Image %1×%2", row.e.w, row.e.h)
+                            : row.e.kind === "binary" ? I18n.tr("Binary data")
                             : (row.selected ? Fuzzy.escapeHtml(row.e.text) : Fuzzy.highlight(row.e.text, row.modelData.positions))
                         textFormat: Text.RichText
                         color: row.selected ? Colors.textOnAccentAltContainer : (row.hidden ? Colors.textMuted : Colors.text)
@@ -537,7 +537,7 @@ OverlayWindow {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: row.hidden ? "Parece " + Sensitive.label(row.sens) : row.e.meta
+                        text: row.hidden ? I18n.tr("Looks like %1", Sensitive.label(row.sens)) : row.e.meta
                         color: row.selected ? Colors.textOnAccentAltContainer : Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
@@ -621,7 +621,7 @@ OverlayWindow {
                     Text {
                         Layout.fillWidth: true
                         horizontalAlignment: Text.AlignHCenter
-                        text: "Contenido oculto"
+                        text: I18n.tr("Hidden content")
                         color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.title
@@ -631,7 +631,7 @@ OverlayWindow {
                         Layout.fillWidth: true
                         horizontalAlignment: Text.AlignHCenter
                         wrapMode: Text.WordWrap
-                        text: "Parece " + Sensitive.label(pane.p.sens || "") + ". Se guardó antes del filtro de datos sensibles."
+                        text: I18n.tr("Looks like %1. It was saved before the sensitive data filter.", Sensitive.label(pane.p.sens || ""))
                         color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
@@ -641,10 +641,10 @@ OverlayWindow {
                         Layout.topMargin: Tokens.space.xs
                         spacing: Tokens.space.xs
                         KeyHint { text: "⏎"; fg: Colors.textMuted }
-                        Text { text: "copiar sin mostrar"; color: Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
+                        Text { text: I18n.tr("copy without showing"); color: Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
                         Item { implicitWidth: Tokens.space.sm }
                         KeyHint { text: "ctrl+r"; fg: Colors.textMuted }
-                        Text { text: "mostrar"; color: Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
+                        Text { text: I18n.tr("show"); color: Colors.textMuted; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
                     }
                 }
 
@@ -682,10 +682,10 @@ OverlayWindow {
                         Layout.fillWidth: true
                         text: {
                             if (pane.p.state !== "text") return "";
-                            const parts = [pane.p.bytes >= 1024 ? (pane.p.bytes / 1024).toFixed(1) + " KB" : pane.p.bytes + " bytes"];
-                            if (pane.p.lines > 1) parts.push(pane.p.lines + " líneas");
-                            if (pane.p.bytes > 8192) parts.push("vista recortada");
-                            if (window.revealedId) parts.push("ctrl+r ocultar");
+                            const parts = [pane.p.bytes >= 1024 ? I18n.tr("%1 KB", I18n.number(pane.p.bytes / 1024, 1)) : I18n.trn("%n byte", "%n bytes", pane.p.bytes)];
+                            if (pane.p.lines > 1) parts.push(I18n.trn("%n line", "%n lines", pane.p.lines));
+                            if (pane.p.bytes > 8192) parts.push(I18n.tr("preview trimmed"));
+                            if (window.revealedId) parts.push(I18n.tr("ctrl+r hide"));
                             return parts.join(" · ");
                         }
                         color: Colors.border
@@ -701,8 +701,8 @@ OverlayWindow {
                     width: parent.width - Tokens.space.xl * 2
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
-                    text: window.entries.length === 0 ? "Lo que copies aparecerá aquí"
-                        : (window.current && window.current.kind === "binary" ? "Sin vista previa" : "")
+                    text: window.entries.length === 0 ? I18n.tr("What you copy will appear here")
+                        : (window.current && window.current.kind === "binary" ? I18n.tr("No preview") : "")
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
@@ -746,7 +746,7 @@ OverlayWindow {
             }
             Text {
                 Layout.alignment: Qt.AlignHCenter
-                text: "¿Vaciar el historial?"
+                text: I18n.tr("Clear the history?")
                 color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.title
@@ -755,8 +755,9 @@ OverlayWindow {
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 horizontalAlignment: Text.AlignHCenter
-                text: "Se borran " + window.counts.all + " entradas" + (window.counts.image ? " (" + window.counts.image + " imágenes)" : "")
-                    + ". No se puede deshacer.\nLo que está copiado ahora se mantiene."
+                text: (window.counts.image ? I18n.trn("%n entry will be deleted (%1 images).", "%n entries will be deleted (%1 images).", window.counts.all, window.counts.image)
+                                           : I18n.trn("%n entry will be deleted.", "%n entries will be deleted.", window.counts.all))
+                    + " " + I18n.tr("It can't be undone.\nWhat is copied right now is kept.")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body
@@ -779,7 +780,7 @@ OverlayWindow {
                         spacing: Tokens.space.sm
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Cancelar"
+                            text: I18n.tr("Cancel")
                             color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
@@ -812,7 +813,7 @@ OverlayWindow {
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Vaciar"
+                            text: I18n.tr("Clear")
                             color: Colors.textOnDanger
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body

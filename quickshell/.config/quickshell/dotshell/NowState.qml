@@ -40,8 +40,8 @@ QtObject {
             const a = TimerState.active;
             if (!a) return null;
             return { kind: kind, icon: "timer", view: "",
-                     text: a.label + (a.left !== undefined ? " · quedan " + TimerState.short(a.left) : " · " + TimerState.short(a.elapsed)),
-                     detail: a.mode === "pomodoro" ? "Pomodoro" : "" };
+                     text: a.label + " · " + (a.left !== undefined ? I18n.tr("%1 remaining", TimerState.short(a.left)) : TimerState.short(a.elapsed)),
+                     detail: a.mode === "pomodoro" ? I18n.tr("Pomodoro") : "" };
         }
         if (kind === "rain") {
             const h = root.weather ? root.weather.hourly : null;
@@ -50,8 +50,8 @@ QtObject {
             for (let i = 1; i <= 3 && i < h.time.length; i++) {
                 const p = h.precipitation_probability[i];
                 if (p >= 50)
-                    return { kind: kind, icon: "rainy", view: "today", text: "Lluvia hacia las " + h.time[i].slice(11, 13) + " h",
-                             detail: p + " % de probabilidad" };
+                    return { kind: kind, icon: "rainy", view: "today", text: I18n.tr("Rain around %1", I18n.trc("hour of the day", "%1 h", h.time[i].slice(11, 13))),
+                             detail: I18n.tr("%1 % chance", p) };
             }
             return null;
         }
@@ -59,17 +59,17 @@ QtObject {
             if (root.todoPlaced || !TodoState.loaded) return null;
             const n = TodoState.open.length;
             if (!n) return null;
-            return { kind: kind, icon: "checklist", view: "", text: n + (n === 1 ? " tarea pendiente" : " tareas pendientes"),
+            return { kind: kind, icon: "checklist", view: "", text: I18n.trn("%n pending task", "%n pending tasks", n),
                      detail: TodoState.open[0].text };
         }
         if (kind === "heat") {
             const c = root.weather ? root.weather.current : null;
             if (!c) return null;
             const t = c.temperature_2m;
-            if (t >= 35) return { kind: kind, icon: "thermostat", view: "today", text: "Calor fuerte: " + WeatherState.temp(t),
-                                  detail: "Sensación " + WeatherState.temp(c.apparent_temperature) };
-            if (t <= 0) return { kind: kind, icon: "ac_unit", view: "today", text: "Helada: " + WeatherState.temp(t),
-                                 detail: "Sensación " + WeatherState.temp(c.apparent_temperature) };
+            if (t >= 35) return { kind: kind, icon: "thermostat", view: "today", text: I18n.tr("Intense heat: %1", WeatherState.temp(t)),
+                                  detail: I18n.tr("Feels like %1", WeatherState.temp(c.apparent_temperature)) };
+            if (t <= 0) return { kind: kind, icon: "ac_unit", view: "today", text: I18n.tr("Frost: %1", WeatherState.temp(t)),
+                                 detail: I18n.tr("Feels like %1", WeatherState.temp(c.apparent_temperature)) };
             return null;
         }
         if (kind === "sunset") {
@@ -79,8 +79,8 @@ QtObject {
             const at = new Date(d.sunset[0]).getTime();
             const left = at - root.now;
             if (left <= 0 || left > 3600000) return null;
-            return { kind: kind, icon: "wb_twilight", view: "today", text: "El sol se pone a las " + d.sunset[0].slice(11, 16),
-                     detail: "en " + Math.max(1, Math.round(left / 60000)) + " min" };
+            return { kind: kind, icon: "wb_twilight", view: "today", text: I18n.tr("The sun sets at %1", d.sunset[0].slice(11, 16)),
+                     detail: I18n.trn("in %n min", "in %n min", Math.max(1, Math.round(left / 60000))) };
         }
         return null;
     }

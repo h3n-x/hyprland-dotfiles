@@ -103,7 +103,7 @@ QtObject {
     readonly property real pomodoroLeft: root.pomodoro.running ? Math.max(0, root.pomodoro.endsAt - root.now)
         : (root.pomodoro.left > 0 ? root.pomodoro.left : root.phaseMs(root.pomodoro.phase))
     readonly property real pomodoroFraction: 1 - root.pomodoroLeft / Math.max(1, root.phaseMs(root.pomodoro.phase))
-    readonly property string phaseLabel: root.pomodoro.phase === "long" ? "Descanso largo" : root.pomodoro.phase === "break" ? "Descanso" : "Concentración"
+    readonly property string phaseLabel: root.pomodoro.phase === "long" ? I18n.tr("Long break") : root.pomodoro.phase === "break" ? I18n.tr("Break") : I18n.tr("Focus")
     function togglePomodoro(): void {
         const p = Object.assign({}, root.pomodoro);
         if (p.running) {
@@ -202,8 +202,8 @@ QtObject {
     }
     // Lo que corre, para la barra y "Ahora": { mode, label, left (ms) | elapsed (ms) } o null.
     readonly property var active: root.pomodoro.running ? { mode: "pomodoro", label: root.phaseLabel, left: root.pomodoroLeft }
-        : root.countdown.running ? { mode: "countdown", label: "Cuenta atrás", left: root.countdownLeft }
-        : root.stopwatch.running ? { mode: "stopwatch", label: "Cronómetro", elapsed: root.stopwatchElapsed }
+        : root.countdown.running ? { mode: "countdown", label: I18n.tr("Countdown"), left: root.countdownLeft }
+                    : root.stopwatch.running ? { mode: "stopwatch", label: I18n.tr("Stopwatch"), elapsed: root.stopwatchElapsed }
         : null
 
     // ---- Fin de fase: un solo disparo ----------------------------------------------------------
@@ -233,20 +233,21 @@ QtObject {
                 p = root.nextPhase(p, end, root.autoContinue);
             }
             root.put("pomodoro", p);
-            const what = p.phase === "focus" ? "A concentrarse: " + Math.round(root.focusMs / root.unit) + " min"
-                : (p.phase === "long" ? "Descanso largo: " + Math.round(root.longBreakMs / root.unit) : "Descanso: " + Math.round(root.breakMs / root.unit)) + " min";
-            root.notify("Pomodoro", (from === "focus" ? "Terminó la concentración. " : "Terminó el descanso. ") + what + (p.running ? "." : " (pausado: dale a empezar)."));
+            const what = p.phase === "focus" ? I18n.tr("Time to focus: %1 min", Math.round(root.focusMs / root.unit))
+                : p.phase === "long" ? I18n.tr("Long break: %1 min", Math.round(root.longBreakMs / root.unit)) : I18n.tr("Break: %1 min", Math.round(root.breakMs / root.unit));
+            const done = from === "focus" ? I18n.tr("Focus time is over.") : I18n.tr("The break is over.");
+            root.notify(I18n.tr("Pomodoro"), done + I18n.trc("sentence separator", " ") + (p.running ? I18n.tr("%1.", what) : I18n.tr("%1 (paused: press start).", what)));
         }
         const c = root.countdown;
         if (c.running && c.endsAt <= t) {
             root.put("countdown", Object.assign({}, c, { running: false, endsAt: 0, left: 0 }));
-            root.notify("Cuenta atrás", "Terminó: " + root.format(c.total) + ".");
+            root.notify(I18n.tr("Countdown"), I18n.tr("Finished: %1.", root.format(c.total)));
         }
         root.now = t;
         root.arm();
     }
     function notify(title: string, body: string): void {
-        Quickshell.execDetached([Quickshell.env("TIMER_NOTIFY") || "notify-send", "-a", "Temporizador", "-i", "alarm", title, body]);
+        Quickshell.execDetached([Quickshell.env("TIMER_NOTIFY") || "notify-send", "-a", I18n.tr("Timer"), "-i", "alarm", title, body]);
         if (root.sound)
             Quickshell.execDetached(["sh", "-c", "f=/usr/share/sounds/freedesktop/stereo/complete.oga; [ -f \"$f\" ] && command -v pw-play >/dev/null && exec pw-play \"$f\""]);
     }
@@ -262,7 +263,7 @@ QtObject {
     // "12 min", "menos de 1 min", "1 h 05".
     function short(ms: real): string {
         const m = Math.ceil(Math.max(0, ms) / 60000);
-        if (m <= 1 && ms < 60000) return "< 1 min";
-        return m >= 60 ? Math.floor(m / 60) + " h " + (m % 60 < 10 ? "0" : "") + m % 60 : m + " min";
+        if (m <= 1 && ms < 60000) return I18n.tr("< 1 min");
+        return m >= 60 ? I18n.tr("%1 h %2", Math.floor(m / 60), (m % 60 < 10 ? "0" : "") + m % 60) : I18n.trn("%n min", "%n min", m);
     }
 }

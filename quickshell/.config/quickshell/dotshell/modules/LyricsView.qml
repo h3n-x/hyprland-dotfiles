@@ -18,11 +18,11 @@ Item {
 
     readonly property string message: {
         const s = LyricsState.status;
-        if (s === "searching") return "Buscando la letra…";
-        if (s === "off") return "Sin letra en tu equipo. Puedes buscarla en internet: Configuración → Multimedia → Letras.";
-        if (s === "none") return "No se encontró la letra de esta canción.";
-        if (s === "offline") return "No se pudo consultar LRCLIB ahora (sin conexión o el servicio no respondió). Se vuelve a intentar solo.";
-        if (LyricsState.instrumental) return "Instrumental";
+        if (s === "searching") return I18n.tr("Looking for the lyrics…");
+        if (s === "off") return I18n.tr("No lyrics on your computer. You can look them up online: Settings → Media → Lyrics.");
+        if (s === "none") return I18n.tr("No lyrics were found for this song.");
+        if (s === "offline") return I18n.tr("LRCLIB couldn't be reached right now (no connection or the service didn't respond). It retries on its own.");
+        if (LyricsState.instrumental) return I18n.tr("Instrumental");
         return "";
     }
 

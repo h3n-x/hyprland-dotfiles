@@ -50,7 +50,9 @@ QtObject {
     }
     function trc(ctx, text) {
         const t = root.lookup(ctx + "\u0004" + text);
-        return root.fill(typeof t === "string" && t !== "" ? t : text, Array.prototype.slice.call(arguments, 2));
+        // Vacio solo vale si la fuente es puro espacio (un separador que el idioma no usa).
+        const ok = typeof t === "string" && (t !== "" || text.trim() === "");
+        return root.fill(ok ? t : text, Array.prototype.slice.call(arguments, 2));
     }
     function category(n: real): string {
         const a = Math.abs(n);
@@ -103,6 +105,35 @@ QtObject {
         const h = Math.floor(m / 60);
         if (h >= 48) return root.trn("%n day", "%n days", Math.floor(h / 24));
         return m % 60 ? root.tr("%1 h %2 min", h, m % 60) : root.tr("%1 h", h);
+    }
+    // Lista con la forma del idioma: "a", "a and b", "a, b and c" (es "a, b y c", ja "a、bとc").
+    function join(parts: var): string {
+        const p = (parts || []).filter(x => x !== "" && x !== undefined && x !== null);
+        if (p.length < 2) return p.length ? String(p[0]) : "";
+        const head = p.slice(0, -1).join(root.trc("list", ", "));
+        return root.trc("list", "%1 and %2", head, p[p.length - 1]);
+    }
+    // Dia relativo a partir de un instante (segundos desde 1970): today, yesterday, %n days ago.
+    function daysAgo(epochSec: real): string {
+        if (!epochSec) return "";
+        const days = Math.floor((Date.now() / 1000 - epochSec) / 86400);
+        if (days <= 0) return root.trc("relative day", "today");
+        if (days === 1) return root.trc("relative day", "yesterday");
+        return root.trn("%n day ago", "%n days ago", days);
+    }
+    // Hace cuanto, a partir de segundos: "a moment ago", "5 min ago", "3 h ago", "2 days ago".
+    // precise (graficos de pocos minutos): "now" y segundos.
+    function ago(seconds: real, precise: bool): string {
+        const s = Math.max(0, seconds);
+        if (precise) {
+            if (s < 5) return root.trc("relative time", "now");
+            if (s < 60) return root.trn("%n s ago", "%n s ago", Math.round(s));
+        } else if (s < 90) return root.tr("a moment ago");
+        const m = Math.round(s / 60);
+        if (m < 60) return root.trn("%n min ago", "%n min ago", m);
+        const h = Math.round(m / 60);
+        if (h < 48) return root.trn("%n h ago", "%n h ago", h);
+        return root.trn("%n day ago", "%n days ago", Math.round(h / 24));
     }
     // "7.9 GB", "420 MB".
     function bytes(b: real): string {

@@ -56,12 +56,10 @@ ColumnLayout {
 
     // Frase que explica el estado, en palabras.
     readonly property string summary: {
-        const parts = [];
-        parts.push("Carga " + SystemState.cpuWord(SystemState.cpu).toLowerCase());
-        parts.push("memoria " + SystemState.memWord(SystemState.memFrac).toLowerCase());
-        if (!isNaN(SystemState.temp)) parts.push("temperatura " + SystemState.tempWord(SystemState.temp));
-        let s = parts.join(", ") + ".";
-        if (SystemState.uptime > 0) s += " Encendido hace " + I18n.duration(SystemState.uptime) + ".";
+        const cpu = SystemState.cpuWord(SystemState.cpu).toLowerCase(), mem = SystemState.memWord(SystemState.memFrac).toLowerCase();
+        let s = isNaN(SystemState.temp) ? I18n.tr("Load %1, memory %2.", cpu, mem)
+                                        : I18n.tr("Load %1, memory %2, temperature %3.", cpu, mem, SystemState.tempWord(SystemState.temp));
+        if (SystemState.uptime > 0) s += I18n.trc("sentence separator", " ") + I18n.tr("On for %1.", I18n.duration(SystemState.uptime));
         return s;
     }
 
@@ -262,7 +260,7 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             icon: "memory"
-            label: "Procesador"
+            label: I18n.tr("Processor")
             value: Math.round(SystemState.cpu * 100) + " %"
             word: SystemState.cpuWord(SystemState.cpu)
             level: SystemState.cpuHighCount >= 3 ? 1 : 0
@@ -275,43 +273,43 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             icon: "memory_alt"
-            label: "Memoria"
+            label: I18n.tr("Memory")
             value: I18n.bytes(SystemState.memUsed)
-            unit: "de " + I18n.bytes(SystemState.memTotal)
+            unit: I18n.tr("of %1", I18n.bytes(SystemState.memTotal))
             word: SystemState.memWord(SystemState.memFrac)
             level: SystemState.memFrac >= 0.92 ? 1 : 0
             fraction: SystemState.memFrac
             series: view.charted("memory") ? "mem" : ""
-            note: SystemState.swapUsed > 64 * 1048576 ? "Swap en uso: " + I18n.bytes(SystemState.swapUsed) : "Sin swap en uso"
+            note: SystemState.swapUsed > 64 * 1048576 ? I18n.tr("Swap in use: %1", I18n.bytes(SystemState.swapUsed)) : I18n.tr("No swap in use")
         }
         Instrument {
             Layout.fillWidth: true
             Layout.fillHeight: true
             icon: "hard_drive"
-            label: "Almacenamiento"
+            label: I18n.tr("Storage")
             value: view.disk ? I18n.bytes(view.disk.avail) : "–"
-            unit: "libres"
+            unit: I18n.tr("free")
             word: view.disk ? SystemState.diskWord(view.diskFrac) : ""
             level: view.diskFrac >= 0.92 ? 1 : 0
             fraction: view.diskFrac
             temp: SystemState.nvmeTemp
-            note: (view.disk ? "de " + I18n.bytes(view.disk.size) + " en " + view.disk.mount : "")
-                + (isNaN(SystemState.nvmeTemp) || view.rings ? "" : " · disco a " + Math.round(SystemState.nvmeTemp) + "°")
+            note: (view.disk ? I18n.tr("of %1 on %2", I18n.bytes(view.disk.size), view.disk.mount) : "")
+                + (isNaN(SystemState.nvmeTemp) || view.rings ? "" : " · " + I18n.tr("disk at %1°", Math.round(SystemState.nvmeTemp)))
         }
         Instrument {
             Layout.fillWidth: true
             Layout.fillHeight: true
             icon: BatteryState.charging ? "battery_charging_full" : PowerProfileState.info.icon
-            label: BatteryState.present ? "Energía" : "Energía · corriente"
+            label: BatteryState.present ? I18n.tr("Power") : I18n.tr("Power · mains")
             value: BatteryState.present ? Math.round(BatteryState.pct * 100) + " %" : PowerProfileState.info.label
             unit: !BatteryState.present ? ""
-                : BatteryState.secondsLeft > 0 ? (BatteryState.charging ? "llena en " : "quedan ") + I18n.duration(BatteryState.secondsLeft)
-                : BatteryState.charging ? "cargando" : BatteryState.onAc ? (BatteryState.pct >= 0.995 ? "cargada" : "conectada") : ""
-            word: "Perfil " + PowerProfileState.info.label.toLowerCase()
+                : BatteryState.secondsLeft > 0 ? (BatteryState.charging ? I18n.tr("full in %1", I18n.duration(BatteryState.secondsLeft)) : I18n.tr("%1 remaining", I18n.duration(BatteryState.secondsLeft)))
+                : BatteryState.charging ? I18n.tr("charging") : BatteryState.onAc ? (BatteryState.pct >= 0.995 ? I18n.trc("battery state", "charged") : I18n.trc("battery state", "plugged in")) : ""
+            word: I18n.tr("Profile %1", PowerProfileState.info.label.toLowerCase())
             level: BatteryState.critical ? 2 : BatteryState.warning ? 1 : 0
             fraction: BatteryState.present ? BatteryState.pct : 0
             series: BatteryState.present && view.charted("energy") ? "batt" : ""
-            note: BatteryState.watts > 0.1 ? (BatteryState.charging ? "Entran " : "Consume ") + BatteryState.watts.toFixed(1).replace(".", ",") + " W" : ""
+            note: BatteryState.watts > 0.1 ? (BatteryState.charging ? I18n.tr("Charging at %1 W", I18n.number(BatteryState.watts, 1)) : I18n.tr("Drawing %1 W", I18n.number(BatteryState.watts, 1))) : ""
         }
     }
 
@@ -334,9 +332,9 @@ ColumnLayout {
                 spacing: Tokens.space.sm
                 RowLayout {
                     Layout.fillWidth: true
-                    ZoneTitle { Layout.fillWidth: true; text: "Aplicaciones"; detail: "· lo que más usa ahora" }
+                    ZoneTitle { Layout.fillWidth: true; text: I18n.tr("Applications"); detail: "· " + I18n.tr("what uses the most right now") }
                     Text { text: "CPU"; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; Layout.preferredWidth: Tokens.px(44); horizontalAlignment: Text.AlignRight }
-                    Text { text: "Memoria"; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; Layout.preferredWidth: Tokens.px(64); horizontalAlignment: Text.AlignRight }
+                    Text { text: I18n.tr("Memory"); color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption; Layout.preferredWidth: Tokens.px(64); horizontalAlignment: Text.AlignRight }
                 }
                 ListView {
                     id: appList
@@ -417,7 +415,7 @@ ColumnLayout {
                     anchors.left: parent.left
                     anchors.right: parent.right
                     spacing: Tokens.space.xs
-                    ZoneTitle { Layout.fillWidth: true; text: "Red"; detail: "· " + NetworkState.label }
+                    ZoneTitle { Layout.fillWidth: true; text: I18n.tr("Network"); detail: "· " + NetworkState.label }
                     RowLayout {
                         Layout.topMargin: Tokens.space.xs
                         spacing: Tokens.space.lg
@@ -470,7 +468,7 @@ ColumnLayout {
                     anchors.left: parent.left
                     anchors.right: parent.right
                     spacing: Tokens.space.sm
-                    ZoneTitle { Layout.fillWidth: true; text: "Gráficas" }
+                    ZoneTitle { Layout.fillWidth: true; text: I18n.tr("Graphics") }
                     RowLayout {
                         visible: !!SystemState.igpuName
                         Layout.fillWidth: true
@@ -514,8 +512,8 @@ ColumnLayout {
                             Layout.fillWidth: true
                             horizontalAlignment: Text.AlignRight
                             readonly property var n: SystemState.nvidia
-                            text: !n ? "…" : !n.active ? "En reposo"
-                                : n.processes && n.processes.length ? "Activa · " + n.processes.map(p => AppInfo.name(p.name)).join(", ") : "Activa"
+                            text: !n ? "…" : !n.active ? I18n.tr("Idle")
+                                : n.processes && n.processes.length ? I18n.tr("Active · %1", n.processes.map(p => AppInfo.name(p.name)).join(", ")) : I18n.trc("graphics card", "Active")
                             color: gpuZone.dgpuActive ? Colors.decor : Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
@@ -533,7 +531,7 @@ ColumnLayout {
                         rev: SystemState.historyRev
                         span: SystemState.historyMs
                         step: SystemState.intervalMs
-                        format: (v) => v > 0.5 ? "Activa" : "En reposo"
+                        format: (v) => v > 0.5 ? I18n.trc("graphics card", "Active") : I18n.tr("Idle")
                     }
                 }
             }
@@ -554,7 +552,7 @@ ColumnLayout {
             Icon { name: "build"; size: Tokens.icon.md; color: Colors.textMuted }
             Text {
                 Layout.fillWidth: true
-                text: "Mantenimiento · " + MaintenanceState.shortStatus
+                text: I18n.tr("Maintenance · %1", MaintenanceState.shortStatus)
                 color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.body

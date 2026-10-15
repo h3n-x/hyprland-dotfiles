@@ -96,7 +96,7 @@ Item {
         }
         Text {
             Layout.alignment: Qt.AlignHCenter
-            text: "Nada suena"
+            text: I18n.tr("Nothing playing")
             color: Colors.text
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.headline
@@ -104,7 +104,7 @@ Item {
         }
         Text {
             Layout.alignment: Qt.AlignHCenter
-            text: "Cuando un reproductor empiece, aparece aquí con su letra."
+            text: I18n.tr("When a player starts, it shows up here with its lyrics.")
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.label
@@ -226,7 +226,7 @@ Item {
                         Icon { anchors.verticalCenter: parent.verticalCenter; name: "lyrics"; size: Tokens.icon.sm; color: tab.lyricsShown ? Colors.textOnAccentAltContainer : Colors.textMuted }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Letra"
+                            text: I18n.tr("Lyrics")
                             color: tab.lyricsShown ? Colors.textOnAccentAltContainer : Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.caption
@@ -287,7 +287,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.topMargin: Tokens.space.lg
                 session: session
-                hint: tab.hint || (tab.barsOn && CavaState.available === false ? "Sin cava: instálalo para ver las barras" : "")
+                hint: tab.hint || (tab.barsOn && CavaState.available === false ? I18n.tr("No cava: install it to see the bars") : "")
             }
             MediaControls {
                 id: controls
@@ -339,12 +339,12 @@ Item {
                     Layout.fillWidth: true
                     spacing: Tokens.space.sm
                     LinkText {
-                        text: ({ file: "Junto al archivo", folder: "Tu carpeta", cache: "LRCLIB", lrclib: "LRCLIB" })[LyricsState.source] || ""
+                        text: ({ file: I18n.tr("Next to the file"), folder: I18n.tr("Your folder"), cache: "LRCLIB", lrclib: "LRCLIB" })[LyricsState.source] || ""
                         plain: true
                     }
                     LinkText {
                         visible: LyricsState.online && LyricsState.status !== "searching"
-                        text: "Otra letra"
+                        text: I18n.tr("Other lyrics")
                         onClicked: {
                             tab.picking = true;
                             LyricsState.search();
@@ -374,14 +374,14 @@ Item {
                         Layout.fillWidth: true
                         Text {
                             Layout.fillWidth: true
-                            text: LyricsState.searching ? "Buscando…" : LyricsState.candidates.length ? "Elige la letra de esta canción" : "No hay otras"
+                            text: LyricsState.searching ? I18n.tr("Searching…") : LyricsState.candidates.length ? I18n.tr("Choose the lyrics for this song") : I18n.tr("No others")
                             color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
                             font.weight: Tokens.weight.semibold
                             elide: Text.ElideRight
                         }
-                        LinkText { text: "Cerrar"; onClicked: tab.picking = false }
+                        LinkText { text: I18n.tr("Close"); onClicked: tab.picking = false }
                     }
                     ListView {
                         id: cands

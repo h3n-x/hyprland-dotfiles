@@ -207,11 +207,11 @@ OverlayWindow {
                 reuseCells: false
                 listWidth: window.columns * window.cardWidth + Tokens.space.md * 2
                 model: content.shown
-                placeholder: window.hold ? "Suelta Super para cambiar · escribe para filtrar" : "Buscar ventanas..."
-                emptyText: window.loaded ? (window.clients.length === 0 ? "No hay ventanas abiertas" : "Sin resultados") : ""
+                placeholder: window.hold ? I18n.tr("Release Super to switch · type to filter") : I18n.tr("Search windows...")
+                emptyText: window.loaded ? (window.clients.length === 0 ? I18n.tr("No open windows") : I18n.tr("No results")) : ""
                 hints: window.hold
-                    ? "super+tab siguiente   super+shift+tab anterior   soltar super cambia   supr cerrar ventana   esc cancelar"
-                    : "←↑↓→ navegar   ⏎ cambiar   supr cerrar ventana   esc cancelar"
+                    ? I18n.tr("super+tab next   super+shift+tab previous   release super switches   del close window   esc cancel")
+                    : I18n.tr("←↑↓→ navigate   ⏎ switch   del close window   esc cancel")
                 keyHandler: (event) => content.handleKey(event.key, event.modifiers, event.isAutoRepeat)
                 keyReleaseHandler: (event) => content.handleRelease(event.key, event.modifiers)
                 onAccepted: (item) => window.activate(item)

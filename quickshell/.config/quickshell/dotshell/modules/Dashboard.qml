@@ -233,24 +233,23 @@ AnchoredPanel {
                     DesktopState.version ? "Hyprland " + DesktopState.version : ""].filter(x => x).join(" · ");
         if (panel.detail === "today") {
             const d = clock.date;
-            let s = WeatherState.cap(panel.loc.standaloneDayName(d.getDay(), Locale.LongFormat)) + ", " + d.getDate() + " de "
-                + panel.loc.standaloneMonthName(d.getMonth(), Locale.LongFormat);
+            let s = WeatherState.cap(I18n.date(d, "dddd, MMMM d"));
             if (WeatherState.configured && WeatherState.fetchedAt > 0)
-                s += " · clima " + WeatherState.ago(d.getTime() / 1000 - WeatherState.fetchedAt) + " · Open-Meteo";
+                s += " · " + I18n.tr("weather %1", I18n.ago(d.getTime() / 1000 - WeatherState.fetchedAt)) + " · Open-Meteo";
             return s;
         }
         if (panel.detail === "maintenance") {
-            if (MaintenanceState.checking) return "Revisando…";
+            if (MaintenanceState.checking) return I18n.tr("Checking…");
             const at = MaintenanceState.checkedAt;
-            return at > 0 ? "Revisado " + WeatherState.ago(clock.date.getTime() / 1000 - at / 1000) : "";
+            return at > 0 ? I18n.tr("Checked %1", I18n.ago(clock.date.getTime() / 1000 - at / 1000)) : "";
         }
         if (panel.detail === "workspaces") {
             const wins = DesktopState.windows.filter(w => !w.hidden && w.monitor === (panel.scr ? panel.scr.name : ""));
             const spaces = {};
             for (const w of wins) spaces[w.wsId] = true;
             const n = Object.keys(spaces).length;
-            return (panel.scr ? panel.scr.name + " · " : "") + wins.length + (wins.length === 1 ? " ventana" : " ventanas")
-                + " en " + n + (n === 1 ? " escritorio" : " escritorios");
+            return (panel.scr ? panel.scr.name + " · " : "") + I18n.trn("%n window", "%n windows", wins.length) + " "
+                + I18n.trn("on %n workspace", "on %n workspaces", n);
         }
         return "";
     }

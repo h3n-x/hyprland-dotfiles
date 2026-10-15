@@ -94,7 +94,7 @@ RowLayout {
             cursorShape: ctl.usable ? Qt.PointingHandCursor : Qt.ArrowCursor
             onContainsMouseChanged: {
                 const name = root.session ? root.session.playerName : "";
-                if (ctlMouse.containsMouse && !ctl.usable) root.hint = "No disponible en " + name + ": " + ctl.label;
+                if (ctlMouse.containsMouse && !ctl.usable) root.hint = I18n.tr("Not available in %1: %2", name, ctl.label);
                 else if (!ctlMouse.containsMouse && root.hint.endsWith(ctl.label)) root.hint = "";
             }
             onClicked: ctl.press()
@@ -104,7 +104,7 @@ RowLayout {
     Control {
         visible: !root.compact
         icon: "shuffle"
-        label: "aleatorio"
+        label: I18n.trc("media control", "shuffle")
         usable: !!root.player && root.player.shuffleSupported
         on: !!root.player && root.player.shuffleSupported && root.player.shuffle
         onClicked: MediaState.toggleShuffle()
@@ -112,7 +112,7 @@ RowLayout {
     Control {
         id: prevCtl
         icon: "skip_previous"
-        label: "anterior"
+        label: I18n.trc("media control", "previous")
         nudge: -4
         usable: !!root.player && root.player.canGoPrevious
         onClicked: MediaState.previous()
@@ -122,14 +122,14 @@ RowLayout {
         icon: "play_arrow"
         altIcon: "pause"
         showAlt: !!root.player && root.player.isPlaying
-        label: "reproducir o pausar"
+        label: I18n.tr("play or pause")
         usable: !!root.player && root.player.canTogglePlaying
         onClicked: MediaState.togglePlaying()
     }
     Control {
         id: nextCtl
         icon: "skip_next"
-        label: "siguiente"
+        label: I18n.trc("media control", "next")
         nudge: 4
         usable: !!root.player && root.player.canGoNext
         onClicked: MediaState.next()
@@ -137,7 +137,7 @@ RowLayout {
     Control {
         visible: !root.compact
         icon: root.player && root.player.loopState === MprisLoopState.Track ? "repeat_one" : "repeat"
-        label: "repetir"
+        label: I18n.trc("media control", "repeat")
         usable: !!root.player && root.player.loopSupported
         on: !!root.player && root.player.loopSupported && root.player.loopState !== MprisLoopState.None
         onClicked: MediaState.cycleLoop()

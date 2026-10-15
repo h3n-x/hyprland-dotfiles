@@ -49,6 +49,10 @@ Item {
     signal fieldDone()
 
     readonly property var spec: (SettingsState.meta("dashboard.home.zones") || {}).widgets || ({})
+    function label(id: string): string {
+        const w = zones.spec[id];
+        return w ? I18n.trc("zone", w.label) : id;
+    }
     readonly property var stored: SettingsState.value("dashboard.home.zones") || []
     // Copia de trabajo mientras se arrastra (las demas zonas se corren); se guarda al soltar.
     property var work: null
@@ -385,9 +389,9 @@ Item {
                         Icon { anchors.verticalCenter: parent.verticalCenter; name: slot.meta.icon || ""; size: Tokens.icon.md; color: Colors.text }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: (slot.meta.label || slot.modelData) + (zones.usable(slot.modelData) ? ""
-                                : slot.meta.needs === "now" ? " · aparece cuando hay algo"
-                                : slot.meta.needs === "media" ? " · aparece mientras suena algo" : " · necesita una ciudad")
+                            text: zones.label(slot.modelData) + (zones.usable(slot.modelData) ? "" : " · "
+                                + (slot.meta.needs === "now" ? I18n.tr("shows up when there's something")
+                                : slot.meta.needs === "media" ? I18n.tr("shows up while something plays") : I18n.tr("needs a city")))
                             color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body
@@ -448,7 +452,7 @@ Item {
                 Text {
                     height: Tokens.px(32)
                     verticalAlignment: Text.AlignVCenter
-                    text: zones.unplaced.length ? "Agregar" : "Todo está en Inicio"
+                    text: zones.unplaced.length ? I18n.tr("Add") : I18n.tr("Everything is on Home")
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label
@@ -477,7 +481,7 @@ Item {
                             Icon { anchors.verticalCenter: parent.verticalCenter; name: chip.meta.icon || ""; size: Tokens.icon.sm; color: Colors.text }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: chip.meta.label || chip.modelData
+                                text: zones.label(chip.modelData)
                                 color: Colors.text
                                 font.family: Tokens.font.ui
                                 font.pixelSize: Tokens.type.label
@@ -496,7 +500,7 @@ Item {
             }
             Button {
                 Layout.alignment: Qt.AlignTop
-                label: "Listo"
+                label: I18n.tr("Done")
                 icon: "check"
                 main: true
                 onClicked: DashboardState.editing = false
@@ -504,8 +508,8 @@ Item {
         }
         Text {
             Layout.fillWidth: true
-            text: zones.trayIndex >= 0 ? "Flechas eligen · Enter agrega · Esc vuelve"
-                : "Arrastra para ordenar · Tab elige · flechas mueven · T tamaño · Supr quita · A agrega · Esc termina"
+            text: zones.trayIndex >= 0 ? I18n.tr("Arrows choose · Enter adds · Esc goes back")
+                                : I18n.tr("Drag to reorder · Tab chooses · arrows move · T size · Del removes · A adds · Esc finishes")
             color: Colors.border
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
@@ -584,7 +588,7 @@ Item {
             readonly property bool on: zones.active
             onOnChanged: if (wz.on) WeatherState.ensureFresh()
             Component.onCompleted: if (wz.on) WeatherState.ensureFresh()
-            ZoneTitle { Layout.fillWidth: true; text: "Próximas horas"; detail: WeatherState.location ? WeatherState.location.name : ""; opens: true }
+            ZoneTitle { Layout.fillWidth: true; text: I18n.tr("Next hours"); detail: WeatherState.location ? WeatherState.location.name : ""; opens: true }
             WeatherHours {
                 Layout.fillWidth: true
                 count: wz.width < Tokens.px(400) ? 3 : 6
@@ -645,7 +649,7 @@ Item {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
-                text: "Sin ciudad no hay clima: elígela en Hoy (C) o en Configuración → Dashboard."
+                text: I18n.tr("No city, no weather: choose it in Today (C) or in Settings → Dashboard.")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label

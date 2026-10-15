@@ -51,8 +51,7 @@ ColumnLayout {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         // "full" (la linea y la musica, Fase 11 B5): sin tamano que elegir, solo el nombre.
-                        // Los ajustes rapidos, traducidos (Fase 15 B1); las zonas de Inicio, en la B2.
-                        text: (summary.tiles ? I18n.trc("tile", chip.info.label || chip.modelData.id) : (chip.info.label || chip.modelData.id)) + ((chip.info.sizes || []).length < 2 ? ""
+                        text: I18n.trc(summary.tiles ? "tile" : "zone", chip.info.label || chip.modelData.id) + ((chip.info.sizes || []).length < 2 ? ""
                             : " · " + summary.sizeName(chip.modelData.size))
                         color: Colors.text
                         font.family: Tokens.font.ui

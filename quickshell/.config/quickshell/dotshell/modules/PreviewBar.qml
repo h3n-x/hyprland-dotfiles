@@ -136,7 +136,7 @@ PanelWindow {
             Column {
                 Layout.preferredWidth: Math.max(implicitWidth, Tokens.panel.widthSm * 0.5)
                 Text {
-                    text: "Vista previa · " + (ThemePreview.index + 1) + " de " + ThemePreview.names.length
+                    text: I18n.tr("Preview · %1 of %2", ThemePreview.index + 1, ThemePreview.names.length)
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption
@@ -175,7 +175,7 @@ PanelWindow {
                     spacing: Tokens.space.sm
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "Cancelar"
+                        text: I18n.tr("Cancel")
                         color: Colors.text
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body
@@ -204,7 +204,7 @@ PanelWindow {
                     Icon { name: "wallpaper"; filled: true; color: Colors.textOnAccent }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "Aplicar"
+                        text: I18n.tr("Apply")
                         color: Colors.textOnAccent
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.body

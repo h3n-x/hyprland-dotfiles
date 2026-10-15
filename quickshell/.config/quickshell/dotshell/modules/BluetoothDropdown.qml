@@ -73,7 +73,7 @@ AnchoredPanel {
 
             Text {
                 visible: !!popup.adapter && popup.adapter.discovering
-                text: "Buscando..."
+                text: I18n.tr("Searching...")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
@@ -89,7 +89,7 @@ AnchoredPanel {
             visible: popup.devices.length === 0
             Layout.leftMargin: Tokens.space.md
             Layout.bottomMargin: Tokens.space.xs
-            text: "Sin dispositivos"
+            text: I18n.tr("No devices")
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.body

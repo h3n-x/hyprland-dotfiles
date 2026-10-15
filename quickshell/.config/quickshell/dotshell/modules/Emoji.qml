@@ -28,19 +28,20 @@ OverlayWindow {
     property Subscription emojiData: Subscription { demand: EmojiState.demand; active: window.shouldShow || window.visible }
 
     readonly property var categories: [
-        { id: "recent", icon: "schedule", label: "Recientes" },
-        { id: "smileys", icon: "sentiment_satisfied", label: "Caras" },
-        { id: "people", icon: "waving_hand", label: "Personas" },
-        { id: "animals", icon: "pets", label: "Animales" },
-        { id: "food", icon: "restaurant", label: "Comida" },
-        { id: "travel", icon: "flight", label: "Viajes" },
-        { id: "activities", icon: "sports_soccer", label: "Actividades" },
-        { id: "objects", icon: "lightbulb", label: "Objetos" },
-        { id: "symbols", icon: "emoji_symbols", label: "Símbolos" },
-        { id: "flags", icon: "flag", label: "Banderas" }]
+        { id: "recent", icon: "schedule", label: I18n.trc("emoji category", "Recent") },
+        { id: "smileys", icon: "sentiment_satisfied", label: I18n.trc("emoji category", "Smileys") },
+        { id: "people", icon: "waving_hand", label: I18n.trc("emoji category", "People") },
+        { id: "animals", icon: "pets", label: I18n.trc("emoji category", "Animals") },
+        { id: "food", icon: "restaurant", label: I18n.trc("emoji category", "Food") },
+        { id: "travel", icon: "flight", label: I18n.trc("emoji category", "Travel") },
+        { id: "activities", icon: "sports_soccer", label: I18n.trc("emoji category", "Activities") },
+        { id: "objects", icon: "lightbulb", label: I18n.trc("emoji category", "Objects") },
+        { id: "symbols", icon: "emoji_symbols", label: I18n.trc("emoji category", "Symbols") },
+        { id: "flags", icon: "flag", label: I18n.trc("emoji category", "Flags") }]
     // Muestras de los 6 tonos (amarillo + Fitzpatrick 1-2 a 6).
     readonly property var toneColors: ["#ffcc4d", "#f7dece", "#f3d2a2", "#d5ab88", "#af7e57", "#7c533e"]
-    readonly property var toneNames: ["Sin tono", "Tono claro", "Tono claro medio", "Tono medio", "Tono oscuro medio", "Tono oscuro"]
+    readonly property var toneNames: [I18n.tr("No skin tone"), I18n.tr("Light skin tone"), I18n.tr("Medium-light skin tone"), I18n.tr("Medium skin tone"),
+        I18n.tr("Medium-dark skin tone"), I18n.tr("Dark skin tone")]
 
     readonly property bool dry: Quickshell.env("EMOJI_DRY") === "1"
     property var lastCommand: null
@@ -165,9 +166,9 @@ OverlayWindow {
                 cellSize: Tokens.px(48)
                 maxVisibleRows: 6
                 model: content.shown
-                placeholder: "Buscar emoji..."
-                emptyText: EmojiState.ready ? (content.category === "recent" && !picker.query ? "Todavía no usaste ningún emoji" : "Sin resultados") : ""
-                hints: "←↑↓→ navegar   ⏎ escribir   ctrl+⏎ copiar   tab categoría   ctrl+t tono   esc cerrar"
+                placeholder: I18n.tr("Search emoji...")
+                emptyText: EmojiState.ready ? (content.category === "recent" && !picker.query ? I18n.tr("You haven't used any emoji yet") : I18n.tr("No results")) : ""
+                hints: I18n.tr("←↑↓→ navigate   ⏎ type   ctrl+⏎ copy   tab category   ctrl+t skin tone   esc close")
                 keyHandler: (event) => content.handleKey(event.key, event.modifiers, event.isAutoRepeat)
                 onAccepted: (item) => window.act(item, false)
                 onDismissed: EmojiState.close()
@@ -301,7 +302,7 @@ OverlayWindow {
                             // y un aro en el elegido; "sin tonos" si este emoji no
                             // los admite (el tono igual queda elegido para los demas).
                             Text {
-                                text: window.toneNames[EmojiState.tone] + (content.current && !content.current.t ? " · sin tonos" : "")
+                                text: window.toneNames[EmojiState.tone] + (content.current && !content.current.t ? " · " + I18n.tr("no skin tones") : "")
                                 color: Colors.textMuted
                                 font.family: Tokens.font.ui
                                 font.pixelSize: Tokens.type.caption

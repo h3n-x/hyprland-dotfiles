@@ -36,10 +36,10 @@ Item {
     readonly property int imageRadius: thumb.video ? Tokens.radius.md : Tokens.radius.sm
 
     readonly property var kinds: ({
-        region: { icon: "crop", label: "Región" },
-        window: { icon: "web_asset", label: "Ventana" },
-        full: { icon: "desktop_windows", label: "Pantalla" },
-        recording: { icon: "videocam", label: "Grabación" }
+        region: { icon: "crop", label: I18n.trc("capture", "Region") },
+        window: { icon: "web_asset", label: I18n.trc("capture", "Window") },
+        full: { icon: "desktop_windows", label: I18n.trc("capture", "Screen") },
+        recording: { icon: "videocam", label: I18n.trc("capture", "Recording") }
     })
 
     function clock(ms: int): string {

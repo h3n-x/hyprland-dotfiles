@@ -20,10 +20,10 @@ Rectangle {
     property string label: ""
 
     readonly property var spec: [
-        { l: "Información", i: "info", bg: "transparent", fg: Colors.textMuted },
-        { l: "Recomendación", i: "lightbulb", bg: "transparent", fg: Colors.text },
-        { l: "Advertencia", i: "warning", bg: Colors.warningContainer, fg: Colors.textOnWarningContainer },
-        { l: "Acción importante", i: "priority_high", bg: Colors.dangerContainer, fg: Colors.textOnDangerContainer }
+        { l: I18n.tr("Information"), i: "info", bg: "transparent", fg: Colors.textMuted },
+        { l: I18n.tr("Recommendation"), i: "lightbulb", bg: "transparent", fg: Colors.text },
+        { l: I18n.tr("Warning"), i: "warning", bg: Colors.warningContainer, fg: Colors.textOnWarningContainer },
+        { l: I18n.tr("Important action"), i: "priority_high", bg: Colors.dangerContainer, fg: Colors.textOnDangerContainer }
     ][Math.max(0, Math.min(3, root.level))]
 
     implicitHeight: Tokens.px(24)

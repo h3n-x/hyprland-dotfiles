@@ -59,7 +59,7 @@ AnchoredPanel {
                 Layout.fillWidth: true
 
                 Text {
-                    text: "Dispositivos de audio"
+                    text: I18n.tr("Audio devices")
                     color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.title
@@ -68,7 +68,7 @@ AnchoredPanel {
                     elide: Text.ElideRight
                 }
                 Text {
-                    text: "Salidas y micrófonos (PipeWire)"
+                    text: I18n.tr("Outputs and microphones (PipeWire)")
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption
@@ -111,7 +111,7 @@ AnchoredPanel {
         }
 
         Text {
-            text: "SALIDA (ALTAVOCES / AURICULARES)"
+            text: I18n.tr("OUTPUT (SPEAKERS / HEADPHONES)")
             // Con el texto grande (hasta 150 %) se corta en vez de salirse de la tarjeta.
             Layout.fillWidth: true
             Layout.rightMargin: Tokens.space.md
@@ -194,7 +194,7 @@ AnchoredPanel {
         }
 
         Text {
-            text: "ENTRADA (MICRÓFONO)"
+            text: I18n.tr("INPUT (MICROPHONE)")
             Layout.fillWidth: true
             Layout.rightMargin: Tokens.space.md
             elide: Text.ElideRight

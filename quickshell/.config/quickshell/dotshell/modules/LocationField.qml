@@ -25,7 +25,7 @@ Row {
         anchors.verticalCenter: parent.verticalCenter
         width: Math.min(implicitWidth, Tokens.px(220))
         elide: Text.ElideRight
-        text: root.value ? root.value.name : "Sin ciudad"
+        text: root.value ? root.value.name : I18n.tr("No city")
         color: root.value ? Colors.text : Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.body
@@ -33,14 +33,14 @@ Row {
     Button {
         activeFocusOnTab: true
         icon: root.open ? "close" : "edit_location"
-        label: root.open ? "Cancelar" : (root.value ? "Cambiar" : "Elegir")
+        label: root.open ? I18n.tr("Cancel") : (root.value ? I18n.tr("Change") : I18n.tr("Choose"))
         onClicked: root.open = !root.open
     }
     Button {
         visible: !!root.value && !root.open
         activeFocusOnTab: visible
         icon: "delete"
-        label: "Quitar"
+        label: I18n.tr("Remove")
         onClicked: Quickshell.execDetached([root.script, "--clear"])
     }
 }

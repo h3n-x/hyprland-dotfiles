@@ -182,7 +182,7 @@ QtObject {
                 // ("Ryzen 7 8845HS w/ Radeon 780M Graphics").
                 const inCpu = root.cpuModel.match(/w\/\s*(Radeon[^,]*?)\s*Graphics/i);
                 if (inCpu) root.igpuName = inCpu[1];
-                if (!root.igpuName && p.gpuTemp) root.igpuName = "Gráfica integrada";
+                if (!root.igpuName && p.gpuTemp) root.igpuName = I18n.tr("Integrated graphics");
                 root.cpuModel = root.cpuModel.replace(/\s*w\/.*$/, "").replace(/^AMD\s+/, "").replace(/\s+\d+-Core Processor$/, "").trim();
                 root.paths = p;
                 root.infoLoaded = true;
@@ -302,7 +302,7 @@ QtObject {
             if (state === "active") {
                 if (!nvidiaProc.running) nvidiaProc.running = true;
             } else {
-                root.nvidia = { active: false, text: "En reposo", processes: [] };
+                root.nvidia = { active: false, text: I18n.tr("Idle"), processes: [] };
             }
         }
     }
@@ -453,32 +453,32 @@ QtObject {
     // ---- Estado general -----------------------------------------------------------
     // level: 0 bien, 1 atencion, 2 critico. El primero que aplique, por gravedad.
     readonly property var status: {
-        if (BatteryState.critical) return { level: 2, text: "Batería crítica" };
-        if (root.temp >= 95) return { level: 2, text: "Temperatura muy alta" };
-        if (root.temp >= 88) return { level: 1, text: "Temperatura alta" };
-        if (root.memFrac >= 0.92) return { level: 1, text: "Memoria casi llena" };
-        if (root.cpuHighCount >= 3) return { level: 1, text: "CPU al máximo" };
-        if (BatteryState.warning) return { level: 1, text: "Batería baja" };
-        return { level: 0, text: "Todo en orden" };
+        if (BatteryState.critical) return { level: 2, text: I18n.tr("Battery critical") };
+        if (root.temp >= 95) return { level: 2, text: I18n.tr("Very high temperature") };
+        if (root.temp >= 88) return { level: 1, text: I18n.tr("High temperature") };
+        if (root.memFrac >= 0.92) return { level: 1, text: I18n.tr("Memory almost full") };
+        if (root.cpuHighCount >= 3) return { level: 1, text: I18n.tr("CPU at maximum") };
+        if (BatteryState.warning) return { level: 1, text: I18n.tr("Battery low") };
+        return { level: 0, text: I18n.tr("All good") };
     }
     // Palabras de estado (las mismas en Inicio y en Sistema).
     function cpuWord(v: real): string {
-        return v < 0.25 ? "Tranquila" : v < 0.6 ? "Moderada" : v < 0.9 ? "Exigida" : "Al máximo";
+        return v < 0.25 ? I18n.trc("cpu load", "Calm") : v < 0.6 ? I18n.trc("cpu load", "Moderate") : v < 0.9 ? I18n.trc("cpu load", "Busy") : I18n.trc("cpu load", "At maximum");
     }
     function memWord(v: real): string {
-        return v < 0.6 ? "Holgada" : v < 0.85 ? "En uso" : v < 0.92 ? "Justa" : "Casi llena";
+        return v < 0.6 ? I18n.trc("memory", "Roomy") : v < 0.85 ? I18n.trc("memory", "In use") : v < 0.92 ? I18n.trc("memory", "Tight") : I18n.trc("memory", "Almost full");
     }
     function diskWord(v: real): string {
-        return v < 0.8 ? "Con espacio" : v < 0.92 ? "Ajustado" : "Casi lleno";
+        return v < 0.8 ? I18n.trc("disk", "Roomy") : v < 0.92 ? I18n.trc("disk", "Tight") : I18n.trc("disk", "Almost full");
     }
     function tempWord(t: real): string {
-        return isNaN(t) ? "" : t < 60 ? "fresca" : t < 80 ? "normal" : t < 95 ? "alta" : "muy alta";
+        return isNaN(t) ? "" : t < 60 ? I18n.trc("temperature", "cool") : t < 80 ? I18n.trc("temperature", "normal") : t < 95 ? I18n.trc("temperature", "high") : I18n.trc("temperature", "very high");
     }
 
     // Duraciones y bytes: I18n.duration / I18n.bytes (Fase 15 B1, con el idioma elegido).
     function rate(bps: real): string {
-        if (bps >= 1048576) return (bps / 1048576).toFixed(1).replace(".", ",") + " MB/s";
-        if (bps >= 1024) return Math.round(bps / 1024) + " kB/s";
-        return Math.round(bps) + " B/s";
+        if (bps >= 1048576) return I18n.tr("%1 MB/s", I18n.number(bps / 1048576, 1));
+        if (bps >= 1024) return I18n.tr("%1 kB/s", I18n.number(Math.round(bps / 1024), 0));
+        return I18n.tr("%1 B/s", I18n.number(Math.round(bps), 0));
     }
 }

@@ -180,7 +180,7 @@ Item {
 
     // ---- Elementos: severidad y frases ---------------------------------------------------
     // sev: 0 Informacion, 1 Recomendacion, 2 Advertencia, 3 Accion importante.
-    readonly property var sevNames: ["Información", "Recomendación", "Advertencia", "Acción importante"]
+    readonly property var sevNames: [I18n.tr("Information"), I18n.tr("Recommendation"), I18n.tr("Warning"), I18n.tr("Important action")]
     // Servicios cuya caida se nota enseguida.
     readonly property var essentialUnits: ["NetworkManager.service", "systemd-networkd.service", "systemd-resolved.service", "sddm.service",
         "display-manager.service", "systemd-logind.service", "dbus.service", "dbus-broker.service", "polkit.service", "bluetooth.service",
@@ -188,16 +188,6 @@ Item {
 
     function gb(bytes: real): string {
         return I18n.bytes(bytes);
-    }
-    function plural(n: int, one: string, many: string): string {
-        return n + " " + (n === 1 ? one : many);
-    }
-    function ago(epochSec: real): string {
-        if (!epochSec) return "";
-        const days = Math.floor((Date.now() / 1000 - epochSec) / 86400);
-        if (days <= 0) return "hoy";
-        if (days === 1) return "ayer";
-        return "hace " + days + " días";
     }
 
     readonly property var items: {
@@ -209,20 +199,20 @@ Item {
 
         if (q && q.reboot) {
             out.push({ id: "reboot", sev: 3, metrics: { count: 1 },
-                sentence: "Hay que reiniciar para terminar la actualización.",
+                sentence: I18n.tr("A restart is needed to finish the update."),
                 why: q.reboot.reason === "kernel"
-                    ? "El kernel en uso (" + q.reboot.running + ") ya no está instalado; hasta reiniciar pueden fallar dispositivos y módulos."
-                    : "El driver NVIDIA cargado (" + q.reboot.running + ") no coincide con el instalado (" + q.reboot.installed + ").",
-                advice: "reiniciar", action: "reboot", actionLabel: "Reiniciar…" });
+                    ? I18n.tr("The running kernel (%1) is no longer installed; devices and modules may fail until you restart.", q.reboot.running)
+                    : I18n.tr("The loaded NVIDIA driver (%1) doesn't match the installed one (%2).", q.reboot.running, q.reboot.installed),
+                advice: I18n.tr("restart"), action: "reboot", actionLabel: I18n.tr("Restart…") });
         }
 
         const disk = SystemState.storage.length ? SystemState.storage[0] : null;
         const diskFrac = disk && disk.size > 0 ? disk.used / disk.size : 0;
         if (diskFrac > opt("diskWarnPct") / 100) {
             out.push({ id: "disk", sev: diskFrac > opt("diskCriticalPct") / 100 ? 3 : 2, metrics: { bytes: disk.avail },
-                sentence: "El disco está al " + Math.round(diskFrac * 100) + " %.",
-                why: "Quedan " + root.gb(disk.avail) + " libres; revisa la papelera y las cachés.",
-                advice: "liberar espacio en disco", action: "", actionLabel: "" });
+                sentence: I18n.tr("The disk is %1 % full.", Math.round(diskFrac * 100)),
+                why: I18n.tr("%1 free; check the trash and the caches.", root.gb(disk.avail)),
+                advice: I18n.tr("free up disk space"), action: "", actionLabel: "" });
         }
 
         if (q) {
@@ -233,85 +223,86 @@ Item {
             const other = units.filter(x => essential.indexOf(x) < 0 && harmless.indexOf(x) < 0);
             if (essential.length)
                 out.push({ id: "units-essential", sev: 3, metrics: { count: essential.length }, units: essential,
-                    sentence: essential.length === 1 ? "Un servicio esencial no está funcionando: " + (essential[0].description || essential[0].name) + "."
-                                                     : essential.length + " servicios esenciales no están funcionando.",
-                    why: "Revisa su registro; suele arreglarse reiniciando el servicio o el equipo.",
-                    advice: "revisar los servicios caídos", action: "unit-log", actionLabel: "Ver registro" });
+                    sentence: essential.length === 1 ? I18n.tr("An essential service isn't running: %1.", essential[0].description || essential[0].name)
+                                                     : I18n.trn("%n essential service isn't running.", "%n essential services aren't running.", essential.length),
+                    why: I18n.tr("Check its log; restarting the service or the computer usually fixes it."),
+                    advice: I18n.tr("check the services that are down"), action: "unit-log", actionLabel: I18n.tr("View log") });
             if (other.length)
                 out.push({ id: "units", sev: 2, metrics: { count: other.length }, units: other,
-                    sentence: other.length === 1 ? "Un servicio falló al iniciar: " + (other[0].description || other[0].name) + "."
-                                                 : other.length + " servicios fallaron al iniciar.",
-                    why: "No son esenciales, pero conviene saber por qué fallan.",
-                    advice: "revisar los servicios que fallan", action: "unit-log", actionLabel: "Ver registro" });
+                    sentence: other.length === 1 ? I18n.tr("A service failed to start: %1.", other[0].description || other[0].name)
+                                                 : I18n.trn("%n service failed to start.", "%n services failed to start.", other.length),
+                    why: I18n.tr("They aren't essential, but it's worth knowing why they fail."),
+                    advice: I18n.tr("check the failing services"), action: "unit-log", actionLabel: I18n.tr("View log") });
             if (harmless.length)
                 out.push({ id: "units-tpm", sev: 0, metrics: { count: harmless.length }, units: harmless,
-                    sentence: root.plural(harmless.length, "servicio del TPM falla", "servicios del TPM fallan") + " al iniciar; hoy no afectan al uso diario.",
-                    why: "Solo importarían si guardaras claves en el TPM (cifrado de disco, credenciales).",
-                    advice: "", action: "unit-log", actionLabel: "Ver registro" });
+                    sentence: I18n.trn("%n TPM service fails at startup; it doesn't affect daily use today.", "%n TPM services fail at startup; they don't affect daily use today.", harmless.length),
+                    why: I18n.tr("They would only matter if you stored keys in the TPM (disk encryption, credentials)."),
+                    advice: "", action: "unit-log", actionLabel: I18n.tr("View log") });
         }
 
         if (s && s.trash.bytes > opt("trashRecommendGiB") * GiB)
             out.push({ id: "trash", sev: s.trash.bytes > opt("trashWarnGiB") * GiB ? 2 : 1, metrics: { bytes: s.trash.bytes, count: s.trash.items },
-                sentence: "La papelera ocupa " + root.gb(s.trash.bytes) + ".",
-                why: "Vaciarla libera ese espacio; no se puede deshacer.",
-                advice: "vaciar la papelera", action: "trash", actionLabel: "Vaciar…" });
+                sentence: I18n.tr("The trash takes up %1.", root.gb(s.trash.bytes)),
+                why: I18n.tr("Emptying it frees that space; it can't be undone."),
+                advice: I18n.tr("empty the trash"), action: "trash", actionLabel: I18n.tr("Empty…") });
 
         if (q && q.coredumps.bytes > opt("coredumpRecommendMiB") * 1048576) {
             const src = q.coredumps.sources.filter(x => x.stored > 0);
             const stored = src.reduce((a, x) => a + x.stored, 0);
-            const top = src.slice(0, 2).map(x => x.exe === "xdg-desktop-portal-hyprland" ? "el portal de escritorio falló " + x.count + " veces"
+            const top = src.slice(0, 2).map(x => x.exe === "xdg-desktop-portal-hyprland" ? I18n.trn("the desktop portal failed %n time", "the desktop portal failed %n times", x.count)
                                                                                            : x.exe + " (" + x.stored + ")");
             out.push({ id: "coredumps", sev: q.coredumps.bytes > opt("coredumpWarnGiB") * GiB ? 2 : 1, metrics: { bytes: q.coredumps.bytes, count: stored }, sources: src,
-                sentence: "Se detectaron " + root.plural(stored, "volcado de error", "volcados de error") + " que ocupan " + root.gb(q.coredumps.bytes) + ".",
-                why: top.length ? "Casi todos son de " + top.join("; ") + "." : "",
-                advice: "limpiar los volcados de error", action: "coredumps", actionLabel: "Limpiar…" });
+                sentence: I18n.trn("%n crash dump was found, taking up %1.", "%n crash dumps were found, taking up %1.", stored, root.gb(q.coredumps.bytes)),
+                why: top.length ? I18n.tr("Almost all come from %1.", top.join("; ")) : "",
+                advice: I18n.tr("clean up the crash dumps"), action: "coredumps", actionLabel: I18n.tr("Clean up…") });
         }
 
         if (u && root.updateCount > 0) {
             const stale = q && q.lastUpgrade && (Date.now() / 1000 - q.lastUpgrade) > opt("staleUpgradeDays") * 86400;
             const parts = [];
-            if (u.repo.length) parts.push(u.aur.length ? u.repo.length + " del repositorio" : "Todas del repositorio");
-            if (u.aur.length) parts.push(u.repo.length ? u.aur.length + " de AUR" : "Todas de AUR");
+            if (u.repo.length) parts.push(u.aur.length ? I18n.tr("%1 from the repositories", u.repo.length) : I18n.tr("All from the repositories"));
+            if (u.aur.length) parts.push(u.repo.length ? I18n.tr("%1 from the AUR", u.aur.length) : I18n.tr("All from the AUR"));
             out.push({ id: "updates", sev: stale ? 2 : 1, metrics: { count: root.updateCount }, packages: u.repo.concat(u.aur),
-                sentence: root.updateCount === 1 ? "Hay 1 actualización disponible." : "Hay " + root.updateCount + " actualizaciones disponibles.",
-                why: parts.join(" y ") + (q && q.lastUpgrade ? "; la última actualización completa fue " + root.ago(q.lastUpgrade) + "." : "."),
-                advice: "actualizar el sistema (" + root.plural(root.updateCount, "paquete", "paquetes") + ")", action: "update", actionLabel: "Actualizar" });
+                sentence: I18n.trn("%n update is available.", "%n updates are available.", root.updateCount),
+                why: q && q.lastUpgrade ? I18n.tr("%1; the last full upgrade was %2.", I18n.join(parts), I18n.daysAgo(q.lastUpgrade)) : I18n.tr("%1.", I18n.join(parts)),
+                advice: I18n.trn("update the system (%n package)", "update the system (%n packages)", root.updateCount), action: "update", actionLabel: I18n.tr("Update") });
         }
         if (u && u.error)
             out.push({ id: "updates-error", sev: 0, metrics: {},
-                sentence: "No se pudo comprobar si hay actualizaciones" + (u.error === "aur" ? " de AUR." : "."),
-                why: "Puede ser la conexión; se vuelve a intentar en la próxima revisión.", advice: "", action: "", actionLabel: "" });
+                sentence: u.error === "aur" ? I18n.tr("Couldn't check for AUR updates.") : I18n.tr("Couldn't check for updates."),
+                why: I18n.tr("It may be the connection; it will try again at the next check."), advice: "", action: "", actionLabel: "" });
 
         if (s) {
             const cache = s.pkgCache.reclaimBytes + s.helperCacheBytes;
             if (cache > opt("packageCacheGiB") * GiB)
                 out.push({ id: "pkgcache", sev: 1, metrics: { bytes: cache },
-                    sentence: "Se pueden liberar " + root.gb(cache) + " en cachés de paquetes.",
-                    why: root.gb(s.pkgCache.reclaimBytes) + " de pacman" + (s.helper ? " y " + root.gb(s.helperCacheBytes) + " de " + s.helper : "") + "; quedan las dos últimas versiones.",
-                    advice: "liberar " + root.gb(cache) + " de cachés", action: "pkgcache", actionLabel: "Limpiar…" });
+                    sentence: I18n.tr("%1 can be freed from package caches.", root.gb(cache)),
+                    why: s.helper ? I18n.tr("%1 from pacman and %2 from %3; the last two versions are kept.", root.gb(s.pkgCache.reclaimBytes), root.gb(s.helperCacheBytes), s.helper)
+                                  : I18n.tr("%1 from pacman; the last two versions are kept.", root.gb(s.pkgCache.reclaimBytes)),
+                    advice: I18n.tr("free %1 of caches", root.gb(cache)), action: "pkgcache", actionLabel: I18n.tr("Clean up…") });
         }
         if (q && q.orphans.length)
             out.push({ id: "orphans", sev: 1, metrics: { count: q.orphans.length }, packages: q.orphans.map(n => ({ name: n })),
-                sentence: "Hay " + root.plural(q.orphans.length, "paquete que ya nada usa", "paquetes que ya nada usa") + ".",
-                why: "Revisa la lista antes: algunas herramientas de compilación aparecen aunque las uses a mano.",
-                advice: "quitar " + root.plural(q.orphans.length, "paquete sin uso", "paquetes sin uso"), action: "orphans", actionLabel: "Revisar…" });
+                sentence: I18n.trn("%n package is no longer needed by anything.", "%n packages are no longer needed by anything.", q.orphans.length),
+                why: I18n.tr("Check the list first: some build tools show up even if you use them by hand."),
+                advice: I18n.trn("remove %n unused package", "remove %n unused packages", q.orphans.length), action: "orphans", actionLabel: I18n.tr("Review…") });
         if (q && q.journalBytes > opt("journalGiB") * GiB)
             out.push({ id: "journal", sev: 1, metrics: { bytes: q.journalBytes },
-                sentence: "El diario del sistema ocupa " + root.gb(q.journalBytes) + ".",
-                why: "Se puede reducir a 200 MB; se borran los registros más viejos.",
-                advice: "reducir el diario", action: "journal", actionLabel: "Reducir…" });
+                sentence: I18n.tr("The system journal takes up %1.", root.gb(q.journalBytes)),
+                why: I18n.tr("It can be reduced to 200 MB; the oldest logs are deleted."),
+                advice: I18n.tr("shrink the journal"), action: "journal", actionLabel: I18n.tr("Shrink…") });
         if (q && q.pacnew.length)
             out.push({ id: "pacnew", sev: 1, metrics: { count: q.pacnew.length }, files: q.pacnew,
-                sentence: "Hay " + root.plural(q.pacnew.length, "archivo de configuración nuevo", "archivos de configuración nuevos") + " por revisar.",
-                why: "pacman dejó versiones .pacnew/.pacsave junto a las tuyas; hay que compararlas a mano (pacdiff).",
-                advice: "revisar los .pacnew", action: "", actionLabel: "" });
+                sentence: I18n.trn("%n new configuration file to review.", "%n new configuration files to review.", q.pacnew.length),
+                why: I18n.tr("pacman left .pacnew/.pacsave versions next to yours; they have to be compared by hand (pacdiff)."),
+                advice: I18n.tr("review the .pacnew files"), action: "", actionLabel: "" });
         if (s) {
             const cap = s.captures.screenshots.bytes + s.captures.recordings.bytes;
             if (cap > opt("capturesGiB") * GiB)
                 out.push({ id: "captures", sev: 1, metrics: { bytes: cap },
-                    sentence: "Tus capturas ocupan " + root.gb(cap) + ".",
-                    why: s.captures.screenshots.count + " imágenes y " + s.captures.recordings.count + " grabaciones; revisa las antiguas.",
-                    advice: "revisar capturas antiguas", action: "captures", actionLabel: "Abrir carpeta" });
+                    sentence: I18n.tr("Your captures take up %1.", root.gb(cap)),
+                    why: I18n.tr("%1 images and %2 recordings; check the old ones.", s.captures.screenshots.count, s.captures.recordings.count),
+                    advice: I18n.tr("review old captures"), action: "captures", actionLabel: I18n.tr("Open folder") });
         }
         // Mas grave primero; a igual severidad, un orden fijo (lo que mas pesa
         // en el dia a dia antes): el sort de JS no garantiza el orden de entrada.
@@ -327,31 +318,30 @@ Item {
 
     // ¿Esta bien el sistema? ¿Que requiere atencion?
     readonly property string verdict: {
-        if (!root.quick) return "Revisando el sistema…";
+        if (!root.quick) return I18n.tr("Checking the system…");
         const urgent = root.items.filter(x => x.sev === 3).length;
-        if (urgent) return urgent === 1 ? "Hay 1 elemento que requiere atención inmediata." : "Hay " + urgent + " elementos que requieren atención inmediata.";
+        if (urgent) return I18n.trn("%n item needs immediate attention.", "%n items need immediate attention.", urgent);
         const n = root.attention.length;
-        if (n) return "El sistema funciona correctamente, pero " + (n === 1 ? "hay 1 elemento que requiere atención." : "hay " + n + " elementos que requieren atención.");
-        return "El sistema funciona correctamente.";
+        if (n) return I18n.trn("The system works correctly, but %n item needs attention.", "The system works correctly, but %n items need attention.", n);
+        return I18n.tr("The system works correctly.");
     }
     // Resumen corto (fila de Sistema): lo mas grave que hay.
     readonly property string shortStatus: {
-        if (!root.quick) return "revisando…";
+        if (!root.quick) return I18n.tr("checking…");
         const urgent = root.items.filter(x => x.sev === 3).length;
-        if (urgent) return urgent === 1 ? "1 elemento requiere atención inmediata" : urgent + " elementos requieren atención inmediata";
+        if (urgent) return I18n.trn("%n item needs immediate attention", "%n items need immediate attention", urgent);
         const n = root.attention.length;
-        if (n) return n === 1 ? "1 elemento requiere atención" : n + " elementos requieren atención";
+        if (n) return I18n.trn("%n item needs attention", "%n items need attention", n);
         const r = root.recommended.length;
-        if (r) return r === 1 ? "1 recomendación" : r + " recomendaciones";
-        return "todo al día";
+        if (r) return I18n.trn("%n recommendation", "%n recommendations", r);
+        return I18n.tr("all up to date");
     }
     // ¿Que es recomendable hacer?
     readonly property string recommendation: {
         if (!root.quick) return "";
         const adv = root.items.filter(x => x.sev >= 1 && x.advice).slice(0, 3).map(x => x.advice);
-        if (!adv.length) return "No hace falta hacer nada.";
-        const text = adv.length === 1 ? adv[0] : adv.slice(0, -1).join(", ") + " y " + adv[adv.length - 1];
-        return "Lo recomendable: " + text + ".";
+        if (!adv.length) return I18n.tr("Nothing needs to be done.");
+        return I18n.tr("Recommended: %1.", I18n.join(adv));
     }
     // Lo que esta bien, en una sola linea.
     readonly property string okLine: {
@@ -359,11 +349,11 @@ Item {
         const ids = root.items.map(x => x.id);
         const parts = [];
         const disk = SystemState.storage.length ? SystemState.storage[0] : null;
-        if (disk && ids.indexOf("disk") < 0) parts.push("Disco al " + Math.round(disk.used / disk.size * 100) + " % (" + root.gb(disk.avail) + " libres)");
-        if (!root.rebootPending) parts.push("sin reinicio pendiente");
-        if (ids.indexOf("units-essential") < 0 && ids.indexOf("units") < 0) parts.push(ids.indexOf("units-tpm") >= 0 ? "servicios esenciales en orden" : "servicios en orden");
-        if (root.updates && root.updateCount === 0 && !root.updates.error) parts.push("sistema actualizado");
-        if (ids.indexOf("pacnew") < 0) parts.push("configuración al día");
+        if (disk && ids.indexOf("disk") < 0) parts.push(I18n.tr("disk at %1 % (%2 free)", Math.round(disk.used / disk.size * 100), root.gb(disk.avail)));
+        if (!root.rebootPending) parts.push(I18n.tr("no restart pending"));
+        if (ids.indexOf("units-essential") < 0 && ids.indexOf("units") < 0) parts.push(ids.indexOf("units-tpm") >= 0 ? I18n.tr("essential services fine") : I18n.tr("services fine"));
+        if (root.updates && root.updateCount === 0 && !root.updates.error) parts.push(I18n.tr("system up to date"));
+        if (ids.indexOf("pacnew") < 0) parts.push(I18n.tr("configuration up to date"));
         if (!parts.length) return "";
         const line = parts.join(" · ");
         return line.charAt(0).toUpperCase() + line.slice(1);

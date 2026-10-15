@@ -19,13 +19,13 @@ QtObject {
         ["env-secret", /(^|[^A-Za-z])(PASSWORD|PASSWD|SECRET|TOKEN|API_?KEY)[A-Z_]*\s*=\s*\S{6,}/]
     ]
     readonly property var labels: ({
-        "privkey": "una clave privada",
-        "github": "un token de GitHub",
-        "apikey-ai": "una clave de API",
-        "apikey-cloud": "una clave de API",
-        "jwt": "un token de sesión",
-        "env-secret": "una contraseña o secreto",
-        "password-like": "una contraseña"
+        "privkey": I18n.tr("a private key"),
+        "github": I18n.tr("a GitHub token"),
+        "apikey-ai": I18n.tr("an API key"),
+        "apikey-cloud": I18n.tr("an API key"),
+        "jwt": I18n.tr("a session token"),
+        "env-secret": I18n.tr("a password or secret"),
+        "password-like": I18n.tr("a password")
     })
 
     function check(text: string): string {
@@ -42,6 +42,6 @@ QtObject {
     }
 
     function label(category: string): string {
-        return labels[category] || "contenido sensible";
+        return labels[category] || I18n.tr("sensitive content");
     }
 }

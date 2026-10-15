@@ -54,7 +54,7 @@ ColumnLayout {
 
     ZoneTitle {
         Layout.fillWidth: true
-        text: "Sistema"
+        text: I18n.tr("System")
         opens: true
     }
     StatusLine {
@@ -77,7 +77,7 @@ ColumnLayout {
         }
         Meter {
             Layout.fillWidth: true
-            label: "Memoria"
+            label: I18n.tr("Memory")
             value: Math.round(SystemState.memFrac * 100) + " %"
             fraction: SystemState.memFrac
             level: SystemState.memFrac >= 0.92 ? 1 : 0
@@ -85,7 +85,7 @@ ColumnLayout {
         Meter {
             Layout.fillWidth: true
             visible: !isNaN(SystemState.temp)
-            label: "Temperatura"
+            label: I18n.tr("Temperature")
             value: Math.round(SystemState.temp) + "°"
             fraction: SystemState.temp / 100
             level: SystemState.temp >= 95 ? 2 : SystemState.temp >= 88 ? 1 : 0
@@ -93,7 +93,7 @@ ColumnLayout {
         Meter {
             Layout.fillWidth: true
             visible: BatteryState.present
-            label: BatteryState.charging ? "Batería · cargando" : "Batería"
+            label: BatteryState.charging ? I18n.tr("Battery · charging") : I18n.tr("Battery")
             value: Math.round(BatteryState.pct * 100) + " %"
             fraction: BatteryState.pct
             level: BatteryState.critical ? 2 : BatteryState.warning ? 1 : 0

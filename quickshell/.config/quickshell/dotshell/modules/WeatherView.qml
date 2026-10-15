@@ -75,14 +75,15 @@ Item {
     readonly property string sentence: {
         if (!wv.cur || !wv.days.length) return "";
         const t = wv.days[0];
-        let s = "Sensación " + WeatherState.temp(wv.cur.apparent_temperature) + ". Hoy entre "
-            + WeatherState.temp(t.min) + " y " + WeatherState.temp(t.max);
-        s += t.rain >= 50 ? ", con lluvia probable (" + t.rain + " %)" : t.rain >= 20 ? ", puede llover (" + t.rain + " %)" : ", sin lluvia a la vista";
-        s += ".";
-        if (wv.cur.wind_speed_10m >= 30) s += " Viento fuerte (" + Math.round(wv.cur.wind_speed_10m) + " km/h).";
+        const feels = WeatherState.temp(wv.cur.apparent_temperature), lo = WeatherState.temp(t.min), hi = WeatherState.temp(t.max);
+        const parts = [t.rain >= 50 ? I18n.tr("Feels like %1. Today between %2 and %3, rain likely (%4 %).", feels, lo, hi, t.rain)
+                     : t.rain >= 20 ? I18n.tr("Feels like %1. Today between %2 and %3, it may rain (%4 %).", feels, lo, hi, t.rain)
+                     : I18n.tr("Feels like %1. Today between %2 and %3, no rain in sight.", feels, lo, hi)];
+        if (wv.cur.wind_speed_10m >= 30) parts.push(I18n.tr("Strong wind (%1 km/h).", Math.round(wv.cur.wind_speed_10m)));
         const dl = wv.d.daily;
-        if (dl && dl.sunset && dl.sunrise) s += wv.cur.is_day === 1 ? " Anochece a las " + dl.sunset[0].slice(11, 16) + "." : " Amanece a las " + (dl.sunrise[1] || dl.sunrise[0]).slice(11, 16) + ".";
-        return s;
+        if (dl && dl.sunset && dl.sunrise) parts.push(wv.cur.is_day === 1 ? I18n.tr("Sunset at %1.", dl.sunset[0].slice(11, 16))
+                                                                        : I18n.tr("Sunrise at %1.", (dl.sunrise[1] || dl.sunrise[0]).slice(11, 16)));
+        return parts.join(I18n.trc("sentence separator", " "));
     }
 
     component TextButton: Rectangle {
@@ -174,15 +175,16 @@ Item {
                     readonly property color tint: wv.status === "error" ? Colors.danger : wv.status === "cached" ? Colors.textMuted : Colors.border
                     Icon { name: wv.status === "cached" ? "cloud_off" : wv.status === "error" ? "warning" : "history"; size: Tokens.icon.sm; color: parent.tint }
                     Text {
-                        text: wv.status === "cached" ? "Sin conexión · datos guardados " + WeatherState.ago(wv.now - WeatherState.fetchedAt)
-                            : wv.status === "error" ? "No se pudo actualizar" + (WeatherState.lastError ? " (" + WeatherState.lastError.detail + ")" : "") + " · datos " + WeatherState.ago(wv.now - WeatherState.fetchedAt)
-                            : "Datos " + WeatherState.ago(wv.now - WeatherState.fetchedAt) + (WeatherState.fetching ? " · actualizando…" : "")
+                        readonly property string age: I18n.ago(wv.now - WeatherState.fetchedAt)
+                        text: wv.status === "cached" ? I18n.tr("Offline · data saved %1", age)
+                            : wv.status === "error" ? (WeatherState.lastError ? I18n.tr("Couldn't update (%1) · data %2", WeatherState.lastError.detail, age) : I18n.tr("Couldn't update · data %1", age))
+                            : I18n.tr("Data %1", age) + (WeatherState.fetching ? " · " + I18n.tr("updating…") : "")
                         color: parent.tint
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.caption
                         font.weight: Tokens.weight.medium
                     }
-                    TextButton { visible: !WeatherState.fetching; label: "Reintentar"; icon: "refresh"; onClicked: WeatherState.refresh() }
+                    TextButton { visible: !WeatherState.fetching; label: I18n.tr("Retry"); icon: "refresh"; onClicked: WeatherState.refresh() }
                 }
             }
             // La ubicacion: un chip; cambiarla abre la vista de ubicacion.
@@ -211,7 +213,7 @@ Item {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
-                text: wv.status === "offline" ? "Sin conexión" : wv.status === "failed" ? "No se pudo consultar el clima" : "Consultando el clima…"
+                text: wv.status === "offline" ? I18n.tr("Offline") : wv.status === "failed" ? I18n.tr("Couldn't get the weather") : I18n.tr("Getting the weather…")
                 color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.title
@@ -222,8 +224,8 @@ Item {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
-                text: wv.status === "offline" ? "No hay red o Open-Meteo no responde. Se reintenta en unos minutos."
-                    : "Open-Meteo respondió con un error" + (WeatherState.lastError ? " (" + WeatherState.lastError.detail + ")" : "") + "."
+                text: wv.status === "offline" ? I18n.tr("There's no network or Open-Meteo isn't responding. It retries in a few minutes.")
+                    : WeatherState.lastError ? I18n.tr("Open-Meteo returned an error (%1).", WeatherState.lastError.detail) : I18n.tr("Open-Meteo returned an error.")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.caption
@@ -231,7 +233,7 @@ Item {
             TextButton {
                 visible: wv.status === "offline" || wv.status === "failed"
                 Layout.alignment: Qt.AlignHCenter
-                label: WeatherState.fetching ? "Reintentando…" : "Reintentar"
+                label: WeatherState.fetching ? I18n.tr("Retrying…") : I18n.tr("Retry")
                 icon: "refresh"
                 onClicked: WeatherState.refresh()
             }
@@ -247,7 +249,7 @@ Item {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 spacing: Tokens.space.sm
-                ZoneTitle { Layout.fillWidth: true; text: "Próximas horas" }
+                ZoneTitle { Layout.fillWidth: true; text: I18n.tr("Next hours") }
                 WeatherHours { Layout.fillWidth: true }
             }
         }
@@ -262,7 +264,7 @@ Item {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 spacing: Tokens.space.xs
-                ZoneTitle { Layout.fillWidth: true; text: "Próximos días" }
+                ZoneTitle { Layout.fillWidth: true; text: I18n.tr("Next days") }
                 Repeater {
                     model: wv.days
                     RowLayout {
@@ -313,7 +315,7 @@ Item {
         RowLayout {
             visible: WeatherState.configured
             Layout.fillWidth: true
-            TextButton { label: "Volver"; icon: "arrow_back"; onClicked: wv.picking = false }
+            TextButton { label: I18n.tr("Back"); icon: "arrow_back"; onClicked: wv.picking = false }
             Item { Layout.fillWidth: true }
         }
         Icon {
@@ -328,7 +330,7 @@ Item {
             Layout.fillWidth: true
             horizontalAlignment: WeatherState.configured ? Text.AlignLeft : Text.AlignHCenter
             wrapMode: Text.WordWrap
-            text: WeatherState.configured ? "Cambiar la ubicación" : "Elige tu ciudad para ver el clima"
+            text: WeatherState.configured ? I18n.tr("Change the location") : I18n.tr("Choose your city to see the weather")
             color: Colors.text
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.title
@@ -349,17 +351,17 @@ Item {
                 Icon { name: "place"; size: Tokens.icon.sm; color: Colors.accent }
                 Column {
                     Layout.fillWidth: true
-                    Text { text: "Ubicación actual"; color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
+                    Text { text: I18n.tr("Current location"); color: Colors.border; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.caption }
                     Text { width: parent.width; text: WeatherState.location ? WeatherState.location.name + (WeatherState.location.detail ? " · " + WeatherState.location.detail : "") : ""; color: Colors.text; font.family: Tokens.font.ui; font.pixelSize: Tokens.type.label; font.weight: Tokens.weight.medium; elide: Text.ElideRight }
                 }
-                TextButton { label: "Quitar"; icon: "delete"; danger: true; onClicked: { WeatherState.clearLocation(); wv.picking = false; } }
+                TextButton { label: I18n.tr("Remove"); icon: "delete"; danger: true; onClicked: { WeatherState.clearLocation(); wv.picking = false; } }
             }
         }
         Text {
             Layout.fillWidth: true
             horizontalAlignment: WeatherState.configured ? Text.AlignLeft : Text.AlignHCenter
             wrapMode: Text.WordWrap
-            text: "Se guarda solo en este equipo. Se consulta Open-Meteo con coordenadas aproximadas (≈ 10 km) cada 30 minutos; sin ubicación no se consulta nada."
+            text: I18n.tr("It's only stored on this computer. Open-Meteo is queried with approximate coordinates (≈ 10 km) every 30 minutes; with no location, nothing is queried.")
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption

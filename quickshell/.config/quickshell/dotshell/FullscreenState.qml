@@ -156,9 +156,10 @@ QtObject {
         if (root.held === 0) return;
         if (!Quickshell.screens.some(s => !root.holds(s.name))) return;
         const count = root.held;
-        const why = root.heldReason === "capture" ? "mientras compartías la pantalla" : "mientras estabas en pantalla completa";
+        const capture = root.heldReason === "capture";
         root.held = 0;
-        NotificationState.showSummary((count === 1 ? "1 notificación " : count + " notificaciones ") + why);
+        NotificationState.showSummary(capture ? I18n.trn("%n notification while you were sharing the screen", "%n notifications while you were sharing the screen", count)
+                                             : I18n.trn("%n notification while you were in fullscreen", "%n notifications while you were in fullscreen", count));
     }
 
     // ---- Transiciones -------------------------------------------------------------------------
@@ -186,6 +187,6 @@ QtObject {
         // El indicador rojo de la barra queda tapado: el inicio y el fin de
         // una grabacion se avisan con el OSD si hay una pantalla completa.
         if (Object.keys(root.fullscreen).length > 0)
-            OsdState.show(root.recording ? "radio_button_checked" : "stop_circle", -1, root.recording ? "Grabando" : "Grabación detenida");
+            OsdState.show(root.recording ? "radio_button_checked" : "stop_circle", -1, root.recording ? I18n.tr("Recording") : I18n.tr("Recording stopped"));
     }
 }

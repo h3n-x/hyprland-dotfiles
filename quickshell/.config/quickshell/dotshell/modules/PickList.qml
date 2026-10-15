@@ -12,7 +12,7 @@ Column {
 
     property var entries: []
     property var taken: []
-    property string placeholder: "Buscar…"
+    property string placeholder: I18n.tr("Search…")
     signal chosen(string id)
     signal closed
 

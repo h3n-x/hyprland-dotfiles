@@ -60,7 +60,7 @@ ColumnLayout {
     // ventana: estable y sin ruido).
     ZoneTitle {
         Layout.fillWidth: true
-        text: "Escritorios"
+        text: I18n.trc("dashboard tab", "Workspaces")
         opens: true
         detail: Hyprland.focusedWorkspace
             ? "· " + Hyprland.focusedWorkspace.id + (strip.activeWindow ? " — " + AppInfo.name(strip.activeWindow.cls) : "")

@@ -102,6 +102,11 @@ CALLS = [
 PLURAL_SRC = re.compile(r"\bI18n\.trn\(\s*" + STR + r"\s*,\s*" + STR)
 
 
+def core_calls(path, text):
+    """El nucleo (I18nCore.qml) se llama a si mismo como root.tr(...): es lo mismo que I18n.tr."""
+    return re.sub(r"\broot\.(tr|trc|trn|date)\(", r"I18n.\1(", text) if os.path.basename(path) == "I18nCore.qml" else text
+
+
 def unescape(s):
     return s.encode().decode("unicode_escape").encode("latin-1").decode("utf-8") if "\\" in s else s
 
@@ -120,19 +125,17 @@ def extract():
         e["where"].append(where)
         e["plural"] = e["plural"] or plural
     for f in qml_files():
-        text = open(f, errors="replace").read()
+        text = core_calls(f, open(f, errors="replace").read())
         rel = os.path.relpath(f, QML)
         for rx, key in CALLS:
             for m in rx.finditer(text):
                 add(unescape(key(m)), f"{rel}:{text.count(chr(10), 0, m.start()) + 1}", rx is CALLS[2][0])
-    # El nucleo arma estas claves con variables (formatos comunes).
-    for k, p in (("%n min", True), ("%n day", True), ("%1 h %2 min", False), ("%1 h", False), ("%1 GB", False), ("%1 MB", False)):
-        add(k, "I18nCore.qml", p)
-    # Nombres de los ajustes rapidos (esquema, contexto "tile").
+    # Nombres del esquema que la shell muestra: ajustes rapidos ("tile") y zonas de Inicio ("zone").
     try:
         sch = json.load(open(os.path.join(QML, "data", "settings.schema.json")))
-        for w in (sch["keys"].get("controlCenter.tiles", {}).get("widgets") or {}).values():
-            add("tile" + SEP + w["label"], "settings.schema.json:controlCenter.tiles")
+        for key, ctx in (("controlCenter.tiles", "tile"), ("dashboard.home.zones", "zone")):
+            for w in (sch["keys"].get(key, {}).get("widgets") or {}).values():
+                add(ctx + SEP + w["label"], "settings.schema.json:" + key)
     except (OSError, ValueError, KeyError):
         pass
     return keys
@@ -150,11 +153,18 @@ def human(s):
         return False
     if re.fullmatch(r"[A-Za-z]+", s) and s[0].islower():
         return False
+    if re.fullmatch(r"[A-Z][a-z]+(?:[A-Z][a-z0-9]*)+", s):
+        return False                                   # identificadores CamelCase (MemTotal, SwapFree)
     if DATE_PATTERN.match(s):
         return False
-    if re.search(r"[{}<>=;|\\]|\b(function|return|var|const)\b", s):
+    if re.fullmatch(r"[\w.@-]+\.(service|socket|target|timer|desktop|json|qml|png|svg)", s):
+        return False                                   # unidades de systemd, archivos
+    if re.search(r"[{}<>=|\\]|\b(function|return|var|const)\b", s):
         return False
     return bool(re.search(r"[A-Za-zÁÉÍÓÚáéíóúñ]{2,}", s)) and (" " in s or bool(re.search(r"[áéíóúñÁÉÍÓÚ¿¡]", s)) or s[0].isupper())
+
+
+VISIBLE = re.compile(r"\b(?:text|label|unit|placeholder|hint|status|title|tooltip|detail|note|word|emptyText|sentence|summary)\s*:\s*" + STR)
 
 
 def literals(path, allow):
@@ -164,13 +174,20 @@ def literals(path, allow):
         t = line.strip()
         if t.startswith(("//", "import ", "*")):
             continue
+        # Mensajes para quien desarrolla (consola) y codigo de Hyprland: no se muestran.
+        if re.search(r"\bconsole\.(log|warn|error|debug|info)\(|\bdispatch\(", line):
+            continue
         # Solo se tapan los literales que son claves (el resto de la llamada, con
         # sus parentesis anidados, sigue y se revisa).
-        code = re.sub(r"\s//\s.*$", "", line)
+        code = core_calls(path, re.sub(r"\s//\s.*$", "", line))
         for rx, _ in CALLS:
             code = rx.sub("I18N(", code)
         for s in re.findall(STR, code):
             if human(s) and s not in allow:
+                out.append((n, s))
+        # Lo que va a una propiedad visible es texto aunque sea una sola palabra en minuscula.
+        for s in VISIBLE.findall(code):
+            if s and not human(s) and s not in allow and re.search(r"[A-Za-zÁÉÍÓÚáéíóúñ]{2,}", s):
                 out.append((n, s))
     return out
 
@@ -191,7 +208,8 @@ def cmd_check(quiet):
         want = {"other": {"other"}, "slavic": {"one", "few", "many"}}.get(family, {"one", "other"})
         for k, e in keys.items():
             v = cat.get(k)
-            if v is None or v == "":
+            # Vacio vale solo si la fuente es puro espacio (ja: sin espacio entre frases).
+            if v is None or (v == "" and k.split(SEP)[-1].strip()):
                 fail(f"{lang}: falta {k.replace(SEP, ' | ')!r} ({e['where'][0]})")
                 continue
             src_ph = set(PH.findall(k.split(SEP)[-1]))
@@ -237,7 +255,7 @@ def cmd_stats():
     print(f"en (fuente): {len(keys)} claves")
     for lang in available():
         cat = load(lang)
-        have = sum(1 for k in keys if cat.get(k) not in (None, ""))
+        have = sum(1 for k in keys if cat.get(k) is not None and (cat.get(k) != "" or not k.split(SEP)[-1].strip()))
         print(f"{lang} ({(cat.get('@meta') or {}).get('name', '?')}): {have}/{len(keys)}")
 
 

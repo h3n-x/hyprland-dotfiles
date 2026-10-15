@@ -111,7 +111,7 @@ Flow {
             Icon { anchors.verticalCenter: parent.verticalCenter; name: "add"; size: Tokens.icon.sm; color: root.open ? Colors.textOnAccentAltContainer : Colors.textMuted }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Agregar"
+                text: I18n.tr("Add")
                 color: root.open ? Colors.textOnAccentAltContainer : Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label

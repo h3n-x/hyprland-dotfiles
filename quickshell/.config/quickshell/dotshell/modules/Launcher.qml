@@ -60,8 +60,8 @@ OverlayWindow {
         anchors.centerIn: parent
         presence: window.presence
         model: window.filtered
-        placeholder: "Buscar aplicaciones..."
-        hints: "↑↓ navegar   ⏎ abrir   esc cerrar"
+        placeholder: I18n.tr("Search applications...")
+        hints: I18n.tr("↑↓ navigate   ⏎ open   esc close")
         onAccepted: (item) => window.launch(item.entry)
         onDismissed: LauncherState.close()
 

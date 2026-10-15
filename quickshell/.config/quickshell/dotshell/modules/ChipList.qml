@@ -32,9 +32,9 @@ Item {
     function labelOf(v: string): string {
         if (root.mode === "apps") {
             const e = AppInfo.entry(v);
-            return e ? e.name : v + " (no instalada)";
+            return e ? e.name : I18n.tr("%1 (not installed)", v);
         }
-        return v === root.home ? "Carpeta personal" : v.startsWith(root.home + "/") ? "~" + v.slice(root.home.length) : v;
+        return v === root.home ? I18n.tr("Home folder") : v.startsWith(root.home + "/") ? "~" + v.slice(root.home.length) : v;
     }
     function remove(i: int): void {
         const l = root.value.slice();
@@ -127,7 +127,7 @@ Item {
                 Icon { anchors.verticalCenter: parent.verticalCenter; name: "add"; size: Tokens.icon.sm; color: root.open ? Colors.textOnAccentAltContainer : Colors.textMuted }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: root.mode === "apps" ? "Agregar" : "Elegir carpeta…"
+                    text: root.mode === "apps" ? I18n.tr("Add") : I18n.tr("Choose a folder…")
                     color: root.open ? Colors.textOnAccentAltContainer : Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label

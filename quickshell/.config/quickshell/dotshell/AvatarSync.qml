@@ -24,8 +24,8 @@ QtObject {
     property Process face: Process {
         command: [Quickshell.env("HOME") + "/.config/hypr/scripts/theme-apply.sh", "--face"]
         onExited: (code) => {
-            if (code !== 0) Quickshell.execDetached(["notify-send", "-a", "Configuración", "-i", "dialog-warning",
-                "No se pudo usar la imagen del avatar", "El avatar sigue siendo el anterior. Elegí otra imagen en Apariencia."]);
+            if (code !== 0) Quickshell.execDetached(["notify-send", "-a", I18n.tr("Settings"), "-i", "dialog-warning",
+                I18n.tr("Couldn't use the avatar image"), I18n.tr("The avatar is still the previous one. Choose another image in Appearance.")]);
         }
     }
 }

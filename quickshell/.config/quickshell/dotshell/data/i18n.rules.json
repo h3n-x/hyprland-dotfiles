@@ -1,43 +1,203 @@
 {
  "note": "Fase 15: archivos ya convertidos (ningun texto visible fuera de I18n; i18n check). Crece en cada lote hasta cubrir todo (B4). allow: textos que no se traducen (nombres propios, marcas), con el motivo.",
  "converted": [
+  "AppInfo.qml",
+  "AvatarSync.qml",
+  "DashboardState.qml",
+  "Demand.qml",
+  "DesktopState.qml",
+  "DisplayPower.qml",
+  "FullscreenState.qml",
   "I18n.qml",
   "I18nCore.qml",
+  "KeybindState.qml",
+  "LyricsState.qml",
+  "MaintenanceState.qml",
+  "MediaState.qml",
+  "NetworkState.qml",
+  "NotificationState.qml",
+  "NowState.qml",
   "PowerProfileState.qml",
   "QuickTiles.qml",
+  "Sensitive.qml",
+  "SettingsState.qml",
+  "StateFile.qml",
+  "StoreBindings.qml",
+  "SystemNotices.qml",
+  "SystemState.qml",
+  "TimerState.qml",
+  "Tokens.qml",
+  "WeatherState.qml",
+  "WeatherText.qml",
   "modules/ActiveWindow.qml",
+  "modules/AudioDropdown.qml",
   "modules/Bar.qml",
   "modules/BarEntry.qml",
   "modules/Battery.qml",
   "modules/BatteryDropdown.qml",
   "modules/Bluetooth.qml",
+  "modules/BluetoothDropdown.qml",
+  "modules/CalendarMonth.qml",
+  "modules/CapturePreview.qml",
+  "modules/CaptureThumb.qml",
+  "modules/ChipList.qml",
+  "modules/CitySearch.qml",
+  "modules/Clipboard.qml",
   "modules/Clock.qml",
   "modules/ControlCenter.qml",
+  "modules/Dashboard.qml",
+  "modules/DashboardHome.qml",
   "modules/DndRow.qml",
+  "modules/Emoji.qml",
+  "modules/FontList.qml",
+  "modules/GalleryPreview.qml",
+  "modules/HomeZones.qml",
   "modules/IdleToggle.qml",
+  "modules/KeybindGroup.qml",
+  "modules/Keybinds.qml",
   "modules/KeyboardLayout.qml",
+  "modules/Launcher.qml",
   "modules/LauncherButton.qml",
+  "modules/LayoutList.qml",
+  "modules/LocationField.qml",
   "modules/LockKeys.qml",
+  "modules/LyricsView.qml",
+  "modules/MaintenanceView.qml",
+  "modules/MediaControls.qml",
+  "modules/MediaProgress.qml",
+  "modules/MediaSession.qml",
   "modules/Microphone.qml",
   "modules/Mpris.qml",
+  "modules/MusicTab.qml",
+  "modules/NetSpeed.qml",
   "modules/Network.qml",
+  "modules/NetworkDropdown.qml",
+  "modules/NotesZone.qml",
   "modules/NotificationBell.qml",
+  "modules/NowZone.qml",
+  "modules/PathField.qml",
+  "modules/PickList.qml",
+  "modules/Picker.qml",
   "modules/Ports.qml",
+  "modules/PortsDropdown.qml",
   "modules/Power.qml",
+  "modules/PowerMenu.qml",
+  "modules/PreviewBar.qml",
   "modules/Privacy.qml",
   "modules/ProfileRow.qml",
+  "modules/ProfileZone.qml",
+  "modules/QuickZone.qml",
   "modules/RecordingPill.qml",
   "modules/Resources.qml",
+  "modules/Sparkline.qml",
+  "modules/StatusBadge.qml",
+  "modules/Switcher.qml",
+  "modules/SystemGlance.qml",
+  "modules/SystemView.qml",
+  "modules/ThemeOptions.qml",
   "modules/TileGrid.qml",
+  "modules/TimerModule.qml",
+  "modules/TimerZone.qml",
+  "modules/TodoZone.qml",
   "modules/Tray.qml",
+  "modules/TrayDropdown.qml",
   "modules/Update.qml",
+  "modules/Volume.qml",
+  "modules/WallpaperGallery.qml",
+  "modules/WeatherView.qml",
+  "modules/WorkspaceStrip.qml",
   "modules/Workspaces.qml",
+  "modules/WorkspacesView.qml",
   "settings/LayoutSummary.qml"
  ],
  "allow": [
   {
    "text": "Wi-Fi",
    "why": "nombre de la tecnologia, igual en todos los idiomas"
+  },
+  {
+   "text": "Esc",
+   "why": "nombre de una tecla (rotulo de tecla), igual en todos los idiomas"
+  },
+  {
+   "text": "Enter",
+   "why": "nombre de una tecla (rotulo de tecla), igual en todos los idiomas"
+  },
+  {
+   "text": "Hyprland",
+   "why": "nombre propio (el compositor, y el proceso que se compara)"
+  },
+  {
+   "text": "Linux ",
+   "why": "nombre propio delante de la version del kernel"
+  },
+  {
+   "text": "Hyprland ",
+   "why": "nombre propio delante de su version"
+  },
+  {
+   "text": " · Open-Meteo",
+   "why": "credito de la fuente de datos del clima (nombre propio)"
+  },
+  {
+   "text": "systemctl reboot",
+   "why": "comando que ejecuta hyprshutdown, no se muestra"
+  },
+  {
+   "text": "systemctl poweroff",
+   "why": "comando que ejecuta hyprshutdown, no se muestra"
+  },
+  {
+   "text": " [PID ",
+   "why": "abreviatura tecnica (identificador de proceso), igual en todos los idiomas"
+  },
+  {
+   "text": "Plus Jakarta Sans",
+   "why": "nombre de una fuente"
+  },
+  {
+   "text": "Maple Mono NF",
+   "why": "nombre de una fuente"
+  },
+  {
+   "text": "Material Symbols Rounded",
+   "why": "nombre de una fuente"
+  },
+  {
+   "text": "Noto Color Emoji",
+   "why": "nombre de una fuente"
+  },
+  {
+   "text": "Quickshell",
+   "why": "nombre propio (alias del nombre de la app)"
+  },
+  {
+   "text": " min",
+   "why": "solo acorta el texto del temporizador en la barra vertical (TimerModule)"
+  },
+  {
+   "text": "Bluetooth",
+   "why": "nombre de la tecnologia, igual en todos los idiomas"
+  },
+  {
+   "text": "notes",
+   "why": "nombre de un icono (mapa tipo -> icono)"
+  },
+  {
+   "text": "transparent",
+   "why": "valor de color"
+  },
+  {
+   "text": "idle",
+   "why": "valor de estado interno"
+  },
+  {
+   "text": "ctrl+r",
+   "why": "rotulo de una tecla"
+  },
+  {
+   "text": "CPU",
+   "why": "sigla, igual en todos los idiomas"
   }
  ]
 }

@@ -26,21 +26,21 @@ OverlayWindow {
     onDismissed: PowerState.close()
 
     readonly property var actions: [
-        { id: "lock", icon: "lock", label: "Bloquear", key: "L" },
-        { id: "suspend", icon: "bedtime", label: "Suspender", key: "S" },
-        { id: "logout", icon: "logout", label: "Cerrar sesión", key: "E" },
-        { id: "reboot", icon: "restart_alt", label: "Reiniciar", key: "R" },
-        { id: "poweroff", icon: "power_settings_new", label: "Apagar", key: "A" }]
+        { id: "lock", icon: "lock", label: I18n.tr("Lock"), key: "L" },
+        { id: "suspend", icon: "bedtime", label: I18n.tr("Suspend"), key: "S" },
+        { id: "logout", icon: "logout", label: I18n.tr("Log out"), key: "E" },
+        { id: "reboot", icon: "restart_alt", label: I18n.tr("Restart"), key: "R" },
+        { id: "poweroff", icon: "power_settings_new", label: I18n.tr("Shut down"), key: "A" }]
     readonly property var confirmText: ({
-        logout: ["¿Cerrar la sesión?", "Las aplicaciones se cierran antes de salir de Hyprland.", "Cerrar sesión"],
-        reboot: ["¿Reiniciar el equipo?", "Las aplicaciones se cierran antes de reiniciar.", "Reiniciar"],
-        poweroff: ["¿Apagar el equipo?", "Las aplicaciones se cierran antes de apagar.", "Apagar"] })
+        logout: [I18n.tr("Log out?"), I18n.tr("Applications are closed before leaving Hyprland."), I18n.tr("Log out")],
+        reboot: [I18n.tr("Restart the computer?"), I18n.tr("Applications are closed before restarting."), I18n.tr("Restart")],
+        poweroff: [I18n.tr("Shut down the computer?"), I18n.tr("Applications are closed before shutting down."), I18n.tr("Shut down")] })
     readonly property var commands: ({
         lock: [Quickshell.env("HOME") + "/.config/hypr/scripts/lock", "--user"],
         suspend: ["systemctl", "suspend"],
-        logout: ["hyprshutdown", "-t", "Cerrando sesión..."],
-        reboot: ["hyprshutdown", "-t", "Reiniciando...", "-p", "systemctl reboot"],
-        poweroff: ["hyprshutdown", "-t", "Apagando...", "-p", "systemctl poweroff"] })
+        logout: ["hyprshutdown", "-t", I18n.tr("Logging out...")],
+        reboot: ["hyprshutdown", "-t", I18n.tr("Restarting..."), "-p", "systemctl reboot"],
+        poweroff: ["hyprshutdown", "-t", I18n.tr("Shutting down..."), "-p", "systemctl poweroff"] })
 
     readonly property bool dry: Quickshell.env("POWER_MENU_DRY") === "1"
     // Ultimo comando (modo de prueba).
@@ -278,7 +278,7 @@ OverlayWindow {
                         spacing: Tokens.space.sm
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Cancelar"
+                            text: I18n.tr("Cancel")
                             color: Colors.text
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.body

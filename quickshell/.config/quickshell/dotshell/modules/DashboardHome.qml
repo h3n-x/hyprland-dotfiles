@@ -176,16 +176,16 @@ Item {
         const updates = MaintenanceState.updateCount;
         if (updates > 0)
             list.push({ key: "updates", icon: "download", filled: true, n: updates,
-                        full: updates + (updates === 1 ? " actualización" : " actualizaciones") });
+                        full: I18n.trn("%n update", "%n updates", updates) });
         const warn = MaintenanceState.attention.length;
         if (warn > 0)
             list.push({ key: "maintenance", icon: "build", filled: false, n: warn,
-                        full: "Mantenimiento · " + warn + (warn === 1 ? " aviso" : " avisos") });
+                        full: I18n.tr("Maintenance · %1", I18n.trn("%n warning", "%n warnings", warn)) });
         if (home.notificationCount > 0)
             list.push({ key: "notifications", icon: "notifications", filled: false, n: home.notificationCount,
-                        full: home.notificationCount + (home.notificationCount === 1 ? " aviso" : " avisos") });
+                        full: I18n.trn("%n notification", "%n notifications", home.notificationCount) });
         if (NotificationState.doNotDisturb)
-            list.push({ key: "dnd", icon: "do_not_disturb_on", filled: false, n: 0, full: "No molestar" });
+            list.push({ key: "dnd", icon: "do_not_disturb_on", filled: false, n: 0, full: I18n.tr("Do not disturb") });
         return list;
     }
     function actOn(key: string): void {
@@ -248,8 +248,7 @@ Item {
                     wrapMode: Text.WordWrap
                     maximumLineCount: 2
                     elide: Text.ElideRight
-                    text: WeatherState.cap(home.loc.standaloneDayName(clock.date.getDay(), Locale.LongFormat)) + ", "
-                        + clock.date.getDate() + " de " + home.loc.standaloneMonthName(clock.date.getMonth(), Locale.LongFormat)
+                    text: WeatherState.cap(I18n.date(clock.date, "dddd, MMMM d"))
                     color: home.mix(Colors.text, Colors.textMuted, home.mediaP)
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.headline
@@ -435,7 +434,7 @@ Item {
             Text {
                 visible: home.mediaP === 0
                 anchors.centerIn: parent
-                text: "Aparece mientras suena algo"
+                text: I18n.tr("Shows up while something plays")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label

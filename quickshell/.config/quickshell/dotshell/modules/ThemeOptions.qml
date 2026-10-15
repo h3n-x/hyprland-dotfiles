@@ -32,9 +32,9 @@ ColumnLayout {
     readonly property var moreSchemes: ["scheme-expressive", "scheme-fidelity", "scheme-neutral", "scheme-monochrome",
                                         "scheme-rainbow", "scheme-fruit-salad"]
     readonly property var schemeNames: ({
-        "scheme-content": "Contenido", "scheme-tonal-spot": "Tonal", "scheme-vibrant": "Vibrante",
-        "scheme-expressive": "Expresivo", "scheme-fidelity": "Fidelidad", "scheme-neutral": "Neutro",
-        "scheme-monochrome": "Monocromo", "scheme-rainbow": "Arcoíris", "scheme-fruit-salad": "Macedonia" })
+        "scheme-content": I18n.trc("color scheme", "Content"), "scheme-tonal-spot": I18n.trc("color scheme", "Tonal spot"), "scheme-vibrant": I18n.trc("color scheme", "Vibrant"),
+        "scheme-expressive": I18n.trc("color scheme", "Expressive"), "scheme-fidelity": I18n.trc("color scheme", "Fidelity"), "scheme-neutral": I18n.trc("color scheme", "Neutral"),
+        "scheme-monochrome": I18n.trc("color scheme", "Monochrome"), "scheme-rainbow": I18n.trc("color scheme", "Rainbow"), "scheme-fruit-salad": I18n.trc("color scheme", "Fruit salad") })
     // "Mas..." abierto; tambien si el esquema propio es uno de los de adentro.
     property bool showMore: false
     readonly property bool moreSelected: root.moreSchemes.indexOf(root.overrideScheme) >= 0
@@ -90,7 +90,7 @@ ColumnLayout {
     RowLayout {
         Layout.fillWidth: true
         Text {
-            text: "ESTE WALLPAPER"
+            text: I18n.tr("THIS WALLPAPER")
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
@@ -100,7 +100,7 @@ ColumnLayout {
         Item { Layout.fillWidth: true }
         Text {
             visible: !!root.override
-            text: "Personalizado ·"
+            text: I18n.tr("Custom ·")
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
@@ -119,7 +119,7 @@ ColumnLayout {
                 Icon { name: "restart_alt"; size: Tokens.icon.sm; color: Colors.accent }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "Restablecer"
+                    text: I18n.tr("Reset")
                     color: Colors.accent
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption
@@ -139,14 +139,14 @@ ColumnLayout {
     RowLayout {
         Layout.fillWidth: true
         Text {
-            text: "Color base"
+            text: I18n.tr("Base color")
             color: Colors.text
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.label
         }
         Item { Layout.fillWidth: true }
         Text {
-            text: root.noColor ? "sin color claro en la imagen" : (root.seed === root.candidates[0] ? "dominante" : "elegido")
+            text: root.noColor ? I18n.tr("no clear color in the image") : (root.seed === root.candidates[0] ? I18n.tr("dominant") : I18n.tr("chosen"))
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
@@ -198,7 +198,7 @@ ColumnLayout {
 
     Text {
         Layout.topMargin: Tokens.space.hair
-        text: "Esquema"
+        text: I18n.tr("Scheme")
         color: Colors.text
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label
@@ -207,7 +207,7 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Tokens.space.xs
         Chip {
-            text: "Predeterminado"
+            text: I18n.tr("Default")
             selected: root.overrideScheme === ""
             onClicked: if (!selected) root.schemeChosen("")
         }
@@ -222,7 +222,7 @@ ColumnLayout {
         }
         // Con un esquema de "Mas..." elegido, el chip lo nombra.
         Chip {
-            text: root.moreSelected ? root.schemeNames[root.overrideScheme] : "Más"
+            text: root.moreSelected ? root.schemeNames[root.overrideScheme] : I18n.tr("More")
             selected: root.moreSelected
             trailingIcon: root.showMore ? "expand_less" : "expand_more"
             onClicked: root.showMore = !root.showMore

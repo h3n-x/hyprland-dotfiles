@@ -138,9 +138,9 @@ QtObject {
     }
     // Iconos en palabras (busqueda y lectores de pantalla).
     readonly property var iconWords: ({
-        "@arrows": "flechas", "@volume_up": "subir volumen", "@volume_down": "bajar volumen", "@volume_off": "silencio",
-        "@mic_off": "micrófono", "@brightness_high": "subir brillo", "@brightness_low": "bajar brillo",
-        "@play_pause": "reproducir pausa", "@skip_next": "siguiente", "@skip_previous": "anterior"
+        "@arrows": I18n.trc("key", "arrows"), "@volume_up": I18n.trc("key", "volume up"), "@volume_down": I18n.trc("key", "volume down"), "@volume_off": I18n.trc("key", "mute"),
+        "@mic_off": I18n.trc("key", "microphone"), "@brightness_high": I18n.trc("key", "brightness up"), "@brightness_low": I18n.trc("key", "brightness down"),
+        "@play_pause": I18n.trc("key", "play pause"), "@skip_next": I18n.trc("key", "next"), "@skip_previous": I18n.trc("key", "previous")
     })
     function words(label: string): string {
         return root.iconWords[label] || label;

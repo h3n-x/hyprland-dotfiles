@@ -49,7 +49,7 @@ QtObject {
         const h = root.data.hourly;
         const out = [];
         for (let i = 0; i < h.time.length && out.length < 6; i += 2)
-            out.push({ label: i === 0 ? "Ahora" : h.time[i].slice(11, 13) + " h", code: h.weather_code[i],
+            out.push({ label: i === 0 ? I18n.trc("weather hour", "Now") : I18n.trc("hour of the day", "%1 h", h.time[i].slice(11, 13)), code: h.weather_code[i],
                        day: h.is_day ? h.is_day[i] === 1 : true, t: h.temperature_2m[i],
                        rain: h.precipitation_probability ? h.precipitation_probability[i] : 0 });
         return out;
@@ -174,23 +174,13 @@ QtObject {
     function temp(value: real): string {
         return WeatherText.temp(value, SettingsState.value("dashboard.weather.units"));
     }
-    // "hace 12 min", "hace 3 h", "hace 2 días".
-    function ago(seconds: real): string {
-        const s = Math.max(0, seconds);
-        if (s < 90) return "hace un momento";
-        const m = Math.round(s / 60);
-        if (m < 60) return "hace " + m + " min";
-        const h = Math.round(m / 60);
-        if (h < 48) return "hace " + h + " h";
-        return "hace " + Math.round(h / 24) + " días";
-    }
     readonly property var loc: I18n.locale
     function cap(s: string): string {
         return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
     }
-    // "2026-09-26" -> "Sáb" (en espanol, sin depender del locale del sistema).
+    // "2026-09-26" -> "Sáb", "Sat", "土" (en el idioma elegido).
     function dayShort(iso: string, index: int): string {
-        if (index === 0) return "Hoy";
+        if (index === 0) return I18n.trc("day", "Today");
         const p = iso.split("-");
         const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
         return root.cap(root.loc.dayName(d.getDay(), Locale.ShortFormat).replace(".", ""));

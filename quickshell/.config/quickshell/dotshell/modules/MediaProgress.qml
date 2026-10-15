@@ -84,7 +84,7 @@ ColumnLayout {
         Text {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
-            text: root.hint || (root.canSeek ? "" : "sin búsqueda")
+            text: root.hint || (root.canSeek ? "" : I18n.tr("no seeking"))
             color: root.hint ? Colors.textMuted : Colors.border
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption
@@ -109,7 +109,7 @@ ColumnLayout {
         }
         Text {
             Layout.fillWidth: true
-            text: root.hint || "Sin duración · el reproductor no informa el progreso"
+            text: root.hint || I18n.tr("No duration · the player doesn't report progress")
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.caption

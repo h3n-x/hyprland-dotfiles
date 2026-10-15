@@ -31,7 +31,7 @@ Item {
 
     function showOsd() {
         if (!root.armed) return;
-        OsdState.show(root.icon, root.volume, root.muted ? "Muted" : Math.round(root.volume * 100) + "%");
+        OsdState.show(root.icon, root.volume, root.muted ? I18n.tr("Muted") : I18n.tr("%1%", Math.round(root.volume * 100)));
     }
 
     onMutedChanged: root.showOsd()

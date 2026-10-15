@@ -155,7 +155,7 @@ QtObject {
             if (code !== 0 && args[0] === "set") {
                 root.drop(args[1]);
                 const e = Object.assign({}, root.errors);
-                e[args[1]] = writerErr.text.trim().replace(args[1] + ": ", "") || "no se guardó";
+                e[args[1]] = writerErr.text.trim().replace(args[1] + ": ", "") || I18n.tr("not saved");
                 root.errors = e;
             }
             root.next();

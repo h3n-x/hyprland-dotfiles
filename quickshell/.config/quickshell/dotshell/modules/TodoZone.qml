@@ -28,16 +28,16 @@ ColumnLayout {
 
     ZoneTitle {
         Layout.fillWidth: true
-        text: "Tareas"
+        text: I18n.tr("Tasks")
         detail: TodoState.problem ? "· " + TodoState.problem
-            : TodoState.open.length ? "· " + TodoState.open.length + (TodoState.open.length === 1 ? " pendiente" : " pendientes") : ""
+            : TodoState.open.length ? "· " + I18n.trn("%n pending", "%n pending", TodoState.open.length) : ""
     }
     SearchField {
         id: field
         Layout.fillWidth: true
         size: "regular"
         icon: "add"
-        placeholder: TodoState.readOnly ? "Solo lectura" : "Nueva tarea"
+        placeholder: TodoState.readOnly ? I18n.tr("Read only") : I18n.tr("New task")
         enabled: TodoState.loaded && !TodoState.readOnly
         keyHandler: (event) => {
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
@@ -128,7 +128,7 @@ ColumnLayout {
     Text {
         visible: TodoState.loaded && !TodoState.open.length && !root.showDone
         Layout.fillWidth: true
-        text: TodoState.done.length ? "Todo hecho." : "Nada pendiente."
+        text: TodoState.done.length ? I18n.tr("All done.") : I18n.tr("Nothing pending.")
         color: Colors.border
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label
@@ -139,7 +139,7 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Tokens.space.sm
         Text {
-            text: (root.showDone ? "Ocultar " : "") + TodoState.done.length + (TodoState.done.length === 1 ? " hecha" : " hechas")
+            text: root.showDone ? I18n.trn("Hide %n done", "Hide %n done", TodoState.done.length) : I18n.trn("%n done", "%n done", TodoState.done.length)
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.label
@@ -152,7 +152,7 @@ ColumnLayout {
         }
         Item { Layout.fillWidth: true }
         Text {
-            text: "Limpiar"
+            text: I18n.trc("tasks", "Clear")
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.label

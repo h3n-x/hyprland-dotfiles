@@ -50,7 +50,7 @@ Item {
             spacing: 0
             Text {
                 Layout.fillWidth: true
-                text: root.item ? root.item.text : "Nada por ahora"
+                text: root.item ? root.item.text : I18n.tr("Nothing for now")
                 color: Colors.text
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.title
@@ -60,7 +60,7 @@ Item {
             Text {
                 Layout.fillWidth: true
                 visible: text !== ""
-                text: root.item ? root.item.detail : "Aparece cuando hay algo"
+                text: root.item ? root.item.detail : I18n.tr("Shows up when there's something")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
