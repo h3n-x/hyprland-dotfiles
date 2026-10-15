@@ -11,6 +11,16 @@ Uso:
 import sys
 import os
 import re
+
+# Textos en el idioma del usuario (Fase 15 B4): scripts/i18n, texto fuente en ingles.
+def _i18n():
+    import importlib.machinery, importlib.util
+    sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
+    loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(os.path.dirname(os.path.realpath(__file__)), "i18n"))
+    mod = importlib.util.module_from_spec(importlib.util.spec_from_loader("i18n", loader))
+    loader.exec_module(mod)
+    return mod
+T, Tn = _i18n().translator()
 import json
 import subprocess
 
@@ -84,14 +94,14 @@ def main():
         if len(sys.argv) < 3:
             sys.exit(1)
         dev_id = sys.argv[2]
-        dev_name = sys.argv[3] if len(sys.argv) > 3 else "Dispositivo"
+        dev_name = sys.argv[3] if len(sys.argv) > 3 else T("Device")
         dev_type = sys.argv[4] if len(sys.argv) > 4 else "audio"
 
         subprocess.run(["wpctl", "set-default", dev_id])
         icon = "audio-speakers" if dev_type == "sink" else "audio-input-microphone"
-        title = "Salida cambiada" if dev_type == "sink" else "Micrófono cambiado"
+        title = T("Output changed") if dev_type == "sink" else T("Microphone changed")
         subprocess.run([
-            "notify-send", "-a", "Audio",
+            "notify-send", "-a", T("Audio"),
             title,
             dev_name,
             "-i", icon, "-t", "2000"

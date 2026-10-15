@@ -80,13 +80,13 @@ for ext in (".png", ".svg", ".xpm"):
 print("")
 PY
 )
-    [[ -n $file ]] || invalid "sin icono"
+    [[ -n $file ]] || invalid "no icon"
     # Un SVG se rasteriza una vez (la cache de abajo se fija en su tamano y fecha).
     if [[ $file == *.svg ]]; then
         png="$CACHE/icons/$(printf '%s' "$file" | md5sum | cut -d' ' -f1).png"
         if [[ ! -s $png || $png -ot $file ]]; then
             mkdir -p "$CACHE/icons"
-            magick -background none "$file" -resize 128x128 "$png" 2>/dev/null || invalid "el icono no se pudo leer"
+            magick -background none "$file" -resize 128x128 "$png" 2>/dev/null || invalid "the icon couldn't be read"
         fi
         file=$png
     fi
@@ -100,27 +100,27 @@ http://*|https://*)
     f="$CACHE/art/$(printf '%s' "$src" | md5sum | cut -d' ' -f1)"
     if [[ ! -s $f ]]; then
         curl -sS --max-time 10 -A "dotfiles-shell (Quickshell; portada)" -o "$f.part" "$src" 2>/dev/null && mv -f "$f.part" "$f" \
-            || { rm -f "$f.part"; invalid "no se pudo bajar la portada"; }
+            || { rm -f "$f.part"; invalid "the cover couldn't be downloaded"; }
     fi
     src=$f ;;
 esac
-[[ -r $src ]] || invalid "no hay imagen"
+[[ -r $src ]] || invalid "no image"
 
 # ---- Clave de cache: la imagen (tamano y fecha) y el tema ------------------
 wp=$(jq -r '.primary // empty' "$COLORS" 2>/dev/null)
 mode=$(jq -r '.mode // "dark"' "$COLORS" 2>/dev/null)
 contrast=$(jq -r '.contrast // 0' "$COLORS" 2>/dev/null)
 scheme=$("$SETTINGS" get appearance.scheme 2>/dev/null || true); scheme=${scheme:-scheme-tonal-spot}
-[[ -n $wp ]] || invalid "sin colores del tema"
+[[ -n $wp ]] || invalid "no theme colors"
 key=$(printf '%s\t%s\t%s\t%s\t%s\t%s' "$(readlink -f "$src")" "$(stat -c '%s %Y' "$src")" "$wp" "$mode" "$contrast" "$scheme" | md5sum | cut -d' ' -f1)
 out="$CACHE/$key.json"
 [[ -s $out ]] && { cat "$out"; exit 0; }
 
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
-magick "$src[0]" -resize 128x128 "$tmp/s.png" 2>/dev/null || invalid "la imagen no se pudo leer"
+magick "$src[0]" -resize 128x128 "$tmp/s.png" 2>/dev/null || invalid "the image couldn't be read"
 # Sin colores en la imagen matugen devuelve su color de reserva: gris, asi queda invalido.
 source=$(matugen image "$tmp/s.png" --dry-run -j hex -m "$mode" --prefer saturation --fallback-color "#808080" 2>/dev/null | jq -r '.colors.source_color.default.color // empty')
-[[ -n $source ]] || invalid "sin color fuente"
+[[ -n $source ]] || invalid "no source color"
 
 tones() { # color -> "accent onAccent container onContainer"
     matugen color hex "$1" --dry-run -j hex -t "$scheme" -m "$mode" --contrast "$contrast" 2>/dev/null \
@@ -129,7 +129,7 @@ tones() { # color -> "accent onAccent container onContainer"
 st=$(jq -r '[.status.error.default.hex, .status.warning.default.hex, .status.success.default.hex] | join(" ")' "$STATUS" 2>/dev/null)
 
 # ---- OKLCH: armonizar, revisar color, contraste y estados -------------------
-python3 -I - "$source" "$wp" "$st" "$tmp" <<'PY' > "$tmp/plan" || invalid "fuente sin color"
+python3 -I - "$source" "$wp" "$st" "$tmp" <<'PY' > "$tmp/plan" || invalid "colorless source"
 import sys, math
 def lin(c): return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
 def hexrgb(h): h = h.lstrip('#'); return [int(h[i:i+2], 16) / 255 for i in (0, 2, 4)]
@@ -188,7 +188,7 @@ for s in st:
     if 100 * math.dist(lab(acc), lab(s)) < 5: sys.exit(3)
 PY
 }
-why="se confunde con un color de estado"
+why="mistaken for a status color"
 while read -r cand; do
     read -r acc on cont oncont <<<"$(tones "$cand")"
     [[ -n ${oncont:-} ]] || continue
@@ -199,6 +199,6 @@ while read -r cand; do
             && mv -f "$out.part" "$out" && cat "$out"
         exit 0
     fi
-    [[ $r == 2 ]] && why="poco contraste"
+    [[ $r == 2 ]] && why="low contrast"
 done < "$tmp/plan"
 jq -nc --arg why "$why" --arg s "$source" '{valid: false, why: $why, source: $s}' | tee "$out"

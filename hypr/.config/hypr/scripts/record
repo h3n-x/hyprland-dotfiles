@@ -23,6 +23,7 @@ set -euo pipefail
 # del equipo (monitor de la salida), el microfono, o ambos (una mezcla
 # temporal: un sumidero nulo con las dos fuentes, que se quita al terminar).
 SETTINGS="$(dirname "$0")/settings"
+I18N="$(dirname "$(readlink -f "$0")")/i18n"
 DIR=$("$SETTINGS" get capture.recordingsDir) || exit 1
 STATE_DIR="${XDG_RUNTIME_DIR:-/run/user/$UID}/dotfiles"
 STATE="$STATE_DIR/recording.json"
@@ -61,7 +62,7 @@ start() {
             geom=$("$(dirname "$0")/capture-select") || exit 0 # cancelado (Esc)
             ;;
         *)
-            echo "uso: record toggle [region|full] | stop" >&2
+            "$I18N" tr "usage: %1" "record toggle [region|full] | stop" >&2
             exit 2
             ;;
     esac
@@ -148,7 +149,7 @@ case "${1:-toggle}" in
         stop
         ;;
     *)
-        echo "uso: record toggle [region|full] | stop" >&2
+        "$I18N" tr "usage: %1" "record toggle [region|full] | stop" >&2
         exit 2
         ;;
 esac

@@ -32,6 +32,7 @@
 # CLIPBOARD_DRY_COPY=<archivo> (--copy escribe ahi en vez de wl-copy),
 # CLIPBOARD_EXCLUDE_FILE, CLIPBOARD_ACTIVE_CLASS (clase de ventana simulada).
 set -uo pipefail
+I18N="$(dirname "$(readlink -f "$0")")/i18n"
 umask 077
 
 RUNTIME=${CLIPBOARD_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
@@ -144,7 +145,7 @@ scan() {
         fi
     done
     for cat in "${!count[@]}"; do printf '%s %s\n' "$cat" "${count[$cat]}"; done
-    printf '%s %s\n' "$([[ $mode == purge ]] && echo borradas || echo sensibles)" "$n"
+    if [[ $mode == purge ]]; then "$I18N" tr "deleted %1" "$n"; else "$I18N" tr "sensitive %1" "$n"; fi
 }
 
 # Vista previa de texto: primera linea "bytes lineas", despues hasta 8 KB.
@@ -184,7 +185,7 @@ copy_entry() {
     fi
 }
 
-need_id() { [[ ${1:-} =~ ^[0-9]+$ ]] || { echo "falta el id" >&2; exit 2; }; }
+need_id() { [[ ${1:-} =~ ^[0-9]+$ ]] || { "$I18N" tr "the id is missing" >&2; exit 2; }; }
 
 case ${1:-} in
     --type)             store "${2:-text}" ;;

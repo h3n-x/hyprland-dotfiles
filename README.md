@@ -1,65 +1,69 @@
 # Dotfiles -- Hyprland
 
-Config completa de Hyprland 0.56+ (API Lua `hl.*`) + stack de escritorio,
-gestionada con [GNU Stow](https://www.gnu.org/software/stow/).
-Pensada para: AMD Ryzen 5 8645HS (iGPU Radeon 760M) + NVIDIA RTX 3050 6GB
-(iGPU siempre activa, NVIDIA solo on-demand).
+A complete Hyprland 0.56+ setup (Lua API `hl.*`) plus a desktop stack,
+managed with [GNU Stow](https://www.gnu.org/software/stow/).
+Built for: AMD Ryzen 5 8645HS (Radeon 760M iGPU) + NVIDIA RTX 3050 6GB
+(the iGPU always on, the NVIDIA only on demand).
 
-## Instalacion rapida
+**Languages:** the whole interface (bar, panels, dashboard, settings, lock and login screens, boot menu, notifications and script
+messages) is available in English, Spanish and Japanese, switched live in Settings -> Appearance -> Language. See
+[Translating](#translating) to add another language. *[Leer en español](README.es.md).*
+
+## Quick install
 
 ```bash
-git clone <este-repo> ~/Dotfiles && cd ~/Dotfiles
+git clone <this-repo> ~/Dotfiles && cd ~/Dotfiles
 ./install.sh
 ```
 
-Automatiza paquetes, stow, la primera paleta de matugen y la shell por
-defecto. Al final imprime los pasos manuales que no se pueden automatizar
-a ciegas: tu identidad de git, la GPU hibrida (bus PCI distinto por
-equipo), y SDDM/Plymouth/GRUB (cada uno necesita su propio sudoers
-puntual con tu usuario, y GRUB ademas depende del bootloader/particionado
-especifico de tu equipo). Los pasos de abajo son la version
-detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
+It automates the packages, stow, the first matugen palette and the default
+shell. At the end it prints the manual steps that can't be automated
+blindly: your git identity, the hybrid GPU (a different PCI bus on each
+machine), and SDDM/Plymouth/GRUB (each needs its own narrow sudoers rule
+with your user, and GRUB also depends on your machine's specific
+bootloader/partitioning). The steps below are the detailed/manual version
+of the same thing, in case you'd rather go one at a time or something fails.
 
 ## Stack
 
-| Categoria | Herramienta |
+| Category | Tool |
 |---|---|
-| Compositor | Hyprland (config Lua modular) |
-| Barra | Quickshell (QML, ver seccion Quickshell abajo) |
-| Launcher | Quickshell (`SUPER+D`, ver seccion Quickshell abajo) |
-| Selector de ventanas | Quickshell (`SUPER+TAB`) |
-| Notificaciones + control center | Quickshell (ver seccion Quickshell abajo) |
-| Lockscreen | Quickshell (`dotshell/lock.qml`, vigilado por `scripts/lock`); hyprlock solo de emergencia |
-| Login manager | SDDM (tema propio, ver `sddm/`) |
-| Splash de arranque | Plymouth (colores dinamicos, ver seccion Plymouth abajo) |
-| Menu de arranque | GRUB (theme propio con matugen, ver seccion GRUB abajo) |
+| Compositor | Hyprland (modular Lua config) |
+| Bar | Quickshell (QML, see the Quickshell section below) |
+| Launcher | Quickshell (`SUPER+D`, see the Quickshell section below) |
+| Window switcher | Quickshell (`SUPER+TAB`) |
+| Notifications + control center | Quickshell (see the Quickshell section below) |
+| Lockscreen | Quickshell (`dotshell/lock.qml`, watched by `scripts/lock`); hyprlock only as an emergency fallback |
+| Login manager | SDDM (own theme, see `sddm/`) |
+| Boot splash | Plymouth (dynamic colors, see the Plymouth section below) |
+| Boot menu | GRUB (own matugen theme, see the GRUB section below) |
 | Idle | Hypridle |
 | Wallpaper | hyprpaper |
-| Filtro de luz azul | hyprsunset (horario o del atardecer al amanecer, desde Configuracion -> Pantallas) |
+| Blue light filter | hyprsunset (a schedule or sunset to sunrise, from Settings -> Displays) |
 | Polkit | hyprpolkitagent |
-| Capturas | grim + slurp (pantalla congelada con hyprpicker, opcional) + satty, vista previa de Quickshell |
-| Grabacion | wf-recorder con VA-API (Radeon), pill de Quickshell |
-| Visor / reproductor | Loupe / mpv (apps por defecto de imagenes y video) |
-| Portapapeles | panel de Quickshell (`SUPER + SHIFT + V`) sobre cliphist + wl-clip-persist |
+| Screenshots | grim + slurp (frozen screen with hyprpicker, optional) + satty, Quickshell preview |
+| Recording | wf-recorder with VA-API (Radeon), Quickshell pill |
+| Viewer / player | Loupe / mpv (default apps for images and video) |
+| Clipboard | Quickshell panel (`SUPER + SHIFT + V`) on cliphist + wl-clip-persist |
 | Color picker | hyprpicker |
-| Selector de emoji | panel de Quickshell (`SUPER + .`), datos Unicode/CLDR en español e inglés |
-| Dashboard | Quickshell (`SUPER + A`): inicio, hoy (calendario y clima), sistema y escritorios |
-| Multimedia | reproductor de Quickshell (pill de la barra, dashboard y teclas multimedia) |
-| Calendario y clima | vista Hoy del dashboard (clima de Open-Meteo, ubicacion elegida a mano) |
-| Spotify | spicetify + spicetify-marketplace (ver `spicetify/`) |
-| Visualizador de audio | cava (colores dinamicos, ver seccion cava abajo) |
-| System info / fetch | fastfetch (ver `fastfetch/`) |
-| Multiplexor de terminal | zellij (colores dinamicos, ver seccion zellij abajo) |
-| Markdown en terminal | glow (colores dinamicos, ver seccion glow abajo) |
-| `du`/`df`/`ps` modernos | dust / duf / procs (heredan el ANSI de kitty, sin theming propio) |
-| Cliente HTTP | xh (alias `http`) |
-| Ejemplos de uso rapido | tealdeer (`tldr`) |
-| Paleta de colores dinamica | matugen (Material You a partir del wallpaper) |
+| Emoji picker | Quickshell panel (`SUPER + .`), Unicode/CLDR data in every language of the shell |
+| Dashboard | Quickshell (`SUPER + A`): home, today (calendar and weather), system and workspaces |
+| Media | Quickshell player (bar pill, dashboard and media keys) |
+| Calendar and weather | the dashboard's Today view (Open-Meteo weather, location chosen by hand) |
+| Spotify | spicetify + spicetify-marketplace (see `spicetify/`) |
+| Audio visualizer | cava (dynamic colors, see the cava section below) |
+| System info / fetch | fastfetch (see `fastfetch/`) |
+| Terminal multiplexer | zellij (dynamic colors, see the zellij section below) |
+| Markdown in the terminal | glow (dynamic colors, see the glow section below) |
+| Modern `du`/`df`/`ps` | dust / duf / procs (they inherit kitty's ANSI colors, no own theming) |
+| HTTP client | xh (alias `http`) |
+| Quick usage examples | tealdeer (`tldr`) |
+| Dynamic color palette | matugen (Material You from the wallpaper) |
 
 | Terminal | kitty |
-| Explorador de archivos | Thunar |
+| File manager | Thunar |
 
-## 1. Instalar paquetes
+## 1. Install the packages
 
 ```bash
 sudo pacman -S --needed satty cliphist wl-clip-persist \
@@ -74,31 +78,34 @@ sudo pacman -S --needed satty cliphist wl-clip-persist \
   jdk21-openjdk jdk25-openjdk
 
 yay -S --needed bibata-cursor-theme-bin papirus-folders spicetify-bin
-# Fuentes del design system: Plus Jakarta Sans (interfaz) y Maple Mono NF
-# (codigo/terminal, con glyphs Nerd Font)
+# Design-system fonts: Plus Jakarta Sans (interface) and Maple Mono NF
+# (code/terminal, with Nerd Font glyphs)
 yay -S --needed ttf-plus-jakarta-sans maplemono-nf
 
-# papirus-folders necesita una copia LOCAL del tema para no pedir sudo en
-# cada cambio de wallpaper (matugen lo llama automaticamente, sin terminal).
-# Papirus-Dark y Papirus-Light (la del modo claro) son en su mayoria symlinks
-# relativos al tema base "Papirus" (ej. 48x48 -> ../Papirus/48x48), asi que
-# hay que copiar los tres:
+# papirus-folders needs a LOCAL copy of the theme so it doesn't ask for sudo
+# on every wallpaper change (matugen calls it automatically, without a terminal).
+# Papirus-Dark and Papirus-Light (the light mode one) are mostly relative
+# symlinks to the base "Papirus" theme (e.g. 48x48 -> ../Papirus/48x48), so
+# all three have to be copied:
 mkdir -p ~/.local/share/icons
 cp -r /usr/share/icons/Papirus /usr/share/icons/Papirus-Dark /usr/share/icons/Papirus-Light ~/.local/share/icons/
 ```
 
-`pipewire`/`wireplumber` son criticos: sin ellos no funciona el audio (`wpctl`)
-ni el screen sharing. Si ya tenias `pipewire-media-session`, desinstalalo (conflictua).
+`pipewire`/`wireplumber` are critical: without them neither audio (`wpctl`)
+nor screen sharing work. If you had `pipewire-media-session`, uninstall it (it conflicts).
 
-## 2. GPU hibrida (AMD iGPU + NVIDIA)
+For the Japanese interface, install a CJK font system-wide (`noto-fonts-cjk`): the login screen runs as another user and only
+sees the fonts in `/usr/share/fonts`.
 
-La config ya fija `AQ_DRM_DEVICES` a `/dev/dri/gpu-amd:/dev/dri/gpu-nvidia`,
-asi que Hyprland arranca siempre con la iGPU. Esos son alias sin `:` en el
-nombre creados por la regla udev `/etc/udev/rules.d/71-gpu-drm-aliases.rules`
-(necesaria porque `AQ_DRM_DEVICES` separa la lista con `:`, y las rutas
-`/dev/dri/by-path/pci-0000:XX:00.0-card` ya traen `:` en el propio nombre,
-lo que rompe el parseo de Aquamarine y hace crashear a Hyprland con
-`CBackend::create() failed!`). Instalala asi si es un equipo nuevo:
+## 2. Hybrid GPU (AMD iGPU + NVIDIA)
+
+The config already sets `AQ_DRM_DEVICES` to `/dev/dri/gpu-amd:/dev/dri/gpu-nvidia`,
+so Hyprland always starts on the iGPU. Those are aliases without `:` in the
+name, created by the udev rule `/etc/udev/rules.d/71-gpu-drm-aliases.rules`
+(needed because `AQ_DRM_DEVICES` separates the list with `:`, and the paths
+`/dev/dri/by-path/pci-0000:XX:00.0-card` already have `:` in their own name,
+which breaks Aquamarine's parsing and makes Hyprland crash with
+`CBackend::create() failed!`). Install it like this on a new machine:
 
 ```bash
 sudo tee /etc/udev/rules.d/71-gpu-drm-aliases.rules <<'EOF'
@@ -108,948 +115,955 @@ EOF
 sudo udevadm control --reload && sudo udevadm trigger --subsystem-match=drm
 ```
 
-(ajusta las direcciones PCI `pci-0000:06:00.0` / `pci-0000:01:00.0` si en tu
-equipo la AMD y la NVIDIA estan en otro bus; verificalo con
-`udevadm info -q property -n /dev/dri/card0 | grep ID_PATH` para cada card).
+(adjust the PCI addresses `pci-0000:06:00.0` / `pci-0000:01:00.0` if the AMD
+and the NVIDIA are on another bus on your machine; check it with
+`udevadm info -q property -n /dev/dri/card0 | grep ID_PATH` for each card).
 
-Para que el modeset de NVIDIA funcione bien (offload puntual, suspend/resume,
-VA-API) falta habilitarlo:
+For NVIDIA modesetting to work well (occasional offload, suspend/resume,
+VA-API) it still has to be enabled:
 
 ```bash
 echo "options nvidia_drm modeset=1" | sudo tee /etc/modprobe.d/nvidia.conf
 
-# opcional pero recomendado: cargar amdgpu antes que nvidia en el initramfs
-# para evitar cuelgues de ~1 min en apps Electron al bootear.
-# Editar /etc/mkinitcpio.conf y dejar la linea MODULES asi:
+# optional but recommended: load amdgpu before nvidia in the initramfs
+# to avoid ~1 min hangs in Electron apps at boot.
+# Edit /etc/mkinitcpio.conf and leave the MODULES line like this:
 #   MODULES=(amdgpu nvidia nvidia_modeset nvidia_uvm nvidia_drm)
 sudo mkinitcpio -P
 
 sudo systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service
 ```
 
-Para correr algo puntual en la NVIDIA (juegos, Blender, etc.):
+To run something on the NVIDIA (games, Blender, etc.):
 
 ```bash
 ~/.config/hypr/scripts/nvidia-offload steam
-# o en Steam: opciones de lanzamiento -> ~/.config/hypr/scripts/nvidia-offload %command%
+# or in Steam: launch options -> ~/.config/hypr/scripts/nvidia-offload %command%
 ```
 
-Para ver si hay algo corriendo en la NVIDIA ahora mismo: `nvidia-smi --query-compute-apps=pid,process_name --format=csv,noheader`
-(o la vista Sistema del dashboard, `SUPER + A` y `S`, que muestra su estado sin despertarla).
+To see whether anything runs on the NVIDIA right now: `nvidia-smi --query-compute-apps=pid,process_name --format=csv,noheader`
+(or the dashboard's System view, `SUPER + A` and `S`, which shows its state without waking it).
 
-**Gotcha recurrente tras actualizar el kernel/el driver**: `nvidia-open-dkms` compila el
-modulo para el kernel que este instalado en ese momento, pero el que sigue *cargado en
-memoria* es el del kernel con el que arrancaste. Si `pacman -Syu` trae un kernel nuevo Y
-una version nueva de NVIDIA en la misma corrida, quedan desincronizados hasta el proximo
-reinicio -- sintoma: `nvidia-smi` tira `Failed to initialize NVML: Driver/library version
-mismatch`, y cualquier offload a la dGPU (`nvidia-offload`, Steam, juegos) falla o
-directamente usa la iGPU en silencio. Se soluciona con un reinicio normal, nada que
-reinstalar; para confirmar antes de reiniciar: `uname -r` (kernel corriendo) vs
-`pacman -Q linux-zen` (kernel instalado) -- si difieren, reinicia.
+**Recurring gotcha after a kernel/driver update**: `nvidia-open-dkms` builds the
+module for the kernel installed at that moment, but the one still *loaded in
+memory* belongs to the kernel you booted with. If `pacman -Syu` brings a new kernel AND
+a new NVIDIA version in the same run, they stay out of sync until the next
+reboot -- symptom: `nvidia-smi` throws `Failed to initialize NVML: Driver/library version
+mismatch`, and any offload to the dGPU (`nvidia-offload`, Steam, games) fails or
+silently uses the iGPU. A normal reboot fixes it, nothing to
+reinstall; to confirm before rebooting: `uname -r` (running kernel) vs
+`pacman -Q linux-zen` (installed kernel) -- if they differ, reboot.
 
-## 3. Aplicar la config con Stow
+## 3. Apply the config with Stow
 
 ```bash
 cd ~/Dotfiles
-mv ~/.config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua.bak  # backup del autogenerado
+mv ~/.config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua.bak  # backup of the autogenerated one
 stow hypr quickshell kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch git
 ```
 
-Quickshell (ver seccion Quickshell abajo -- barra, notificaciones Y
-control center, y la pantalla de bloqueo), kitty (incluida la tab bar), GTK, Qt
+Quickshell (see the Quickshell section below -- bar, notifications AND
+control center, and the lock screen), kitty (tab bar included), GTK, Qt
 (qt5ct/qt6ct), starship, yazi (flavor
-`matugen`, ver `yazi/.config/yazi/theme.toml`), Neovim (colorscheme
-base16 propio, ver `nvim/.config/nvim/lua/plugins/colorscheme.lua`), btop
-(theme `matugen`), satty (100% generado, `~/.config/satty/config.toml`,
-no trackeado en el repo -- igual que starship), cava (100% generado,
-`~/.config/cava/config`, tampoco trackeado -- ver seccion `### cava`
-abajo), fastfetch (via ANSI de kitty + alias generado, ver `### fastfetch`
-abajo), zellij (100% generado, ver `### zellij` abajo), glow (via
-`GLOW_STYLE`, ver `### glow` abajo), SDDM, los iconos de carpeta de
-Papirus-Dark y los bordes de Hyprland toman su paleta de un
-wallpaper via matugen (`matugen/.config/matugen/`) en vez de tener los
-colores hardcodeados. `bat` no necesita template propio: usa el tema
-`ansi`, que delega el color a los 16 colores ANSI que ya define kitty.
-`~/.config/starship.toml` es 100% generado por matugen (no
-esta trackeado en el repo, solo el template en
-`matugen/.config/matugen/templates/starship.toml`). Despues del `stow` hay que
-generarla una vez a mano, si no `@import`/`include`/`source`/`require`/
-`color_scheme_path` de esas apps apuntan a archivos que todavia no existen:
+`matugen`, see `yazi/.config/yazi/theme.toml`), Neovim (own base16
+colorscheme, see `nvim/.config/nvim/lua/plugins/colorscheme.lua`), btop
+(theme `matugen`), satty (100% generated, `~/.config/satty/config.toml`,
+not tracked in the repo -- same as starship), cava (100% generated,
+`~/.config/cava/config`, not tracked either -- see the `### cava` section
+below), fastfetch (via kitty's ANSI colors + a generated alias, see `### fastfetch`
+below), zellij (100% generated, see `### zellij` below), glow (via
+`GLOW_STYLE`, see `### glow` below), SDDM, the Papirus-Dark folder icons
+and Hyprland's borders take their palette from a
+wallpaper via matugen (`matugen/.config/matugen/`) instead of having
+hardcoded colors. `bat` needs no template of its own: it uses the `ansi`
+theme, which delegates color to the 16 ANSI colors kitty already defines.
+`~/.config/starship.toml` is 100% generated by matugen (it isn't
+tracked in the repo, only the template in
+`matugen/.config/matugen/templates/starship.toml`). After `stow` it has to
+be generated once by hand, otherwise those apps' `@import`/`include`/`source`/`require`/
+`color_scheme_path` point to files that don't exist yet:
 
 ```bash
 matugen image ~/Pictures/Wallpapers/imagen_161.png
 ```
 
-Para cambiar de wallpaper (y recolorear todo junto) usa `SUPER+SHIFT+W`: la
-galeria de Quickshell (busqueda, etiquetas, favoritos, recientes, vista
-previa con `Espacio` y opciones de color por wallpaper o para todos).
-`SUPER+SHIFT+Z` vuelve al tema anterior. Todo pasa por
-`hypr/.config/hypr/scripts/theme-apply.sh`, que tambien sirve desde una
-terminal (por ejemplo si Quickshell no esta corriendo):
+To change the wallpaper (and recolor everything together) use `SUPER+SHIFT+W`: the
+Quickshell gallery (search, tags, favorites, recent, preview with `Space`,
+and color options per wallpaper or for all of them).
+`SUPER+SHIFT+Z` goes back to the previous theme. Everything goes through
+`hypr/.config/hypr/scripts/theme-apply.sh`, which also works from a
+terminal (for example if Quickshell isn't running):
 
 ```bash
 ~/.config/hypr/scripts/theme-apply.sh ~/Pictures/Wallpapers/imagen_161.png
 ```
 
-Ademas regenera `~/.face` -- la imagen "de usuario" que dibujan la
-pantalla de bloqueo (arriba del campo de contrasena), la de inicio de
-sesion y Plymouth -- como un recorte cuadrado centrado (512x512, via
-`magick`) del mismo wallpaper: el avatar cambia solo junto con el resto del
-theming. Para usar una foto tuya: centro de configuracion (`SUPER+I`),
-Apariencia, Avatar, "Imagen propia" y "Elegir…". Se recorta igual, se aplica
-al momento en el bloqueo (y en el login y el arranque con el pase del
-sistema, un minuto despues) y los cambios de fondo ya no la pisan
-(`theme-apply.sh --face` la rehace a mano).
+It also regenerates `~/.face` -- the "user" image drawn by the
+lock screen (above the password field), the login screen and
+Plymouth -- as a centered square crop (512x512, via
+`magick`) of the same wallpaper: the avatar changes together with the rest of the
+theming. To use a photo of yours: settings center (`SUPER+I`),
+Appearance, Avatar, "Own image" and "Choose…". It's cropped the same way, applied
+right away on the lock screen (and on login and boot with the system
+pass, a minute later), and wallpaper changes no longer overwrite it
+(`theme-apply.sh --face` remakes it by hand).
 
-Shell: zsh (con [zinit](https://github.com/zdharma-continuum/zinit) para
-plugins -- se clona solo la primera vez que abris una terminal, no hace
-falta instalarlo a mano). Para que sea la shell por defecto:
+Shell: zsh (with [zinit](https://github.com/zdharma-continuum/zinit) for
+plugins -- it clones itself the first time you open a terminal, no need
+to install it by hand). To make it the default shell:
 
 ```bash
 chsh -s /usr/bin/zsh
 ```
 
-Neovim: config modular en `nvim/.config/nvim/lua/` (lazy.nvim + mason/LSP +
+Neovim: a modular config in `nvim/.config/nvim/lua/` (lazy.nvim + mason/LSP +
 treesitter + telescope + blink.cmp + gitsigns + lualine/which-key +
-flash.nvim (navegacion, ver `keys` en `lua/plugins/flash.lua` -- pisa
-`s`/`S`/`r`/`R` a proposito) + render-markdown.nvim + yazi.nvim como
-explorador + snacks.nvim (dashboard, notificaciones, indent guides, zen
-mode con `<leader>z`)).
-`lazy.nvim` se clona e instala todo solo la primera vez que abris `nvim`
-(tarda un rato). LSP servers (`lua_ls`, `bashls`, `pyright`, `jsonls`,
-`yamlls`, `marksman`, `taplo`) y formatters (`stylua`, `shfmt`) se instalan
-solos via mason -- `bashls`/`pyright`/`jsonls`/`yamlls` necesitan
-`nodejs`/`npm`, ya estan en la lista de arriba. `nvim-treesitter` esta
-fijado a la branch `main` (`master` esta congelada y no soporta Neovim
-0.12+) y necesita `tree-sitter-cli` para compilar parsers -- tambien ya
-esta en la lista.
+flash.nvim (navigation, see `keys` in `lua/plugins/flash.lua` -- it overrides
+`s`/`S`/`r`/`R` on purpose) + render-markdown.nvim + yazi.nvim as the
+file explorer + snacks.nvim (dashboard, notifications, indent guides, zen
+mode with `<leader>z`)).
+`lazy.nvim` clones and installs everything by itself the first time you open `nvim`
+(it takes a while). LSP servers (`lua_ls`, `bashls`, `pyright`, `jsonls`,
+`yamlls`, `marksman`, `taplo`) and formatters (`stylua`, `shfmt`) install
+themselves via mason -- `bashls`/`pyright`/`jsonls`/`yamlls` need
+`nodejs`/`npm`, already in the list above. `nvim-treesitter` is
+pinned to the `main` branch (`master` is frozen and doesn't support Neovim
+0.12+) and needs `tree-sitter-cli` to build parsers -- also already
+in the list.
 
 ### cava
 
-`~/.config/cava/config` es 100% generado por matugen (no esta trackeado en
-el repo, solo el template en `matugen/.config/matugen/templates/cava.conf`)
--- cava no soporta `include`/import para separar colores del resto de la
-config. `background`/`foreground` quedan en `'default'` para que se vea el
-fondo con blur de la terminal detras (mismo mecanismo que
-`background_opacity` en `kitty.conf`) en vez de un fondo solido, y el
-gradiente grave -> agudo usa solo colores de identidad del wallpaper
-(tertiary -> secondary -> primary): es decorativo, asi que no lleva colores
-de estado (ver "Colores de estado" mas abajo). Si
-cava ya esta corriendo, el `post_hook` del template le manda `SIGUSR2` para
-recargar solo los colores (sin reiniciar el analisis de audio) en cada
-cambio de wallpaper.
+`~/.config/cava/config` is 100% generated by matugen (not tracked in
+the repo, only the template in `matugen/.config/matugen/templates/cava.conf`)
+-- cava doesn't support `include`/import to split the colors from the rest of the
+config. `background`/`foreground` stay at `'default'` so the terminal's blurred
+background shows behind it (the same mechanism as
+`background_opacity` in `kitty.conf`) instead of a solid background, and the
+low -> high gradient uses only the wallpaper's identity colors
+(tertiary -> secondary -> primary): it's decorative, so it carries no status
+colors (see "Status colors" further down). If
+cava is already running, the template's `post_hook` sends it `SIGUSR2` to
+reload only the colors (without restarting the audio analysis) on every
+wallpaper change.
 
 ### fastfetch
 
-A diferencia de cava, `~/.config/fastfetch/config.jsonc` (paquete stow
-propio, `fastfetch/`) es un archivo real y estatico -- se edita a mano sin
-tocar matugen. El diseño actual (estilo "Catnap", caja dibujada a mano con
-`key` custom por modulo) colorea cada linea con codigos ANSI crudos
-(`{#31}`, `{#34}`, `{#35}`...) que resuelven contra la paleta `color0-15`
-que matugen le genera a kitty (`kitty/colors.conf`) -- mismo mecanismo de
-delegacion que ya usa `bat` con su tema `ansi`, cambia el wallpaper y
-cambian los colores sin regenerar nada. Tambien existe un
-`alias fastfetch=...` generado por matugen en
-`~/.cache/matugen/fastfetch-opts.sh` (sourceado desde `.zshrc`, mismo patron
-que `fzf.sh`) con flags `--logo-color-N`/`--color-*`; con el logo
-desactivado (`"type": "none"`) solo le pone color al texto de valor
-(columna derecha) via `--color-output`. Se abre solo al abrir una terminal
-nueva (ultima linea de `.zshrc`).
+Unlike cava, `~/.config/fastfetch/config.jsonc` (its own stow
+package, `fastfetch/`) is a real, static file -- edit it by hand without
+touching matugen. The current design ("Catnap" style, a hand-drawn box with a
+custom `key` per module) colors each line with raw ANSI codes
+(`{#31}`, `{#34}`, `{#35}`...) that resolve against the `color0-15` palette
+matugen generates for kitty (`kitty/colors.conf`) -- the same delegation
+mechanism `bat` already uses with its `ansi` theme: change the wallpaper and
+the colors change without regenerating anything. There's also an
+`alias fastfetch=...` generated by matugen in
+`~/.cache/matugen/fastfetch-opts.sh` (sourced from `.zshrc`, the same pattern
+as `fzf.sh`) with `--logo-color-N`/`--color-*` flags; with the logo
+disabled (`"type": "none"`) it only colors the value text
+(right column) via `--color-output`. It opens by itself when you open a new
+terminal (last line of `.zshrc`).
 
 ### zellij
 
-`~/.config/zellij/config.kdl` es 100% generado por matugen (no esta
-trackeado en el repo, no hay paquete stow `zellij/` -- solo el template en
-`matugen/.config/matugen/templates/zellij-config.kdl`). zellij soporta
-`theme_dir` para cargar temas desde archivos sueltos (como el flavor.toml de
-yazi), pero esa directiva no expande `~`/`$HOME` (probado: tira `IoError` si
-no es una ruta absoluta literal) -- como este repo tiene que servir para
-cualquier `$HOME`, el theme va embebido directo en el config completo en vez
-de un archivo separado. Los colores van en RGB decimal (`fg 227 225 233`),
-no hex -- formato real de zellij 0.45, verificado con
-`zellij setup --dump-config`. zellij corre un servidor por sesion: una
-sesion ya abierta no recoge un cambio de wallpaper hasta reiniciarla
-(`zellij kill-all-sessions -y`); las sesiones nuevas si toman los colores
-actualizados.
+`~/.config/zellij/config.kdl` is 100% generated by matugen (not
+tracked in the repo, there's no `zellij/` stow package -- only the template in
+`matugen/.config/matugen/templates/zellij-config.kdl`). zellij supports
+`theme_dir` to load themes from separate files (like yazi's flavor.toml),
+but that directive doesn't expand `~`/`$HOME` (tested: it throws `IoError` if
+it isn't a literal absolute path) -- since this repo has to work for
+any `$HOME`, the theme is embedded directly in the full config instead
+of a separate file. The colors are decimal RGB (`fg 227 225 233`),
+not hex -- zellij 0.45's real format, verified with
+`zellij setup --dump-config`. zellij runs one server per session: an
+already open session doesn't pick up a wallpaper change until restarted
+(`zellij kill-all-sessions -y`); new sessions do take the
+updated colors.
 
 ### glow
 
-El estilo de glow (`glow-style.json`, formato de
-[glamour](https://github.com/charmbracelet/glamour)) tambien es 100%
-generado por matugen, basado en el `dark.json` oficial de glamour con los
-campos de color reemplazados. La clave `style` de `~/.config/glow/glow.yml`
-resulta no funcionar (probado, glow la ignora en silencio) -- la variable de
-entorno `GLOW_STYLE` si, asi que `.zshrc` la exporta apuntando siempre a
-`~/.cache/matugen/glow-style.json`. Un detalle no obvio del propio template:
-glamour usa `{{.text}}` como placeholder interno en el campo `format` de
-`image_text`, que choca con la sintaxis `{{ }}` de matugen (rompe el parseo
-de TODO el archivo, no solo esa linea) -- esta escapado en el template como
-`\u007b\u007b.text\u007d\u007d` (unicode escape de JSON -- sin llaves
-literales en el template, matugen ni se entera -- que se decodifica de
-vuelta a llaves reales cuando glow parsea el JSON generado) para que
-matugen no intente interpretarlo como una variable propia.
+glow's style (`glow-style.json`, the
+[glamour](https://github.com/charmbracelet/glamour) format) is also 100%
+generated by matugen, based on glamour's official `dark.json` with the
+color fields replaced. The `style` key of `~/.config/glow/glow.yml`
+turns out not to work (tested, glow silently ignores it) -- the
+`GLOW_STYLE` environment variable does, so `.zshrc` exports it, always pointing to
+`~/.cache/matugen/glow-style.json`. A non-obvious detail of the template itself:
+glamour uses `{{.text}}` as an internal placeholder in the `format` field of
+`image_text`, which clashes with matugen's `{{ }}` syntax (it breaks the parsing
+of the WHOLE file, not just that line) -- it's escaped in the template as
+`{{.text}}` (a JSON unicode escape -- with no literal
+braces in the template matugen doesn't even notice -- which decodes
+back to real braces when glow parses the generated JSON) so that
+matugen doesn't try to interpret it as one of its own variables.
 
 ### Quickshell
 
-La barra (`quickshell/.config/quickshell/dotshell/`) esta escrita en QML
-sobre [Quickshell](https://quickshell.org) en vez de Waybar -- se lanza
-con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo.
+The bar (`quickshell/.config/quickshell/dotshell/`) is written in QML
+on [Quickshell](https://quickshell.org) instead of Waybar -- it's launched
+with `qs -c dotshell` (autostart in `autostart.lua`). It fully replaces Waybar.
 
-- **Colores**: matugen escribe `~/.cache/matugen/quickshell-colors.json`
-  (plantilla `templates/quickshell-colors.json`) y `Colors.qml` lo lee y lo
-  sigue solo, con transicion. `Colors.qml` es una `SemanticPalette`
-  (`SemanticPalette.qml`, la unica capa semantica): los modulos usan alias
-  con significado (`Colors.accent`, `Colors.warning`, `Colors.textMuted`...)
-  y nunca los roles crudos de Material You.
-- **Colores de estado** (Fase 8, P8.7): `danger`, `warning` y `success` son
-  fijos -- no cambian con el wallpaper, el esquema ni el contraste, solo
-  con el modo claro/oscuro. Los genera `hypr/.config/hypr/scripts/palette
-  status` (semillas en `dotshell/data/palette.rules.json`) y `theme-apply.sh`
-  los deja en `~/.cache/matugen/status.json` antes de cada matugen, que los
-  importa para todas las plantillas (kitty, btop, nvim, zellij...: el verde,
-  amarillo y rojo de la terminal son siempre los mismos). `palette check`
-  valida el sistema de color (contrastes, colores fijos, colores literales en
-  el QML, tabla semantica de las plantillas).
-- **Estructura**: `shell.qml` (entry point + los `IpcHandler` de abajo),
-  `modules/Bar.qml` (`PanelWindow`, una instancia por pantalla via
-  `Variants` sobre `Quickshell.screens`; arma la disposicion que guarda
-  `bar.layout`: izquierda, centro -- al centro de la pantalla de verdad -- y
-  derecha), `modules/BarEntry.qml` (el modulo de cada id),
-  `modules/Pill.qml` (contenedor redondeado reutilizable) y un archivo por
-  modulo (`Workspaces`, `Mpris`,
+- **Colors**: matugen writes `~/.cache/matugen/quickshell-colors.json`
+  (template `templates/quickshell-colors.json`) and `Colors.qml` reads it and
+  follows it by itself, with a transition. `Colors.qml` is a `SemanticPalette`
+  (`SemanticPalette.qml`, the only semantic layer): modules use aliases
+  with meaning (`Colors.accent`, `Colors.warning`, `Colors.textMuted`...)
+  and never the raw Material You roles.
+- **Status colors** (Phase 8, P8.7): `danger`, `warning` and `success` are
+  fixed -- they don't change with the wallpaper, the scheme or the contrast, only
+  with light/dark mode. `hypr/.config/hypr/scripts/palette
+  status` generates them (seeds in `dotshell/data/palette.rules.json`) and `theme-apply.sh`
+  leaves them in `~/.cache/matugen/status.json` before each matugen run, which
+  imports them for every template (kitty, btop, nvim, zellij...: the terminal's green,
+  yellow and red are always the same). `palette check`
+  validates the color system (contrasts, fixed colors, literal colors in
+  the QML, the templates' semantic table).
+- **Languages** (Phase 15): every visible text goes through `I18n` (`I18nCore.qml` + `I18n.qml`); the English text is the
+  source and the key, and each language is a catalog in `dotshell/data/i18n/<language>.json`. Dates, numbers, durations and
+  plurals follow the language. Scripts translate with `hypr/.config/hypr/scripts/i18n`; `i18n check` must stay at 0 (missing
+  or old keys, placeholders, plurals, and any visible text outside `I18n`).
+- **Structure**: `shell.qml` (entry point + the `IpcHandler`s below),
+  `modules/Bar.qml` (`PanelWindow`, one instance per screen via
+  `Variants` over `Quickshell.screens`; it builds the layout stored in
+  `bar.layout`: left, center -- truly centered on the screen -- and
+  right), `modules/BarEntry.qml` (the module of each id),
+  `modules/Pill.qml` (a reusable rounded container) and one file per
+  module (`Workspaces`, `Mpris`,
   `Clock`, `Update`, `Network`, `Bluetooth`, `Tray`, `Microphone`,
-  `Battery`, `IdleToggle`, `Power`). `Volume`/`Backlight` no tienen icono
-  en la barra (a pedido del usuario, ver OSD abajo) -- se instancian
-  igual, sin pantalla, directo en `shell.qml`, porque siguen siendo los
-  que miran Pipewire/sysfs y disparan el OSD.
-- **Dropdowns de red/bluetooth** (`modules/NetworkDropdown.qml` +
-  `BluetoothDropdown.qml`): paneles propios en QML en vez de mandar a un
-  menu fzf en una terminal -- lista de redes/dispositivos reales, click
-  para conectar (red con campo de contraseña inline si hace falta via
-  `WifiNetwork.connectWithPsk()`), toggle de wifi/bluetooth. `Tray.qml`
-  filtra los ids `"nm-applet"`/`"blueman"` para no duplicar el icono.
-- **Control center + notificaciones** (`modules/ControlCenter.qml` +
-  `NotificationToast.qml` + `NotificationState.qml`): reemplaza a swaync
-  del todo. `NotificationState.qml` envuelve un `NotificationServer`
-  (servicio DBus `org.freedesktop.Notifications` -- por eso reemplaza a
-  swaync en vez de convivir con el, solo un proceso puede ser el dueño a
-  la vez) y expone el historial + una cola de toasts + "no molestar"
-  (con DND activo, la notificación queda en el historial pero no
-  aparece como toast). `ControlCenter.qml` reproduce lo que daba
-  `swaync/config.json`: historial con "limpiar todo" y los **ajustes
-  rapidos** -- el unico lugar de los ajustes rapidos (Fase 11 B6). Se abre
-  con la campana de la barra o `SUPER+N`, en el mismo lugar que los avisos
-  (Configuracion -> Notificaciones -> Donde aparecen; Fase 14 B1), pegado al
-  marco con el estilo Marco; mientras esta abierto no salen avisos: los
-  nuevos entran directo a su lista. La pill de bateria abre su propio menu
-  (nivel, tiempo restante, consumo y salud si UPower los informa, perfil de
-  energia; el clic del medio cambia de perfil). De
-  fabrica: wifi, bluetooth, luz nocturna (la misma opcion que
-  Configuracion -> Pantallas), modo juego, bloquear, perfil de energia y "No
-  molestar". Son datos (`controlCenter.tiles`): con el lapiz (al pasar el
-  raton por los ajustes) o `qs -c dotshell ipc call controlcenter edit` se
-  ordenan arrastrando, cambian de tamaño (cuadrado, ancho con nombre y
-  estado, fila) y se quitan o agregan; tambien hay "mantener despierto"
-  (el mismo estado que el modulo de la barra, para todas las pantallas),
-  microfono, captura, grabar, distribucion del teclado (con 2 o mas),
-  color de la pantalla (si esta `hyprpicker`) y Configuracion. Lo que el
-  equipo no tiene no aparece. Cada accion tiene un solo dueño
-  (`QuickTiles.qml`); los interruptores de los desplegables de red y
-  bluetooth usan el mismo. El reproductor y el estado del equipo (incluida
-  la NVIDIA) estan en el dashboard. `SUPER+N`/`SUPER+SHIFT+N` (ver
-  `binds.lua`) reemplazan a `swaync-client -t -sw`/`-C`.
-- **OSD** (`modules/Osd.qml` + `OsdState.qml`): popup temporal
-  (icono + barra de nivel) para volumen/mic/brillo, reemplaza a los
-  `notify-send` que se usaban antes para esto. Reactivo a cualquier
-  origen del cambio (scroll, teclas de volumen/brillo del teclado,
-  pavucontrol, etc.), no solo a un click en la barra -- justamente por
-  eso `Volume`/`Backlight` necesitan seguir corriendo aunque no tengan
-  icono. La bateria sigue con `notify-send` real para sus umbrales de
-  warning/critical/full (esas SI tienen que persistir, no autoocultarse).
-- **Reactividad real** (sin polling) via los servicios nativos de
-  Quickshell: `Quickshell.Hyprland` (workspaces/eventos por el socket de
-  Hyprland), `Quickshell.Services.Pipewire` (audio),
-  `Quickshell.Services.UPower` (bateria), `Quickshell.Services.SystemTray`
-  (bandeja -- StatusNotifierItem, muestra nm-applet/blueman-applet),
-  `Quickshell.Services.Mpris` y `Quickshell.Wayland.IdleInhibitor`. CPU,
-  memoria y temperatura no tienen servicio nativo (se leen de `/proc` y
-  `sysfs` con `FileView`) asi que se sacaron de la barra por decision
-  propia, no por limitacion tecnica de Quickshell.
-- **Actualizaciones y mantenimiento** (`MaintenanceState.qml`,
-  `hypr/.config/hypr/scripts/maintenance`): la pill de la barra solo informa
-  (actualizaciones, al dia, error o reinicio pendiente; clic = actualizar en
-  una terminal, clic derecho = revisar ya). La explicacion esta en la vista
-  Mantenimiento del dashboard. Revisa al arrancar, cada hora y despues de cada
-  operacion de pacman; cerrado no hace nada mas.
-- **Menu de energia y sesion** (`modules/PowerMenu.qml`, `SUPER+M` y el
-  boton de la barra): bloquear, suspender, cerrar sesion, reiniciar y apagar;
-  las tres ultimas piden confirmacion y cierran las aplicaciones antes (via
+  `Battery`, `IdleToggle`, `Power`). `Volume`/`Backlight` have no icon
+  in the bar (at the user's request, see OSD below) -- they're still instantiated,
+  without a screen, directly in `shell.qml`, because they're still the
+  ones watching Pipewire/sysfs and triggering the OSD.
+- **Network/bluetooth dropdowns** (`modules/NetworkDropdown.qml` +
+  `BluetoothDropdown.qml`): own QML panels instead of sending you to an
+  fzf menu in a terminal -- a list of real networks/devices, click
+  to connect (a network with an inline password field when needed via
+  `WifiNetwork.connectWithPsk()`), wifi/bluetooth toggle. `Tray.qml`
+  filters the `"nm-applet"`/`"blueman"` ids so the icon isn't duplicated.
+- **Control center + notifications** (`modules/ControlCenter.qml` +
+  `NotificationToast.qml` + `NotificationState.qml`): fully replaces swaync.
+  `NotificationState.qml` wraps a `NotificationServer`
+  (the DBus service `org.freedesktop.Notifications` -- that's why it replaces
+  swaync instead of living alongside it, only one process can own it
+  at a time) and exposes the history + a toast queue + "do not disturb"
+  (with DND on, the notification stays in the history but doesn't
+  show up as a toast). `ControlCenter.qml` reproduces what
+  `swaync/config.json` gave: history with "clear all" and the **quick
+  settings** -- the only place for quick settings (Phase 11 B6). It opens
+  with the bar's bell or `SUPER+N`, in the same place as the notices
+  (Settings -> Notifications -> Where they appear; Phase 14 B1), attached to the
+  frame with the Frame style; while it's open no notices pop up: the
+  new ones go straight into its list. The battery pill opens its own menu
+  (level, time left, power draw and health if UPower reports them, power
+  profile; the middle click switches the profile). By
+  default: wifi, bluetooth, night light (the same option as
+  Settings -> Displays), game mode, lock, power profile and "Do not
+  disturb". They're data (`controlCenter.tiles`): with the pencil (when hovering
+  over the settings) or `qs -c dotshell ipc call controlcenter edit` they're
+  reordered by dragging, resized (square, wide with name and
+  state, row) and removed or added; there's also "keep awake"
+  (the same state as the bar module, for every screen),
+  microphone, capture, record, keyboard layout (with 2 or more),
+  screen color (if `hyprpicker` is there) and Settings. What the
+  machine doesn't have doesn't appear. Each action has a single owner
+  (`QuickTiles.qml`); the network and bluetooth dropdowns' switches
+  use the same one. The player and the machine's state (the
+  NVIDIA included) are in the dashboard. `SUPER+N`/`SUPER+SHIFT+N` (see
+  `binds.lua`) replace `swaync-client -t -sw`/`-C`.
+- **OSD** (`modules/Osd.qml` + `OsdState.qml`): a temporary popup
+  (icon + level bar) for volume/mic/brightness, replacing the
+  `notify-send` calls used before for this. It reacts to any
+  source of the change (scroll, the keyboard's volume/brightness keys,
+  pavucontrol, etc.), not only a click on the bar -- precisely
+  why `Volume`/`Backlight` need to keep running even without an
+  icon. The battery still uses a real `notify-send` for its
+  warning/critical/full thresholds (those DO have to persist, not hide themselves).
+- **Real reactivity** (no polling) via Quickshell's native
+  services: `Quickshell.Hyprland` (workspaces/events over Hyprland's
+  socket), `Quickshell.Services.Pipewire` (audio),
+  `Quickshell.Services.UPower` (battery), `Quickshell.Services.SystemTray`
+  (tray -- StatusNotifierItem, shows nm-applet/blueman-applet),
+  `Quickshell.Services.Mpris` and `Quickshell.Wayland.IdleInhibitor`. CPU,
+  memory and temperature have no native service (they're read from `/proc` and
+  `sysfs` with `FileView`) so they were taken out of the bar by choice,
+  not because of a technical limitation of Quickshell.
+- **Updates and maintenance** (`MaintenanceState.qml`,
+  `hypr/.config/hypr/scripts/maintenance`): the bar pill only informs
+  (updates, up to date, error or pending reboot; click = update in
+  a terminal, right click = check now). The explanation is in the dashboard's
+  Maintenance view. It checks at startup, every hour and after every
+  pacman operation; closed, it does nothing else.
+- **Power and session menu** (`modules/PowerMenu.qml`, `SUPER+M` and the
+  bar button): lock, suspend, log out, restart and power off;
+  the last three ask for confirmation and close the applications first (via
   `hyprshutdown`).
-- **Historial del portapapeles** (`modules/Clipboard.qml`, `SUPER+SHIFT+V`):
-  lista con busqueda, filtros (Todo / Texto / Imagenes / Enlaces, `Tab`) y
-  vista previa de texto e imagenes a la derecha. `Enter` copia, `Supr`
-  borra, `Ctrl+P` pausa el historial (lo copiado no se guarda hasta
-  reanudar; reiniciar lo reanuda), `Ctrl+Supr` vacia (con confirmacion).
-  Lo guarda `hypr/.config/hypr/scripts/clipboard-store`, que corre delante
-  de `cliphist` en los `wl-paste --watch` de `autostart.lua` y **no guarda**
-  lo que parece sensible: claves privadas, tokens (GitHub, APIs, JWT),
-  `PASSWORD=`/`SECRET=`/`TOKEN=` y cadenas con forma de contrasena, lo que
-  una app marca como contrasena, las apps listadas en
-  `hypr/.config/hypr/clipboard-exclude.conf` (vacia por defecto) e imagenes
-  de mas de 10 MB. Lo copiado se pega igual; solo no entra al historial.
-  Las vistas previas de imagen se decodifican en `$XDG_RUNTIME_DIR` (RAM) y
-  se borran al cerrar el panel. `clipboard-store --scan` cuenta entradas
-  sensibles viejas y `--purge-sensitive` las borra (solo imprime cuantas).
-  Es la unica interfaz del historial.
-- **Selector de emoji** (`modules/Emoji.qml` + `EmojiState.qml`,
-  `SUPER+.`): rejilla con pestañas de categoria (Recientes, Caras, Personas,
-  ...), busqueda por comienzo de palabra en espanol e ingles sin tildes
-  (`gato`, `cat`, `corazon`), franja con el emoji grande y el tono de piel.
-  `Enter` escribe el emoji en la ventana activa (`wtype`, sin copiarlo),
-  `Ctrl+Enter` solo lo copia, `Tab` cambia de categoria, `Ctrl+T` o un clic
-  en los puntos cambian el tono (global, se recuerda). Guarda los ultimos 30
-  en `~/.local/state/dotfiles/emoji.json`. Los datos
-  (`dotshell/data/emoji.json`, 1914 emojis) los genera a mano
-  `hypr/.config/hypr/scripts/emoji-data` desde la lista oficial Unicode 17.0 y
-  CLDR 48 (fijados por sha256; licencia en `data/LICENSE-unicode`). Para
-  dibujar rapido usa un PNG por emoji en `~/.cache/dotfiles/emoji/72`, que
-  `emoji-data --ensure-images` crea al iniciar el shell si faltan (≈ 20 s,
-  necesita `python-pillow`); mientras tanto dibuja texto con Noto Color Emoji.
+- **Clipboard history** (`modules/Clipboard.qml`, `SUPER+SHIFT+V`):
+  a list with search, filters (All / Text / Images / Links, `Tab`) and
+  a text and image preview on the right. `Enter` copies, `Delete`
+  deletes, `Ctrl+P` pauses the history (what you copy isn't saved until
+  resumed; a restart resumes it), `Ctrl+Delete` empties it (with confirmation).
+  `hypr/.config/hypr/scripts/clipboard-store` saves it; it runs in front
+  of `cliphist` in `autostart.lua`'s `wl-paste --watch` and **doesn't save**
+  what looks sensitive: private keys, tokens (GitHub, APIs, JWT),
+  `PASSWORD=`/`SECRET=`/`TOKEN=` and password-shaped strings, what
+  an app marks as a password, the apps listed in
+  `hypr/.config/hypr/clipboard-exclude.conf` (empty by default) and images
+  over 10 MB. What you copy still pastes; it just doesn't go into the history.
+  Image previews are decoded in `$XDG_RUNTIME_DIR` (RAM) and
+  deleted when the panel closes. `clipboard-store --scan` counts old sensitive
+  entries and `--purge-sensitive` deletes them (it only prints how many).
+  It's the only interface to the history.
+- **Emoji picker** (`modules/Emoji.qml` + `EmojiState.qml`,
+  `SUPER+.`): a grid with category tabs (Recent, Smileys, People,
+  ...), search by word start in the shell's language and in English, without accents
+  (`cat`, `gato`, `heart`; in Japanese, inside the word: `笑う`), a strip with the large emoji and the skin tone.
+  `Enter` types the emoji into the active window (`wtype`, without copying it),
+  `Ctrl+Enter` only copies it, `Tab` changes category, `Ctrl+T` or a click
+  on the dots change the tone (global, remembered). It keeps the last 30
+  in `~/.local/state/dotfiles/emoji.json`. The data
+  (`dotshell/data/emoji/<language>.json`, 1914 emojis with names and keywords in that language and in English) is generated by
+  hand by `hypr/.config/hypr/scripts/emoji-data` from the official Unicode 17.0 list and
+  CLDR 48 (pinned by sha256; license in `data/LICENSE-unicode`). To
+  draw fast it uses one PNG per emoji in `~/.cache/dotfiles/emoji/72`, which
+  `emoji-data --ensure-images` creates at shell startup if they're missing (≈ 20 s,
+  needs `python-pillow`); meanwhile it draws text with Noto Color Emoji.
 - **Launcher** (`modules/Launcher.qml` + `LauncherState.qml`, `SUPER+D`):
-  campo de búsqueda con fuzzy match
-  propio (subsecuencia, sin librería externa) sobre nombre/`genericName`/
-  `keywords` de `Quickshell.DesktopEntries`, orden alfabético sin
-  búsqueda, resaltado de lo que matchea, tamaño de ventana dinámico según
-  cantidad de resultados.
-- **Selector de ventanas** (`modules/Switcher.qml` + `SwitcherState.qml`,
-  `SUPER+Tab`): tarjetas con vista previa de cada ventana (capturada una vez
-  al abrir, tambien de otros workspaces), workspace (S = especial), icono y
-  titulo, por uso reciente. Con Super apretado, `Tab` / `Shift+Tab` mueven y
-  soltar Super cambia (un `SUPER+Tab` rapido vuelve a la ventana anterior);
-  si Super ya se solto, flechas, `Enter` o clic, y escribir filtra. `Esc`
-  cancela, `Supr` cierra la ventana elegida. Solo se capturan ventanas de al
-  menos 24x24 (con muchas ventanas en un workspace algunas quedan con tamano
-  negativo y capturarlas tumbaba el shell); las demas muestran el icono.
-- **Reloj** (`modules/Clock.qml`): la hora (24 h) y, con una ubicacion
-  elegida, el clima (icono y temperatura; atenuado si los datos son viejos o
-  no se pudo actualizar). Solo informa: sin accion al clic.
-- **Reproductor** (`MediaState.qml`, `modules/Mpris.qml`): la pill muestra el
-  titulo y el estado (ecualizador sonando, pausa en pausa); clic central
-  pausa. Las teclas multimedia (`binds.lua`) usan el mismo reproductor via
-  `qs -c dotshell ipc call media next|previous|playPause`, tambien con la
-  pantalla bloqueada. Se ignoran los reproductores "proxy" (playerctld).
-  **Letras** (Fase 12 B1): en la pestana Musica del dashboard, en su propia
-  columna (`L` o "Letra" la muestran u ocultan; desde Inicio, `L` abre Musica
-  con la letra), la linea actual al centro; clic en una linea va ahi; "Otra letra" elige entre
-  otras versiones y `-`/`+` (o `[`/`]`) corrige el desfase, que se recuerda
-  por cancion (`~/.local/state/dotfiles/lyrics.json`). Busca primero un
-  `.lrc` junto al archivo de la cancion, despues en `~/Music/Lyrics`
-  ("Artista - Titulo.lrc", tambien en subcarpetas) y, solo si se activa en
-  Configuracion -> Multimedia -> Letras, en [LRCLIB](https://lrclib.net)
-  (abierto, sin cuenta; se envian titulo, artista y duracion) via
-  `hypr/.config/hypr/scripts/lyrics-fetch` (cache en `~/.cache/dotfiles/lyrics`;
-  una cancion sin letra no se vuelve a preguntar en 7 dias).
-- **Dashboard** (`modules/Dashboard.qml` y sus vistas, `DashboardState.qml`):
-  el centro de la shell. **Se abre solo con `SUPER+A`** (ningun modulo de la
-  barra lo abre), centrado bajo la barra del monitor enfocado; `Esc` o
-  `SUPER+A` lo cierran. Una sola superficie con **pestanas** arriba (Fase 12
-  B2): de fabrica **Inicio · Musica · Sistema · Escritorios**; Hoy y
-  Mantenimiento se suman en Configuracion -> Dashboard -> Pestanas (si no,
-  se abren igual desde su zona o su letra y aparecen mientras se ven). Se
-  abre en Inicio (o en la ultima, si se elige):
-  - **Inicio**: hora, fecha, avisos (actualizaciones y mantenimiento, que
-    abren esa vista; notificaciones, no molestar; solo si los hay) y clima;
-    debajo, las **zonas**, que elegis vos
-    (Fase 11 B4): de fabrica el estado general del equipo ("Todo en orden" y
-    cuatro medidores) y los escritorios en miniatura; ademas el calendario del
-    mes y las proximas horas del clima (con ciudad). Cada una compacta o
-    ancha, en el orden que quieras, o ninguna. La **tarjeta de musica**
-    (portada chica, titulo, artista, progreso, anterior / reproducir /
-    siguiente; clic o `Enter` abren la pestana Musica) va de fabrica al final,
-    mientras hay un reproductor: las zonas no se corren al empezar o terminar
-    la musica. La linea de hora/fecha/avisos/clima y el
-    reproductor tambien son zonas: se quitan, se mueven y se vuelven a agregar
-    como las demas. Sin musica (o sin la zona Musica), el reloj crece y el
-    panel se acorta.
-    **Editar Inicio**: el lapiz (al pasar el raton por las zonas), `Ctrl+E` o
-    Configuracion -> Dashboard -> "Editar Inicio". Las zonas se ven con
-    contorno punteado: arrastrar las ordena, el boton de tamano y la cruz;
-    abajo, "Agregar". Con el teclado: `Tab` elige, flechas mueven, `T`
-    tamano, `Supr` quita, `A` agregar (flechas + `Enter`), `Esc` / `Enter`
-    terminan. Una zona que no esta no consulta nada.
-    Widgets de la Fase 11 B5a: **Perfil** (avatar, saludo y tiempo encendido;
-    clic -> el avatar en Configuracion), **Accesos rapidos** (las aplicaciones
-    y carpetas que fijes en Configuracion -> Dashboard; sin carpetas elegidas,
-    las personales), **Notas** (una nota que se guarda sola) y **Tareas**
-    (`Enter` agrega, clic la marca hecha, "Limpiar" borra las hechas). Notas y
-    tareas se guardan solo en este equipo (`~/.local/state/dotfiles/notes.json`
-    y `todo.json`, fuera del repo). `Tab` + `Enter` entra a escribir; `Esc`
-    sale del campo.
-    Fase 11 B5b: **Temporizador** (pomodoro, cronometro y cuenta atras; cada
-    cambio de fase avisa, con sonido si se pide; duraciones en Configuracion ->
-    Dashboard; el estado en `~/.local/state/dotfiles/timer.json`, asi que una
-    recarga no lo pierde; `qs -c dotshell ipc call timer toggle|reset|status`)
-    y **Ahora** (una linea con lo mas relevante: un temporizador en marcha,
-    lluvia en las proximas 3 h, tareas pendientes, calor o helada, la puesta
-    de sol; aparece solo cuando hay algo). La barra puede llevar el modulo
-    **Temporizador** (lo que queda, por minuto; clic pausa).
-  - **Musica**: la portada recortada con la forma que elijas (cuadrada,
-    circulo, galletas de 4, 7 o 9 lobulos, estallido suave; Configuracion ->
-    Multimedia -> Portada; las onduladas giran un poco con cada cancion), el
-    reproductor (titulo, artista, album, progreso con busqueda, cinco
-    controles, chips con mas de un reproductor) y la letra al lado (debajo si
-    no entra), sobre el color del panel (sin fondo difuminado). **Colores de
-    la portada** (Fase 12 B4, de fabrica encendido): la barra de progreso, el
-    boton de reproducir y las barras toman el color de la portada armonizado
-    con el fondo (`hypr/.config/hypr/scripts/local-palette`, cache en
-    `~/.cache/dotfiles/local-palette`); una portada gris o un color que se
-    confunda con un aviso usan el de siempre. Sin nada sonando, lo dice; no
-    corre nada. **Barras de audio**
-    alrededor de la portada (Fase 12 B3; Configuracion -> Multimedia ->
-    Visualizador, apagadas de fabrica): siguen la forma de la portada; las
-    da [cava](https://github.com/karlstav/cava), que corre solo mientras la
-    pestana se ve y algo suena (nunca con "reducir movimiento").
-  - **Hoy**: calendario del mes y el clima con una frase ("Sensacion 30°. Hoy
-    entre 18° y 33°, sin lluvia a la vista."), las proximas 12 h y 5 dias. El
-    clima viene de [Open-Meteo](https://open-meteo.com) (sin clave; datos
-    CC BY 4.0) via `hypr/.config/hypr/scripts/weather-fetch` (cache en
-    `~/.cache/dotfiles/weather.json`). **Sin ubicacion no se consulta nada**;
-    la ciudad se elige aca (`C`) o en Configuracion -> Dashboard, se guarda
-    solo en este equipo (`dashboard.weather.location` en
-    `~/.config/dotfiles/settings.json`, fuera del repo) redondeada a ~10 km y
-    se consulta cada 30 min. Grados en °C o °F (Configuracion).
-  - **Sistema**: el estado en palabras, procesador, memoria, almacenamiento y
-    energia (con el perfil), las aplicaciones que mas usan (agrupadas por
-    aplicacion, no por proceso), la red y las graficas (la NVIDIA sin
-    despertarla). Con **historia corta** (Fase 11 B5c, de fabrica encendida):
-    procesador, memoria y bateria muestran los ultimos minutos en lugar de la
-    barra de nivel, y la red y las graficas su grafico (la NVIDIA, franjas
-    donde estuvo activa). No se mide nada aparte: se guarda lo que ya se lee
-    mientras miras el dashboard (por eso hay huecos), solo en memoria. Cuantos
-    minutos y que graficos, en Configuracion -> Dashboard -> Sistema. Estilo
-    **Anillos** (Fase 12 B3): los cuatro de arriba como anillos con la cifra
-    adentro y la temperatura como un arco fino por fuera.
-  - **Escritorios**: cada workspace como la pantalla real a escala (fondo,
-    barra, gaps, bordes y la captura de cada ventana, tomada una vez al abrir
-    la vista); clic en una ventana va a esa ventana, en el fondo al
+  a search field with its own fuzzy match
+  (subsequence, no external library) over the name/`genericName`/
+  `keywords` of `Quickshell.DesktopEntries`, alphabetical order without
+  a search, highlighting of what matches, a dynamic window size depending on the
+  number of results.
+- **Window switcher** (`modules/Switcher.qml` + `SwitcherState.qml`,
+  `SUPER+Tab`): cards with a preview of each window (captured once
+  on opening, other workspaces too), workspace (S = special), icon and
+  title, by recent use. With Super held, `Tab` / `Shift+Tab` move and
+  releasing Super switches (a quick `SUPER+Tab` goes back to the previous window);
+  if Super was already released, arrows, `Enter` or a click, and typing filters. `Esc`
+  cancels, `Delete` closes the chosen window. Only windows of at
+  least 24x24 are captured (with many windows on a workspace some end up with a
+  negative size and capturing them crashed the shell); the others show the icon.
+- **Clock** (`modules/Clock.qml`): the time (24 h) and, with a chosen
+  location, the weather (icon and temperature; dimmed if the data is old or
+  couldn't be updated). It only informs: no click action.
+- **Player** (`MediaState.qml`, `modules/Mpris.qml`): the pill shows the
+  title and the state (an equalizer while playing, pause when paused); a middle click
+  pauses. The media keys (`binds.lua`) use the same player via
+  `qs -c dotshell ipc call media next|previous|playPause`, also with the
+  screen locked. "Proxy" players (playerctld) are ignored.
+  **Lyrics** (Phase 12 B1): in the dashboard's Music tab, in their own
+  column (`L` or "Lyrics" show or hide them; from Home, `L` opens Music
+  with the lyrics), the current line in the middle; clicking a line jumps there; "Other lyrics" picks among
+  other versions and `-`/`+` (or `[`/`]`) corrects the offset, which is remembered
+  per song (`~/.local/state/dotfiles/lyrics.json`). It looks first for an
+  `.lrc` next to the song's file, then in `~/Music/Lyrics`
+  ("Artist - Title.lrc", also in subfolders) and, only if enabled in
+  Settings -> Media -> Lyrics, on [LRCLIB](https://lrclib.net)
+  (open, no account; title, artist and length are sent) via
+  `hypr/.config/hypr/scripts/lyrics-fetch` (cache in `~/.cache/dotfiles/lyrics`;
+  a song without lyrics isn't asked about again for 7 days).
+- **Dashboard** (`modules/Dashboard.qml` and its views, `DashboardState.qml`):
+  the center of the shell. **It opens only with `SUPER+A`** (no bar
+  module opens it), centered under the bar of the focused monitor; `Esc` or
+  `SUPER+A` close it. A single surface with **tabs** at the top (Phase 12
+  B2): by default **Home · Music · System · Workspaces**; Today and
+  Maintenance are added in Settings -> Dashboard -> Tabs (otherwise
+  they still open from their zone or their letter and show up while viewed). It
+  opens on Home (or on the last one, if chosen):
+  - **Home**: time, date, notices (updates and maintenance, which
+    open that view; notifications, do not disturb; only if there are any) and weather;
+    below, the **zones**, which you choose
+    (Phase 11 B4): by default the machine's overall state ("All good" and
+    four gauges) and the workspaces in miniature; also the month's
+    calendar and the next hours of weather (with a city). Each one compact or
+    wide, in the order you want, or none. The **music card**
+    (small cover, title, artist, progress, previous / play /
+    next; a click or `Enter` open the Music tab) goes last by default,
+    while there's a player: the zones don't shift when the music starts or
+    stops. The time/date/notices/weather line and the
+    player are zones too: they're removed, moved and added back
+    like the others. Without music (or without the Music zone), the clock grows and the
+    panel gets shorter.
+    **Edit Home**: the pencil (when hovering over the zones), `Ctrl+E` or
+    Settings -> Dashboard -> "Edit Home". The zones show a dotted
+    outline: dragging reorders them, the size button and the cross;
+    below, "Add". With the keyboard: `Tab` picks, arrows move, `T`
+    size, `Delete` removes, `A` add (arrows + `Enter`), `Esc` / `Enter`
+    finish. A zone that isn't there queries nothing.
+    Phase 11 B5a widgets: **Profile** (avatar, greeting and uptime;
+    click -> the avatar in Settings), **Quick access** (the apps
+    and folders you pin in Settings -> Dashboard; without chosen folders,
+    the personal ones), **Notes** (a note that saves itself) and **Tasks**
+    (`Enter` adds, a click marks it done, "Clear" deletes the done ones). Notes and
+    tasks are saved only on this machine (`~/.local/state/dotfiles/notes.json`
+    and `todo.json`, outside the repo). `Tab` + `Enter` start typing; `Esc`
+    leaves the field.
+    Phase 11 B5b: **Timer** (pomodoro, stopwatch and countdown; each
+    phase change notifies, with a sound if asked; durations in Settings ->
+    Dashboard; the state in `~/.local/state/dotfiles/timer.json`, so a
+    reload doesn't lose it; `qs -c dotshell ipc call timer toggle|reset|status`)
+    and **Now** (one line with what matters most: a running timer,
+    rain in the next 3 h, pending tasks, heat or frost, the
+    sunset; it appears only when there's something). The bar can carry the
+    **Timer** module (what's left, per minute; a click pauses).
+  - **Music**: the cover cut in the shape you choose (square,
+    circle, 4-, 7- or 9-lobe cookies, soft burst; Settings ->
+    Media -> Cover; the wavy ones turn a little with each song), the
+    player (title, artist, album, seekable progress, five
+    controls, chips with more than one player) and the lyrics beside it (below if
+    they don't fit), on the panel's color (no blurred background). **Cover
+    colors** (Phase 12 B4, on by default): the progress bar, the
+    play button and the bars take the cover's color harmonized
+    with the wallpaper (`hypr/.config/hypr/scripts/local-palette`, cache in
+    `~/.cache/dotfiles/local-palette`); a grey cover or a color that could be
+    mistaken for a notice uses the usual one. With nothing playing, it says so; nothing
+    runs. **Audio bars**
+    around the cover (Phase 12 B3; Settings -> Media ->
+    Visualizer, off by default): they follow the cover's shape; they come from
+    [cava](https://github.com/karlstav/cava), which runs only while the
+    tab is visible and something plays (never with "reduce motion").
+  - **Today**: the month's calendar and the weather in a sentence ("Feels like 30°. Today
+    between 18° and 33°, no rain in sight."), the next 12 h and 5 days. The
+    weather comes from [Open-Meteo](https://open-meteo.com) (no key; data
+    CC BY 4.0) via `hypr/.config/hypr/scripts/weather-fetch` (cache in
+    `~/.cache/dotfiles/weather.json`). **Without a location nothing is queried**;
+    the city is chosen here (`C`) or in Settings -> Dashboard, saved
+    only on this machine (`dashboard.weather.location` in
+    `~/.config/dotfiles/settings.json`, outside the repo) rounded to ~10 km, and
+    queried every 30 min. Degrees in °C or °F (Settings).
+  - **System**: the state in words, processor, memory, storage and
+    power (with the profile), the apps that use the most (grouped by
+    app, not by process), the network and the graphics (the NVIDIA without
+    waking it). With **short history** (Phase 11 B5c, on by default):
+    processor, memory and battery show the last minutes instead of the
+    level bar, and the network and graphics their chart (the NVIDIA, bands
+    where it was active). Nothing is measured separately: it keeps what's already read
+    while you look at the dashboard (hence the gaps), only in memory. How many
+    minutes and which charts, in Settings -> Dashboard -> System. The
+    **Rings** style (Phase 12 B3): the top four as rings with the figure
+    inside and the temperature as a thin arc outside.
+  - **Workspaces**: each workspace like the real screen at scale (wallpaper,
+    bar, gaps, borders and each window's capture, taken once when opening
+    the view); a click on a window goes to that window, on the background to the
     workspace.
-  - **Mantenimiento**: primero si el sistema esta bien y que conviene hacer
-    ("El sistema funciona correctamente, pero hay 2 elementos que requieren
-    atencion."), despues lo que requiere atencion y lo recomendado, con cuatro
-    severidades (informacion, recomendacion, advertencia, accion importante);
-    lo que esta bien, en una sola linea. Actualizaciones, reinicio pendiente
-    (kernel o driver NVIDIA), servicios caidos (se pueden ocultar), paquetes
-    huerfanos, caches, papelera, diario y volcados de error. El detalle
-    (paquetes, servicios, comandos exactos) solo al desplegar. **Las acciones
-    abren una terminal visible** que muestra los comandos y pide
-    confirmacion; `sudo` pide la contrasena ahi, nunca desde la shell.
-  Teclado: `Ctrl+Tab` / `Ctrl+Mayus+Tab` (o `Ctrl+AvPag` / `Ctrl+RePag`)
-  pasan de pestana, `Alt+1`..`Alt+6` van a la n-esima; tambien la rueda sobre
-  la barra de pestanas o deslizar dos dedos a los lados. `Tab` recorre las
-  zonas de Inicio, `Enter` abre la pestana de la zona (la zona crece hasta
-  ocupar el panel), `H`/`S`/`E`/`M` abren Hoy/Sistema/Escritorios/Mantenimiento
-  desde cualquier lugar, `L` abre Musica con la letra; `Esc`/`Retroceso`
-  vuelven a Inicio; `1`-`9` van a ese workspace; en Musica (o con el foco en
-  la tarjeta), `Espacio`, flechas (-/+10 s), `N`/`P`.
-  `qs -c dotshell ipc call dashboard tab music` abre (o cambia) a una pestana,
-  para atajos propios. Cerrado no corre nada
-  (ni muestreo del equipo ni seguimiento de ventanas); todo respeta "reducir
-  movimiento".
-- **Capturas y grabacion** (`CaptureState.qml`, `modules/CapturePreview.qml`,
+  - **Maintenance**: first whether the system is fine and what's worth doing
+    ("The system works correctly, but 2 items need
+    attention."), then what needs attention and what's recommended, with four
+    severities (information, recommendation, warning, important action);
+    what's fine, in a single line. Updates, pending reboot
+    (kernel or NVIDIA driver), failed services (they can be hidden), orphan
+    packages, caches, trash, journal and crash dumps. The detail
+    (packages, services, exact commands) only when expanded. **The actions
+    open a visible terminal** that shows the commands and asks for
+    confirmation; `sudo` asks for the password there, never from the shell.
+  Keyboard: `Ctrl+Tab` / `Ctrl+Shift+Tab` (or `Ctrl+PgDown` / `Ctrl+PgUp`)
+  switch tabs, `Alt+1`..`Alt+6` go to the n-th; also the wheel over
+  the tab bar or a two-finger sideways swipe. `Tab` walks through the
+  Home zones, `Enter` opens the zone's tab (the zone grows to
+  fill the panel), `H`/`S`/`E`/`M` open Today/System/Workspaces/Maintenance
+  from anywhere, `L` opens Music with the lyrics; `Esc`/`Backspace`
+  go back to Home; `1`-`9` go to that workspace; in Music (or with the focus on
+  the card), `Space`, arrows (-/+10 s), `N`/`P`.
+  `qs -c dotshell ipc call dashboard tab music` opens (or switches to) a tab,
+  for your own shortcuts. Closed, nothing runs
+  (no machine sampling nor window tracking); everything respects "reduce
+  motion".
+- **Screenshots and recording** (`CaptureState.qml`, `modules/CapturePreview.qml`,
   `modules/RecordingPill.qml`; scripts `screenshot`, `record`,
-  `capture-select`): tras cada captura la zona destella, la imagen vuela a
-  una tarjeta abajo a la derecha (6 s, en pausa con el puntero encima) con
-  Anotar (satty sobre el mismo archivo), copiar, copiar la ruta, abrir,
-  carpeta (Yazi con el archivo elegido) y papelera con Deshacer; doble clic en
-  la miniatura = Anotar / Reproducir. La region se elige con la pantalla
-  congelada (se puede apagar) y las ventanas como destino. Mientras se graba, una pill en la
-  barra (tiempo, clic para parar) y marcas en las esquinas de la zona. Graba
-  con VA-API en la Radeon (`LIBVA_DRIVER_NAME=radeonsi` solo para
+  `capture-select`): after each capture the area flashes, the image flies to
+  a card at the bottom right (6 s, paused with the pointer over it) with
+  Annotate (satty on the same file), copy, copy the path, open,
+  folder (Yazi with the file selected) and trash with Undo; a double click on
+  the thumbnail = Annotate / Play. The region is chosen with the screen
+  frozen (it can be turned off) and windows as targets. While recording, a pill in the
+  bar (time, click to stop) and marks on the area's corners. It records
+  with VA-API on the Radeon (`LIBVA_DRIVER_NAME=radeonsi` only for
   wf-recorder).
-- **Binds** (`binds.lua`): `SUPER+SHIFT+B` muestra/oculta la barra
-  (`qs -c dotshell ipc call bar toggle`, afecta a todas las pantallas a la
-  vez via el singleton `BarVisibility.qml`) y
-  `SUPER+SHIFT+CTRL+B` fuerza un reload duro
-  (`qs -c dotshell ipc call shell reload`, recrea las ventanas) --
-  equivalentes a las señales `SIGUSR1`/`SIGUSR2` que aceptaba Waybar.
-- Para depurar en vivo: `qs -c dotshell log -f` (logs) y
-  `qs -c dotshell ipc show` (lista los `IpcHandler` disponibles).
+- **Binds** (`binds.lua`): `SUPER+SHIFT+B` shows/hides the bar
+  (`qs -c dotshell ipc call bar toggle`, affects every screen at
+  once via the `BarVisibility.qml` singleton) and
+  `SUPER+SHIFT+CTRL+B` forces a hard reload
+  (`qs -c dotshell ipc call shell reload`, recreates the windows) --
+  equivalent to the `SIGUSR1`/`SIGUSR2` signals Waybar accepted.
+- To debug live: `qs -c dotshell log -f` (logs) and
+  `qs -c dotshell ipc show` (lists the available `IpcHandler`s).
 
-### Centro de configuracion
+### Settings center
 
-Una ventana, "Configuracion", con todas las opciones del ecosistema. Se abre
-con `SUPER+I`, con el engranaje del centro de control (`SUPER+N`) o con un
-enlace directo:
+A window, "Settings", with every option of the ecosystem. It opens
+with `SUPER+I`, with the control center's gear (`SUPER+N`) or with a
+direct link:
 
 ```sh
-~/.config/hypr/scripts/settings-ui                        # abrir (o traer la que esta abierta)
-~/.config/hypr/scripts/settings-ui open system            # una pagina
-~/.config/hypr/scripts/settings-ui open capture.cardSeconds   # una opcion: su pagina, iluminada
+~/.config/hypr/scripts/settings-ui                        # open (or bring up the open one)
+~/.config/hypr/scripts/settings-ui open system            # a page
+~/.config/hypr/scripts/settings-ui open capture.cardSeconds   # an option: its page, highlighted
 ```
 
-Es una instancia de Quickshell aparte de la shell
-(`dotshell/settings.qml`, como el bloqueo): cerrada no hay ningun proceso, y
-reiniciar la shell no la cierra. Una sola ventana a la vez (un segundo
-`SUPER+I` la trae al frente). Flota al centro a 1100 x 720 (regla
-`settings-center` en `rules.lua`).
+It's a Quickshell instance separate from the shell
+(`dotshell/settings.qml`, like the lock screen): closed, there's no process at all, and
+restarting the shell doesn't close it. A single window at a time (a second
+`SUPER+I` brings it to the front). It floats centered at 1100 x 720 (the
+`settings-center` rule in `rules.lua`).
 
-- **Inicio**: el tema actual ("Cambiar fondo" abre la galeria, "Opciones de
-  tema" lleva a Apariencia), tres opciones rapidas (reducir movimiento,
-  transparencia, alto contraste) y **Tus cambios**: cada opcion cambiada,
-  con su valor, el de fabrica y volver; clic en una lleva a su fila.
-- **Una pagina por categoria** (Apariencia, Accesibilidad, Barra, Dashboard,
-  Capturas, Multimedia, Notificaciones, Sistema, Pantallas, Energia, Teclado y
-  raton, Bloqueo e inicio, Atajos). Las paginas
-  se arman solas desde `dotshell/data/settings.schema.json`: una clave nueva
-  aparece en su pagina, con el control de su tipo, y se encuentra al buscar.
-  Una categoria sin opciones no aparece. Cada fila dice si esta "Cambiada" y
-  cuando se aplica ("La proxima vez", "Reinicia la shell"); las avanzadas
-  quedan plegadas al final de la pagina. "Restablecer la pagina" vuelve todo
-  a fabrica (pregunta antes).
-- **Apariencia** (Fase 10 B2): arriba el tema actual -- con que esquema y
-  contraste se aplico; si los de "todos los wallpapers" son otros,
-  "Aplicar al tema actual" lo reaplica con ellos (el boton "Tema global" de
-  la galeria trae aca) --, la fuente de la interfaz y la de codigo (las
-  instaladas que cubren el castellano, cada una escrita en si misma; la
-  shell, el bloqueo y el login las usan; si una se desinstala, vuelve la de
-  fabrica y Diagnostico lo dice), el **avatar**: del fondo o una imagen
-  propia (selector de archivos del portal, GTK), y los **colores de las apps**
-  (P5.6, de fabrica encendido): cada app aporta un color sacado de su icono
-  (el del tema de iconos en uso) y armonizado con el fondo, solo en detalles:
-  el anillo de la ventana elegida al cambiar de ventana, un punto bajo la app
-  activa en la barra (con iconos de ventanas), el fondito de su icono en los
-  avisos, el lanzador y Escritorios, y el reproductor cuando la portada no da
-  color. Un icono gris usa el color de siempre.
-- **Accesibilidad**: reducir movimiento (la shell y tambien las animaciones
-  de las ventanas), alto contraste, **escala de la interfaz** (de 85 % a
-  150 % en pasos de 5 %: todo crece junto, texto, iconos, la barra, filas,
-  espacios y paneles; si la barra no entra, los titulos largos ceden antes de
-  tapar el reloj), **tamano del texto** (de 85 % a 150 %, un extra solo para
-  el texto encima de la escala), ambos tambien en el bloqueo y el login, y
-  **foco siempre visible** (un anillo alrededor de lo que tiene el foco del
-  teclado).
-- **Ventanas** (en Apariencia, Fase 10 B3): espacios, esquinas, borde,
-  opacidad, desenfoque y sombras de Hyprland.
-- **Teclado y raton**: distribuciones del teclado (la primera es la principal;
-  con mas de una, una combinacion las alterna), repeticion de teclas, Bloq
-  Num, el foco que sigue al raton, velocidad y aceleracion del puntero, y el
-  touchpad (desplazamiento natural, tocar para hacer clic, desactivar
-  mientras se escribe, clic derecho con dos dedos, velocidad).
-- **Energia**: bajar el brillo, bloquear, apagar la pantalla y suspender
-  tras un tiempo sin uso (cada uno puede ser "Nunca"), suspender tambien
-  enchufado o solo con bateria, y no entrar en reposo mientras suena algo.
-- **Pantallas** (Fase 10 B5): una tarjeta por pantalla con resolucion,
-  frecuencia, escala (solo las que dejan un espacio entero, con el espacio que
-  queda), rotacion, volteada, VRR, duplicar y, plegado, color avanzado (8/10
-  bits, perfiles sRGB / DCI-P3 / Display P3 / Adobe RGB / amplio / EDID / HDR,
-  brillo y saturacion de lo SDR en HDR). Con dos o mas, la **disposicion** se
-  arrastra (se pega a los bordes; dos superpuestas no se pueden aplicar) y se
-  puede apagar una (nunca la ultima). Lo que la pantalla no dice soportar
-  (segun su EDID, `scripts/display-caps`) se muestra con una nota. **Cada
-  cambio se prueba**: al aplicar arriba aparece "¿Mantener esta
-  configuracion?" con 15 s; sin "Mantener" vuelve la anterior (lo cuenta un
-  proceso aparte: vuelve aunque la pantalla quede negra o la ventana se
-  cierre). VRR se aplica recargando Hyprland (un parpadeo). "Frecuencia alta
-  solo enchufado" baja la integrada a 60 Hz con bateria (con aviso).
-  **Luz nocturna**: encendida o no (tambien desde el centro de control),
-  horario o del atardecer al amanecer (con la ciudad del clima), temperatura y
-  un paso mas calido de madrugada. La config versionada de monitores
-  (`modules/monitors.lua`) es generica: lo de tu equipo vive en tu almacen.
-- **Barra**: la **disposicion** (Fase 11 B1) en tres columnas (izquierda,
-  centro, derecha): se arrastra cada modulo a otro lugar, dentro o fuera de
-  una pildora, se agregan espacios, y lo que se suelta en Disponibles se
-  quita; al senalar un modulo se marca en la barra (con teclado: flechas para
-  moverlo, Supr para quitarlo). Modulos para agregar desde Disponibles (Fase
-  11 B2; ninguno viene puesto): distribucion del teclado (con dos o mas; clic
-  pasa a la siguiente), Bloq Mayus / Bloq Num (solo mientras estan
-  activados), ventana activa, avisos (campana con punto o numero; clic abre el
-  centro de control), privacidad (pantalla compartida, microfono o camara en
-  uso, en amarillo), el lanzador, recursos (procesador, memoria, temperatura;
-  amarillo por encima de un umbral) y velocidad de la red -- estos dos solo
-  leen el sistema mientras estan en la barra, cada `system.sampleSeconds`.
-  Escritorios: solo los de cada pantalla, sin los vacios, o con el icono de
-  cada ventana. Informacion al pasar el raton (la fecha completa, la bateria,
-  el titulo entero...) y la rueda sobre la barra para volumen o brillo,
-  apagadas de fabrica. **Posicion** (Fase 11 B3): la barra en cualquier
-  borde (arriba, abajo, izquierda, derecha) y su grosor (32-48 px); a un
-  costado los modulos se apilan (el reloj en dos lineas, solo iconos), y el
-  centro de control, el OSD, los avisos y los menus se ubican desde ese
-  borde. Estilo flotante (pildoras sueltas), solida (pegada al borde, un
-  solo fondo), transparente o **marco** (Fase 13: la barra es el lado grueso
-  de un marco alrededor de la pantalla, con las esquinas de adentro redondas;
-  grosor de 2 a 16 px y radio de las esquinas a elegir; las ventanas quedan
-  adentro, con sus gaps de siempre; los menus de la barra, el dashboard, el
-  centro de control, el OSD y los avisos salen del marco deslizandose y quedan
-  pegados a el, con las uniones redondeadas), y "mostrar solo mientras se mantiene Super"
-  (aparece al mantener la tecla, tras un breve retardo: encima de las
-  ventanas, con fondo, o empujandolas mientras se ve; Fase 11 B3b).
-  En que pantallas va la barra. Reloj de 24 o
-  12 h y la fecha al lado, cambiar de escritorio con la rueda, y la pill de
-  musica con el titulo o solo el icono (Fase 10 B4).
-- **Dashboard**: las pestanas y en cual se abre, el estilo de Sistema (instrumentos o anillos), las zonas Sistema y Escritorios del inicio, la ciudad del
-  clima (la misma busqueda que en la vista Hoy; "Quitar" deja de consultar)
-  y °C / °F.
-- **Capturas**: copiar al portapapeles, congelar la pantalla al elegir, PNG o
-  JPEG; al grabar, audio (sin audio, el sonido del equipo, el microfono o
-  ambos: una mezcla temporal de PipeWire que se quita al terminar) y 30 o
-  60 fotogramas.
-- **Multimedia**: el reproductor preferido (el que la barra y el dashboard
-  muestran si esta abierto), ignorar los navegadores, la forma y los colores de la portada,
-  las barras de audio (y cuantas) y el volumen maximo con las teclas (100, 125 o 150 %).
-- **Notificaciones**: donde aparecen (arriba a la derecha, arriba al centro,
-  abajo a la derecha; el centro de control se abre en el mismo lugar), cuantas a la vez (las demas esperan), un sonido al
-  llegar y avisos del sistema en el OSD: Bloq Mayus, cambio de distribucion
-  y cargador conectado o no (apagados de fabrica).
-- **Atajos**: la misma lista que la guia (`SUPER+/`), con busqueda; se relee
-  de Hyprland cada vez que se abre la pagina.
+- **Home**: the current theme ("Change wallpaper" opens the gallery, "Theme
+  options" goes to Appearance), three quick options (reduce motion,
+  transparency, high contrast) and **Your changes**: each changed option,
+  with its value, the default and a way back; a click on one goes to its row.
+- **One page per category** (Appearance, Accessibility, Bar, Dashboard,
+  Capture, Media, Notifications, Control center, System, Displays, Power, Keyboard and
+  mouse, Lock and login, Shortcuts). The pages
+  build themselves from `dotshell/data/settings.schema.json`: a new key
+  appears on its page, with its type's control, and is found by search.
+  A category without options doesn't appear. Each row says whether it's "Changed" and
+  when it applies ("Next time", "Restarts the shell"); advanced ones
+  stay folded at the end of the page. "Reset the page" sets everything back
+  to default (it asks first).
+- **Appearance** (Phase 10 B2): the **language** (Phase 15: Automatic, English, Español, 日本語; live, including the lock and
+  login screens and the boot menu); the current theme -- which scheme and
+  contrast it was applied with; if the ones "for every wallpaper" differ,
+  "Apply to the current theme" reapplies it with them (the gallery's "Global
+  theme" button brings you here) --, the interface font and the code font (the
+  installed ones that cover the language, each written in itself; the
+  shell, the lock and login screens use them; if one is uninstalled, the
+  default comes back and Diagnostics says so), the **avatar**: from the wallpaper or an own
+  image (the portal's file picker, GTK), and the **app colors**
+  (P5.6, on by default): each app brings a color taken from its icon
+  (the one of the icon theme in use) and harmonized with the wallpaper, only in details:
+  the ring of the chosen window when switching windows, a dot under the active
+  app in the bar (with window icons), the backdrop of its icon in
+  notices, the launcher and Workspaces, and the player when the cover gives no
+  color. A grey icon uses the usual color.
+- **Accessibility**: reduce motion (the shell and also the windows'
+  animations), high contrast, **interface scale** (from 85 % to
+  150 % in 5 % steps: everything grows together, text, icons, the bar, rows,
+  spacing and panels; if the bar doesn't fit, long titles give way before
+  covering the clock), **text size** (from 85 % to 150 %, an extra just for
+  the text on top of the scale), both on the lock and login screens too, and
+  **always-visible focus** (a ring around whatever has the keyboard
+  focus).
+- **Windows** (in Appearance, Phase 10 B3): Hyprland's gaps, corners, border,
+  opacity, blur and shadows.
+- **Keyboard and mouse**: keyboard layouts (the first is the main one;
+  with more than one, a combination switches them), key repeat, Num
+  Lock, focus following the mouse, pointer speed and acceleration, and the
+  touchpad (natural scrolling, tap to click, disable
+  while typing, two-finger right click, speed).
+- **Power**: dim, lock, turn the screen off and suspend
+  after some idle time (each can be "Never"), suspend also when
+  plugged in or only on battery, and stay awake while something plays.
+- **Displays** (Phase 10 B5): one card per display with resolution,
+  refresh rate, scale (only the ones that leave a whole space, with the space
+  left), rotation, flipped, VRR, mirror and, folded, advanced color (8/10
+  bits, sRGB / DCI-P3 / Display P3 / Adobe RGB / wide / EDID / HDR profiles,
+  SDR brightness and saturation in HDR). With two or more, the **layout** is
+  dragged (it snaps to the edges; two overlapping ones can't be applied) and
+  one can be turned off (never the last). What the display doesn't report supporting
+  (according to its EDID, `scripts/display-caps`) shows with a note. **Every
+  change is tried**: on applying, "Keep this configuration?" appears at the top
+  with 15 s; without "Keep" the previous one comes back (a separate process
+  counts it: it comes back even if the screen stays black or the window
+  closes). VRR applies by reloading Hyprland (a flicker). "High refresh rate
+  only when plugged in" drops the built-in one to 60 Hz on battery (with a notice).
+  **Night light**: on or off (also from the control center),
+  a schedule or sunset to sunrise (with the weather city), temperature and
+  a warmer step late at night. The versioned monitor config
+  (`modules/monitors.lua`) is generic: your machine's values live in your store.
+- **Bar**: the **layout** (Phase 11 B1) in three columns (left,
+  center, right): each module is dragged elsewhere, in or out of
+  a pill, spacers are added, and whatever is dropped in Available is
+  removed; pointing at a module highlights it in the bar (with the keyboard: arrows to
+  move it, Delete to remove it). Modules to add from Available (Phase
+  11 B2; none come placed): keyboard layout (with two or more; a click
+  goes to the next), Caps Lock / Num Lock (only while
+  on), active window, notices (a bell with a dot or a number; a click opens the
+  control center), privacy (shared screen, microphone or camera in
+  use, in yellow), the launcher, resources (processor, memory, temperature;
+  yellow above a threshold) and network speed -- these two only
+  read the system while they're in the bar, every `system.sampleSeconds`.
+  Workspaces: only each screen's, without the empty ones, or with each
+  window's icon. Info on hover (the full date, the battery,
+  the whole title...) and the wheel over the bar for volume or brightness,
+  off by default. **Position** (Phase 11 B3): the bar on any
+  edge (top, bottom, left, right) and its thickness (32-48 px); on a
+  side the modules stack (the clock on two lines, icons only), and the
+  control center, the OSD, the notices and the menus are placed from that
+  edge. Floating style (separate pills), solid (attached to the edge, a
+  single background), transparent or **frame** (Phase 13: the bar is the thick side
+  of a frame around the screen, with rounded inner corners;
+  thickness from 2 to 16 px and corner radius to choose; windows stay
+  inside, with their usual gaps; the bar's menus, the dashboard, the
+  control center, the OSD and the notices slide out of the frame and stay
+  attached to it, with rounded joints), and "show only while holding Super"
+  (it appears while holding the key, after a short delay: over the
+  windows, with a background, or pushing them while visible; Phase 11 B3b).
+  Which screens the bar goes on. A 24 or
+  12 h clock and the date beside it, switching workspaces with the wheel, and the music
+  pill with the title or only the icon (Phase 10 B4).
+- **Dashboard**: the tabs and which one it opens on, the System style (gauges or rings), Home's System and Workspaces zones, the
+  weather city (the same search as in the Today view; "Remove" stops querying)
+  and °C / °F.
+- **Capture**: copy to the clipboard, freeze the screen while choosing, PNG or
+  JPEG; when recording, audio (no audio, the system sound, the microphone or
+  both: a temporary PipeWire mix removed at the end) and 30 or
+  60 frames.
+- **Media**: the preferred player (the one the bar and the dashboard
+  show if it's open), ignore browsers, the cover's shape and colors,
+  the audio bars (and how many) and the maximum volume with the keys (100, 125 or 150 %).
+- **Notifications**: where they appear (top right, top center,
+  bottom right; the control center opens in the same place), how many at once (the others wait), a sound on
+  arrival and system notices in the OSD: Caps Lock, layout change
+  and charger plugged in or out (off by default).
+- **Shortcuts**: the same list as the guide (`SUPER+/`), with search; it's reread
+  from Hyprland every time the page opens.
 
-Lo que va a Hyprland o a hypridle se aplica al momento (sin recargar
-Hyprland): `scripts/settings-apply` genera
-`~/.local/state/dotfiles/hypr-overrides.lua` (solo lo que cambiaste;
-`hyprland.lua` lo carga al final, la config del repo es la de fabrica) y
-`~/.local/state/dotfiles/hypridle.conf` (hypridle arranca con esa), y las
-reglas de pantalla (en los mismos overrides) y
-`~/.local/state/dotfiles/hyprsunset/hypr/hyprsunset.conf` (luz nocturna; hyprsunset arranca con `XDG_CONFIG_HOME` apuntando ahi: no acepta una ruta). Si
-Hyprland usa otro valor (por ejemplo en modo juego), la fila lo dice. El modo
-juego (`SUPER+ALT+G`) apaga desenfoque, sombras y animaciones y al salir
-vuelven tus valores.
-- **Acerca de**: versiones, Diagnostico (valores que el motor no aplico y
-  por que, fuentes que ya no estan), tus cambios como archivo y el README.
-- **Buscar** (`Ctrl+F`): etiqueta, descripcion, palabras clave, sin tildes;
-  Enter lleva a la opcion y la ilumina. `Ctrl+Tab` / `Ctrl+AvPag` cambian
-  de pagina, Tab recorre los controles (la pagina se desplaza hasta el que
-  tiene el foco), las flechas, `RePag` / `AvPag` e `Inicio` / `Fin` desplazan
-  la pagina, la barra de la derecha se arrastra o se cliquea, y Esc borra la
-  busqueda y despues cierra. Si la ventana es baja, la lista de paginas de la
-  izquierda tambien se desplaza (rueda o su barra) y la pagina elegida queda a
-  la vista.
+What goes to Hyprland or hypridle applies at once (without reloading
+Hyprland): `scripts/settings-apply` generates
+`~/.local/state/dotfiles/hypr-overrides.lua` (only what you changed;
+`hyprland.lua` loads it last, the repo's config is the default) and
+`~/.local/state/dotfiles/hypridle.conf` (hypridle starts with that one), and the
+display rules (in the same overrides) and
+`~/.local/state/dotfiles/hyprsunset/hypr/hyprsunset.conf` (night light; hyprsunset starts with `XDG_CONFIG_HOME` pointing there: it doesn't accept a path). If
+Hyprland uses another value (for example in game mode), the row says so. Game
+mode (`SUPER+ALT+G`) turns off blur, shadows and animations, and on leaving
+your values come back.
+- **About**: versions, Diagnostics (values the engine didn't apply and
+  why, fonts that are no longer there), your changes as a file, and the README.
+- **Search** (`Ctrl+F`): label, description, keywords, without accents, in the current language and in English;
+  Enter goes to the option and highlights it. `Ctrl+Tab` / `Ctrl+PgDown` switch
+  pages, Tab walks through the controls (the page scrolls to the one
+  with the focus), the arrows, `PgUp` / `PgDown` and `Home` / `End` scroll
+  the page, the bar on the right can be dragged or clicked, and Esc clears the
+  search and then closes. If the window is short, the page list on the
+  left scrolls too (wheel or its bar) and the chosen page stays in
+  view.
 
-Los valores se guardan solo a traves de `~/.config/hypr/scripts/settings`
-(el unico que escribe `~/.config/dotfiles/settings.json`, y solo lo que
-cambiaste); un valor que no vale no se guarda y la fila dice por que. Si un
-cambio pide reiniciar la shell, arriba aparece un aviso con el boton.
+Values are saved only through `~/.config/hypr/scripts/settings`
+(the only one that writes `~/.config/dotfiles/settings.json`, and only what
+you changed); an invalid value isn't saved and the row says why. If a
+change needs a shell restart, a notice with the button appears at the top.
 
-Para depurar: `qs ipc -p ~/.config/quickshell/dotshell/settings.qml call
-settingsui status` (pagina y opcion iluminada); los logs, con
+To debug: `qs ipc -p ~/.config/quickshell/dotshell/settings.qml call
+settingsui status` (page and highlighted option); the logs, with
 `qs log -p ~/.config/quickshell/dotshell/settings.qml`.
 
 ### Spotify (spicetify + Marketplace)
 
-`user.css` parte de [catppuccin/spicetify](https://github.com/catppuccin/spicetify)
-(MIT, ver `spicetify/.config/spicetify/Themes/matugen/LICENSE-catppuccin`) --
-la base de catppuccin queda sin cambios, solo consume las variables
-`--spice-*` que spicetify genera a partir de `color.ini`. Ese `color.ini`
-es 100% generado por matugen (un unico esquema `[matugen]`, no los 4
-sabores fijos de catppuccin). No se porto `theme.js` (selector manual de
-color de acento): dependia de 14 GIFs de ecualizador pre-generados por
-acento fijo, que no encaja con un esquema dinamico de un solo acento -- el
-unico efecto es que el icono animado de "reproduciendo ahora" no anima, el
-resto del tema no se ve afectado.
+`user.css` starts from [catppuccin/spicetify](https://github.com/catppuccin/spicetify)
+(MIT, see `spicetify/.config/spicetify/Themes/matugen/LICENSE-catppuccin`) --
+the catppuccin base is left unchanged, it only consumes the `--spice-*`
+variables spicetify generates from `color.ini`. That `color.ini`
+is 100% generated by matugen (a single `[matugen]` scheme, not catppuccin's 4
+fixed flavors). `theme.js` (a manual accent color picker) wasn't ported:
+it depended on 14 pre-generated equalizer GIFs per fixed
+accent, which doesn't fit a dynamic single-accent scheme -- the
+only effect is that the animated "now playing" icon doesn't animate; the
+rest of the theme isn't affected.
 
-Encima de esa base, personalizacion propia (seccion final de `user.css`,
-por separado de lo heredado de catppuccin):
-- Plus Jakarta Sans en toda la UI y Maple Mono NF en lo monoespaciado
-  (`--encore-*-font-stack`, mismas fuentes que el resto del rice,
-  variables reales confirmadas grep-eando el CSS ya parcheado de Spotify --
-  no estan documentadas por spicetify).
-- Barra de reproduccion con `backdrop-filter: blur()` (esto es CSS normal
-  que Chromium/Electron si puede hacer sobre su propio contenido -- no
-  tiene nada que ver con que Hyprland no pueda blurear detras de la
-  ventana de Spotify, son dos cosas distintas).
-- Portadas de album con el mismo `border-radius` que las ventanas de
-  Hyprland (`decoration.rounding`, `lookandfeel.lua`).
-- Barra de progreso y boton de play con el color de acento en vez del gris
-  por defecto.
+On top of that base, own customization (the last section of `user.css`,
+separate from what's inherited from catppuccin):
+- Plus Jakarta Sans across the UI and Maple Mono NF for monospaced text
+  (`--encore-*-font-stack`, the same fonts as the rest of the rice,
+  real variables confirmed by grepping Spotify's already patched CSS --
+  spicetify doesn't document them).
+- A playback bar with `backdrop-filter: blur()` (this is normal CSS
+  that Chromium/Electron can do over its own content -- it has
+  nothing to do with Hyprland not being able to blur behind the
+  Spotify window, they're two different things).
+- Album covers with the same `border-radius` as Hyprland's windows
+  (`decoration.rounding`, `lookandfeel.lua`).
+- The progress bar and play button in the accent color instead of the default
+  grey.
 
-A diferencia del resto, spicetify no lee `color.ini` en vivo: lo "hornea"
-dentro de los archivos ya parcheados de Spotify recien al correr
-`spicetify apply` (lo hace solo el `post_hook` del template en cada cambio
-de wallpaper). Si Spotify ya estaba abierto, hay que cerrarlo y volver a
-abrirlo para ver los colores nuevos.
+Unlike the rest, spicetify doesn't read `color.ini` live: it "bakes" it
+into Spotify's already patched files only when running
+`spicetify apply` (the template's `post_hook` does that on every wallpaper
+change). If Spotify was already open, close it and open it
+again to see the new colors.
 
-Setup inicial (una sola vez, despues del primer `matugen image`):
+Initial setup (only once, after the first `matugen image`):
 
 ```bash
 spicetify config current_theme matugen color_scheme matugen
 spicetify apply
 ```
 
-Marketplace (para instalar temas/extensiones community desde la propia UI
-de Spotify) via el instalador oficial -- solo toca `~/.config/spicetify/`,
-sin sudo:
+Marketplace (to install community themes/extensions from Spotify's own UI)
+via the official installer -- it only touches `~/.config/spicetify/`,
+no sudo:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/spicetify/spicetify-marketplace/main/resources/install.sh | sh
 ```
 
-(el instalador respeta el `current_theme` que ya configuraste arriba --
-solo pisa el tema si no hay ninguno seteado).
+(the installer respects the `current_theme` you already configured above --
+it only overrides the theme if none is set).
 
-### SDDM (pantalla de login)
+### SDDM (login screen)
 
-El greeter (`dotfiles-login`) es la misma pantalla de entrada que el bloqueo
-(ver "Bloqueo de pantalla"): hora apilada, chip de la fecha y la tarjeta de
-la contrasena, con el avatar `~/.face`. Las tarjetas son acciones: Apagar,
-Reiniciar, Suspender (si el equipo puede) y Sesion (un clic pasa a la
-siguiente, por ejemplo Hyprland / Hyprland (uwsm)). Entra sobre el fondo
-difuminado que deja Plymouth y, al iniciar sesion, sale hasta el wallpaper
-nitido con el que arranca el escritorio.
+The greeter (`dotfiles-login`) is the same entry screen as the lock
+(see "Lock screen"): stacked time, a date chip and the password
+card, with the `~/.face` avatar. The cards are actions: Power off,
+Restart, Suspend (if the machine can) and Session (a click goes to the
+next one, for example Hyprland / Hyprland (uwsm)). It comes in over the blurred
+background Plymouth leaves and, on logging in, goes out to the sharp
+wallpaper the desktop starts with.
 
-Comparte el codigo con el bloqueo: `dotshell/login/` (QtQuick puro),
-`Tokens.qml`, `SemanticPalette.qml` y `modules/Icon.qml`; lo propio del
-greeter esta en `sddm/theme/` (`Main.qml`, `SddmAuth.qml`). La paleta la
-genera matugen (`templates/sddm/Colors.qml`) en la pasada del sistema, 60 s
-despues del ultimo cambio de wallpaper. `scripts/sddm-theme-stage` arma el
-tema completo como vos en `~/.cache/matugen/sddm-login/` (con el wallpaper y
-el avatar) y la copia root de `sync-sddm-theme` solo lo instala en
-`/usr/share/sddm/themes/dotfiles-login` (sin argumentos, rechaza enlaces
-simbolicos): SDDM corre como el usuario `sddm` y no puede leer tu home.
+It shares the code with the lock: `dotshell/login/` (pure QtQuick),
+`Tokens.qml`, `SemanticPalette.qml`, `I18nCore.qml` and `modules/Icon.qml`; the greeter's own
+part is in `sddm/theme/` (`Main.qml`, `SddmAuth.qml`). matugen generates the palette
+(`templates/sddm/Colors.qml`) in the system pass, 60 s
+after the last wallpaper change. `scripts/sddm-theme-stage` builds the
+whole theme as you in `~/.cache/matugen/sddm-login/` (with the wallpaper,
+the avatar and `I18n.qml`: your language with only the greeter's texts) and the root copy of `sync-sddm-theme` only installs it in
+`/usr/share/sddm/themes/dotfiles-login` (no arguments, it rejects symbolic
+links): SDDM runs as the `sddm` user and can't read your home. Changing the language schedules the system pass, so the
+greeter follows it a minute later.
 
-Setup (una vez, con sudo):
+Setup (once, with sudo):
 
 ```bash
-# Copia root-owned del script (el sudoers NO apunta al de este repo, que
-# vos podes editar -- si no, NOPASSWD equivaldria a sudo sin restricciones)
+# Root-owned copy of the script (the sudoers rule does NOT point to this repo's one, which
+# you can edit -- otherwise NOPASSWD would be equivalent to unrestricted sudo)
 sudo install -m 755 -o root -g root \
   hypr/.config/hypr/scripts/sync-sddm-theme.sh /usr/local/bin/sync-sddm-theme
 
-# Regla de sudoers, acotada a ESE script puntual -- validar con visudo antes
-# de instalar cualquier cambio de sudoers, un error ahi rompe sudo entero:
+# Sudoers rule, limited to THAT specific script -- validate with visudo before
+# installing any sudoers change, a mistake there breaks sudo entirely:
 echo 'h3n ALL=(root) NOPASSWD: /usr/local/bin/sync-sddm-theme' > /tmp/matugen-sddm-sudoers
 visudo -c -f /tmp/matugen-sddm-sudoers && \
   sudo install -m 440 -o root -g root /tmp/matugen-sddm-sudoers /etc/sudoers.d/matugen-sddm
 rm /tmp/matugen-sddm-sudoers
 
-# Arma e instala el tema por primera vez y lo activa
+# Builds and installs the theme for the first time and activates it
 ~/.config/hypr/scripts/sddm-theme-stage
 sudo /usr/local/bin/sync-sddm-theme
 sudo mkdir -p /etc/sddm.conf.d
 printf '[Theme]\nCurrent=dotfiles-login\n' | sudo tee /etc/sddm.conf.d/theme.conf
 ```
 
-Si editas `sync-sddm-theme.sh`, hay que repetir el primer `install` para
-que el cambio aplique (la copia en `/usr/local/bin` es la que realmente
-corre, no la del repo). Para probar el tema sin cerrar sesion:
-`sddm-greeter-qt6 --test-mode --theme ~/.cache/matugen/sddm-login` (los
-errores de QML van al journal: `journalctl --user -e`).
+If you edit `sync-sddm-theme.sh`, repeat the first `install` for
+the change to apply (the copy in `/usr/local/bin` is the one that actually
+runs, not the repo's). To try the theme without logging out:
+`sddm-greeter-qt6 --test-mode --theme ~/.cache/matugen/sddm-login` (QML
+errors go to the journal: `journalctl --user -e`).
 
-Si el greeter no cargara: `Ctrl+Alt+F3`, entrar, y
+If the greeter didn't load: `Ctrl+Alt+F3`, log in, and
 `sudo sed -i 's/^Current=.*/Current=maldives/' /etc/sddm.conf.d/theme.conf`
-y `sudo systemctl restart sddm` (maldives viene con SDDM).
+and `sudo systemctl restart sddm` (maldives ships with SDDM).
 
-### Bloqueo de pantalla
+### Lock screen
 
-El bloqueo es una instancia de Quickshell aparte de la shell
-(`dotshell/lock.qml`), con la composicion "Material You": a la izquierda la
-hora apilada (horas en el color de acento, minutos en el del texto) y el
-chip de la fecha; a la derecha las tarjetas "de un vistazo" y la tarjeta de
-la contrasena (avatar `~/.face`, usuario, campo y la linea de Bloq Mayus o
-del error), sobre el wallpaper difuminado. El campo esta en todas las
-pantallas (un solo texto compartido) y tiene un lugar fijo: las tarjetas
-crecen hacia arriba. Es la misma pantalla que el greeter (codigo
-compartido en `dotshell/login/`): entra desde el escritorio (el fondo se
-difumina; reloj, tarjetas y tarjeta de la contrasena, en ese orden) y al
-desbloquear el candado se abre y sale todo hasta el wallpaper nitido. Nada
-se mueve si nada cambia; con "Reducir movimiento", todo es inmediato. Siempre lo lanza `~/.config/hypr/scripts/lock`, que lo
-vigila:
+The lock is a Quickshell instance separate from the shell
+(`dotshell/lock.qml`), with the "Material You" composition: on the left the
+stacked time (hours in the accent color, minutes in the text color) and the
+date chip; on the right the "at a glance" cards and the password
+card (`~/.face` avatar, user, field and the Caps Lock or
+error line), over the blurred wallpaper. The field is on every
+screen (a single shared text) and has a fixed place: the cards
+grow upwards. It's the same screen as the greeter (code
+shared in `dotshell/login/`): it comes in from the desktop (the background
+blurs; clock, cards and password card, in that order) and on
+unlocking the padlock opens and everything goes out to the sharp wallpaper. Nothing
+moves if nothing changes; with "Reduce motion", everything is immediate. It's always launched by `~/.config/hypr/scripts/lock`, which
+watches it:
 
-- `SUPER+L`, el menu de energia y el control center llaman `lock --user`;
-  hypridle (inactividad y antes de suspender) llama `lock`.
-- Si el bloqueo se cae con la sesion bloqueada, se relanza solo; a la
-  tercera caida, o si no llega a bloquear en 3 s, abre el **hyprlock de
-  emergencia** (`hyprlock-emergency.conf`: sin tema ni archivos generados).
-- Al volver de una suspension, hypridle llama `lock --resume`: el bloqueo
-  se recrea (Hyprland no le devuelve el teclado a la superficie anterior).
-- `SUPER+CTRL+ALT+L` (funciona con la sesion bloqueada): si el bloqueo no
-  acepta la contrasena, lo cambia por el hyprlock de emergencia. Nunca
-  desbloquea.
-- La contrasena la verifica PAM con `dotshell/lock/pam/dotfiles-lock`
-  (`pam_unix` + `pam_faillock`: 3 intentos fallidos, 10 min de espera).
-- Registro: `journalctl -t dotfiles-lock`.
+- `SUPER+L`, the power menu and the control center call `lock --user`;
+  hypridle (idle and before suspending) calls `lock`.
+- If the lock crashes with the session locked, it relaunches by itself; on the
+  third crash, or if it doesn't manage to lock within 3 s, it opens the **emergency
+  hyprlock** (`hyprlock-emergency.conf`: no theme or generated files).
+- When coming back from suspend, hypridle calls `lock --resume`: the lock
+  is recreated (Hyprland doesn't give the keyboard back to the previous surface).
+- `SUPER+CTRL+ALT+L` (works with the session locked): if the lock doesn't
+  accept the password, it swaps it for the emergency hyprlock. It never
+  unlocks.
+- PAM checks the password with `dotshell/lock/pam/dotfiles-lock`
+  (`pam_unix` + `pam_faillock`: 3 failed attempts, a 10 min wait).
+- Log: `journalctl -t dotfiles-lock`.
 
-#### De un vistazo
+#### At a glance
 
-Cada tarjeta aparece solo si tiene algo que decir y ninguna hace nada (el
-cursor esta oculto; las teclas de volumen, brillo y multimedia siguen
-funcionando). Se apagan una por una en el centro de configuracion
-(`SUPER+I`), pagina "Bloqueo e inicio" (`lock.glance.*`):
+Each card appears only if it has something to say, and none does anything (the
+cursor is hidden; the volume, brightness and media keys keep
+working). They're turned off one by one in the settings center
+(`SUPER+I`), "Lock and login" page (`lock.glance.*`):
 
-- **Clima**: temperatura y estado del cielo, sin la ubicacion; si los datos
-  tienen mas de 2 horas, no aparece. El bloqueo nunca consulta la red.
-- **Musica**: mientras algo suena, el titulo y debajo el artista (o el
-  reproductor); nunca la portada. Se ve con la sesion bloqueada: si no
-  queres que se vea, apagalo en "Bloqueo e inicio".
-- **Bateria**: solo funcionando con bateria, con el color de aviso en los
-  umbrales de bateria baja y critica.
-- **Avisos**: cuantos llegaron mientras estaba bloqueado, nunca el
-  contenido; con No molestar activo, no aparece.
+- **Weather**: temperature and sky, without the location; if the data
+  is more than 2 hours old, it doesn't appear. The lock never queries the network.
+- **Music**: while something plays, the title and below it the artist (or the
+  player); never the cover. It's visible with the session locked: if you don't
+  want it to show, turn it off in "Lock and login".
+- **Battery**: only on battery, with the warning color at the
+  low and critical thresholds.
+- **Notices**: how many arrived while locked, never the
+  content; with Do not disturb on, it doesn't appear.
 
-"Bloq Mayus activado" aparece bajo el campo mientras este activo (siempre:
-evita intentos fallidos, que cuentan tambien para `sudo`).
+"Caps Lock is on" appears under the field while it's on (always:
+it avoids failed attempts, which also count for `sudo`).
 
-#### Recuperacion manual (desde una TTY)
+#### Manual recovery (from a TTY)
 
-Si `SUPER+CTRL+ALT+L` no alcanza o la pantalla dice "lockscreen died":
+If `SUPER+CTRL+ALT+L` isn't enough or the screen says "lockscreen died":
 
-1. `Ctrl+Alt+F3` y entrar con tu usuario (pide la contrasena).
-2. **Solo si el bloqueo sigue vivo** (congelado, no "lockscreen died"):
-   `pkill -f "qs -p .*lock.qml"`. Con "lockscreen died" ya no existe: no
-   imprime nada y se puede saltear.
+1. `Ctrl+Alt+F3` and log in with your user (it asks for the password).
+2. **Only if the lock is still alive** (frozen, not "lockscreen died"):
+   `pkill -f "qs -p .*lock.qml"`. With "lockscreen died" it no longer exists: it
+   prints nothing and can be skipped.
 3. `hyprctl --instance 0 eval 'hl.clear_crashed_lockscreen()'`
-   - `ok`: la sesion quedo desbloqueada.
-   - `error: ... session is not locked`: ya estaba desbloqueada (por
-     ejemplo, el paso 3 ya se habia hecho).
-   - Cualquier otra cosa: pasos 6 y 7.
-4. `Ctrl+Alt+F1`: la sesion, desbloqueada.
-5. Cerrar la TTY: `Ctrl+Alt+F3`, `exit`, `Ctrl+Alt+F1` (si no, queda una
-   sesion abierta en tty3).
+   - `ok`: the session is unlocked.
+   - `error: ... session is not locked`: it was already unlocked (for
+     example, step 3 had already been done).
+   - Anything else: steps 6 and 7.
+4. `Ctrl+Alt+F1`: the session, unlocked.
+5. Close the TTY: `Ctrl+Alt+F3`, `exit`, `Ctrl+Alt+F1` (otherwise a
+   session stays open on tty3).
 
-Solo si el paso 3 no funciona:
+Only if step 3 doesn't work:
 
 6. `hyprctl --instance 0 eval 'hl.config({ misc = { allow_session_lock_restore = true } })'`
 7. `hyprctl --instance 0 dispatch 'hl.dsp.exec_cmd("hyprlock --config ~/.config/hypr/hyprlock-emergency.conf")'`,
-   `Ctrl+Alt+F1` y la contrasena; despues el paso 5.
-8. Ultimo recurso (cierra la sesion): `loginctl terminate-session <n>`
-   (`loginctl list-sessions` da el numero).
+   `Ctrl+Alt+F1` and the password; then step 5.
+8. Last resort (it ends the session): `loginctl terminate-session <n>`
+   (`loginctl list-sessions` gives the number).
 
-Lo mismo funciona por SSH (sin los cambios de TTY; `exit` cierra la
-sesion SSH).
+The same works over SSH (without the TTY switches; `exit` closes the
+SSH session).
 
-### Plymouth (splash de arranque)
+### Plymouth (boot splash)
 
-Theme "Script" propio (`plymouth/theme/dotfiles-matugen.plymouth`, la
-unica parte estatica -- no lleva colores). Todo lo visual lo genera
+An own "Script" theme (`plymouth/theme/dotfiles-matugen.plymouth`, the
+only static part -- it carries no colors). Everything visual is generated by
 `matugen/.config/matugen/templates/plymouth.script` +
-`hypr/.config/hypr/scripts/generate-plymouth-assets.sh` (ImageMagick, sin
-sudo, corre como `post_hook` en cada cambio de wallpaper):
+`hypr/.config/hypr/scripts/generate-plymouth-assets.sh` (ImageMagick, no
+sudo, runs as a `post_hook` on every wallpaper change):
 
-- **Fondo**: el wallpaper activo con blur fuerte + oscurecido + vignette
-  radial (mismo criterio que el fondo de la pantalla de bloqueo, pero horneado en
-  la imagen porque Plymouth Script no tiene filtro de blur propio).
-- **Avatar**: `~/.face` (el mismo recorte cuadrado que usa la pantalla de bloqueo, ver
-  `theme-apply.sh`) recortado en circulo, centrado en el hueco
-  transparente que deja el anillo del spinner.
-- **Spinner**: un anillo de 270 grados (24 frames rotando) tenido con
-  `primary`, alrededor del avatar.
-- **Label + progreso**: "Arch Linux" fijo abajo al centro y el porcentaje
-  de boot en la esquina inferior izquierda, ambos con `on_surface`/`primary`.
-- Fade-in de todo el conjunto en los primeros frames (sin fade-out
-  simetrico al salir -- el plugin "script" no da una forma confiable de
-  retrasar el quit para animarlo, y el boot de este equipo ya es
-  demasiado rapido como para que valga el riesgo).
+- **Background**: the active wallpaper with a strong blur + darkening + a radial
+  vignette (the same criterion as the lock screen's background, but baked into
+  the image because Plymouth Script has no blur filter of its own).
+- **Avatar**: `~/.face` (the same square crop the lock screen uses, see
+  `theme-apply.sh`) cut into a circle, centered in the transparent
+  hole the spinner's ring leaves.
+- **Spinner**: a 270-degree ring (24 rotating frames) tinted with
+  `primary`, around the avatar.
+- **Label + progress**: "Arch Linux" fixed at the bottom center and the boot
+  percentage in the bottom left corner, both with `on_surface`/`primary`.
+- A fade-in of the whole set in the first frames (no symmetric fade-out
+  on exit -- the "script" plugin doesn't give a reliable way to
+  delay the quit to animate it, and this machine's boot is already
+  too fast for it to be worth the risk).
 
-Mismo motivo y patron que SDDM: Plymouth corre dentro del **initramfs**
-(antes de montar el disco de verdad), no puede leer `~/.config` en vivo,
-asi que necesita: 1) un paso de setup con sudo (una vez), y 2) que cada
-cambio de wallpaper reconstruya el initramfs (`mkinitcpio -P`, lo hace
-`plymouth-set-default-theme -R`) en vez de solo copiar un CSS. El
-`post_hook` del template `plymouth` en `config.toml` ya dispara todo eso
-solo, en background, via el mismo mecanismo `sudo -n` a un script puntual
-que SDDM (no sudo sin restricciones -- ver el comentario ahi mismo):
+Same reason and pattern as SDDM: Plymouth runs inside the **initramfs**
+(before the real disk is mounted), it can't read `~/.config` live,
+so it needs: 1) a setup step with sudo (once), and 2) every
+wallpaper change to rebuild the initramfs (`mkinitcpio -P`, done by
+`plymouth-set-default-theme -R`) instead of just copying a CSS. The
+`plymouth` template's `post_hook` in `config.toml` already triggers all of that
+by itself, in the background, through the same `sudo -n` mechanism to a specific script
+as SDDM (not unrestricted sudo -- see the comment right there):
 
 ```bash
-# Copia root-owned del script (mismo motivo que sync-sddm-theme: el
-# sudoers NO apunta al de este repo, que vos podes editar)
+# Root-owned copy of the script (same reason as sync-sddm-theme: the
+# sudoers rule does NOT point to this repo's one, which you can edit)
 sudo install -m 755 -o root -g root \
   hypr/.config/hypr/scripts/sync-plymouth-theme.sh /usr/local/bin/sync-plymouth-theme
 
-# Regla de sudoers, acotada a ESE script puntual -- validar con visudo antes
-# de instalar cualquier cambio de sudoers, un error ahi rompe sudo entero:
+# Sudoers rule, limited to THAT specific script -- validate with visudo before
+# installing any sudoers change, a mistake there breaks sudo entirely:
 echo 'h3n ALL=(root) NOPASSWD: /usr/local/bin/sync-plymouth-theme' > /tmp/matugen-plymouth-sudoers
 visudo -c -f /tmp/matugen-plymouth-sudoers && \
   sudo install -m 440 -o root -g root /tmp/matugen-plymouth-sudoers /etc/sudoers.d/matugen-plymouth
 rm /tmp/matugen-plymouth-sudoers
 
-# Genera el theme por primera vez, lo copia a /usr/share y lo fija como
-# default (plymouth-set-default-theme -R reconstruye el initramfs solo,
-# pero todavia no hace nada visible sin el paso de mkinitcpio de abajo)
+# Generates the theme for the first time, copies it to /usr/share and sets it as
+# default (plymouth-set-default-theme -R rebuilds the initramfs by itself,
+# but it still does nothing visible without the mkinitcpio step below)
 sudo /usr/local/bin/sync-plymouth-theme
 
-# Hook de mkinitcpio: "plymouth" va justo despues de "udev", antes de
-# "autodetect" (formato busybox/HOOKS clasico, no systemd) -- editar
-# /etc/mkinitcpio.conf a mano:
+# mkinitcpio hook: "plymouth" goes right after "udev", before
+# "autodetect" (classic busybox/HOOKS format, not systemd) -- edit
+# /etc/mkinitcpio.conf by hand:
 #   HOOKS=(base udev plymouth autodetect microcode modconf kms keyboard keymap consolefont block filesystems fsck)
 
-# IMPORTANTE: este equipo arranca con una UKI (Unified Kernel Image,
-# /boot/EFI/Linux/arch-linux-zen.efi, ver preset en
-# /etc/mkinitcpio.d/linux-zen.preset) generada directo por mkinitcpio, NO
-# con el esquema separado vmlinuz+initramfs+GRUB_CMDLINE_LINUX_DEFAULT.
-# `bootctl status` confirma que el cmdline realmente usado en cada arranque
-# sale de /etc/kernel/cmdline (NO de /etc/default/grub -- grub.cfg en este
-# equipo ni siquiera tiene una entrada real para arrancar linux-zen). Para
-# "splash" el archivo correcto a editar es ese:
+# IMPORTANT: this machine boots with a UKI (Unified Kernel Image,
+# /boot/EFI/Linux/arch-linux-zen.efi, see the preset in
+# /etc/mkinitcpio.d/linux-zen.preset) generated directly by mkinitcpio, NOT
+# with the separate vmlinuz+initramfs+GRUB_CMDLINE_LINUX_DEFAULT scheme.
+# `bootctl status` confirms the cmdline actually used at each boot
+# comes from /etc/kernel/cmdline (NOT from /etc/default/grub -- grub.cfg on this
+# machine doesn't even have a real entry to boot linux-zen). For
+# "splash" the right file to edit is that one:
 #   sudoedit /etc/kernel/cmdline
-#   # agregar " quiet splash" al final de la linea existente
+#   # add " quiet splash" at the end of the existing line
 
 sudo mkinitcpio -P
 ```
 
-Si tu equipo SI arranca por el esquema clasico GRUB (revisa con `bootctl
-status`: si el cmdline mostrado en "Default Boot Loader Entry" no coincide
-con `/etc/kernel/cmdline`, es tu caso), el paso de cmdline es en
-`/etc/default/grub` (`GRUB_CMDLINE_LINUX_DEFAULT`) seguido de `sudo
-grub-mkconfig -o /boot/grub/grub.cfg`, y la red de seguridad es la
-clasica: en el menu de GRUB presionar `e` sobre la entrada y editar el
-cmdline en caliente.
+If your machine DOES boot through the classic GRUB scheme (check with `bootctl
+status`: if the cmdline shown in "Default Boot Loader Entry" doesn't match
+`/etc/kernel/cmdline`, that's your case), the cmdline step is in
+`/etc/default/grub` (`GRUB_CMDLINE_LINUX_DEFAULT`) followed by `sudo
+grub-mkconfig -o /boot/grub/grub.cfg`, and the safety net is the
+classic one: in the GRUB menu press `e` on the entry and edit the
+cmdline on the fly.
 
-Si editas `sync-plymouth-theme.sh` o `generate-plymouth-assets.sh`, hay
-que repetir el primer `install` (mismo motivo que SDDM).
+If you edit `sync-plymouth-theme.sh` or `generate-plymouth-assets.sh`,
+repeat the first `install` (same reason as SDDM).
 
-#### Arranque real de este equipo: fallback UEFI en vez de GRUB
+#### This machine's real boot: UEFI fallback instead of GRUB
 
-En esta maquina puntual, las entradas NVRAM de GRUB y Limine quedaron
-apuntando a archivos `.efi` que ya no existen (`efibootmgr -v` las lista,
-pero `/boot/EFI/GRUB/` y `/boot/EFI/limine/` no estan) -- el firmware
-prueba cada una en `BootOrder`, todas fallan, y termina cayendo al path de
-fallback generico que exige la spec UEFI cuando una entrada no tiene
-archivo explicito: `/boot/EFI/BOOT/BOOTX64.EFI`. Eso resulto ser un
-binario standalone de GRUB con su config **embebida y congelada** desde
-que se genero -- nunca ve los cambios que hacemos en `/etc/kernel/cmdline`
-o `mkinitcpio.conf`. Se confirma con:
+On this particular machine, the GRUB and Limine NVRAM entries ended up
+pointing to `.efi` files that no longer exist (`efibootmgr -v` lists them,
+but `/boot/EFI/GRUB/` and `/boot/EFI/limine/` aren't there) -- the firmware
+tries each one in `BootOrder`, all fail, and it ends up falling back to the
+generic fallback path the UEFI spec requires when an entry has no
+explicit file: `/boot/EFI/BOOT/BOOTX64.EFI`. That turned out to be a
+standalone GRUB binary with its config **embedded and frozen** since
+it was generated -- it never sees the changes we make in `/etc/kernel/cmdline`
+or `mkinitcpio.conf`. Confirm it with:
 
 ```bash
-efibootmgr -v   # BootCurrent: <n> -- si esa entrada no tiene un \path\archivo.efi
-                # explicito, tu firmware tambien esta cayendo al fallback
+efibootmgr -v   # BootCurrent: <n> -- if that entry has no explicit \path\file.efi,
+                # your firmware is also falling back
 ```
 
-La solucion que se aplico ahi fue sacar a GRUB de la ecuacion: una UKI es
-un ejecutable EFI valido por si sola, asi que `BOOTX64.EFI` es
-directamente una copia de `arch-linux-zen.efi`. `sync-plymouth-theme.sh`
-mantiene esa copia al dia solo (via un `cp` a un temporal + `mv` atomico,
-asi que si algo falla a mitad de camino -- por ejemplo la ESP sin espacio
--- `BOOTX64.EFI` queda intacto en vez de corrupto), **si el archivo ya
-existe** (guard pensado para no tocar equipos que arrancan por una entrada
-NVRAM normal, donde este path no se usa).
+The fix applied there was taking GRUB out of the equation: a UKI is
+a valid EFI executable on its own, so `BOOTX64.EFI` is
+simply a copy of `arch-linux-zen.efi`. `sync-plymouth-theme.sh`
+keeps that copy up to date by itself (via a `cp` to a temporary file + an atomic `mv`,
+so if something fails halfway -- for example the ESP out of space
+-- `BOOTX64.EFI` stays intact instead of corrupted), **if the file already
+exists** (a guard meant not to touch machines that boot through a normal NVRAM
+entry, where this path isn't used).
 
-**Ojo con el tamano de la ESP**: en este equipo es de apenas 1GB, y cada
-UKI pesa ~280MB. Con `arch-linux-zen.efi` + `BOOTX64.EFI` ya se usan
-~560MB -- evita guardar backups manuales de la UKI completa ahi (nos paso:
-`cp` se quedo sin espacio a mitad de copia y truncamos `BOOTX64.EFI`, hubo
-que recuperarlo). Como red de emergencia liviana alcanza con guardar el
-GRUB standalone original (160KB, bootea a Arch sin Plymouth pero bootea):
+**Mind the ESP size**: on this machine it's only 1GB, and each
+UKI weighs ~280MB. With `arch-linux-zen.efi` + `BOOTX64.EFI` ~560MB are already
+used -- avoid keeping manual backups of the full UKI there (it happened to us:
+`cp` ran out of space halfway and we truncated `BOOTX64.EFI`, it had
+to be recovered). As a light emergency net it's enough to keep the
+original standalone GRUB (160KB, it boots Arch without Plymouth but it boots):
 
 ```bash
 sudo cp /boot/EFI/BOOT/BOOTX64.EFI /boot/EFI/BOOT/BOOTX64.EFI.grub-backup
 ```
 
-Si algo sale mal despues de eso, la mayoria de los firmwares UEFI dejan
-arrancar un `.efi` especifico desde su propio menu de boot (F9/F11/Esc al
-encender, "Boot from file"), sin necesitar un USB live.
+If something goes wrong after that, most UEFI firmwares let you
+boot a specific `.efi` from their own boot menu (F9/F11/Esc at
+power-on, "Boot from file"), without needing a live USB.
 
-### GRUB (menu de arranque)
+### GRUB (boot menu)
 
-Theme propio (fondo con blur+vignette del wallpaper, avatar `~/.face` en
-circulo, anillo de progreso atado al countdown real de `GRUB_TIMEOUT`,
-highlight de seleccion tipo "pill" redondeada, tipografia Plus Jakarta
-Sans -- la fuente de interfaz del rice) generado por matugen, mismo
-patron que SDDM/Plymouth: `matugen/.config/matugen/templates/grub-theme.txt`
+An own theme (a blurred+vignetted wallpaper background, the `~/.face` avatar in a
+circle, a progress ring tied to `GRUB_TIMEOUT`'s real countdown,
+a rounded "pill" selection highlight, Plus Jakarta
+Sans type -- the rice's interface font) generated by matugen, same
+pattern as SDDM/Plymouth: `matugen/.config/matugen/templates/grub-theme.txt`
 (template) + `hypr/.config/hypr/scripts/generate-grub-assets.sh`
-(ImageMagick, sin sudo) + `hypr/.config/hypr/scripts/sync-grub-theme.sh`
-(root, copia a `/boot/grub/themes/` y corre `grub-mkconfig`). Las fuentes
-(`grub/theme/font.pf2` y `font-bold.pf2`) son estaticas -- generadas UNA
-VEZ con `grub-mkfont` a partir de Plus Jakarta Sans, con nombre
-propio (`--name`) para no depender de que fuente trae GRUB instalada de
-fabrica:
+(ImageMagick, no sudo; it also fills in the hostname and the footer text in your language) + `hypr/.config/hypr/scripts/sync-grub-theme.sh`
+(root, copies to `/boot/grub/themes/` and runs `grub-mkconfig`). The fonts
+(`grub/theme/font.pf2` and `font-bold.pf2`) are static -- generated ONCE
+with `grub-mkfont` from Plus Jakarta Sans, with their own
+name (`--name`) so as not to depend on which font GRUB ships with by
+default. They only have Latin letters: with a language in another script (Japanese), the footer stays in English instead of
+showing boxes.
 
 ```bash
 grub-mkfont -o grub/theme/font.pf2 -s 16 --name "DotfilesSans" \
@@ -1058,41 +1072,41 @@ grub-mkfont -o grub/theme/font-bold.pf2 -s 28 --name "DotfilesSansSemiBold" \
   /usr/share/fonts/TTF/PlusJakartaSans-SemiBold.ttf
 ```
 
-(`grub-mkconfig` detecta y carga solo los `.pf2` que encuentra en la
-carpeta del theme -- no hace falta un `loadfont` a mano.)
+(`grub-mkconfig` detects and loads by itself the `.pf2` files it finds in the
+theme folder -- no manual `loadfont` needed.)
 
-**Arranque real de este equipo (importante, groundeado con la Wiki):**
-GRUB estaba instalado (`/boot/grub/x86_64-efi/` completo) pero sin
-entrada NVRAM viva ni `grub.cfg` real -- alguien la borro en una migracion
-de bootloader anterior (ver seccion "Arranque real de este equipo" de
-Plymouth arriba, mismo hallazgo). Restaurado con:
+**This machine's real boot (important, grounded in the Wiki):**
+GRUB was installed (`/boot/grub/x86_64-efi/` complete) but without a
+live NVRAM entry or a real `grub.cfg` -- someone deleted it in an earlier bootloader
+migration (see Plymouth's "This machine's real boot" section
+above, same finding). Restored with:
 
 ```bash
 sudo grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 ```
 
-La entrada de arranque real es un `chainloader` directo a la UKI (NO los
-comandos `linux`/`initrd`, que reconstruirian el cmdline con
-`GRUB_CMDLINE_LINUX_DEFAULT` y perderian el `quiet splash` embebido) --
-mismo patron que la Wiki documenta para chainloadear `bootmgfw.efi` de
-Windows. En `/etc/grub.d/40_custom`:
+The real boot entry is a direct `chainloader` to the UKI (NOT the
+`linux`/`initrd` commands, which would rebuild the cmdline with
+`GRUB_CMDLINE_LINUX_DEFAULT` and lose the embedded `quiet splash`) --
+the same pattern the Wiki documents for chainloading Windows'
+`bootmgfw.efi`. In `/etc/grub.d/40_custom`:
 
 ```
 menuentry "Arch Linux" --class arch --class gnu-linux --class gnu --class os {
     insmod part_gpt
     insmod fat
     insmod chain
-    search --no-floppy --fs-uuid --set=root <UUID-de-tu-ESP-en-fstab>
-    chainloader /EFI/Linux/<tu-uki>.efi
+    search --no-floppy --fs-uuid --set=root <UUID-of-your-ESP-in-fstab>
+    chainloader /EFI/Linux/<your-uki>.efi
 }
 ```
 
-`GRUB_DEFAULT="Arch Linux"` en `/etc/default/grub` (por nombre, no por
-indice `0` -- la entrada "UEFI Firmware Settings" que agrega
-`grub-mkconfig` puede quedar antes en el archivo). `os-prober` no esta
-instalado a proposito (sin dual-boot en este equipo).
+`GRUB_DEFAULT="Arch Linux"` in `/etc/default/grub` (by name, not by
+index `0` -- the "UEFI Firmware Settings" entry `grub-mkconfig` adds
+can end up earlier in the file). `os-prober` isn't
+installed on purpose (no dual boot on this machine).
 
-Setup del theme (mismo patron sudoers que SDDM/Plymouth):
+Theme setup (same sudoers pattern as SDDM/Plymouth):
 
 ```bash
 sudo install -m 755 -o root -g root \
@@ -1106,145 +1120,159 @@ rm /tmp/matugen-grub-sudoers
 sudo /usr/local/bin/sync-grub-theme
 ```
 
-**Probar sin comprometer el arranque normal**: `efibootmgr --bootnext <numero-de-entrada>`
-arranca por esa entrada UNA sola vez (no toca `BootOrder`), ideal para
-probar un `grub-install`/theme nuevo antes de hacerlo permanente:
+**Try it without risking the normal boot**: `efibootmgr --bootnext <entry-number>`
+boots through that entry ONCE only (it doesn't touch `BootOrder`), ideal to
+try a new `grub-install`/theme before making it permanent:
 
 ```bash
-efibootmgr -v                       # anota el numero de tu entrada GRUB
-sudo efibootmgr --bootnext <numero>
-# reiniciar, confirmar que anda bien, RECIEN AHI:
-sudo efibootmgr --bootorder <numero>,<resto-del-orden-que-ya-tenias>
+efibootmgr -v                       # note your GRUB entry's number
+sudo efibootmgr --bootnext <number>
+# reboot, confirm it works, ONLY THEN:
+sudo efibootmgr --bootorder <number>,<rest-of-the-order-you-already-had>
 ```
 
-Si editas `sync-grub-theme.sh` o `generate-grub-assets.sh`, hay que
-repetir el primer `install` (mismo motivo que SDDM/Plymouth).
+If you edit `sync-grub-theme.sh` or `generate-grub-assets.sh`,
+repeat the first `install` (same reason as SDDM/Plymouth).
 
-## 4. Relogueate
+## 4. Log in again
 
-Cerra sesion y volve a entrar (SDDM) para que las variables de entorno
-(cursor, Qt, GPU) se apliquen desde cero. `hyprctl reload` alcanza para
-cambios de binds/reglas/apariencia, pero no para `hl.env(...)`.
+Log out and back in (SDDM) so the environment variables
+(cursor, Qt, GPU) apply from scratch. `hyprctl reload` is enough for
+bind/rule/appearance changes, but not for `hl.env(...)`.
 
-`qt5ct.conf`/`qt6ct.conf` ya vienen configurados (paleta custom apuntando al
-esquema de matugen, iconos Papirus-Dark, estilo Fusion) -- no hace falta
-correr `qt5ct`/`qt6ct` a mano salvo que quieras retocar algo mas (fuente,
-efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
+`qt5ct.conf`/`qt6ct.conf` come already configured (a custom palette pointing to the
+matugen scheme, Papirus-Dark icons, Fusion style) -- no need to
+run `qt5ct`/`qt6ct` by hand unless you want to tweak something else (font,
+effects, etc.), in which case the GUI reads and saves the same file.
 
-## Atajos
+## Translating
 
-En el sistema: **`SUPER + /`** abre la guia de atajos (buscable, siempre al
-dia). La tabla de abajo se genera desde la misma fuente -- la descripcion de
-cada atajo en `hypr/.config/hypr/modules/binds.lua`, leida de Hyprland -- con
-`hypr/.config/hypr/scripts/keybinds readme`, que reescribe solo la tabla
-entre los marcadores; no se edita a mano. `keybinds readme --check` avisa si
-quedo desactualizada y `keybinds check` falla si algun atajo no tiene
-descripcion.
+The source text is English and it's also the key: every catalog in `quickshell/.config/quickshell/dotshell/data/i18n/`
+(`es.json`, `ja.json`) maps it to its language (`"ctx\u0004text"` when the same English means two things; plurals as
+`{"one", "few", "many", "other"}`; `"@meta"` with the language's name, plural family and locale). To add a language:
 
-<!-- keybinds:start (generado: hypr/.config/hypr/scripts/keybinds readme) -->
+1. Copy `es.json` to `<code>.json` (for example `fr.json`), set its `@meta`, and translate the values (keep `%1`, `%n`).
+2. Add the code to `appearance.language`'s values in `dotshell/data/settings.schema.json`.
+3. `~/.config/hypr/scripts/i18n check` must say 0 failures (missing keys, placeholders, plurals); `i18n extract` lists
+   every key the code uses and `i18n stats` the coverage.
+4. Optional: the emoji names (`emoji-data` with that language's two CLDR files) and the README.
+
+The Japanese translation was written for this project and would gain from a native speaker's review: corrections are welcome.
+
+## Shortcuts
+
+On the system: **`SUPER + /`** opens the shortcut guide (searchable, always up
+to date). The table below is generated from the same source -- each
+shortcut's description in `hypr/.config/hypr/modules/binds.lua`, read from Hyprland -- with
+`hypr/.config/hypr/scripts/keybinds readme`, which rewrites only the table
+between the markers (this README in English, `README.es.md` in Spanish); it isn't edited by hand. `keybinds readme --check`
+warns if it got out of date and `keybinds check` fails if a shortcut has no
+description.
+
+<!-- keybinds:start (generated: hypr/.config/hypr/scripts/keybinds readme) -->
 **Shell**
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| `Super` + `D` | Lanzador de aplicaciones |
-| `Super` + `Tab` o `Super` + `Shift` + `Tab` | Cambiar de ventana |
+| `Super` + `D` | App launcher |
+| `Super` + `Tab` or `Super` + `Shift` + `Tab` | Switch window |
 | `Super` + `A` | Dashboard |
-| `Super` + `N` | Centro de control |
-| `Super` + `Shift` + `N` | Limpiar notificaciones |
-| `Super` + `Shift` + `B` | Mostrar u ocultar la barra |
-| `Super` + `Ctrl` + `Shift` + `B` | Recargar la shell |
-| `Super` + `Shift` + `V` | Portapapeles |
+| `Super` + `N` | Control center |
+| `Super` + `Shift` + `N` | Clear notifications |
+| `Super` + `Shift` + `B` | Show or hide the bar |
+| `Super` + `Ctrl` + `Shift` + `B` | Reload the shell |
+| `Super` + `Shift` + `V` | Clipboard |
 | `Super` + `.` | Emoji |
-| `Super` + `/` | Guía de atajos |
-| `Super` | Mostrar barra (mantener) |
+| `Super` + `/` | Shortcut guide |
+| `Super` | Show the bar (hold) |
 
-**Programas**
+**Apps**
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| `Super` + `Intro` | Terminal |
-| `Super` + `E` | Archivos |
-| `Super` + `B` | Navegador |
-| `Super` + `Shift` + `C` | Selector de color |
+| `Super` + `Enter` | Terminal |
+| `Super` + `E` | Files |
+| `Super` + `B` | Browser |
+| `Super` + `Shift` + `C` | Color picker |
 
-**Sistema**
+**System**
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| `Super` + `I` | Configuración |
-| `Super` + `L` | Bloquear la pantalla |
-| `Super` + `Ctrl` + `Alt` + `L` | Bloqueo de emergencia |
-| `Super` + `M` | Energía y sesión |
-| `Super` + `Shift` + `M` | Cerrar sesión |
-| `Super` + `Ctrl` + `Shift` + `M` | Salida de emergencia |
-| `Super` + `Alt` + `G` | Modo juego |
-| `Bloq Mayús` | Estado de Bloq Mayús |
-| `Bloq Num` | Estado de Bloq Num |
+| `Super` + `I` | Settings |
+| `Super` + `L` | Lock the screen |
+| `Super` + `Ctrl` + `Alt` + `L` | Emergency lock |
+| `Super` + `M` | Power and session |
+| `Super` + `Shift` + `M` | Log out |
+| `Super` + `Ctrl` + `Shift` + `M` | Emergency exit |
+| `Super` + `Alt` + `G` | Game mode |
+| `Caps Lock` | Caps Lock state |
+| `Num Lock` | Num Lock state |
 
-**Ventanas**
+**Windows**
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| `Super` + `Q` | Cerrar la ventana |
-| `Super` + `Shift` + `Q` | Forzar el cierre |
-| `Super` + `V` | Flotante |
-| `Super` + `F` | Pantalla completa |
-| `Super` + `Shift` + `P` | Fijar en todas partes |
-| `Super` + `C` | Centrar |
-| `Super` + `P` | Pseudomosaico |
-| `Super` + `J` | Alternar la división |
-| `Super` + `G` | Agrupar |
-| `Super` + `Shift` + `G` | Bloquear el grupo |
-| `Super` + `Flechas` | Mover el foco |
-| `Super` + `Shift` + `Flechas` | Mover la ventana |
-| `Super` + `Ctrl` + `Flechas` | Cambiar el tamaño |
-| `Super` + `Clic izq.` / `Ctrl izq.` | Mover con el ratón |
-| `Super` + `Clic der.` / `Alt izq.` | Redimensionar con el ratón |
-| `Super` + `R` | Modo cambiar tamaño |
+| `Super` + `Q` | Close the window |
+| `Super` + `Shift` + `Q` | Force close |
+| `Super` + `V` | Floating |
+| `Super` + `F` | Fullscreen |
+| `Super` + `Shift` + `P` | Pin on every workspace |
+| `Super` + `C` | Center |
+| `Super` + `P` | Pseudotile |
+| `Super` + `J` | Toggle the split |
+| `Super` + `G` | Group |
+| `Super` + `Shift` + `G` | Lock the group |
+| `Super` + `Arrows` | Move focus |
+| `Super` + `Shift` + `Arrows` | Move the window |
+| `Super` + `Ctrl` + `Arrows` | Resize |
+| `Super` + `Left click` / `Left Ctrl` | Move with the mouse |
+| `Super` + `Right click` / `Left Alt` | Resize with the mouse |
+| `Super` + `R` | Resize mode |
 
-**Escritorios**
+**Workspaces**
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| `Super` + `1 … 0` | Ir al escritorio |
-| `Super` + `Shift` + `1 … 0` | Mover al escritorio |
-| `Super` + `Rueda` | Recorrer escritorios |
-| `Super` + `S` | Escritorio especial |
-| `Super` + `Shift` + `S` | Mover al especial |
-| `Super` + `Alt` + `L` | Cambiar la distribución |
+| `Super` + `1 … 0` | Go to workspace |
+| `Super` + `Shift` + `1 … 0` | Move to workspace |
+| `Super` + `Wheel` | Cycle workspaces |
+| `Super` + `S` | Special workspace |
+| `Super` + `Shift` + `S` | Move to special |
+| `Super` + `Alt` + `L` | Switch the layout |
 
-**Capturas**
+**Capture**
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| `Impr` | Capturar el monitor |
-| `Super` + `Impr` | Capturar una región |
-| `Super` + `Shift` + `Impr` | Capturar la ventana |
-| `Super` + `Alt` + `R` | Grabar una zona |
-| `Super` + `Alt` + `Shift` + `R` | Grabar el monitor |
+| `Print` | Capture the monitor |
+| `Super` + `Print` | Capture a region |
+| `Super` + `Shift` + `Print` | Capture the window |
+| `Super` + `Alt` + `R` | Record an area |
+| `Super` + `Alt` + `Shift` + `R` | Record the monitor |
 
-**Tema**
+**Theme**
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| `Super` + `Shift` + `W` | Galería de fondos |
-| `Super` + `Shift` + `Z` | Deshacer el último tema |
+| `Super` + `Shift` + `W` | Wallpaper gallery |
+| `Super` + `Shift` + `Z` | Undo the last theme |
 
-**Multimedia**
+**Media**
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| `Subir volumen` / `Bajar volumen` | Volumen |
-| `Silencio` | Silenciar |
-| `Micrófono` | Silenciar el micrófono |
-| `Subir brillo` / `Bajar brillo` | Brillo |
-| `Anterior` / `Siguiente` | Pista siguiente o anterior |
-| `Reproducir/Pausa` | Reproducir o pausar |
+| `Volume up` / `Volume down` | Volume |
+| `Mute` | Mute |
+| `Microphone` | Mute the microphone |
+| `Brightness up` / `Brightness down` | Brightness |
+| `Previous` / `Next` | Next or previous track |
+| `Play/Pause` | Play or pause |
 
-**Modo cambiar tamaño** (modo: `Super` + `R`, sale con `Esc`/`Intro`)
+**Resize mode** (mode: `Super` + `R`, leave with `Esc`/`Enter`)
 
-| Atajo | Acción |
+| Shortcut | Action |
 |---|---|
-| `Flechas` | Cambiar el tamaño |
-| `Esc` / `Intro` | Salir del modo |
+| `Arrows` | Resize |
+| `Esc` / `Enter` | Leave the mode |
 <!-- keybinds:end -->

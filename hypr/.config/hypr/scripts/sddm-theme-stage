@@ -62,7 +62,7 @@ for pair in uiFont:appearance.font.ui monoFont:appearance.font.mono; do
   if [ -n "$f" ] && system_font "$f"; then
     printf '%s=%s\n' "${pair%%:*}" "$f" >> "$tmp/theme.conf"
   elif [ -n "$f" ]; then
-    echo "sddm-theme-stage: $f no esta instalada para todo el sistema; el greeter usa la de fabrica" >&2
+    echo "sddm-theme-stage: $("$I18N" tr "%1 isn't installed system-wide; the greeter uses the default one" "$f")" >&2
   fi
 done
 for pair in uiScale:accessibility.uiScale textScale:accessibility.textScale; do

@@ -117,7 +117,8 @@ Item {
                     Icon { anchors.verticalCenter: parent.verticalCenter; name: "error"; filled: true; size: Tokens.icon.sm; color: Colors.danger }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: I18n.tr("Not saved: %1", row.error.replace(/; no se guardó$/, ""))
+                        // El motor termina el motivo con "; not saved" en el mismo idioma (Fase 15 B4).
+                        text: I18n.tr("Not saved: %1", row.error.endsWith(I18n.tr("%1; not saved", "")) ? row.error.slice(0, -I18n.tr("%1; not saved", "").length) : row.error)
                         color: Colors.danger
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label

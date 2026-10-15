@@ -35,6 +35,7 @@
 
 set -euo pipefail
 
+I18N="$(dirname "$(readlink -f "$0")")/i18n"
 WALLPAPERS_DIR="${WALLPAPERS_DIR:-$HOME/Pictures/Wallpapers}"
 CACHE_DIR="${WALLPAPER_CACHE_DIR:-$HOME/.cache/dotfiles/wallpapers}"
 JOBS=8
@@ -45,12 +46,12 @@ while [ $# -gt 0 ]; do
     --jobs)  JOBS="${2:?}"; shift 2 ;;
     --force) FORCE=1; shift ;;
     -h|--help) sed -n '6p' "$0" | sed 's/^# \{0,3\}//'; exit 0 ;;
-    *) echo "wallpaper-cache: opcion desconocida: $1" >&2; exit 2 ;;
+    *) echo "wallpaper-cache: $("$I18N" tr "unknown option: %1" "$1")" >&2; exit 2 ;;
   esac
 done
 
 for cmd in vipsthumbnail magick matugen python3; do
-  command -v "$cmd" >/dev/null 2>&1 || { echo "wallpaper-cache: falta $cmd" >&2; exit 1; }
+  command -v "$cmd" >/dev/null 2>&1 || { echo "wallpaper-cache: $("$I18N" tr "%1 is missing" "$cmd")" >&2; exit 1; }
 done
 
 mkdir -p "$CACHE_DIR/thumbs"
@@ -67,7 +68,7 @@ PENDING="$CACHE_DIR/.cache.pending"
 exec 9> "$LOCK"
 if ! flock -n 9; then
   touch "$PENDING"
-  echo "wallpaper-cache: ya hay una pasada en curso; se repite al terminar" >&2
+  echo "wallpaper-cache: $("$I18N" tr "a pass is already running; it repeats when it ends")" >&2
   exit 0
 fi
 
@@ -79,6 +80,14 @@ STATE_FILE="${THEME_STATE_DIR:-$HOME/.local/state/dotfiles}/wallpapers.json" \
 python3 - <<'PY'
 import glob, json, os, re, shutil, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor
+import importlib.machinery, importlib.util
+
+# Textos en el idioma del usuario (Fase 15 B4): scripts/i18n, junto a settings.
+sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
+_loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(os.path.dirname(os.environ["SETTINGS"]), "i18n"))
+_i18n = importlib.util.module_from_spec(importlib.util.spec_from_loader("i18n", _loader))
+_loader.exec_module(_i18n)
+T, Tn = _i18n.translator()
 
 walls = os.environ["WALLPAPERS_DIR"]
 cache = os.environ["CACHE_DIR"]
@@ -272,23 +281,22 @@ if mismatch:
     for n in mismatch:
         kinds.setdefault(formats[n], []).append(n)
     for fmt, names in sorted(kinds.items()):
-        print(f"aviso: {len(names)} con extension que no coincide (contenido {fmt}): {', '.join(names)}",
+        print(T("warning: %1 with an extension that doesn't match (content %2): %3", len(names), fmt, ", ".join(names)),
               file=sys.stderr)
 if unsupported:
-    print(f"aviso: {len(unsupported)} en un formato que el Qt instalado no decodifica "
-          f"(la capa de wallpaper los mostraria como color liso): "
-          + ", ".join(f"{n} ({formats[n]})" for n in unsupported), file=sys.stderr)
+    print(T("warning: %1 in a format the installed Qt can't decode (the wallpaper layer would show them as a flat color): %2",
+            len(unsupported), ", ".join(f"{n} ({formats[n]})" for n in unsupported)), file=sys.stderr)
     def is_new(n):
         st = os.stat(os.path.join(walls, n))
         return prev.get(n) != (int(st.st_mtime), st.st_size)
     fresh = [n for n in unsupported if is_new(n)]
     if fresh and os.environ["NOTIFY"] != "0" and shutil.which("notify-send"):
-        subprocess.run(["notify-send", "-i", "image-missing", "Wallpaper no compatible",
-                        ", ".join(fresh) + ": formato que la shell no puede mostrar (convertir a PNG o JPEG)"],
+        subprocess.run(["notify-send", "-i", "image-missing", T("Unsupported wallpaper"),
+                        T("%1: a format the shell can't show (convert it to PNG or JPEG)", ", ".join(fresh))],
                        capture_output=True)
-print(f"{len(files)} wallpapers: {new} nuevos, {len(todo) - new} actualizados, "
-      f"{len(removed)} eliminados, {len(recolor)} paletas recalculadas, en {time.time() - t0:.1f} s"
-      + (f"; con errores: {', '.join(failed)}" if failed else ""))
+print(T("%1 wallpapers: %2 new, %3 updated, %4 removed, %5 palettes recomputed, in %6 s",
+        len(files), new, len(todo) - new, len(removed), len(recolor), f"{time.time() - t0:.1f}")
+      + (T("; with errors: %1", ", ".join(failed)) if failed else ""))
 PY
 }
 

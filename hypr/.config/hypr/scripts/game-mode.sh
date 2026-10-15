@@ -13,6 +13,7 @@ set -euo pipefail
 
 # GAMEMODE_STATE: otro archivo de estado (pruebas; settings-apply lee el mismo).
 STATE_FILE="${GAMEMODE_STATE:-/tmp/gamemode-${USER}.state}"
+I18N="$(dirname "$(readlink -f "$0")")/i18n"
 
 is_active() {
     [ -f "$STATE_FILE" ]
@@ -40,8 +41,8 @@ enable_game_mode() {
     # 3. Optimizar Hyprland (sin blur, sombras ni animaciones: menos latencia)
     effects_off
 
-    notify-send -a "Modo Juego" "Modo Juego Activado" \
-        "Perfil: Rendimiento | Reposo pausado | Gráficos optimizados" \
+    notify-send -a "$("$I18N" tr "Game mode")" "$("$I18N" tr "Game mode on")" \
+        "$("$I18N" tr "Profile: Performance | Idle paused | Graphics optimized")" \
         -i input-gaming -t 3000
 }
 
@@ -59,8 +60,8 @@ disable_game_mode() {
     "$apply" idle --restart >/dev/null 2>&1 || pkill -CONT hypridle 2>/dev/null || true
     "$apply" hypr --all >/dev/null 2>&1 || true
 
-    notify-send -a "Modo Juego" "Modo Juego Desactivado" \
-        "Perfil equilibrado restaurado | Efectos visuales activos" \
+    notify-send -a "$("$I18N" tr "Game mode")" "$("$I18N" tr "Game mode off")" \
+        "$("$I18N" tr "Balanced profile restored | Visual effects on")" \
         -i input-gaming -t 2000
 }
 

@@ -108,7 +108,8 @@ OverlayWindow {
 
             readonly property var shown: {
                 if (!EmojiState.ready) return [];
-                const terms = content.fold(picker.query.trim()).split(/[^a-z0-9ñ]+/).filter(t => t.length > 0);
+                // Palabras separadas por espacios o signos; el japones (sin espacios) entra entero (Fase 15 B4).
+                const terms = content.fold(picker.query.trim()).split(/[\s.,;:!?¡¿'"()\-_/、。・「」]+/).filter(t => t.length > 0);
                 if (terms.length > 0) {
                     // Palabra exacta del nombre 3, comienzo de palabra del
                     // nombre 2, de una clave 1; a igual puntaje, el nombre mas
@@ -117,6 +118,7 @@ OverlayWindow {
                     const all = EmojiState.all;
                     const pre = terms.map(t => " " + t);
                     const whole = terms.map(t => " " + t + " ");
+                    const cjk = terms.map(t => /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/.test(t));
                     for (let i = 0; i < all.length; i++) {
                         const x = all[i];
                         let score = 0;
@@ -124,6 +126,9 @@ OverlayWindow {
                             if (x.hn.indexOf(whole[j]) >= 0) score += 3;
                             else if (x.hn.indexOf(pre[j]) >= 0) score += 2;
                             else if (x.hk.indexOf(pre[j]) >= 0) score += 1;
+                            // Escrituras sin espacios entre palabras (japones, chino): dentro de la palabra.
+                            else if (cjk[j] && x.hn.indexOf(terms[j]) >= 0) score += 2;
+                            else if (cjk[j] && x.hk.indexOf(terms[j]) >= 0) score += 1;
                             else { score = -1; break; }
                         }
                         if (score >= 0) out.push({ x: x, score: score, i: i });

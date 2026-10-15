@@ -35,11 +35,9 @@ QtObject {
         void root.rev;
         return root.catalog ? root.catalog[key] : undefined;
     }
+    // %1..%9 en una sola pasada: un argumento que trae "%2" no se vuelve a reemplazar.
     function fill(s: string, args: var): string {
-        let out = s;
-        for (let i = 0; i < args.length; i++)
-            out = out.split("%" + (i + 1)).join(String(args[i]));
-        return out;
+        return s.replace(/%([1-9])/g, (m, d) => Number(d) <= args.length ? String(args[Number(d) - 1]) : m);
     }
 
     // Traducciones.

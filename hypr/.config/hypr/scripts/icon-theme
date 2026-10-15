@@ -19,6 +19,17 @@
 # Pruebas: ICON_THEME_BASE (otro tema elegido), XDG_DATA_HOME, XDG_DATA_DIRS.
 import configparser, os, shutil, sys
 
+
+# Mensajes en el idioma del usuario (Fase 15 B4): scripts/i18n, texto fuente en ingles.
+def _i18n():
+    import importlib.machinery, importlib.util
+    sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
+    loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(os.path.dirname(os.path.realpath(__file__)), "i18n"))
+    mod = importlib.util.module_from_spec(importlib.util.spec_from_loader("i18n", loader))
+    loader.exec_module(mod)
+    return mod
+T, Tn = _i18n().translator()
+
 MARK = "X-Dotfiles-Generated"
 
 
@@ -104,10 +115,10 @@ def main():
     dry = "--dry-run" in args
     args = [a for a in args if a != "--dry-run"]
     if len(args) != 1 or args[0] not in ("dark", "light"):
-        die("uso: icon-theme dark|light [--dry-run]")
+        die(T("usage: %1", "icon-theme dark|light [--dry-run]"))
     base = chosen()
     if not base:
-        die("no hay gtk-icon-theme-name en ~/.config/gtk-3.0/settings.ini")
+        die(T("there's no %1 in %2", "gtk-icon-theme-name", "~/.config/gtk-3.0/settings.ini"))
     if args[0] == "dark":
         print(base)
         return

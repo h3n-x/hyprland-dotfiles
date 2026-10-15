@@ -7,8 +7,9 @@
 // amarillo, 1-5 = claro a oscuro). Solo emojis, nada del contexto donde se
 // escribieron. EMOJI_STATE_FILE cambia el archivo (pruebas).
 //
-// Los datos (data/emoji.json, generado por scripts/emoji-data: 1914 emojis
-// con nombre y claves en espanol e ingles) se leen al abrir el panel (una sola
+// Los datos (data/emoji/<idioma>.json, generados por scripts/emoji-data: 1914
+// emojis con nombre y claves en ese idioma y en ingles; Fase 15 B4) se leen al
+// abrir el panel en el idioma de la shell (sin dataset, el ingles) (una sola
 // vez aunque haya varias pantallas) y se sueltan 10 minutos despues de
 // cerrarlo (Demand, Fase 8 B3, D3: recupera ≈ 5-6 MB; releerlos cuesta ≈ 60 ms
 // y el panel se abre igual, la rejilla se llena despues).
@@ -72,7 +73,12 @@ QtObject {
     }
 
     property FileView data: FileView {
-        path: root.demand.holding ? Quickshell.shellDir + "/data/emoji.json" : ""
+        // Cambiar de idioma con el panel abierto relee el dataset del idioma nuevo.
+        // Un idioma sin dataset (fallo al leerlo) usa el ingles, sin romper el enlace al idioma.
+        property string missing: ""
+        readonly property string lang: I18n.lang === missing ? "en" : I18n.lang
+        path: root.demand.holding ? Quickshell.shellDir + "/data/emoji/" + lang + ".json" : ""
+        onLoadFailed: if (lang !== "en") missing = lang
         onLoaded: {
             const list = JSON.parse(this.text());
             const by = {};

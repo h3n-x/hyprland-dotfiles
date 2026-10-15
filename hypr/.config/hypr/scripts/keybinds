@@ -22,7 +22,7 @@ La tabla del README (Fase 8 B7, P8.5) solo la escribe `keybinds readme`:
 reemplaza lo que hay entre <!-- keybinds:start ... --> y <!-- keybinds:end -->
 y nada mas (el resto del README queda igual byte a byte); si ya esta al dia
 no escribe. No corre solo: lo verifica el drift check de la documentacion. El
-README sigue en español hasta la Fase 15 B4 (README_LANG).
+tabla va en los dos README (Fase 15 B4): README.md en ingles y README.es.md en espanol.
 KEYBINDS_README=<archivo> usa ese README (pruebas).
 """
 import importlib.machinery
@@ -41,11 +41,16 @@ def N_(ctx, text):
 
 
 def i18n():
+    sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
     loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(HERE, "i18n"))
     spec = importlib.util.spec_from_loader("i18n", loader)
     mod = importlib.util.module_from_spec(spec)
     loader.exec_module(mod)
     return mod
+
+
+# Mensajes de la linea de comandos en el idioma del usuario (Fase 15 B4).
+T, Tn = i18n().translator()
 
 SEP = " · "
 MAX_TEXT = 28
@@ -140,11 +145,11 @@ def problems(binds):
         combo = " + ".join(mods_of(b["modmask"]) + [b["key"]]) + (f" (submap {b['submap']})" if b.get("submap") else "")
         group, text = split_desc(desc)
         if not desc:
-            out.append(f"{combo}: sin descripción")
+            out.append(T("%1: no description", combo))
         elif not group:
-            out.append(f"{combo}: falta el grupo (\"Grupo{SEP}Texto\"): {desc!r}")
+            out.append(T("%1: the group is missing (%2): %3", combo, f'"Group{SEP}Text"', repr(desc)))
         elif len(text) > MAX_TEXT:
-            out.append(f"{combo}: texto de {len(text)} caracteres (máximo {MAX_TEXT}): {text!r}")
+            out.append(T("%1: text of %2 characters (at most %3): %4", combo, len(text), MAX_TEXT, repr(text)))
     return out
 
 
@@ -199,34 +204,40 @@ def markdown(groups, lang):
 
 
 README = os.environ.get("KEYBINDS_README") or os.path.expanduser("~/Dotfiles/README.md")
-README_LANG = "es"
+# Cada README con su idioma: el principal en ingles y su copia en espanol al lado.
+READMES = [(README, "en"), (os.path.join(os.path.dirname(README), "README.es.md"), "es")]
 START = "<!-- keybinds:start"
 END = "<!-- keybinds:end -->"
 
 
 def readme(check):
-    """La tabla del README: 0 al dia (o reescrita), 1 desactualizada (--check), 2 no se puede verificar."""
+    """Las tablas de los README: 0 al dia (o reescritas), 1 desactualizada (--check), 2 no se puede verificar."""
     try:
-        new = markdown(grouped(load()), README_LANG)
+        groups = grouped(load())
     except (OSError, ValueError, subprocess.CalledProcessError) as e:
-        print(f"no se puede verificar: sin atajos de Hyprland ({e.__class__.__name__})", file=sys.stderr)
+        print(T("can't verify: no Hyprland shortcuts (%1)", e.__class__.__name__), file=sys.stderr)
         return 2
-    path = os.path.realpath(README)
+    return max(readme_one(path, lang, markdown(groups, lang), check) for path, lang in READMES)
+
+
+def readme_one(path, lang, new, check):
+    path = os.path.realpath(path)
+    name = os.path.basename(path)
     try:
         with open(path, encoding="utf-8") as f:
             lines = f.read().splitlines(keepends=True)
     except OSError as e:
-        print(f"no se puede verificar: {e}", file=sys.stderr)
+        print(T("can't verify: %1", e), file=sys.stderr)
         return 2
     starts = [i for i, l in enumerate(lines) if l.startswith(START)]
     ends = [i for i, l in enumerate(lines) if l.strip() == END]
     if len(starts) != 1 or len(ends) != 1 or ends[0] < starts[0]:
-        print(f"no se puede verificar: marcadores {START} ... {END} ausentes o repetidos en {path}", file=sys.stderr)
+        print(T("can't verify: markers %1 ... %2 missing or repeated in %3", START, END, path), file=sys.stderr)
         return 2
     s, e = starts[0], ends[0]
     old = "".join(lines[s + 1:e])
     if old == new:
-        print("tabla de atajos del README al día")
+        print(f"{name}: " + T("README shortcut table up to date"))
         return 0
     if check:
         was, now = old.splitlines(), new.splitlines()
@@ -236,14 +247,14 @@ def readme(check):
         for row in now:
             if row and row not in was:
                 print(f"  + {row}")
-        print("tabla de atajos del README desactualizada: hypr/.config/hypr/scripts/keybinds readme")
+        print(f"{name}: " + T("README shortcut table out of date: %1", "hypr/.config/hypr/scripts/keybinds readme"))
         return 1
     tmp = path + ".keybinds-tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         f.write("".join(lines[:s + 1]) + new + "".join(lines[e:]))
     os.chmod(tmp, os.stat(path).st_mode & 0o7777)
     os.replace(tmp, path)
-    print(f"tabla de atajos del README actualizada ({sum(1 for r in new.splitlines() if r.startswith('| ')) - new.count('|---|---|')} filas)")
+    print(f"{name}: " + Tn("README shortcut table updated (%n row)", "README shortcut table updated (%n rows)", sum(1 for r in new.splitlines() if r.startswith('| ')) - new.count('|---|---|')))
     return 0
 
 
@@ -265,10 +276,10 @@ def main():
         bad = problems(binds)
         for p in bad:
             print(p, file=sys.stderr)
-        print(f"{len(binds)} atajos, {len(bad)} sin descripción válida")
+        print(T("%1 shortcuts, %2 without a valid description", len(binds), len(bad)))
         sys.exit(1 if bad else 0)
     else:
-        print("uso: keybinds data|markdown [--lang L]|readme [--check]|check", file=sys.stderr)
+        print(T("usage: %1", "keybinds data|markdown [--lang L]|readme [--check]|check"), file=sys.stderr)
         sys.exit(2)
 
 

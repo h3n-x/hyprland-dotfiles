@@ -15,6 +15,7 @@
 # README) y el candado quedaria tomado con la ventana cerrada.
 # Pruebas: SETTINGS_UI_QML (otra ventana), SETTINGS_UI_RUN_DIR, SETTINGS_UI_NO_FOCUS=1.
 set -u
+I18N="$(dirname "$(readlink -f "$0")")/i18n"
 
 QML=${SETTINGS_UI_QML:-$HOME/.config/quickshell/dotshell/settings.qml}
 RUN=${SETTINGS_UI_RUN_DIR:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/dotfiles}
@@ -24,7 +25,7 @@ target=""
 case "${1:-}" in
   "") ;;
   open) target=${2:-} ;;
-  *) echo "uso: settings-ui [open <pagina|clave>]" >&2; exit 2 ;;
+  *) "$I18N" tr "usage: %1" "settings-ui [open <page|key>]" >&2; exit 2 ;;
 esac
 
 ipc() { qs ipc -p "$QML" call settingsui "$@" >/dev/null 2>&1; }
@@ -35,7 +36,7 @@ raise() {
 }
 
 exec 9>"$RUN/settings-ui.flock"
-flock -w 5 9 || { echo "settings-ui: otra apertura en curso" >&2; exit 1; }
+flock -w 5 9 || { echo "settings-ui: $("$I18N" tr "another opening is in progress")" >&2; exit 1; }
 
 if ipc open "$target"; then
   raise
@@ -47,5 +48,5 @@ for _ in $(seq 50); do
   sleep 0.1
   ipc open "" && exit 0
 done
-echo "settings-ui: la ventana no respondio en 5 s" >&2
+echo "settings-ui: $("$I18N" tr "the window didn't answer in 5 s")" >&2
 exit 1

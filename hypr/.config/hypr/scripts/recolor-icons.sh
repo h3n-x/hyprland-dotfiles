@@ -12,7 +12,7 @@
 set -euo pipefail
 
 HEX="${1:-}"
-[ -n "$HEX" ] || { echo "uso: recolor-icons.sh <hex sin #>" >&2; exit 1; }
+[ -n "$HEX" ] || { "$(dirname "$(readlink -f "$0")")/i18n" tr "usage: %1" "recolor-icons.sh <hex without #>" >&2; exit 1; }
 
 command -v papirus-folders >/dev/null 2>&1 || exit 0
 

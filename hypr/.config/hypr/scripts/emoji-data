@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-# Genera el dataset del selector de emoji de Quickshell (Fase 4 B3):
-# quickshell/.config/quickshell/dotshell/data/emoji.json.
+# Genera los datasets del selector de emoji de Quickshell (Fase 4 B3), uno por
+# idioma (Fase 15 B4): quickshell/.config/quickshell/dotshell/data/emoji/<idioma>.json
+# para el ingles y cada idioma con catalogo (data/i18n/<idioma>.json).
 #
 # Se corre a mano solo para actualizar los datos (el panel nunca lo llama, ni
 # necesita red ni paquetes). Fuentes fijadas con su sha256:
 #   - lista oficial Unicode Emoji 17.0 (emoji-test.txt): orden, grupos y
 #     variantes de tono de piel;
-#   - CLDR 48.0.0 (cldr-json): nombres y palabras clave en espanol e ingles.
+#   - CLDR 48.0.0 (cldr-json): nombres y palabras clave de cada idioma (y las del
+#     ingles en todos: se puede buscar en ingles con cualquier idioma).
 # Solo quedan los emojis que la fuente instalada (Noto Color Emoji) dibuja como
 # un unico glifo; un emoji tiene tonos solo si sus 5 variantes se dibujan.
 #
-# Uso: emoji-data [--out ARCHIVO] [--cache DIR] [--font ARCHIVO]
+# Uso: emoji-data [--out CARPETA] [--cache DIR] [--font ARCHIVO]
 # Requiere: python-fonttools, curl. Descarga a ~/.cache/dotfiles/emoji-src.
 #
 # Imagenes (CACHE, no van al repo): emoji-data --ensure-images dibuja cada
@@ -29,6 +31,17 @@ import subprocess
 import sys
 import unicodedata
 
+
+# Textos en el idioma del usuario (Fase 15 B4): scripts/i18n, texto fuente en ingles.
+def _i18n():
+    import importlib.machinery, importlib.util
+    sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
+    loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(os.path.dirname(os.path.realpath(__file__)), "i18n"))
+    mod = importlib.util.module_from_spec(importlib.util.spec_from_loader("i18n", loader))
+    loader.exec_module(mod)
+    return mod
+T, Tn = _i18n().translator()
+
 EMOJI_VERSION = "17.0.0"
 CLDR_VERSION = "48.0.0"
 CLDR = f"https://raw.githubusercontent.com/unicode-org/cldr-json/{CLDR_VERSION}/cldr-json"
@@ -43,7 +56,14 @@ SOURCES = {
                             "f22083cb86dffb63a643d5bacb5d9899f82d2fa5d388ad4f3aed72184acef505"),
     "derived-en.json": (f"{CLDR}/cldr-annotations-derived-full/annotationsDerived/en/annotations.json",
                         "15c9457afa703a32dcc78d54626418a91e820fe0ddd67b7d491c4c4d9f5846ab"),
+    "annotations-ja.json": (f"{CLDR}/cldr-annotations-full/annotations/ja/annotations.json",
+                            "737ce4bea3d52d904f7744eb7653ea55100c99232255609a913f69a5a8c3d6c1"),
+    "derived-ja.json": (f"{CLDR}/cldr-annotations-derived-full/annotationsDerived/ja/annotations.json",
+                        "6c5496486b89d57cb6f9f0701c8052d44c23b08703d796e5e45c1d65f3902edf"),
 }
+# Idiomas con dataset: el ingles y los que tienen sus dos archivos de CLDR arriba (un
+# idioma nuevo agrega sus dos lineas; sin ellas el panel usa el dataset en ingles).
+LANGS = ["en"] + sorted({n.split("-", 1)[1][:-5] for n in SOURCES if n.startswith("annotations-")} - {"en"})
 # Grupos de emoji-test.txt -> id del panel (Component queda fuera).
 GROUPS = {
     "Smileys & Emotion": "smileys", "People & Body": "people", "Animals & Nature": "animals",
@@ -135,7 +155,7 @@ def ensure_images(data, font, out_dir):
     stamp = stamp.hexdigest()
     stamp_file = os.path.join(out_dir, ".stamp")
     if os.path.exists(stamp_file) and open(stamp_file).read().strip() == stamp:
-        print("al dia")
+        print(T("up to date"))
         return
     from PIL import Image, ImageDraw, ImageFont
     os.makedirs(out_dir, exist_ok=True)
@@ -163,14 +183,14 @@ def ensure_images(data, font, out_dir):
     os.rmdir(tmp)
     with open(stamp_file, "w") as f:
         f.write(stamp + "\n")
-    print(f"{len(seqs)} imagenes en {out_dir}")
+    print(T("%1 images in %2", len(seqs), out_dir))
 
 
 def main():
     ap = argparse.ArgumentParser()
     here = os.path.dirname(os.path.realpath(__file__))
     ap.add_argument("--out", default=os.path.realpath(os.path.join(
-        here, "../../../../quickshell/.config/quickshell/dotshell/data/emoji.json")))
+        here, "../../../../quickshell/.config/quickshell/dotshell/data/emoji")))
     ap.add_argument("--cache", default=os.path.expanduser("~/.cache/dotfiles/emoji-src"))
     ap.add_argument("--font", default="/usr/share/fonts/noto/NotoColorEmoji.ttf")
     ap.add_argument("--ensure-images", action="store_true")
@@ -178,12 +198,13 @@ def main():
     args = ap.parse_args()
 
     if args.ensure_images:
-        ensure_images(args.out, args.font, args.images_dir)
+        # Las imagenes son las mismas en todos los idiomas: el sello sale del dataset en ingles.
+        ensure_images(os.path.join(args.out, "en.json"), args.font, args.images_dir)
         return
 
     p = fetch(args.cache)
     ann = {lang: {**annotations(p[f"derived-{lang}.json"]), **annotations(p[f"annotations-{lang}.json"])}
-           for lang in ("es", "en")}
+           for lang in LANGS}
     seqs = font_sequences(args.font)
 
     def lookup(lang, e):
@@ -212,18 +233,24 @@ def main():
         base = "".join(chr(c) for c in cps if c not in TONES)
         variants.setdefault(base, {})[tones.pop()] = e
 
-    out, stats = [], {"sin_glifo": 0, "sin_es": 0, "con_tono": 0, "tono_incompleto": 0}
+    for lang in LANGS:
+        write_lang(lang, args.out, bases, variants, seqs, lookup)
+
+
+def write_lang(lang, out_dir, bases, variants, seqs, lookup):
+    """El dataset de un idioma: nombre en ese idioma (o el ingles si CLDR no lo tiene)."""
+    out, stats = [], {"sin_glifo": 0, "sin_nombre": 0, "con_tono": 0, "tono_incompleto": 0}
     for e, name_test, group in bases:
         if not drawable(e, seqs):
             stats["sin_glifo"] += 1
             continue
-        n_es, k_es = lookup("es", e)
+        n_l, k_l = lookup(lang, e)
         n_en, k_en = lookup("en", e)
         n_en = n_en or name_test
-        if not n_es:
-            stats["sin_es"] += 1
-        entry = {"e": e, "n": n_es or n_en, "en": n_en, "g": group}
-        kws = [k for k in dict.fromkeys(k_es + k_en) if fold(k) not in (fold(entry["n"]), fold(n_en))]
+        if not n_l:
+            stats["sin_nombre"] += 1
+        entry = {"e": e, "n": n_l or n_en, "en": n_en, "g": group}
+        kws = [k for k in dict.fromkeys(k_l + k_en) if fold(k) not in (fold(entry["n"]), fold(n_en))]
         if kws:
             entry["k"] = kws
         # Busqueda: palabras del nombre (s) y de las claves (w), sin tildes.
@@ -239,15 +266,16 @@ def main():
                 stats["tono_incompleto"] += 1
         out.append(entry)
 
-    os.makedirs(os.path.dirname(args.out), exist_ok=True)
-    with open(args.out, "w", encoding="utf-8") as f:
+    os.makedirs(out_dir, exist_ok=True)
+    path = os.path.join(out_dir, lang + ".json")
+    with open(path, "w", encoding="utf-8") as f:
         f.write("[\n" + ",\n".join(json.dumps(x, ensure_ascii=False, separators=(",", ":")) for x in out) + "\n]\n")
     per = {}
     for x in out:
         per[x["g"]] = per.get(x["g"], 0) + 1
-    print(f"{len(out)} emojis -> {args.out} ({os.path.getsize(args.out)} bytes)")
-    print("por grupo:", per)
-    print("stats:", stats)
+    print(f"{lang}: {len(out)} emojis -> {path} ({os.path.getsize(path)} bytes)")
+    print("  " + T("per group: %1", per))
+    print("  stats:", stats)
 
 
 if __name__ == "__main__":

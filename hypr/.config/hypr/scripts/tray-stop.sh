@@ -6,6 +6,7 @@
 # ============================================================================
 set -euo pipefail
 
+I18N="$(dirname "$(readlink -f "$0")")/i18n"
 TARGET="${1:-}"
 TITLE="${2:-$TARGET}"
 
@@ -55,10 +56,12 @@ if [ "$STOPPED" = false ]; then
 fi
 
 # 4. Notificar resultado al usuario
+# En el idioma del usuario (Fase 15 B4).
+app="$("$I18N" tr "Tray")"
 if [ "$STOPPED" = true ]; then
-    info_msg="Se detuvo $TITLE"
-    [ -n "$PID" ] && info_msg="$info_msg (PID $PID)"
-    notify-send -a "Bandeja" "Aplicación detenida" "$info_msg" -i application-x-executable -t 2500
+    if [ -n "$PID" ]; then info_msg="$("$I18N" tr "%1 was stopped (PID %2)" "$TITLE" "$PID")"
+    else info_msg="$("$I18N" tr "%1 was stopped" "$TITLE")"; fi
+    notify-send -a "$app" "$("$I18N" tr "App stopped")" "$info_msg" -i application-x-executable -t 2500
 else
-    notify-send -a "Bandeja" "No se pudo detener" "No se encontró el proceso activo para $TITLE" -i dialog-warning -t 2500
+    notify-send -a "$app" "$("$I18N" tr "Couldn't stop it")" "$("$I18N" tr "No running process found for %1" "$TITLE")" -i dialog-warning -t 2500
 fi

@@ -48,14 +48,19 @@ def available():
         return []
 
 
-def language():
+def language(setting=None):
+    """El idioma efectivo. setting: el valor de appearance.language si quien llama ya lo
+    tiene (el motor de opciones, que no puede consultarse a si mismo); si no, se pregunta."""
     if os.environ.get("I18N_LANG"):
         return os.environ["I18N_LANG"]
-    settings = os.environ.get("SETTINGS") or os.path.join(HERE, "settings")
-    try:
-        v = subprocess.run([settings, "get", "appearance.language"], capture_output=True, text=True, timeout=5).stdout.strip()
-    except (OSError, subprocess.TimeoutExpired):
-        v = ""
+    if setting is not None:
+        v = setting
+    else:
+        settings = os.environ.get("SETTINGS") or os.path.join(HERE, "settings")
+        try:
+            v = subprocess.run([settings, "get", "appearance.language"], capture_output=True, text=True, timeout=5).stdout.strip()
+        except (OSError, subprocess.TimeoutExpired):
+            v = ""
     langs = available()
     if v and v != "auto":
         return v if v in langs or v == "en" else "en"
@@ -97,15 +102,42 @@ def category(family, n):
 
 
 def fill(s, args):
-    for i, a in enumerate(args, 1):
-        s = s.replace(f"%{i}", a)
-    return s
+    """%1..%9 en una sola pasada (un argumento que trae "%2" no se vuelve a reemplazar)."""
+    return re.sub(r"%([1-9])", lambda m: args[int(m.group(1)) - 1] if int(m.group(1)) <= len(args) else m.group(0), s)
 
 
 def lookup(cat, text, ctx=None):
     """La traduccion de text en un catalogo ya cargado (load()); el texto fuente si falta."""
     v = cat.get((ctx + SEP + text) if ctx else text)
     return v if isinstance(v, str) and v else text
+
+
+def translator(setting=None):
+    """Para los scripts en python: T(texto, *args, ctx=None) y Tn(singular, plural, n, *args).
+    El catalogo se carga una sola vez, al primer uso (los caminos sin mensajes no pagan nada)."""
+    state = {}
+
+    def cat():
+        if "cat" not in state:
+            # setting puede ser una funcion (se lee recien al primer mensaje).
+            lang = language(setting() if callable(setting) else setting)
+            state["cat"] = load(lang)
+        return state["cat"]
+
+    def T(text, *args, ctx=None):
+        return fill(lookup(cat(), text, ctx), [str(a) for a in args])
+
+    def Tn(sing, plural, n, *args):
+        c = cat()
+        v = c.get(sing)
+        fam = (c.get("@meta") or {}).get("plural", "one-other")
+        if isinstance(v, dict):
+            s = v.get(category(fam, n)) or v.get("other") or plural
+        else:
+            s = sing if abs(n) == 1 else plural
+        num = str(int(n)) if n == int(n) else str(n)
+        return fill(s.replace("%n", num), [str(a) for a in args])
+    return T, Tn
 
 
 # ---- Extraccion ---------------------------------------------------------------------------
@@ -119,7 +151,13 @@ CALLS = [
 BIND_DESC = re.compile(r'desc\s*=\s*"([^"·]+) · ([^"]+)"')
 SCRIPT_MARK = re.compile(r"\bN_\(\s*" + STR + r"\s*,\s*" + STR + r"\s*\)")
 # En los scripts de shell: i18n tr [--ctx "C"] "texto" (tambien "$I18N" tr ...).
-SHELL_TR = re.compile(r'i18n"?\s+tr\s+(?:--ctx\s+"?([\w ]+?)"?\s+)?' + STR)
+# Tambien la funcion corta i18n_tr que definen algunos scripts (i18n_tr "texto" args...).
+SHELL_TR = re.compile(r'(?:(?i:i18n)"?\s+tr|\bi18n_tr)\s+(?:--ctx\s+"?([\w ]+?)"?\s+)?' + STR)
+SHELL_TRN = re.compile(r'(?:(?i:i18n)"?\s+trn|\bi18n_trn)\s+' + STR)
+# En los scripts en python: T("texto", args..., ctx="c") y Tn("singular", "plural", n, ...).
+PY_T = re.compile(r"\bT\(\s*" + STR)
+PY_CTX = re.compile(r'\bctx\s*=\s*' + STR)
+PY_TN = re.compile(r"\bTn\(\s*" + STR)
 TRC_CTX = re.compile(r"\bI18n\.trc\(\s*" + STR + r"\s*,")
 PLURAL_SRC = re.compile(r"\bI18n\.trn\(\s*" + STR + r"\s*,\s*" + STR)
 
@@ -127,6 +165,26 @@ PLURAL_SRC = re.compile(r"\bI18n\.trn\(\s*" + STR + r"\s*,\s*" + STR)
 def core_calls(path, text):
     """El nucleo (I18nCore.qml) se llama a si mismo como root.tr(...): es lo mismo que I18n.tr."""
     return re.sub(r"\broot\.(tr|trc|trn|date)\(", r"I18n.\1(", text) if os.path.basename(path) == "I18nCore.qml" else text
+
+
+def call_rest(text, i):
+    """Lo que queda de una llamada hasta su parentesis de cierre (puede ocupar varias lineas)."""
+    depth, quote, j = 1, None, i
+    while j < len(text) and depth:
+        ch = text[j]
+        if quote:
+            if ch == "\\":
+                j += 1
+            elif ch == quote:
+                quote = None
+        elif ch in "\"'":
+            quote = ch
+        elif ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        j += 1
+    return text[i:j]
 
 
 def unescape(s):
@@ -189,12 +247,25 @@ def extract():
             text = open(p, encoding="utf-8").read()
         except (OSError, UnicodeDecodeError):
             continue
-        if text.startswith("#!/usr/bin/env python3"):
-            for m in SCRIPT_MARK.finditer(text):
-                add(unescape(m.group(1)) + SEP + unescape(m.group(2)), f"scripts/{f}:{text.count(chr(10), 0, m.start()) + 1}")
-        elif text.startswith("#!"):
+        line = lambda m: f"scripts/{f}:{text.count(chr(10), 0, m.start()) + 1}"
+        if not text.startswith("#!"):
+            continue
+        # Las lineas de comentario no cuentan (se borra su texto, se conservan las lineas).
+        text = re.sub(r"(?m)^[ \t]*#.*$", "", text)
+        # Los python marcan con N_/T/Tn (tambien el motor de opciones, python dentro de bash).
+        for m in SCRIPT_MARK.finditer(text):
+            add(unescape(m.group(1)) + SEP + unescape(m.group(2)), line(m))
+        for m in PY_T.finditer(text):
+            c = PY_CTX.search(call_rest(text, m.end()))
+            add((unescape(c.group(1)) + SEP if c else "") + unescape(m.group(1)), line(m))
+        for m in PY_TN.finditer(text):
+            add(unescape(m.group(1)), line(m), True)
+        if not text.startswith("#!/usr/bin/env python3"):
             for m in SHELL_TR.finditer(text):
-                add((m.group(1) + SEP if m.group(1) else "") + unescape(m.group(2)), f"scripts/{f}:{text.count(chr(10), 0, m.start()) + 1}")
+                if not m.group(2).startswith("$"):        # la definicion de i18n_tr ("$@")
+                    add((m.group(1) + SEP if m.group(1) else "") + unescape(m.group(2)), line(m))
+            for m in SHELL_TRN.finditer(text):
+                add(unescape(m.group(1)), line(m), True)
     # El esquema de opciones (en ingles, Fase 15 B3): todo lo que muestra el centro de
     # configuracion va con el contexto "settings" (SettingsModel.localized); las palabras
     # clave de cada opcion, juntas, con "settings keywords"; los nombres de los ajustes
@@ -290,45 +361,46 @@ def literals(path, allow):
 
 
 def cmd_check(quiet):
+    T, Tn = translator()
     keys = extract()
     fails = notes = 0
     def fail(msg):
         nonlocal fails
         fails += 1
-        print("FALLO " + msg)
+        print(T("FAIL %1", msg))
     for lang in available():
         cat = load(lang)
         meta = cat.get("@meta") or {}
         family = meta.get("plural", "one-other")
         if not meta.get("name"):
-            fail(f"{lang}: falta @meta.name")
+            fail(T("%1: @meta.name is missing", lang))
         want = {"other": {"other"}, "slavic": {"one", "few", "many"}}.get(family, {"one", "other"})
         for k, e in keys.items():
             v = cat.get(k)
             # Vacio vale solo si la fuente es puro espacio (ja: sin espacio entre frases).
             if v is None or (v == "" and k.split(SEP)[-1].strip()):
-                fail(f"{lang}: falta {k.replace(SEP, ' | ')!r} ({e['where'][0]})")
+                fail(T("%1: missing %2 (%3)", lang, repr(k.replace(SEP, ' | ')), e['where'][0]))
                 continue
             src_ph = set(PH.findall(k.split(SEP)[-1]))
             if e["plural"]:
                 if not isinstance(v, dict) or not want <= set(v):
-                    fail(f"{lang}: {k!r} necesita las formas {sorted(want)} (familia {family})")
+                    fail(T("%1: %2 needs the forms %3 (family %4)", lang, repr(k), sorted(want), family))
                     continue
                 forms = v.values()
                 src_ph |= {"n"}
             else:
                 if not isinstance(v, str):
-                    fail(f"{lang}: {k!r} no es un plural, va un texto")
+                    fail(T("%1: %2 isn't a plural, it takes a text", lang, repr(k)))
                     continue
                 forms = [v]
             for f in forms:
                 ph = set(PH.findall(f))
                 # %n puede faltar en una forma (ja "other" sin numero no pasa: igual se exige).
                 if ph != src_ph:
-                    fail(f"{lang}: {k!r}: marcadores {sorted(ph)} en vez de {sorted(src_ph)}: {f!r}")
+                    fail(T("%1: %2: placeholders %3 instead of %4: %5", lang, repr(k), sorted(ph), sorted(src_ph), repr(f)))
         for k in cat:
             if k != "@meta" and k not in keys:
-                fail(f"{lang}: clave vieja (nadie la usa): {k.replace(SEP, ' | ')!r}")
+                fail(T("%1: old key (nobody uses it): %2", lang, repr(k.replace(SEP, ' | '))))
     # Ningun texto visible fuera de I18n en lo ya convertido.
     try:
         rules = json.load(open(RULES))
@@ -337,22 +409,23 @@ def cmd_check(quiet):
     allow = {a["text"] for a in rules.get("allow", [])}
     for p in sddm_files():
         for n, s2 in literals(p, allow):
-            fail(f"sddm/{os.path.basename(p)}:{n}: texto visible fuera de I18n: {s2!r}")
+            fail(T("%1: visible text outside I18n: %2", f"sddm/{os.path.basename(p)}:{n}", repr(s2)))
     for rel in rules.get("converted", []):
         p = os.path.join(QML, rel)
         if not os.path.exists(p):
-            fail(f"convertido que no existe: {rel}")
+            fail(T("converted file that doesn't exist: %1", rel))
             continue
         for n, s in literals(p, allow):
-            fail(f"{rel}:{n}: texto visible fuera de I18n: {s!r}")
+            fail(T("%1: visible text outside I18n: %2", f"{rel}:{n}", repr(s)))
     if not quiet or fails:
-        print(f"i18n check: {fails} fallos · {len(keys)} claves · {len(available())} idiomas ({', '.join(['en'] + available())})")
+        print(T("i18n check: %1 failures · %2 keys · %3 languages (%4)", fails, len(keys), len(available()), ", ".join(['en'] + available())))
     sys.exit(1 if fails else 0)
 
 
 def cmd_stats():
     keys = extract()
-    print(f"en (fuente): {len(keys)} claves")
+    T, Tn = translator()
+    print(T("en (source): %1 keys", len(keys)))
     for lang in available():
         cat = load(lang)
         have = sum(1 for k in keys if cat.get(k) is not None and (cat.get(k) != "" or not k.split(SEP)[-1].strip()))
@@ -360,26 +433,27 @@ def cmd_stats():
 
 
 def main():
+    T, Tn = translator()
     a = sys.argv[1:]
     if not a:
-        die("uso: i18n tr|trn|lang|extract|check|stats")
+        die(T("usage: %1", "i18n tr|trn|lang|extract|check|stats|bundle"))
     cmd, rest = a[0], a[1:]
     if cmd == "tr":
         ctx = None
         if rest[:1] == ["--ctx"]:
             if len(rest) < 2:
-                die("--ctx necesita un contexto")
+                die(T("--ctx needs a context"))
             ctx, rest = rest[1], rest[2:]
         if not rest:
-            die("tr: falta el texto")
+            die(T("tr: the text is missing"))
         print(fill(lookup(load(language()), rest[0], ctx), rest[1:]))
     elif cmd == "trn":
         if len(rest) < 3:
-            die("trn: SINGULAR PLURAL N")
+            die(T("usage: %1", "i18n trn SINGULAR PLURAL N"))
         try:
             n = float(rest[2])
         except ValueError:
-            die("trn: N no es un numero")
+            die(T("trn: N isn't a number"))
         lang = language()
         cat = load(lang)
         v = cat.get(rest[0])
@@ -405,14 +479,14 @@ def main():
         cmd_stats()
     elif cmd == "bundle":
         if len(rest) < 2:
-            die("bundle: IDIOMA ARCHIVO...")
+            die(T("usage: %1", "i18n bundle LANGUAGE FILE..."))
         cat = load(rest[0])
         keys = qml_keys(rest[1:])
         out = {"@meta": cat.get("@meta", {})} if cat else {}
         out.update({k: cat[k] for k in sorted(keys) if k in cat})
         print(json.dumps(out, ensure_ascii=False))
     else:
-        die(f"orden desconocida: {cmd}")
+        die(T("unknown command: %1", cmd))
 
 
 if __name__ == "__main__":

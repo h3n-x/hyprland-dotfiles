@@ -56,6 +56,16 @@ import sys
 import tempfile
 import time
 
+# Mensajes en el idioma del usuario (Fase 15 B4): scripts/i18n, texto fuente en ingles.
+def _i18n():
+    import importlib.machinery, importlib.util
+    sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
+    loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(os.path.dirname(os.path.realpath(__file__)), "i18n"))
+    mod = importlib.util.module_from_spec(importlib.util.spec_from_loader("i18n", loader))
+    loader.exec_module(mod)
+    return mod
+T, Tn = _i18n().translator()
+
 HOME = os.environ["HOME"]
 SCHEMA = os.environ.get("SETTINGS_SCHEMA") or f"{HOME}/.config/quickshell/dotshell/data/settings.schema.json"
 EFFECTIVE = os.environ.get("SETTINGS_EFFECTIVE") or f"{os.environ.get('XDG_CACHE_HOME') or HOME + '/.cache'}/dotfiles/settings.effective.json"
@@ -163,7 +173,7 @@ def render_overrides(s, eff):
     r = subprocess.run(["luac", "-p", tmp], capture_output=True, text=True)
     os.unlink(tmp)
     if r.returncode != 0:
-        sys.exit(f"settings-apply: Lua generado no valido, no se escribe: {r.stderr.strip()}")
+        sys.exit("settings-apply: " + T("invalid generated Lua, not written: %1", r.stderr.strip()))
     write_atomic(OVERRIDES, text)
 
 
@@ -600,5 +610,5 @@ elif cmd == "idle-suspend":
     if eff["values"].get("power.suspendOnAC", True) or not on_ac():
         sys.exit(subprocess.run(SUSPEND).returncode)
 else:
-    sys.exit("uso: settings-apply changed <clave>...|hypr [--all|<clave>...]|idle [--restart]|render|live [--all|<clave>...]|"
-             "idle-suspend|display-keep|display-revert|display-power|nightlight [--restart|--start|--if-changed]|nightlight-preview <K>")
+    sys.exit(T("usage: %1", "settings-apply changed <key>...|hypr [--all|<key>...]|idle [--restart]|render|live [--all|<key>...]|"
+               "idle-suspend|display-keep|display-revert|display-power|nightlight [--restart|--start|--if-changed]|nightlight-preview <K>"))

@@ -68,6 +68,8 @@
 set -uo pipefail
 
 SCRIPTS_DIR="$(dirname "$(readlink -f "$0")")"
+# Mensajes en el idioma del usuario (Fase 15 B4; el log sigue en espanol).
+i18n_tr() { "$SCRIPTS_DIR/i18n" tr "$@"; }
 STATE_DIR="${THEME_STATE_DIR:-$HOME/.local/state/dotfiles}"
 STATE="$STATE_DIR/wallpapers.json"
 # Toda escritura del estado (aplicar, favoritos) pasa por este lock: la
@@ -120,7 +122,18 @@ die() {
 }
 
 usage() {
-  sed -n '7,17p' "$0" | sed 's/^# \{0,3\}//' >&2
+  i18n_tr "theme-apply.sh <wallpaper> [--scheme <type>] [--contrast <-1..1>]
+               [--source gallery|undo|ipc|settings] [--dry-run] [--no-system]
+theme-apply.sh --flush-system   (runs the pending system work now)
+theme-apply.sh --favorite <wallpaper> on|off|toggle   (gallery, Phase 3 B3)
+theme-apply.sh --tag <wallpaper> add|remove <tag>  (gallery, Phase 3 B4)
+theme-apply.sh --undo [--no-notify] [--dry-run]   (previous theme in the history, B5)
+theme-apply.sh --backend quickshell|hyprpaper|status   (who draws the wallpaper, B6)
+theme-apply.sh --face [--dry-run]   (remakes ~/.face with the chosen avatar, Phase 10 B2)
+theme-apply.sh --system   (schedules the system pass with the current theme: the language, Phase 15 B3)
+theme-apply.sh --reapply [--source settings|ipc] [--dry-run]   (the current theme in the store's mode, P5.5)
+theme-apply.sh --override <wallpaper> seed <#hex>|scheme <type>|reset   (per-wallpaper exception, B8a;
+               \"default\" in seed or scheme removes only that field, B8b)" >&2
   exit 2
 }
 
@@ -493,9 +506,9 @@ if [ "${1:-}" = "--face" ] || [ "${1:-}" = "--system" ]; then
   init_state
   cur="$(jq -c '.current // empty' "$STATE")"
   cwp="$(jq -r '.wallpaper // empty' <<< "$cur")"
-  [ -n "$cwp" ] || die "${1#--}: no hay un tema aplicado todavia"
+  [ -n "$cwp" ] || die "$(i18n_tr "%1: no theme applied yet" "${1#--}")"
   if [ "$1" = "--face" ]; then
-    make_face "$cwp" || die "avatar: no se pudo rehacer ~/.face (ver el log)"
+    make_face "$cwp" || die "$(i18n_tr "avatar: couldn't remake ~/.face (see the log)")"
     log "avatar: ~/.face rehecho"
   fi
   schedule_system "$cwp" "$(jq -r '.scheme // ""' <<< "$cur")" "$(jq -r '.contrast // ""' <<< "$cur")" \
@@ -512,10 +525,10 @@ if [ "${1:-}" = "--reapply" ]; then
     case "$1" in
       --source) rsource="${2:-}"; shift 2 ;;
       --dry-run) DRY=true; shift ;;
-      *) die "opcion desconocida para --reapply: $1" ;;
+      *) die "$(i18n_tr "unknown option for %1: %2" --reapply "$1")" ;;
     esac
   done
-  case "$rsource" in settings|ipc) ;; *) die "origen desconocido: $rsource" ;; esac
+  case "$rsource" in settings|ipc) ;; *) die "$(i18n_tr "unknown source: %1" "$rsource")" ;; esac
   init_state
   cur="$(jq -c '.current // empty' "$STATE")"
   cwp="$(jq -r '.wallpaper // empty' <<< "$cur")"
@@ -540,8 +553,8 @@ fi
 if [ "${1:-}" = "--favorite" ]; then
   [ $# -eq 3 ] || usage
   fav="$(readlink -f -- "$2")"
-  [ -f "$fav" ] || die "no existe: $2"
-  case "$3" in on|off|toggle) ;; *) die "favorito: usar on|off|toggle" ;; esac
+  [ -f "$fav" ] || die "$(i18n_tr "it doesn't exist: %1" "$2")"
+  case "$3" in on|off|toggle) ;; *) die "$(i18n_tr "favorite: use %1" "on|off|toggle")" ;; esac
   init_state
   _set_favorite() {
     jq --arg wp "$fav" --arg op "$3" '
@@ -562,7 +575,7 @@ if [ "${1:-}" = "--undo" ]; then
     case "$a" in
       --no-notify) notify_undo=false ;;
       --dry-run) undo_dry=true ;;
-      *) die "opcion desconocida para --undo: $a" ;;
+      *) die "$(i18n_tr "unknown option for %1: %2" --undo "$a")" ;;
     esac
   done
   init_state
@@ -588,7 +601,7 @@ if [ "${1:-}" = "--undo" ]; then
   if ! with_state_lock _pop_history; then
     log "deshacer: nada que deshacer"
     [ "$notify_undo" = true ] && command -v notify-send >/dev/null 2>&1 \
-      && notify-send "Tema" "No hay nada que deshacer" -i edit-undo -t 2500
+      && notify-send "$("$SCRIPTS_DIR/i18n" tr "Theme")" "$("$SCRIPTS_DIR/i18n" tr "There's nothing to undo")" -i edit-undo -t 2500
     exit 0
   fi
   target="$(jq -c '.history[0]' "$STATE")"
@@ -608,13 +621,13 @@ if [ "${1:-}" = "--undo" ]; then
     "$SETTINGS" set appearance.colorMode "$tmode" >/dev/null 2>> "$LOG" || log "deshacer: no se pudo volver el modo a $tmode"
   fi
   [ "$notify_undo" = true ] && command -v notify-send >/dev/null 2>&1 \
-    && notify-send "Tema" "Deshecho: $(basename "$twp")" -i edit-undo -t 2500
+    && notify-send "$("$SCRIPTS_DIR/i18n" tr "Theme")" "$("$SCRIPTS_DIR/i18n" tr "Undone: %1" "$(basename "$twp")")" -i edit-undo -t 2500
   setsid -f "$SCRIPTS_DIR/$(basename "$0")" --worker < /dev/null > /dev/null 2>&1
   exit 0
 fi
 if [ "${1:-}" = "--backend" ]; then
   [ $# -eq 2 ] || usage
-  case "$2" in quickshell|hyprpaper|status) ;; *) die "backend: usar quickshell|hyprpaper|status" ;; esac
+  case "$2" in quickshell|hyprpaper|status) ;; *) die "$(i18n_tr "backend: use %1" "quickshell|hyprpaper|status")" ;; esac
   init_state
   if [ "$2" = status ]; then
     wallpaper_backend
@@ -662,14 +675,14 @@ fi
 if [ "${1:-}" = "--tag" ]; then
   [ $# -eq 4 ] || usage
   twp="$(readlink -f -- "$2")"
-  [ -f "$twp" ] || die "no existe: $2"
-  case "$3" in add|remove) ;; *) die "etiqueta: usar add|remove" ;; esac
+  [ -f "$twp" ] || die "$(i18n_tr "it doesn't exist: %1" "$2")"
+  case "$3" in add|remove) ;; *) die "$(i18n_tr "tag: use %1" "add|remove")" ;; esac
   # Formato (decision B4c): minusculas, sin espacios en los bordes, espacios
   # internos -> "-", maximo 24 caracteres. ${t,,} respeta el locale (acentos).
   tag="${4,,}"
   tag="$(printf '%s' "$tag" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s/[[:space:]]+/-/g')"
   tag="${tag:0:24}"
-  [ -n "$tag" ] || die "etiqueta vacia"
+  [ -n "$tag" ] || die "$(i18n_tr "empty tag")"
   init_state
   _set_tag() {
     jq --arg wp "$twp" --arg op "$3" --arg tag "$tag" '
@@ -692,7 +705,7 @@ refresh_cache() {
 if [ "${1:-}" = "--override" ]; then
   [ $# -ge 3 ] || usage
   owp="$(readlink -f -- "$2")"
-  [ -f "$owp" ] || die "no existe: $2"
+  [ -f "$owp" ] || die "$(i18n_tr "it doesn't exist: %1" "$2")"
   init_state
   # "default": quitar solo ese campo (y la excepcion entera si queda vacia).
   if [ "${4:-}" = default ] && { [ "$3" = seed ] || [ "$3" = scheme ]; }; then
@@ -710,7 +723,7 @@ if [ "${1:-}" = "--override" ]; then
   case "$3" in
     seed)
       [ $# -eq 4 ] || usage
-      [[ "$4" =~ ^#[0-9a-fA-F]{6}$ ]] || die "semilla invalida (#rrggbb): $4"
+      [[ "$4" =~ ^#[0-9a-fA-F]{6}$ ]] || die "$(i18n_tr "invalid seed (#rrggbb): %1" "$4")"
       oseed="${4,,}"
       # Tiene que ser uno de los candidatos de la imagen (matugen elige el mas
       # cercano: otro color no daria lo mismo en la vista previa y al aplicar),
@@ -718,16 +731,16 @@ if [ "${1:-}" = "--override" ]; then
       # cualquiera (colores predefinidos, B8h).
       mapfile -t cands < <(candidates_of "$owp")
       if ! { [ "${#cands[@]}" -eq 1 ] && [ "${cands[0]}" = "$MATUGEN_FALLBACK" ]; }; then
-        printf '%s\n' "${cands[@]}" | grep -qx "$oseed" || die "la semilla no es un candidato de la imagen: $oseed (candidatos: ${cands[*]})"
+        printf '%s\n' "${cands[@]}" | grep -qx "$oseed" || die "$(i18n_tr "the seed isn't a candidate of the image: %1 (candidates: %2)" "$oseed" "${cands[*]}")"
       fi
       _set_override() { jq --arg wp "$owp" --arg v "$oseed" '.overrides = (.overrides // {}) | .overrides[$wp] = ((.overrides[$wp] // {}) + {seed: $v})' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
     scheme)
       [ $# -eq 4 ] || usage
-      [[ " $SCHEMES " == *" $4 "* ]] || die "esquema desconocido: $4"
+      [[ " $SCHEMES " == *" $4 "* ]] || die "$(i18n_tr "unknown scheme: %1" "$4")"
       _set_override() { jq --arg wp "$owp" --arg v "$4" '.overrides = (.overrides // {}) | .overrides[$wp] = ((.overrides[$wp] // {}) + {scheme: $v})' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
     reset)
       _set_override() { jq --arg wp "$owp" '.overrides = ((.overrides // {}) | del(.[$wp]))' "$STATE" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; } ;;
-    *) die "override: usar seed <#hex>|scheme <tipo>|reset" ;;
+    *) die "$(i18n_tr "override: use %1" "seed <#hex>|scheme <type>|reset")" ;;
   esac
   with_state_lock _set_override "$@"
   log "override: $owp ${*:3}"
@@ -745,28 +758,28 @@ while [ $# -gt 0 ]; do
     --dry-run)  DRY=true; shift ;;
     --no-system) NO_SYSTEM=true; shift ;;
     -h|--help)  usage ;;
-    -*)         die "opcion desconocida: $1" ;;
-    *)          [ -z "$wallpaper" ] || die "mas de un wallpaper"; wallpaper="$1"; shift ;;
+    -*)         die "$(i18n_tr "unknown option: %1" "$1")" ;;
+    *)          [ -z "$wallpaper" ] || die "$(i18n_tr "more than one wallpaper")"; wallpaper="$1"; shift ;;
   esac
 done
 
 [ -n "$wallpaper" ] || usage
-[ -f "$wallpaper" ] || die "no existe: $wallpaper"
+[ -f "$wallpaper" ] || die "$(i18n_tr "it doesn't exist: %1" "$wallpaper")"
 wallpaper="$(readlink -f -- "$wallpaper")"
 case "${wallpaper,,}" in
   *.png|*.jpg|*.jpeg|*.webp|*.gif) ;;
-  *) die "formato no soportado: $wallpaper" ;;
+  *) die "$(i18n_tr "unsupported format: %1" "$wallpaper")" ;;
 esac
 if [ -n "$scheme" ]; then
-  [[ " $SCHEMES " == *" $scheme "* ]] || die "esquema desconocido: $scheme"
+  [[ " $SCHEMES " == *" $scheme "* ]] || die "$(i18n_tr "unknown scheme: %1" "$scheme")"
 fi
 if [ -n "$contrast" ]; then
   awk -v c="$contrast" 'BEGIN { exit !(c ~ /^-?[0-9]*\.?[0-9]+$/ && c >= -1 && c <= 1) }' \
-    || die "contraste fuera de rango (-1..1): $contrast"
+    || die "$(i18n_tr "contrast out of range (-1..1): %1" "$contrast")"
 fi
-case "$source" in gallery|undo|ipc|settings) ;; *) die "origen desconocido: $source" ;; esac
+case "$source" in gallery|undo|ipc|settings) ;; *) die "$(i18n_tr "unknown source: %1" "$source")" ;; esac
 if [ -n "$seed" ]; then
-  [[ "$seed" =~ ^#[0-9a-fA-F]{6}$ ]] || die "semilla invalida (#rrggbb): $seed"
+  [[ "$seed" =~ ^#[0-9a-fA-F]{6}$ ]] || die "$(i18n_tr "invalid seed (#rrggbb): %1" "$seed")"
 fi
 
 # Opciones efectivas (B8a), resueltas una vez: viajan en el pedido y el historial.

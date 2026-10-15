@@ -26,6 +26,7 @@ set -uo pipefail
 API=${WEATHER_API_BASE:-https://api.open-meteo.com}
 GEO=${WEATHER_GEO_BASE:-https://geocoding-api.open-meteo.com}
 SETTINGS="$(dirname "$(readlink -f "$0")")/settings"
+I18N="$(dirname "$(readlink -f "$0")")/i18n"
 # La ubicacion (JSON {name, detail, lat, lon}) o vacio.
 location() { local l; l=$("$SETTINGS" get dashboard.weather.location 2>/dev/null); [[ $l != null ]] && printf '%s' "$l"; }
 CACHE=${WEATHER_CACHE:-$HOME/.cache/dotfiles/weather.json}
@@ -58,12 +59,12 @@ record_error() {
 fetch() {
     local loc lat lon place
     loc=$(location)
-    [[ -n $loc ]] || { echo "sin ubicacion: no se consulta" >&2; return 2; }
+    [[ -n $loc ]] || { "$I18N" tr "no location: nothing is queried" >&2; return 2; }
     lat=$(jq -r '.lat' <<<"$loc"); lon=$(jq -r '.lon' <<<"$loc"); place=$(jq -r '.name' <<<"$loc")
-    [[ $lat != null && $lon != null ]] || { echo "ubicacion invalida" >&2; return 2; }
+    [[ $lat != null && $lon != null ]] || { "$I18N" tr "invalid location" >&2; return 2; }
 
     exec 9>"$LOCK"
-    flock -n 9 || { echo "ya hay una consulta en curso" >&2; return 0; }
+    flock -n 9 || { "$I18N" tr "a query is already running" >&2; return 0; }
 
     local url="$API/v1/forecast?latitude=$lat&longitude=$lon&timezone=auto&forecast_days=5&forecast_hours=12"
     url+="&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day,wind_speed_10m,precipitation"
@@ -108,14 +109,14 @@ set_location() {
 
 status() {
     local loc; loc=$(location)
-    if [[ -z $loc ]]; then echo "sin ubicacion (el clima no consulta nada)"; return; fi
+    if [[ -z $loc ]]; then "$I18N" tr "no location (the weather queries nothing)"; return; fi
     jq -r '"ubicacion: \(.name) (\(.detail)) · \(.lat), \(.lon)"' <<<"$loc"
     if [[ -s $CACHE ]]; then
         jq -r --argjson now "$(now)" '
             (if .fetched_at then "datos: hace \((($now - .fetched_at) / 60) | floor) min" else "datos: ninguno" end),
             (if .last_error and ((.last_error.at // 0) >= (.fetched_at // 0)) then "ultimo intento: error \(.last_error.kind) (\(.last_error.detail))" else "ultimo intento: bien" end)' "$CACHE"
     else
-        echo "datos: ninguno todavia"
+        "$I18N" tr "data: none yet"
     fi
 }
 

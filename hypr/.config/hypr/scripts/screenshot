@@ -14,6 +14,7 @@ set -euo pipefail
 
 # Carpeta: capture.screenshotsDir (settings store, Fase 8 B1).
 SETTINGS="$(dirname "$0")/settings"
+I18N="$(dirname "$(readlink -f "$0")")/i18n"
 DIR=$("$SETTINGS" get capture.screenshotsDir) || exit 1
 FORMAT=$("$SETTINGS" get capture.format 2>/dev/null || echo png)
 COPY=$("$SETTINGS" get capture.copyToClipboard 2>/dev/null || echo true)
@@ -58,7 +59,7 @@ case "$MODE" in
         unfreeze
         ;;
     *)
-        echo "uso: screenshot full|region|window" >&2
+        "$I18N" tr "usage: %1" "screenshot full|region|window" >&2
         exit 2
         ;;
 esac

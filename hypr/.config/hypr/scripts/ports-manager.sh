@@ -19,6 +19,16 @@ import subprocess
 import signal
 import time
 
+# Textos en el idioma del usuario (Fase 15 B4): scripts/i18n, texto fuente en ingles.
+def _i18n():
+    import importlib.machinery, importlib.util
+    sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
+    loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(os.path.dirname(os.path.realpath(__file__)), "i18n"))
+    mod = importlib.util.module_from_spec(importlib.util.spec_from_loader("i18n", loader))
+    loader.exec_module(mod)
+    return mod
+T, Tn = _i18n().translator()
+
 # Procesos que deben ser ignorados por defecto (navegadores, multimedia, lanzadores de juegos, ruido de sistema)
 BLACKLIST_PROCESSES = {
     "zen-bin", "zen", "zen-browser", "firefox", "firefox-bin", "chromium",
@@ -256,16 +266,16 @@ def close_port(proto, port_str, pid_str=None, pname=None):
     proc_info = f" ({pname})" if pname and pname != "-" else ""
     if killed:
         subprocess.run([
-            "notify-send", "-a", "Puertos",
-            "Puerto cerrado",
-            f"Se cerró el puerto {port}/{proto}{proc_info}",
+            "notify-send", "-a", T("Ports"),
+            T("Port closed"),
+            T("Port %1 was closed", f"{port}/{proto}{proc_info}"),
             "-i", "network-wired", "-t", "2500"
         ])
     else:
         subprocess.run([
-            "notify-send", "-a", "Puertos",
-            "No se pudo cerrar el puerto",
-            f"No se pudo liberar el puerto {port}/{proto} (¿requiere permisos de root?)",
+            "notify-send", "-a", T("Ports"),
+            T("Couldn't close the port"),
+            T("Couldn't free port %1 (does it need root permissions?)", f"{port}/{proto}"),
             "-i", "dialog-warning", "-t", "3000"
         ])
 

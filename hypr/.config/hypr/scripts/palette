@@ -46,6 +46,20 @@ STATUS_ROLES = ["error", "on_error", "error_container", "on_error_container",
                 "success", "on_success", "success_container", "on_success_container"]
 
 
+# Mensajes en el idioma del usuario (Fase 15 B4): scripts/i18n, texto fuente en ingles.
+def _i18n():
+    import importlib.machinery, importlib.util
+    sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
+    loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(os.environ["PALETTE_BIN"], "i18n"))
+    mod = importlib.util.module_from_spec(importlib.util.spec_from_loader("i18n", loader))
+    loader.exec_module(mod)
+    return mod
+T, Tn = _i18n().translator()
+def N_(ctx, text): return text
+# Niveles de un hallazgo (se traducen al imprimirlos).
+LEVELS = [N_("palette level", "FAIL"), N_("palette level", "NOTICE")]
+
+
 def die(msg):
     print(f"palette: {msg}", file=sys.stderr)
     sys.exit(2)
@@ -56,7 +70,7 @@ def load(path):
         with open(path) as f:
             return json.load(f)
     except (OSError, ValueError) as e:
-        die(f"no se pudo leer {path}: {e}")
+        die(T("couldn't read %1: %2", path, e))
 
 
 RULES = load(os.path.join(DATA, "palette.rules.json"))
@@ -153,7 +167,7 @@ def status_table():
         _STATUS.update({m: {k: colors[k][m]["color"].lower() for k in STATUS_ROLES} for m in ("dark", "light")})
         return _STATUS
     except (ValueError, KeyError):
-        die("matugen no devolvio la familia de estado: " + r.stderr.strip()[:200])
+        die(T("matugen didn't return the status family: %1", r.stderr.strip()[:200]))
 
 
 def fmt(h):
@@ -172,15 +186,15 @@ def cmd_status(args):
             try:
                 contrast = float(next(it, ""))
             except ValueError:
-                die("--contrast necesita un numero")
+                die(T("--contrast needs a number"))
         elif a == "--write":
             write = True
         else:
-            die(f"opcion desconocida: {a}")
+            die(T("unknown option: %1", a))
     if mode not in ("dark", "light"):
-        die("--mode: dark o light")
+        die(T("--mode: dark or light"))
     if not -1 <= contrast <= 1:
-        die("--contrast fuera de -1..1")
+        die(T("--contrast out of -1..1"))
     tab = status_table()
     t = tab[mode]
     # status_dark / status_light (P5.5): las dos familias, para la vista previa
@@ -234,12 +248,12 @@ class Report:
         if key in self.seen:
             return
         self.seen.add(key)
-        if level == "FALLO":
+        if level == "FAIL":
             self.fail += 1
         else:
             self.notice += 1
-        if not self.quiet or level == "FALLO":
-            print(f"{level} {rule} {where}: {msg}")
+        if not self.quiet or level == "FAIL":
+            print(f"{T(level, ctx='palette level')} {rule} {where}: {msg}")
 
 
 def palette_values(pal, al, hc):
@@ -266,12 +280,12 @@ def check_palette(rep, pal, label, al):
             for fg in fgs:
                 for bg in p["bg"]:
                     if fg not in v or bg not in v:
-                        rep.add("FALLO", "PC-P0", tag, f"falta el alias {fg if fg not in v else bg}")
+                        rep.add("FAIL", "PC-P0", tag, T("alias %1 is missing", fg if fg not in v else bg))
                         continue
                     r = ratio(v[fg], v[bg])
                     if r + 1e-9 < need:
                         # outline_variant/divider y contraste 0: ya decorativos; el resto falla.
-                        rep.add("FALLO", "PC-P1", tag, f"{p['id']}: {fg} sobre {bg} = {r:.2f} (< {need})")
+                        rep.add("FAIL", "PC-P1", tag, T("%1: %2 on %3 = %4 (< %5)", p['id'], fg, bg, f"{r:.2f}", need))
         # Piso de transparencia: texto secundario sobre la superficie translucida,
         # con el peor fondo posible detras (blanco en oscuro, negro en claro).
         fl = RULES["floor"]
@@ -280,7 +294,7 @@ def check_palette(rep, pal, label, al):
         comp = mix(v[fl["bg"]], worst, th["surfaceFloor"])
         r = ratio(v[fl["fg"]], comp)
         if r + 1e-9 < mins[fl["min"]]:
-            rep.add("FALLO", "PC-P2", tag, f"piso de transparencia {th['surfaceFloor']}: {fl['fg']} = {r:.2f}")
+            rep.add("FAIL", "PC-P2", tag, T("transparency floor %1: %2 = %3", th['surfaceFloor'], fl['fg'], f"{r:.2f}"))
     check_status(rep, pal, label)
 
 
@@ -288,7 +302,7 @@ def check_status(rep, pal, label):
     th = RULES["thresholds"]
     for k in ("warning", "success", "error", "primary"):
         if k not in pal:
-            rep.add("FALLO", "PC-S0", label, f"la paleta no tiene {k}")
+            rep.add("FAIL", "PC-S0", label, T("the palette has no %1", k))
             return
     w, s, e, acc = pal["warning"], pal["success"], pal["error"], pal["primary"]
     # S1: valores exactos de la familia fija para el modo de la paleta.
@@ -297,32 +311,32 @@ def check_status(rep, pal, label):
         ref = status_table()[mode]
         for k in STATUS_ROLES:
             if pal.get(k, "").lower() != ref[k]:
-                rep.add("FALLO", "PC-S1", label, f"{k} = {pal.get(k)} (el sistema fija {ref[k]} en {mode})")
+                rep.add("FAIL", "PC-S1", label, T("%1 = %2 (the system fixes %3 in %4)", k, pal.get(k), ref[k], mode))
     else:
-        rep.add("AVISO", "PC-S1", label, "sin modo: no se compara con la familia fija")
+        rep.add("NOTICE", "PC-S1", label, T("no mode: not compared with the fixed family"))
     # S2: familias de tono.
     for k, rng in (("error", th["dangerHue"]), ("warning", th["warningHue"]), ("success", th["successHue"])):
         h = hue(pal[k])
         if not rng[0] <= h <= rng[1]:
-            rep.add("FALLO", "PC-S2", label, f"{k} fuera de su familia: tono {h:.0f} (esperado {rng[0]}-{rng[1]})")
+            rep.add("FAIL", "PC-S2", label, T("%1 outside its family: hue %2 (expected %3-%4)", k, f"{h:.0f}", rng[0], rng[1]))
     # S3: separacion warning/error y success/otros.
     if dhue(w, e) < th["warningDangerHue"]:
-        rep.add("FALLO", "PC-S3", label, f"warning y error a {dhue(w, e):.0f} grados (< {th['warningDangerHue']})")
+        rep.add("FAIL", "PC-S3", label, T("warning and error %1 degrees apart (< %2)", f"{dhue(w, e):.0f}", th['warningDangerHue']))
     de = delta_e(lin(rgb(w)), lin(rgb(e)))
     if de < th["warningDangerDeltaE"]:
-        rep.add("FALLO", "PC-S3", label, f"warning y error: dE {de:.1f} (< {th['warningDangerDeltaE']})")
+        rep.add("FAIL", "PC-S3", label, T("warning and error: dE %1 (< %2)", f"{de:.1f}", th['warningDangerDeltaE']))
     for a, b in (("success", "error"), ("success", "warning")):
         if dhue(pal[a], pal[b]) < th["statusHue"]:
-            rep.add("FALLO", "PC-S3", label, f"{a} y {b} a {dhue(pal[a], pal[b]):.0f} grados")
+            rep.add("FAIL", "PC-S3", label, T("%1 and %2 %3 degrees apart", a, b, f"{dhue(pal[a], pal[b]):.0f}"))
     c, kind = cvd_min(w, e)
     if c < th["cvdDeltaE"]:
-        rep.add("FALLO", "PC-S4", label, f"warning/error indistinguibles con {kind}: dE {c:.1f}")
+        rep.add("FAIL", "PC-S4", label, T("warning/error indistinguishable with %1: dE %2", kind, f"{c:.1f}"))
     # S5: el acento del wallpaper coincide con un estado (identidad y significado
     # no se confunden por la forma: C4). Solo aviso.
     for k in ("warning", "success", "error"):
         d = delta_e(lin(rgb(acc)), lin(rgb(pal[k])))
         if d < th["accentNoticeDeltaE"]:
-            rep.add("AVISO", "PC-S5", label, f"el acento del wallpaper coincide con {k} (dE {d:.1f}); el estado se distingue por icono/texto")
+            rep.add("NOTICE", "PC-S5", label, T("the wallpaper accent matches %1 (dE %2); the status is told apart by icon/text", k, f"{d:.1f}"))
 
 
 def samples():
@@ -405,10 +419,10 @@ def check_code(rep):
                     for i in hit:
                         used[i] += 1
                 elif base != q["semanticFile"] and base != "Colors.qml":
-                    rep.add("FALLO", "PC-Q1", where, "color literal fuera de la arquitectura: " + code.strip()[:90])
+                    rep.add("FAIL", "PC-Q1", where, T("literal color outside the architecture: %1", code.strip()[:90]))
             # Q2 roles crudos.
             if base not in q["m3Allowed"] and re.search(r"\bColors\.(m3|status)\w+", code):
-                rep.add("FALLO", "PC-Q2", where, "rol de paleta directo (usar un alias de SemanticPalette)")
+                rep.add("FAIL", "PC-Q2", where, T("direct palette role (use a SemanticPalette alias)"))
             # Q3 alfa a mano: Qt.alpha fuera de la paleta, o tint sin un valor de Tokens.
             if base not in q["alphaAllowed"] and "Qt.alpha(" in code:
                 hit = [i for i, a in enumerate(allowed) if a["file"] == rel and a["anchor"] in line]
@@ -416,11 +430,11 @@ def check_code(rep):
                     for i in hit:
                         used[i] += 1
                 else:
-                    rep.add("FALLO", "PC-Q3", where, "Qt.alpha a mano (usar Colors.tint con un token)")
+                    rep.add("FAIL", "PC-Q3", where, T("Qt.alpha by hand (use Colors.tint with a token)"))
             for m in re.finditer(r"Colors\.tint\(([^;]*)", code):
                 args = m.group(1)
                 if "Tokens." not in args:
-                    rep.add("FALLO", "PC-Q3", where, "Colors.tint sin un valor de Tokens")
+                    rep.add("FAIL", "PC-Q3", where, T("Colors.tint without a Tokens value"))
             # Q4 un color de identidad elegido por un estado (principio 23): la
             # condicion de un ?: o de un if/return nombra un estado y el color
             # que elige cuando se cumple es de identidad.
@@ -433,20 +447,20 @@ def check_code(rep):
                     for i in hit:
                         used[i] += 1
                 else:
-                    rep.add("FALLO", "PC-Q4", where, "un estado elige un color de identidad: " + code.strip()[:90])
+                    rep.add("FAIL", "PC-Q4", where, T("a status picks an identity color: %1", code.strip()[:90]))
             # Q5 paletas locales (LocalPalette, MediaColors de P12.5, AppColors de P5.6) solo donde la
             # arquitectura lo permite (P8.7 §3.4); el productor no cuenta.
             if re.search(r"\b(LocalPalette|MediaColors|AppColors)\b", code) and rel not in q["localAccentConsumers"] and base not in ("MediaColors.qml", "AppColors.qml"):
-                rep.add("FALLO", "PC-Q5", where, "paleta local fuera de los elementos permitidos")
+                rep.add("FAIL", "PC-Q5", where, T("local palette outside the allowed elements"))
             # Q6 alias inexistente.
             if base not in q["m3Allowed"]:
                 for x in names:
                     if x not in known and not x.startswith(("m3", "status")):
-                        rep.add("FALLO", "PC-Q6", where, f"Colors.{x} no existe en SemanticPalette")
+                        rep.add("FAIL", "PC-Q6", where, T("Colors.%1 doesn't exist in SemanticPalette", x))
     # PC-A permitidos vencidos.
     for i, a in enumerate(allowed):
         if not used[i]:
-            rep.add("FALLO", "PC-A1", a["file"], f"literal permitido que ya no existe: {a['anchor']!r}")
+            rep.add("FAIL", "PC-A1", a["file"], T("allowed literal that no longer exists: %1", repr(a['anchor'])))
 
 
 # ---- Plantillas -------------------------------------------------------------------------------------
@@ -463,17 +477,17 @@ def check_templates(rep):
         try:
             lines = open(path).read().splitlines()
         except OSError:
-            rep.add("FALLO", "PC-T0", f, "plantilla no encontrada")
+            rep.add("FAIL", "PC-T0", f, T("template not found"))
             continue
         for r in rs:
             roles = r["role"] if isinstance(r["role"], list) else [r["role"]]
             hits = [(n, l) for n, l in enumerate(lines, 1) if re.search(r["line"], l)]
             if not hits:
-                rep.add("FALLO", "PC-T1", f, f"no hay linea para {r['line']}")
+                rep.add("FAIL", "PC-T1", f, T("no line for %1", r['line']))
             for n, l in hits:
                 refs = re.findall(r"\{\{\s*((?:colors|status)\.\w+)", l)
                 if not refs or any(x not in roles for x in refs):
-                    rep.add("FALLO", "PC-T2", f"{f}:{n}", f"se esperaba {' o '.join(roles)}: {l.strip()[:80]}")
+                    rep.add("FAIL", "PC-T2", f"{f}:{n}", T("expected %1: %2", T(" or ").join(roles), l.strip()[:80]))
     # T4: el error sale de palette status, nunca de la paleta del esquema.
     err_re = re.compile(r"\{\{\s*colors\.(on_)?error(_container)?\.")
     for path in sorted(glob.glob(os.path.join(TEMPLATES, "**", "*"), recursive=True)):
@@ -481,7 +495,7 @@ def check_templates(rep):
             continue
         for n, l in enumerate(open(path, errors="replace").read().splitlines(), 1):
             if err_re.search(l):
-                rep.add("FALLO", "PC-T4", f"{os.path.relpath(path, TEMPLATES)}:{n}", "colors.error* (usar status.error*)")
+                rep.add("FAIL", "PC-T4", f"{os.path.relpath(path, TEMPLATES)}:{n}", T("colors.error* (use status.error*)"))
     for path in sorted(glob.glob(os.path.join(TEMPLATES, "**", "*"), recursive=True)):
         if os.path.isdir(path):
             continue
@@ -492,7 +506,7 @@ def check_templates(rep):
             continue
         for n, l in enumerate(text.splitlines(), 1):
             if TPL_LITERAL.search(re.sub(r"\{\{.*?\}\}", "", l)) and not l.lstrip().startswith(("#", "//", "--", "/*", "*")):
-                rep.add("FALLO", "PC-T3", f"{rel}:{n}", "color literal en una plantilla: " + l.strip()[:80])
+                rep.add("FAIL", "PC-T3", f"{rel}:{n}", T("literal color in a template: %1", l.strip()[:80]))
 
 
 
@@ -517,7 +531,7 @@ def text_palettes():
             try:
                 colors = json.loads(r.stdout)["colors"]
             except (ValueError, KeyError):
-                die("matugen no devolvio la paleta de " + seed + ": " + r.stderr.strip()[:200])
+                die(T("matugen didn't return the palette of %1: %2", seed, r.stderr.strip()[:200]))
             for mode in ("dark", "light"):
                 pal = {"colors." + k: v[mode]["color"].lower() for k, v in colors.items()}
                 pal.update({"status." + k: v for k, v in stt[mode].items()})
@@ -539,11 +553,11 @@ def check_template_text(rep):
         try:
             lines = open(os.path.join(TEMPLATES, f)).read().splitlines()
         except OSError:
-            rep.add("FALLO", "PC-T0", f, "plantilla no encontrada")
+            rep.add("FAIL", "PC-T0", f, T("template not found"))
             continue
         hits = [(n, l) for n, l in enumerate(lines, 1) if re.search(row["line"], l)]
         if not hits:
-            rep.add("FALLO", "PC-T5", f, f"no hay linea para {row['line']}")
+            rep.add("FAIL", "PC-T5", f, T("no line for %1", row['line']))
         for n, l in hits:
             pairs = dict((k, v) for k, v in PAIR_RE.findall(l))
             if pairs:  # fg y bg en la misma linea (yazi): fg sobre ese bg
@@ -564,15 +578,15 @@ def check_template_text(rep):
                 worst = None
                 for label, pal in pals:
                     if fg not in pal or any(x not in pal for x in b):
-                        rep.add("FALLO", "PC-T5", f"{f}:{n}", f"rol desconocido: {fg} sobre {b}")
+                        rep.add("FAIL", "PC-T5", f"{f}:{n}", T("unknown role: %1 on %2", fg, b))
                         break
                     for x in b:
                         r = ratio(pal[fg], pal[x])
                         if worst is None or r < worst[0]:
                             worst = (r, label, x)
                 if worst and worst[0] < need:
-                    rep.add("FALLO", "PC-T5", f"{f}:{n}",
-                            f"{fg} sobre {worst[2]} = {worst[0]:.2f} (< {need}) en {worst[1]}: {l.strip()[:60]}")
+                    rep.add("FAIL", "PC-T5", f"{f}:{n}",
+                            T("%1 on %2 = %3 (< %4) in %5: %6", fg, worst[2], f"{worst[0]:.2f}", need, worst[1], l.strip()[:60]))
 
 # ---- Entrada --------------------------------------------------------------------------------------
 def cmd_check(args):
@@ -592,13 +606,13 @@ def cmd_check(args):
         elif a == "--quiet":
             quiet = True
         else:
-            die(f"opcion desconocida: {a}")
+            die(T("unknown option: %1", a))
     if not (pals or do_samples or do_code or do_tpl):
         do_code = do_tpl = True
     rep = Report(quiet)
     al = aliases()
     if not al:
-        die("no se encontraron alias en SemanticPalette.qml")
+        die(T("no aliases found in SemanticPalette.qml"))
     for p in pals:
         check_palette(rep, load(p), os.path.basename(p), al)
     n = 0
@@ -611,8 +625,8 @@ def cmd_check(args):
     if do_tpl:
         check_templates(rep)
         check_template_text(rep)
-    extra = f" · {n} muestras" if do_samples else ""
-    print(f"palette check: {rep.fail} fallos · {rep.notice} avisos{extra}")
+    extra = T(" · %1 samples", n) if do_samples else ""
+    print(T("palette check: %1 failures · %2 notices", rep.fail, rep.notice) + extra)
     sys.exit(1 if rep.fail else 0)
 
 
@@ -622,5 +636,5 @@ if cmd == "status":
 elif cmd == "check":
     cmd_check(sys.argv[2:])
 else:
-    die("uso: palette status [--mode M] [--contrast C] [--write] | palette check [--palette F] [--samples] [--code] [--templates] [--all] [--quiet]")
+    die(T("usage: %1", "palette status [--mode M] [--contrast C] [--write] | palette check [--palette F] [--samples] [--code] [--templates] [--all] [--quiet]"))
 PY

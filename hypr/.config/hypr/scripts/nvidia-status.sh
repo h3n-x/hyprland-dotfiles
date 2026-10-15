@@ -9,6 +9,17 @@ import sys
 import json
 import subprocess
 
+
+# Textos en el idioma del usuario (Fase 15 B4): scripts/i18n, texto fuente en ingles.
+def _i18n():
+    import importlib.machinery, importlib.util
+    sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
+    loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(os.path.dirname(os.path.realpath(__file__)), "i18n"))
+    mod = importlib.util.module_from_spec(importlib.util.spec_from_loader("i18n", loader))
+    loader.exec_module(mod)
+    return mod
+T, Tn = _i18n().translator()
+
 def get_status():
     pci_path = "/sys/bus/pci/devices/0000:01:00.0/power/runtime_status"
     if not os.path.exists(pci_path):
@@ -50,7 +61,7 @@ def get_status():
     return {
         "status": status,
         "active": is_active,
-        "text": "Activa" if is_active else "Reposo (D3cold - 0W)",
+        "text": T("Active", ctx="gpu") if is_active else T("Idle (D3cold - 0W)"),
         # Nombre de ligadura de Material Symbols (lo dibuja ControlCenter.qml).
         "icon": "memory",
         "processes": processes

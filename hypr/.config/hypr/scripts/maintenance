@@ -18,6 +18,7 @@
 # shell). MAINT_DRY=1 (pruebas): "run" solo muestra los comandos.
 # Requiere: pacman-contrib (checkupdates, paccache), jq, systemd; yay/paru opcional
 set -uo pipefail
+I18N="$(dirname "$(readlink -f "$0")")/i18n"
 
 TRASH="${XDG_DATA_HOME:-$HOME/.local/share}/Trash"
 COREDUMPS=/var/lib/systemd/coredump
@@ -160,12 +161,13 @@ commands_for() {
 }
 why_for() {
     case "$1" in
-        update) echo "Actualizar el sistema (repositorio y AUR)." ;;
-        orphans) echo "Quitar los paquetes que ya nada usa (pacman vuelve a preguntar)." ;;
-        pkgcache) echo "Limpiar la caché de paquetes: quedan las dos últimas versiones de cada paquete." ;;
-        journal) echo "Reducir el diario del sistema a 200 MB (se borran los registros más viejos)." ;;
-        coredumps) echo "Borrar los volcados de error guardados. El registro de fallos (coredumpctl) se conserva." ;;
-        trash) echo "Vaciar la papelera. No se puede deshacer." ;;
+        # Lo muestra el dashboard: en el idioma del usuario (Fase 15 B4).
+        update) "$I18N" tr "Update the system (repository and AUR)." ;;
+        orphans) "$I18N" tr "Remove the packages nothing uses anymore (pacman asks again)." ;;
+        pkgcache) "$I18N" tr "Clean the package cache: the last two versions of each package stay." ;;
+        journal) "$I18N" tr "Shrink the system journal to 200 MB (the oldest records are deleted)." ;;
+        coredumps) "$I18N" tr "Delete the saved crash dumps. The crash record (coredumpctl) is kept." ;;
+        trash) "$I18N" tr "Empty the trash. It can't be undone." ;;
     esac
 }
 plan() {
@@ -219,7 +221,7 @@ run_action() {
         unit-log)
             local unit=${2:-} flag=
             [[ ${3:-} == user ]] && flag=--user
-            [[ -n $unit ]] || { echo "falta la unidad" >&2; return 2; }
+            [[ -n $unit ]] || { "$I18N" tr "the unit is missing" >&2; return 2; }
             say "Registro de $unit en este arranque"
             if [[ ${MAINT_DRY:-} == 1 ]]; then note "journalctl $flag -b -u $unit"; return 0; fi
             journalctl $flag -b -u "$unit" --no-pager | tail -n 60
@@ -229,7 +231,7 @@ run_action() {
     esac
     mapfile -t cmds < <(commands_for "$action")
     if ((${#cmds[@]} == 0)); then
-        echo "uso: maintenance run update|orphans|pkgcache|journal|coredumps|trash|unit-log <unidad> [user]" >&2
+        "$I18N" tr "usage: %1" "maintenance run update|orphans|pkgcache|journal|coredumps|trash|unit-log <unit> [user]" >&2
         return 2
     fi
     ask_and_run "$(why_for "$action")" "${cmds[@]}"
@@ -243,9 +245,9 @@ case "${1:-}" in
             updates) updates ;;
             sizes) sizes ;;
             plan) plan ;;
-            *) echo "uso: maintenance data quick|updates|sizes|plan" >&2; exit 2 ;;
+            *) "$I18N" tr "usage: %1" "maintenance data quick|updates|sizes|plan" >&2; exit 2 ;;
         esac
         ;;
     run) shift; run_action "$@" ;;
-    *) echo "uso: maintenance data quick|updates|sizes|plan | run <accion>" >&2; exit 2 ;;
+    *) "$I18N" tr "usage: %1" "maintenance data quick|updates|sizes|plan | run <action>" >&2; exit 2 ;;
 esac

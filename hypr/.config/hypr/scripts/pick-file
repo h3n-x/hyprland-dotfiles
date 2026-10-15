@@ -15,14 +15,25 @@ import os
 import sys
 import uuid
 
+
+# Mensajes en el idioma del usuario (Fase 15 B4): scripts/i18n, texto fuente en ingles.
+def _i18n():
+    import importlib.machinery, importlib.util
+    sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
+    loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(os.path.dirname(os.path.realpath(__file__)), "i18n"))
+    mod = importlib.util.module_from_spec(importlib.util.spec_from_loader("i18n", loader))
+    loader.exec_module(mod)
+    return mod
+T, Tn = _i18n().translator()
+
 import gi
 
 gi.require_version("Gio", "2.0")
 from gi.repository import Gio, GLib  # noqa: E402
 
 ap = argparse.ArgumentParser(prog="pick-file")
-ap.add_argument("--folder", action="store_true", help="elegir una carpeta")
-ap.add_argument("--images", action="store_true", help="solo imagenes")
+ap.add_argument("--folder", action="store_true", help=T("choose a folder"))
+ap.add_argument("--images", action="store_true", help=T("images only"))
 ap.add_argument("--title", default="")
 ap.add_argument("--start", default="")
 a = ap.parse_args()
@@ -30,7 +41,7 @@ a = ap.parse_args()
 try:
     bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
 except GLib.Error as e:
-    print(f"pick-file: sin bus de sesion: {e.message}", file=sys.stderr)
+    print("pick-file: " + T("no session bus: %1", e.message), file=sys.stderr)
     sys.exit(2)
 
 token = "pickfile_" + uuid.uuid4().hex
@@ -67,19 +78,20 @@ if a.images:
 start = os.path.expanduser(a.start) if a.start else ""
 if start and os.path.isdir(start):
     opts["current_folder"] = GLib.Variant("ay", start.encode() + b"\0")
-title = a.title or ("Elegir una carpeta" if a.folder else "Elegir un archivo")
+# El titulo de la ventana del portal, en el idioma del usuario.
+title = a.title or (T("Choose a folder") if a.folder else T("Choose a file"))
 
 try:
     bus.call_sync("org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
                   "org.freedesktop.portal.FileChooser", "OpenFile",
                   GLib.Variant("(ssa{sv})", ("", title, opts)), None, Gio.DBusCallFlags.NONE, -1, None)
 except GLib.Error as e:
-    print(f"pick-file: el portal no respondio: {e.message}", file=sys.stderr)
+    print("pick-file: " + T("the portal didn't answer: %1", e.message), file=sys.stderr)
     sys.exit(2)
 
 loop.run()
 if result["code"] == 0:
     print(result["path"])
 elif result["code"] == 2:
-    print("pick-file: el portal devolvio un error", file=sys.stderr)
+    print("pick-file: " + T("the portal returned an error"), file=sys.stderr)
 sys.exit(result["code"])
