@@ -13,6 +13,8 @@
 #                                      visible fuera de I18n en los archivos ya convertidos
 #                                      (data/i18n.rules.json); salida 0/1
 #   i18n stats                         cobertura por idioma
+#   i18n bundle IDIOMA ARCHIVO...      el catalogo con solo las claves que usan esos QML
+#                                      (el greeter de SDDM, que no tiene el almacen; B3)
 #
 # Los scripts en python lo importan (lookup()); marcan sus textos con N_(contexto,
 # texto), dos cadenas literales, para que extract los vea. Tambien se extraen las descripciones de binds.lua
@@ -20,7 +22,8 @@
 #
 # Pruebas: I18N_DIR (catalogos), I18N_QML (carpeta dotshell), I18N_LANG (idioma
 # sin consultar el almacen), SETTINGS (otro motor de opciones), I18N_BINDS (binds.lua),
-# I18N_SCRIPTS (carpeta de los scripts).
+# I18N_SCRIPTS (carpeta de los scripts), I18N_SDDM (el tema del greeter, sddm/theme).
+# Los scripts de shell traducen con `i18n tr [--ctx C] "texto"`: extract los lee igual.
 import json, os, re, subprocess, sys
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -29,6 +32,7 @@ CATS = os.environ.get("I18N_DIR") or os.path.join(QML, "data", "i18n")
 RULES = os.path.join(QML, "data", "i18n.rules.json")
 BINDS = os.environ.get("I18N_BINDS") or os.path.join(os.path.dirname(HERE), "modules", "binds.lua")
 SCRIPTS = os.environ.get("I18N_SCRIPTS") or HERE
+SDDM = os.environ.get("I18N_SDDM") or os.path.normpath(os.path.join(HERE, "..", "..", "..", "..", "sddm", "theme"))
 SEP = "\u0004"
 
 
@@ -114,6 +118,8 @@ CALLS = [
 ]
 BIND_DESC = re.compile(r'desc\s*=\s*"([^"·]+) · ([^"]+)"')
 SCRIPT_MARK = re.compile(r"\bN_\(\s*" + STR + r"\s*,\s*" + STR + r"\s*\)")
+# En los scripts de shell: i18n tr [--ctx "C"] "texto" (tambien "$I18N" tr ...).
+SHELL_TR = re.compile(r'i18n"?\s+tr\s+(?:--ctx\s+"?([\w ]+?)"?\s+)?' + STR)
 TRC_CTX = re.compile(r"\bI18n\.trc\(\s*" + STR + r"\s*,")
 PLURAL_SRC = re.compile(r"\bI18n\.trn\(\s*" + STR + r"\s*,\s*" + STR)
 
@@ -134,15 +140,35 @@ def qml_files():
     return sorted(out)
 
 
+def sddm_files():
+    """El greeter de SDDM (sddm/theme): sus QML propios, todos convertidos."""
+    try:
+        return sorted(os.path.join(SDDM, f) for f in os.listdir(SDDM) if f.endswith(".qml"))
+    except OSError:
+        return []
+
+
+def qml_keys(files):
+    """Claves que usan unos QML: {clave: (archivo:linea, plural)}."""
+    out = {}
+    for f in files:
+        text = core_calls(f, open(f, errors="replace").read())
+        rel = os.path.relpath(f, QML) if f.startswith(QML) else "sddm/" + os.path.basename(f)
+        for rx, key in CALLS:
+            for m in rx.finditer(text):
+                out.setdefault(unescape(key(m)), (f"{rel}:{text.count(chr(10), 0, m.start()) + 1}", rx is CALLS[2][0]))
+    return out
+
+
 def extract():
     keys = {}   # clave -> {"where": [...], "plural": bool}
     def add(k, where, plural=False):
         e = keys.setdefault(k, {"where": [], "plural": plural})
         e["where"].append(where)
         e["plural"] = e["plural"] or plural
-    for f in qml_files():
+    for f in qml_files() + sddm_files():
         text = core_calls(f, open(f, errors="replace").read())
-        rel = os.path.relpath(f, QML)
+        rel = os.path.relpath(f, QML) if f.startswith(QML) else "sddm/" + os.path.basename(f)
         for rx, key in CALLS:
             for m in rx.finditer(text):
                 add(unescape(key(m)), f"{rel}:{text.count(chr(10), 0, m.start()) + 1}", rx is CALLS[2][0])
@@ -163,10 +189,12 @@ def extract():
             text = open(p, encoding="utf-8").read()
         except (OSError, UnicodeDecodeError):
             continue
-        if not text.startswith("#!/usr/bin/env python3"):
-            continue
-        for m in SCRIPT_MARK.finditer(text):
-            add(unescape(m.group(1)) + SEP + unescape(m.group(2)), f"scripts/{f}:{text.count(chr(10), 0, m.start()) + 1}")
+        if text.startswith("#!/usr/bin/env python3"):
+            for m in SCRIPT_MARK.finditer(text):
+                add(unescape(m.group(1)) + SEP + unescape(m.group(2)), f"scripts/{f}:{text.count(chr(10), 0, m.start()) + 1}")
+        elif text.startswith("#!"):
+            for m in SHELL_TR.finditer(text):
+                add((m.group(1) + SEP if m.group(1) else "") + unescape(m.group(2)), f"scripts/{f}:{text.count(chr(10), 0, m.start()) + 1}")
     # El esquema de opciones (en ingles, Fase 15 B3): todo lo que muestra el centro de
     # configuracion va con el contexto "settings" (SettingsModel.localized); las palabras
     # clave de cada opcion, juntas, con "settings keywords"; los nombres de los ajustes
@@ -210,7 +238,10 @@ DATE_PATTERN = re.compile(r"^[dMyhHmsaAPt:.,/ \\n'年月日()-]+$")
 def human(s):
     if len(s) < 2 or s.startswith(("#", "/", "~", "qrc", "file:", "image:", "http", "%", "$", "-", ".")):
         return False
-    if re.fullmatch(r"[a-z0-9_.:/-]+", s) or re.fullmatch(r"[A-Z0-9_ -]+", s.strip()):
+    if re.fullmatch(r"[a-z0-9_.:/-]+", s):
+        return False
+    # Constantes en mayusculas (HH, KEY_UP); varias palabras en mayusculas son texto ("DE UN VISTAZO").
+    if re.fullmatch(r"[A-Z0-9_ -]+", s.strip()) and not re.search(r"[A-Z]{2,} [A-Z]{2,}", s):
         return False
     if re.fullmatch(r"[A-Za-z]+", s) and s[0].islower():
         return False
@@ -225,7 +256,7 @@ def human(s):
     return bool(re.search(r"[A-Za-zÁÉÍÓÚáéíóúñ]{2,}", s)) and (" " in s or bool(re.search(r"[áéíóúñÁÉÍÓÚ¿¡]", s)) or s[0].isupper())
 
 
-VISIBLE = re.compile(r"\b(?:text|label|unit|placeholder|hint|status|title|tooltip|detail|note|word|emptyText|sentence|summary)\s*:\s*" + STR)
+VISIBLE = re.compile(r"\b(?:text|label|unit|placeholder|hint|status|title|tooltip|detail|note|word|emptyText|sentence|summary|\w+(?:Title|Text|Label|Hint|Placeholder))\s*:\s*" + STR)
 
 
 def literals(path, allow):
@@ -304,6 +335,9 @@ def cmd_check(quiet):
     except (OSError, ValueError):
         rules = {"converted": [], "allow": []}
     allow = {a["text"] for a in rules.get("allow", [])}
+    for p in sddm_files():
+        for n, s2 in literals(p, allow):
+            fail(f"sddm/{os.path.basename(p)}:{n}: texto visible fuera de I18n: {s2!r}")
     for rel in rules.get("converted", []):
         p = os.path.join(QML, rel)
         if not os.path.exists(p):
@@ -369,6 +403,14 @@ def main():
         cmd_check("--quiet" in rest)
     elif cmd == "stats":
         cmd_stats()
+    elif cmd == "bundle":
+        if len(rest) < 2:
+            die("bundle: IDIOMA ARCHIVO...")
+        cat = load(rest[0])
+        keys = qml_keys(rest[1:])
+        out = {"@meta": cat.get("@meta", {})} if cat else {}
+        out.update({k: cat[k] for k in sorted(keys) if k in cat})
+        print(json.dumps(out, ensure_ascii=False))
     else:
         die(f"orden desconocida: {cmd}")
 

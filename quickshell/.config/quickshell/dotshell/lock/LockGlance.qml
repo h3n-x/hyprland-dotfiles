@@ -117,16 +117,16 @@ Scope {
             // "Reproduciendo"); sin titulo, "Música". Debajo, el artista o el
             // reproductor.
             const p = MediaState.active;
-            r.push({ key: "music", icon: "music_note", title: p.trackTitle || "Música",
-                     sub: p.trackArtist || MediaState.nameOf(p) || "Reproduciendo", tone: "" });
+            r.push({ key: "music", icon: "music_note", title: p.trackTitle || I18n.tr("Music"),
+                     sub: p.trackArtist || MediaState.nameOf(p) || I18n.tr("Playing"), tone: "" });
         }
         if (root.onBattery) r.push({
             key: "battery",
             icon: BatteryState.critical || BatteryState.warning ? "battery_alert" : "battery_android_full",
-            title: Math.round(BatteryState.pct * 100) + " %",
-            sub: BatteryState.critical ? "Batería crítica" : BatteryState.warning ? "Batería baja" : "Con batería",
+            title: I18n.tr("%1 %", I18n.number(Math.round(BatteryState.pct * 100))),
+            sub: BatteryState.critical ? I18n.tr("Battery critical") : BatteryState.warning ? I18n.tr("Battery low") : I18n.tr("On battery"),
             tone: BatteryState.critical ? "danger" : BatteryState.warning ? "warning" : "" });
-        if (root.notifications > 0) r.push({ key: "notifications", icon: "notifications", title: root.notifications + (root.notifications === 1 ? " aviso" : " avisos"), sub: "Nuevos", tone: "" });
+        if (root.notifications > 0) r.push({ key: "notifications", icon: "notifications", title: I18n.trn("%n notice", "%n notices", root.notifications), sub: I18n.trc("notices", "New"), tone: "" });
         return r;
     }
 }

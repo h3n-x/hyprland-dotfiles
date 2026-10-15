@@ -142,7 +142,7 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: card.dots === 0
                     text: card.success ? card.successText
-                        : card.auth.busy ? "Verificando…" : card.auth.lockedOut ? "Bloqueado temporalmente" : "Contraseña"
+                        : card.auth.busy ? I18n.tr("Verifying…") : card.auth.lockedOut ? I18n.tr("Temporarily locked") : I18n.tr("Password")
                     color: card.success ? Colors.text : Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.title
@@ -189,7 +189,7 @@ Rectangle {
                 anchors.right: enterHint.left
                 anchors.rightMargin: Tokens.space.md
                 anchors.verticalCenter: parent.verticalCenter
-                text: card.auth.message || (card.capsLock ? "Bloq Mayús activado" : "")
+                text: card.auth.message || (card.capsLock ? I18n.tr("Caps Lock is on") : "")
                 color: card.auth.message ? Colors.danger : Colors.warning
                 elide: Text.ElideRight
                 font.family: Tokens.font.ui
@@ -207,7 +207,7 @@ Rectangle {
                 Text {
                     id: enterText
                     anchors.centerIn: parent
-                    text: "Enter  ↵"
+                    text: I18n.trc("key", "Enter") + "  ↵"
                     color: Colors.textOnAccent
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body

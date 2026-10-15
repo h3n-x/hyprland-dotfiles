@@ -6,8 +6,11 @@
 #
 # Contenido (una sola implementacion, nada se copia a mano):
 #   sddm/theme/        Main.qml, SddmAuth.qml, qmldir, theme.conf, metadata.desktop
-#   dotshell           Tokens.qml, SemanticPalette.qml, modules/Icon.qml, login/
-#                      (la pantalla de entrada compartida con el bloqueo)
+#   dotshell           Tokens.qml, SemanticPalette.qml, I18nCore.qml, modules/Icon.qml,
+#                      login/ (la pantalla de entrada compartida con el bloqueo)
+#   scripts/i18n       I18n.qml: el idioma del usuario (appearance.language) con su
+#                      catalogo, solo las claves del greeter (Fase 15 B3; el greeter
+#                      no tiene el almacen ni lee el home)
 #   matugen            Colors.qml (templates/sddm/Colors.qml, pasada del sistema)
 #   el usuario         backgrounds/wall.png (el wallpaper actual), face.png (~/.face)
 #                      y en theme.conf su tipografia y tamano del texto (Fase 10 B2;
@@ -34,11 +37,20 @@ trap 'rm -rf "$tmp"' EXIT
 
 cp -L "$THEME_SRC/Main.qml" "$THEME_SRC/SddmAuth.qml" "$THEME_SRC/qmldir" \
       "$THEME_SRC/theme.conf" "$THEME_SRC/metadata.desktop" "$tmp/"
-cp -L "$SHELL_DIR/Tokens.qml" "$SHELL_DIR/SemanticPalette.qml" "$tmp/"
+cp -L "$SHELL_DIR/Tokens.qml" "$SHELL_DIR/SemanticPalette.qml" "$SHELL_DIR/I18nCore.qml" "$tmp/"
 mkdir -p "$tmp/modules" "$tmp/login" "$tmp/backgrounds"
 cp -L "$SHELL_DIR/modules/Icon.qml" "$tmp/modules/"
 cp -L "$SHELL_DIR/login/"*.qml "$tmp/login/"
 cp -L "$COLORS" "$tmp/Colors.qml"
+
+# Idioma (Fase 15 B3): el nucleo con el catalogo ya puesto (ingles = sin catalogo).
+I18N=${I18N_CMD:-$REPO/hypr/.config/hypr/scripts/i18n}
+lang=$("$I18N" lang 2>/dev/null || echo en)
+catalog=null
+[ "$lang" = en ] || catalog=$("$I18N" bundle "$lang" "$tmp/I18nCore.qml" "$tmp/Main.qml" "$tmp/SddmAuth.qml" "$tmp/login/"*.qml 2>/dev/null || echo null)
+[ -n "$catalog" ] || catalog=null
+printf '// Generado por sddm-theme-stage (Fase 15 B3): idioma %s.\npragma Singleton\nimport QtQuick\n\nI18nCore {\n    lang: "%s"\n    catalog: (%s)\n}\n' \
+  "$lang" "$lang" "$catalog" > "$tmp/I18n.qml"
 
 # Tipografia y tamano del texto (Fase 10 B2), del almacen de opciones.
 SETTINGS=${SETTINGS_CMD:-$REPO/hypr/.config/hypr/scripts/settings}

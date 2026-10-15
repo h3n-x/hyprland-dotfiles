@@ -9,8 +9,10 @@
 // wallpaper nitido, el mismo que muestra la sesion al arrancar (M2).
 //
 // Este archivo y SddmAuth.qml son la fuente del repo (sddm/theme/); login/,
-// Tokens.qml, SemanticPalette.qml y modules/Icon.qml se copian de dotshell, y
-// Colors.qml lo genera matugen (sddm-theme-stage arma el tema completo).
+// Tokens.qml, SemanticPalette.qml, I18nCore.qml y modules/Icon.qml se copian de
+// dotshell, Colors.qml lo genera matugen e I18n.qml (el idioma del usuario con su
+// catalogo, solo las claves del greeter; Fase 15 B3) lo escribe sddm-theme-stage,
+// que arma el tema completo.
 // API de SDDM: sddm, userModel, sessionModel, keyboard (propiedades de contexto).
 import QtQuick
 import "login"
@@ -91,11 +93,11 @@ Item {
     // ---- Acciones ------------------------------------------------------------------------------
     readonly property var actions: {
         const r = [];
-        if (sddm.canPowerOff) r.push({ key: "poweroff", icon: "power_settings_new", title: "Apagar", sub: "Apagar el equipo" });
-        if (sddm.canReboot) r.push({ key: "reboot", icon: "restart_alt", title: "Reiniciar", sub: "Volver a arrancar" });
-        if (sddm.canSuspend) r.push({ key: "suspend", icon: "bedtime", title: "Suspender", sub: "Dormir el equipo" });
+        if (sddm.canPowerOff) r.push({ key: "poweroff", icon: "power_settings_new", title: I18n.trc("greeter", "Power off"), sub: I18n.tr("Turn the computer off") });
+        if (sddm.canReboot) r.push({ key: "reboot", icon: "restart_alt", title: I18n.trc("greeter", "Restart"), sub: I18n.tr("Boot again") });
+        if (sddm.canSuspend) r.push({ key: "suspend", icon: "bedtime", title: I18n.trc("greeter", "Suspend"), sub: I18n.tr("Put the computer to sleep") });
         if (root.sessionNames.length > 0)
-            r.push({ key: "session", icon: "desktop_windows", title: "Sesión", sub: root.sessionNames[root.session] || "" });
+            r.push({ key: "session", icon: "desktop_windows", title: I18n.trc("greeter", "Session"), sub: root.sessionNames[root.session] || "" });
         return r;
     }
     function act(key: string): void {
@@ -113,12 +115,12 @@ Item {
         auth: sddmAuth
         avatar: Qt.resolvedUrl("face.png")
         user: root.user
-        subtitle: "iniciar sesión"
-        successText: "Iniciando sesión…"
+        subtitle: I18n.tr("log in")
+        successText: I18n.tr("Logging in…")
         capsLock: keyboard.capsLock
         date: root.now
         tiles: root.actions
-        tilesTitle: "INICIO"
+        tilesTitle: I18n.trc("greeter", "Start").toUpperCase()
         tilesActionable: true
         blurFrom: 1
         onTileActivated: key => root.act(key)

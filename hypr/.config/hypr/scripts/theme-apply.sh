@@ -12,6 +12,7 @@
 #   theme-apply.sh --undo [--no-notify] [--dry-run]   (tema anterior del historial, B5)
 #   theme-apply.sh --backend quickshell|hyprpaper|status   (quien dibuja el wallpaper, B6)
 #   theme-apply.sh --face [--dry-run]   (rehace ~/.face con el avatar elegido, Fase 10 B2)
+#   theme-apply.sh --system   (agenda la pasada del sistema con el tema actual: el idioma, Fase 15 B3)
 #   theme-apply.sh --reapply [--source settings|ipc] [--dry-run]   (el tema actual en el modo del almacen, P5.5)
 #   theme-apply.sh --override <wallpaper> seed <#hex>|scheme <tipo>|reset   (excepcion por wallpaper, B8a;
 #                  "default" en seed o scheme quita solo ese campo, B8b)
@@ -485,14 +486,18 @@ fi
 # Avatar elegido en el centro de configuracion (Fase 10 B2): ~/.face ya (el
 # bloqueo lo lee directo) y, con el tema actual, la pasada del sistema
 # (greeter y Plymouth) agendada como siempre: 60 s, el ultimo gana.
-if [ "${1:-}" = "--face" ]; then
+# Idioma (Fase 15 B3): el greeter y el pie de GRUB lo toman en la pasada del
+# sistema; con el tema actual, agendada como siempre (60 s, el ultimo gana).
+if [ "${1:-}" = "--face" ] || [ "${1:-}" = "--system" ]; then
   DRY=false; [ "${2:-}" = --dry-run ] && DRY=true
   init_state
   cur="$(jq -c '.current // empty' "$STATE")"
   cwp="$(jq -r '.wallpaper // empty' <<< "$cur")"
-  [ -n "$cwp" ] || die "avatar: no hay un tema aplicado todavia"
-  make_face "$cwp" || die "avatar: no se pudo rehacer ~/.face (ver el log)"
-  log "avatar: ~/.face rehecho"
+  [ -n "$cwp" ] || die "${1#--}: no hay un tema aplicado todavia"
+  if [ "$1" = "--face" ]; then
+    make_face "$cwp" || die "avatar: no se pudo rehacer ~/.face (ver el log)"
+    log "avatar: ~/.face rehecho"
+  fi
   schedule_system "$cwp" "$(jq -r '.scheme // ""' <<< "$cur")" "$(jq -r '.contrast // ""' <<< "$cur")" \
     "$(jq -r '.seed // ""' <<< "$cur")" "$(jq -r '.rule // "legacy"' <<< "$cur")"
   exit 0

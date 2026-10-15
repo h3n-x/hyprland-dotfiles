@@ -47,7 +47,7 @@ QtObject {
         target: sddm
         function onLoginFailed() {
             auth.buffer = "";
-            auth.message = "Contraseña incorrecta";
+            auth.message = I18n.tr("Wrong password");
             auth.state = "wrong";
             auth.failed();
         }

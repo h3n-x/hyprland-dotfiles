@@ -10,7 +10,6 @@ Column {
     id: clockColumn
     // Cada anfitrion da su reloj: el bloqueo SystemClock, el greeter un Timer.
     property date date: new Date()
-    readonly property var es: Qt.locale("es_ES")
     spacing: Tokens.space.xl
 
     // ---- M7: cambio de minuto ---------------------------------------------------------------
@@ -94,9 +93,8 @@ Column {
             id: dateText
             anchors.centerIn: parent
             text: {
-                const d = clockColumn.es.standaloneDayName(clockColumn.date.getDay(), Locale.LongFormat);
-                return d.charAt(0).toUpperCase() + d.slice(1) + ", " + clockColumn.date.getDate() + " de "
-                    + clockColumn.es.standaloneMonthName(clockColumn.date.getMonth(), Locale.LongFormat);
+                const d = I18n.date(clockColumn.date, "dddd, MMMM d");
+                return d.charAt(0).toUpperCase() + d.slice(1);
             }
             color: Colors.textOnAccentContainer
             font.family: Tokens.font.ui

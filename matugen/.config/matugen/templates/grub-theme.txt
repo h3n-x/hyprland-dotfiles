@@ -20,7 +20,8 @@
 # hypr/.config/hypr/scripts/generate-grub-assets.sh (post_hook de este
 # mismo template, ver matugen/.config/matugen/config.toml) con
 # ImageMagick. __HOSTNAME__ lo resuelve ese mismo script al final (sed),
-# matugen no tiene esa variable. Las fuentes (font.pf2/font-bold.pf2,
+# matugen no tiene esa variable; __AUTOBOOT__ tambien: es el texto del pie
+# en el idioma del usuario (scripts/i18n, Fase 15 B3). Las fuentes (font.pf2/font-bold.pf2,
 # Plus Jakarta Sans Regular 16 / SemiBold 28 -- fuente de interfaz del
 # design system, decision D1 / P1.3) son
 # estaticas, viven en grub/theme/ (no dependen de colores, no las genera
@@ -114,7 +115,7 @@ terminal-font: "DotfilesSans Regular 16"
     left = 0
     width = 100%
     align = "center"
-    text = "Arranque automatico en"
+    text = "__AUTOBOOT__"
     font = "DotfilesSans Regular 16"
     color = "{{colors.on_surface_variant.default.hex}}"
 }

@@ -61,8 +61,8 @@ QtObject {
     // logins." y "(M minutes left to unlock)" (o traducidos). Los minutos
     // salen solo del segundo; mientras tanto la contrasena no se manda.
     function lockout(minutes: int): void {
-        auth.message = minutes > 0 ? "Demasiados intentos fallidos. Se habilita en " + minutes + " min."
-                                   : "Demasiados intentos fallidos.";
+        auth.message = minutes > 0 ? I18n.tr("Too many failed attempts. Enabled again in %1 min.", I18n.number(minutes))
+                                   : I18n.tr("Too many failed attempts.");
         auth.state = "lockedOut";
         auth.lockoutEnd.interval = Math.max(1, minutes) * 60000;
         auth.lockoutEnd.restart();
@@ -88,10 +88,10 @@ QtObject {
             auth.state = "idle";
             auth.unlocked();
         } else if (kind === "error") {
-            auth.message = "No se pudo verificar la contraseña";
+            auth.message = I18n.tr("Couldn't verify the password");
             auth.state = "error";
         } else {
-            auth.message = "Contraseña incorrecta";
+            auth.message = I18n.tr("Wrong password");
             auth.state = "wrong";
             auth.failed();
         }

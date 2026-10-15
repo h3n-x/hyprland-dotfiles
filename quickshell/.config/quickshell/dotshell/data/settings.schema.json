@@ -28,8 +28,8 @@
       "values": { "auto": "Automatic", "en": "English", "es": "Español", "ja": "日本語" },
       "category": "appearance", "section": "Language", "order": 5,
       "label": "Language",
-      "description": "The language of the shell, its notices and the settings. Automatic: the session language (English if there's no translation).",
-      "keywords": ["language", "translation", "english", "spanish", "japanese", "idioma", "言語"], "apply": "live"
+      "description": "The language of the shell, its notices, the settings, the lock and login screens and the boot menu. Automatic: the session language (English if there's no translation).",
+      "keywords": ["language", "translation", "english", "spanish", "japanese", "idioma", "言語"], "apply": "live", "applyTo": "system"
     },
     "appearance.colorMode": {
       "type": "enum", "default": "dark",

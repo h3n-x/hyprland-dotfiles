@@ -18,7 +18,8 @@
 #
 #   settings-apply changed <clave>...    lo llama scripts/settings tras escribir:
 #                                        rehace lo que toca y lo aplica ya
-#                                        (applyTo "theme": theme-apply.sh --reapply, P5.5)
+#                                        (applyTo "theme": theme-apply.sh --reapply, P5.5;
+#                                        "system": theme-apply.sh --system, el idioma, Fase 15 B3)
 #   settings-apply hypr [--all|<clave>...]  rehace los overrides y los aplica en
 #                                        vivo (hyprctl eval, sin recargar)
 #   settings-apply idle [--restart]      rehace hypridle.conf; con --restart (o si
@@ -558,6 +559,10 @@ if cmd == "changed":
         # Modo claro u oscuro (P5.5): el tema actual en el modo nuevo, por el
         # camino de siempre (cola de theme-apply); nada si ya estaba en ese modo.
         subprocess.Popen(["setsid", "-f", THEME_APPLY, "--reapply", "--source", "settings"], stdin=subprocess.DEVNULL,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if "system" in to:
+        # El idioma (Fase 15 B3): el greeter y GRUB lo toman en la pasada del sistema.
+        subprocess.Popen(["setsid", "-f", THEME_APPLY, "--system"], stdin=subprocess.DEVNULL,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 elif cmd == "hypr":
     render_overrides(s, eff)

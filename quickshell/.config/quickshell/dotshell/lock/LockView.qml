@@ -33,13 +33,13 @@ Item {
         auth: view.auth
         avatar: "file://" + Quickshell.env("HOME") + "/.face"
         user: Quickshell.env("USER")
-        subtitle: "sesión bloqueada"
-        successText: "Desbloqueado"
+        subtitle: I18n.tr("session locked")
+        successText: I18n.tr("Unlocked")
         capsLock: view.glance ? view.glance.capsLock : false
         success: !view.shown
         date: clock.date
         tiles: view.glance ? view.glance.tiles : []
-        tilesTitle: "DE UN VISTAZO"
+        tilesTitle: I18n.tr("At a glance").toUpperCase()
         blurFrom: 0
         onKeyPressed: event => { if (view.glance) view.glance.noteKey(event); }
         onExitFinished: view.leaveFinished()

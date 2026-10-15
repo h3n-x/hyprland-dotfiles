@@ -149,4 +149,12 @@ magick mogrify -depth 8 -define png:color-type=6 -define png:bit-depth=8 \
 if [ -f "$OUT_DIR/theme.txt" ]; then
   HOSTNAME_VALUE="$(cat /etc/hostname 2>/dev/null || hostnamectl --static 2>/dev/null || echo arch)"
   sed -i "s/__HOSTNAME__/${HOSTNAME_VALUE}/" "$OUT_DIR/theme.txt"
+  # El pie en el idioma del usuario (Fase 15 B3). La fuente de GRUB (font.pf2,
+  # Plus Jakarta Sans) solo tiene letras latinas: un idioma con otra escritura
+  # (japones) queda en ingles en vez de mostrar cuadrados.
+  AUTOBOOT="$("$(dirname "$(realpath "$0")")/i18n" tr --ctx grub "Automatic boot in" 2>/dev/null || true)"
+  if [ -z "$AUTOBOOT" ] || ! LC_ALL=C.UTF-8 grep -qP '^[\x{20}-\x{17F}]+$' <<< "$AUTOBOOT"; then
+    AUTOBOOT="Automatic boot in"
+  fi
+  sed -i "s|__AUTOBOOT__|${AUTOBOOT//|/}|" "$OUT_DIR/theme.txt"
 fi
