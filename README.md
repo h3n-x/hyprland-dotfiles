@@ -1156,7 +1156,7 @@ descripcion.
 | `Super` + `Shift` + `V` | Portapapeles |
 | `Super` + `.` | Emoji |
 | `Super` + `/` | Guía de atajos |
-| `SUPER_L` | Mostrar barra (mantener) |
+| `Super` | Mostrar barra (mantener) |
 
 **Programas**
 
@@ -1178,8 +1178,8 @@ descripcion.
 | `Super` + `Shift` + `M` | Cerrar sesión |
 | `Super` + `Ctrl` + `Shift` + `M` | Salida de emergencia |
 | `Super` + `Alt` + `G` | Modo juego |
-| `Caps_Lock` | Estado de Bloq Mayús |
-| `Num_Lock` | Estado de Bloq Num |
+| `Bloq Mayús` | Estado de Bloq Mayús |
+| `Bloq Num` | Estado de Bloq Num |
 
 **Ventanas**
 

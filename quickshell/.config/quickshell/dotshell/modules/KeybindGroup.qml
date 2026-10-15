@@ -70,7 +70,7 @@ DashZone {
                             T {
                                 visible: combo.index > 0
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "o"
+                                text: I18n.tr("or")
                                 size: Tokens.type.caption
                                 color: Colors.border
                                 rightPadding: 2

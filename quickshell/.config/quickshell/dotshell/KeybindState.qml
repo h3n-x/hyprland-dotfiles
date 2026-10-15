@@ -40,8 +40,21 @@ QtObject {
     property string screen: ""
     property string query: ""
     // { total, rows, problems, groups: [{ name, icon, mode, items: [{ text, submap, combos: [{ mods, keys }] }] }] }
+    // tal como lo entrega el script: en ingles (Fase 15 B3).
     property var data: null
-    readonly property var groups: root.data ? root.data.groups : []
+    // Los mismos grupos en el idioma elegido; source guarda el ingles (la busqueda
+    // tambien lo mira). Se rearma al cambiar el catalogo (I18n.rev).
+    readonly property var groups: root.translated(root.data, I18n.rev)
+    function translated(d: var, rev: int): var {
+        if (!d) return [];
+        return d.groups.map(g => ({
+            name: I18n.trc("keybind group", g.name), source: g.name, icon: g.icon, mode: g.mode,
+            items: g.items.map(it => ({
+                text: I18n.trc("keybind", it.text), source: it.text, submap: it.submap,
+                combos: it.combos.map(c => ({ mods: c.mods, keys: c.keys.map(k => k.startsWith("@") ? k : I18n.trc("key", k)) }))
+            }))
+        }));
+    }
     readonly property int total: root.data ? root.data.total : 0
     readonly property int rowCount: root.data ? root.data.rows : 0
 
@@ -107,8 +120,8 @@ QtObject {
     }
 
     // ---- Filtro -------------------------------------------------------------------------------
-    // Busca en la descripcion, el grupo y las teclas (en palabras); los grupos
-    // sin coincidencias desaparecen.
+    // Busca en la descripcion, el grupo (en el idioma elegido y en ingles) y las
+    // teclas (en palabras); los grupos sin coincidencias desaparecen.
     readonly property var filtered: root.filter(root.query)
     // La misma busqueda para la guia (query) y la pagina Atajos del centro.
     function filter(query: string): var {
@@ -122,9 +135,10 @@ QtObject {
             }
             const items = g.items.filter(it => {
                 const keys = it.combos.map(c => c.mods.concat(c.keys.map(k => root.words(k))).join(" ")).join(" ");
-                return Fuzzy.match(it.text, q) || Fuzzy.match(g.name, q) || keys.toLowerCase().indexOf(q.toLowerCase()) >= 0;
+                return Fuzzy.match(it.text, q) || Fuzzy.match(it.source, q) || Fuzzy.match(g.name, q) || Fuzzy.match(g.source, q)
+                    || keys.toLowerCase().indexOf(q.toLowerCase()) >= 0;
             });
-            if (items.length) out.push({ name: g.name, icon: g.icon, mode: g.mode, items: items });
+            if (items.length) out.push({ name: g.name, source: g.source, icon: g.icon, mode: g.mode, items: items });
         }
         return out;
     }
@@ -136,11 +150,12 @@ QtObject {
         if (root.options.modifierStyle !== "symbols") return m;
         return { Super: "@keyboard_command_key", Ctrl: "@keyboard_control_key", Alt: "@keyboard_option_key", Shift: "@shift" }[m] || m;
     }
-    // Iconos en palabras (busqueda y lectores de pantalla).
+    // Iconos en palabras (busqueda y lectores de pantalla); los mismos textos que
+    // WORDS en scripts/keybinds (la tabla del README).
     readonly property var iconWords: ({
-        "@arrows": I18n.trc("key", "arrows"), "@volume_up": I18n.trc("key", "volume up"), "@volume_down": I18n.trc("key", "volume down"), "@volume_off": I18n.trc("key", "mute"),
-        "@mic_off": I18n.trc("key", "microphone"), "@brightness_high": I18n.trc("key", "brightness up"), "@brightness_low": I18n.trc("key", "brightness down"),
-        "@play_pause": I18n.trc("key", "play pause"), "@skip_next": I18n.trc("key", "next"), "@skip_previous": I18n.trc("key", "previous")
+        "@arrows": I18n.trc("key", "Arrows"), "@volume_up": I18n.trc("key", "Volume up"), "@volume_down": I18n.trc("key", "Volume down"), "@volume_off": I18n.trc("key", "Mute"),
+        "@mic_off": I18n.trc("key", "Microphone"), "@brightness_high": I18n.trc("key", "Brightness up"), "@brightness_low": I18n.trc("key", "Brightness down"),
+        "@play_pause": I18n.trc("key", "Play/Pause"), "@skip_next": I18n.trc("key", "Next"), "@skip_previous": I18n.trc("key", "Previous")
     })
     function words(label: string): string {
         return root.iconWords[label] || label;

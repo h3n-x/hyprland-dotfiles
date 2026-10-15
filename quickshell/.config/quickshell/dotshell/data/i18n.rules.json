@@ -108,6 +108,7 @@
   "modules/WorkspaceStrip.qml",
   "modules/Workspaces.qml",
   "modules/WorkspacesView.qml",
+  "settings/KeybindsBrowser.qml",
   "settings/LayoutSummary.qml"
  ],
  "allow": [

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Atajos de Hyprland para la guia de atajos (Fase 4 B10), leidos de Hyprland.
 
-    keybinds data       JSON agrupado para Quickshell (KeybindState)
-    keybinds markdown   la tabla de atajos del README (misma agrupacion), por stdout
+    keybinds data       JSON agrupado para Quickshell (KeybindState), en ingles
+    keybinds markdown [--lang L]   la tabla de atajos del README (misma agrupacion), por stdout
     keybinds readme     reescribe esa tabla en el README, solo entre los marcadores
     keybinds readme --check   0 al dia, 1 desactualizada (dice que filas), 2 no se puede verificar
     keybinds check      falla (exit 1) si un atajo no tiene descripcion valida
@@ -13,34 +13,61 @@ hl.bind en binds.lua. Nunca se lee binds.lua. Los atajos de una familia
 (misma descripcion) se juntan en una fila: flechas, 1-0, volumen, rueda.
 KEYBINDS_JSON=<archivo> usa ese JSON en vez de hyprctl (pruebas).
 
+Idioma (Fase 15 B3): las descripciones de binds.lua, los grupos y los nombres de
+las teclas estan en ingles, que es la clave del catalogo (dotshell/data/i18n).
+"data" los entrega tal cual y la shell los traduce (cambia de idioma en vivo);
+"markdown" y "readme" los traducen aqui, con el catalogo de scripts/i18n.
+
 La tabla del README (Fase 8 B7, P8.5) solo la escribe `keybinds readme`:
 reemplaza lo que hay entre <!-- keybinds:start ... --> y <!-- keybinds:end -->
 y nada mas (el resto del README queda igual byte a byte); si ya esta al dia
-no escribe. No corre solo: lo verifica el drift check de la documentacion.
+no escribe. No corre solo: lo verifica el drift check de la documentacion. El
+README sigue en español hasta la Fase 15 B4 (README_LANG).
 KEYBINDS_README=<archivo> usa ese README (pruebas).
 """
+import importlib.machinery
+import importlib.util
 import json
 import os
 import subprocess
 import sys
 
+HERE = os.path.dirname(os.path.realpath(__file__))
+
+
+def N_(ctx, text):
+    """Marca un texto para i18n extract; se traduce al mostrarlo."""
+    return text
+
+
+def i18n():
+    loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(HERE, "i18n"))
+    spec = importlib.util.spec_from_loader("i18n", loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
 SEP = " · "
 MAX_TEXT = 28
-UNDESCRIBED = "Sin descripción"
+UNDESCRIBED = N_("keybind group", "No description")
 
-# Orden e icono (Material Symbols) de los grupos; "mode": atajos de un submap.
+# Orden e icono (Material Symbols) de los grupos de binds.lua; "mode": atajos de un submap.
 GROUPS = [
-    ("Shell", "dashboard"), ("Programas", "apps"), ("Sistema", "power_settings_new"),
-    ("Ventanas", "select_window"), ("Escritorios", "view_quilt"), ("Capturas", "screenshot_region"),
-    ("Tema", "palette"), ("Multimedia", "music_note"), ("Modo cambiar tamaño", "open_in_full"),
+    ("Shell", "dashboard"), ("Apps", "apps"), ("System", "power_settings_new"),
+    ("Windows", "select_window"), ("Workspaces", "view_quilt"), ("Capture", "screenshot_region"),
+    ("Theme", "palette"), ("Media", "music_note"), ("Resize mode", "open_in_full"),
 ]
 MODS = [(64, "Super"), (4, "Ctrl"), (8, "Alt"), (1, "Shift")]
 
 # Etiqueta de cada tecla: texto, o "@icono" (Material Symbols); "words" para Markdown.
+# Los nombres con N_ se traducen (contexto "key"); el resto es igual en todos los idiomas.
 KEYS = {
-    "return": "Intro", "escape": "Esc", "tab": "Tab", "period": ".", "slash": "/", "comma": ",",
-    "print": "Impr", "space": "Espacio", "backspace": "Retroceso", "delete": "Supr",
-    "mouse:272": "Clic izq.", "mouse:273": "Clic der.", "control_l": "Ctrl izq.", "alt_l": "Alt izq.",
+    "return": N_("key", "Enter"), "escape": "Esc", "tab": "Tab", "period": ".", "slash": "/", "comma": ",",
+    "print": N_("key", "Print"), "space": N_("key", "Space"), "backspace": N_("key", "Backspace"),
+    "delete": N_("key", "Delete"), "caps_lock": N_("key", "Caps Lock"), "num_lock": N_("key", "Num Lock"),
+    "super_l": "Super",
+    "mouse:272": N_("key", "Left click"), "mouse:273": N_("key", "Right click"),
+    "control_l": N_("key", "Left Ctrl"), "alt_l": N_("key", "Left Alt"),
     "left": "@arrow_left", "right": "@arrow_right", "up": "@arrow_drop_up", "down": "@arrow_drop_down",
     "xf86audioraisevolume": "@volume_up", "xf86audiolowervolume": "@volume_down",
     "xf86audiomute": "@volume_off", "xf86audiomicmute": "@mic_off",
@@ -48,11 +75,13 @@ KEYS = {
     "xf86audioplay": "@play_pause", "xf86audiopause": "@play_pause",
     "xf86audionext": "@skip_next", "xf86audioprev": "@skip_previous",
 }
+# Iconos en palabras (los mismos textos que KeybindState.iconWords).
 WORDS = {
-    "@arrows": "Flechas", "@arrow_left": "←", "@arrow_right": "→", "@arrow_drop_up": "↑", "@arrow_drop_down": "↓",
-    "@volume_up": "Subir volumen", "@volume_down": "Bajar volumen", "@volume_off": "Silencio",
-    "@mic_off": "Micrófono", "@brightness_high": "Subir brillo", "@brightness_low": "Bajar brillo",
-    "@play_pause": "Reproducir/Pausa", "@skip_next": "Siguiente", "@skip_previous": "Anterior",
+    "@arrows": N_("key", "Arrows"), "@arrow_left": "←", "@arrow_right": "→", "@arrow_drop_up": "↑", "@arrow_drop_down": "↓",
+    "@volume_up": N_("key", "Volume up"), "@volume_down": N_("key", "Volume down"), "@volume_off": N_("key", "Mute"),
+    "@mic_off": N_("key", "Microphone"), "@brightness_high": N_("key", "Brightness up"),
+    "@brightness_low": N_("key", "Brightness down"), "@play_pause": N_("key", "Play/Pause"),
+    "@skip_next": N_("key", "Next"), "@skip_previous": N_("key", "Previous"),
 }
 # Orden de lectura dentro de una familia (anterior antes que siguiente, subir antes que bajar).
 ORDER = ["@arrow_left", "@arrow_right", "@arrow_drop_up", "@arrow_drop_down", "@volume_up", "@volume_down",
@@ -87,7 +116,7 @@ def family_keys(keys):
     if low == {str(d) for d in range(10)}:
         return ["1 … 0"]
     if low == {"mouse_down", "mouse_up"}:
-        return ["Rueda"]
+        return [N_("key", "Wheel")]
     labels = []
     for k in keys:
         lab = label(k)
@@ -150,24 +179,27 @@ def grouped(binds):
     return groups
 
 
-def md_key(lab):
-    return f"`{WORDS.get(lab, lab)}`"
-
-
-def markdown(groups):
+def markdown(groups, lang):
+    mod = i18n()
+    cat = mod.load(lang)
+    t = lambda text, ctx=None: mod.lookup(cat, text, ctx)
+    key = lambda lab: f"`{t(WORDS.get(lab, lab), 'key')}`"
+    mode = t(N_("keybinds readme", " (mode: %1, leave with %2)"), "keybinds readme")
+    head = "| " + t(N_("keybinds readme", "Shortcut"), "keybinds readme") + " | " + t(N_("keybinds readme", "Action"), "keybinds readme") + " |"
     lines = []
     for g in groups:
-        lines += [f"**{g['name']}**" + (" (modo: `Super` + `R`, sale con `Esc`/`Intro`)" if g["mode"] else ""), "",
-                  "| Atajo | Acción |", "|---|---|"]
+        lines += [f"**{t(g['name'], 'keybind group')}**" + (mode.replace("%1", "`Super` + `R`").replace("%2", f"`Esc`/{key('Enter')}") if g["mode"] else ""), "",
+                  head, "|---|---|"]
         for it in g["items"]:
-            combos = " o ".join(" + ".join([md_key(m) for m in c["mods"]] + [" / ".join(md_key(k) for k in c["keys"])])
-                                for c in it["combos"])
-            lines.append(f"| {combos} | {it['text']} |")
+            combos = f" {t('or')} ".join(" + ".join([key(m) for m in c["mods"]] + [" / ".join(key(k) for k in c["keys"])])
+                                         for c in it["combos"])
+            lines.append(f"| {combos} | {t(it['text'], 'keybind')} |")
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
 
 README = os.environ.get("KEYBINDS_README") or os.path.expanduser("~/Dotfiles/README.md")
+README_LANG = "es"
 START = "<!-- keybinds:start"
 END = "<!-- keybinds:end -->"
 
@@ -175,7 +207,7 @@ END = "<!-- keybinds:end -->"
 def readme(check):
     """La tabla del README: 0 al dia (o reescrita), 1 desactualizada (--check), 2 no se puede verificar."""
     try:
-        new = markdown(grouped(load()))
+        new = markdown(grouped(load()), README_LANG)
     except (OSError, ValueError, subprocess.CalledProcessError) as e:
         print(f"no se puede verificar: sin atajos de Hyprland ({e.__class__.__name__})", file=sys.stderr)
         return 2
@@ -211,7 +243,7 @@ def readme(check):
         f.write("".join(lines[:s + 1]) + new + "".join(lines[e:]))
     os.chmod(tmp, os.stat(path).st_mode & 0o7777)
     os.replace(tmp, path)
-    print(f"tabla de atajos del README actualizada ({sum(1 for r in new.splitlines() if r.startswith('| ') and not r.startswith('| Atajo'))} filas)")
+    print(f"tabla de atajos del README actualizada ({sum(1 for r in new.splitlines() if r.startswith('| ')) - new.count('|---|---|')} filas)")
     return 0
 
 
@@ -226,7 +258,9 @@ def main():
                    "problems": problems(binds), "groups": groups}, sys.stdout, ensure_ascii=False)
         print()
     elif mode == "markdown":
-        sys.stdout.write(markdown(grouped(binds)))
+        a = sys.argv[2:]
+        lang = a[a.index("--lang") + 1] if "--lang" in a[:-1] else i18n().language()
+        sys.stdout.write(markdown(grouped(binds), lang))
     elif mode == "check":
         bad = problems(binds)
         for p in bad:
@@ -234,7 +268,7 @@ def main():
         print(f"{len(binds)} atajos, {len(bad)} sin descripción válida")
         sys.exit(1 if bad else 0)
     else:
-        print("uso: keybinds data|markdown|readme [--check]|check", file=sys.stderr)
+        print("uso: keybinds data|markdown [--lang L]|readme [--check]|check", file=sys.stderr)
         sys.exit(2)
 
 

@@ -34,12 +34,12 @@ ColumnLayout {
             id: search
             Layout.fillWidth: true
             size: "regular"
-            placeholder: "Buscar un atajo (descripción o teclas)"
+            placeholder: I18n.tr("Search a shortcut (description or keys)")
         }
         Text {
-            text: !KeybindState.data ? "Leyendo los atajos…"
-                : search.text ? (root.shown === 1 ? "1 resultado" : root.shown + " resultados")
-                : KeybindState.total + " atajos"
+            text: !KeybindState.data ? I18n.tr("Reading the shortcuts…")
+                : search.text ? I18n.trn("%n result", "%n results", root.shown)
+                : I18n.trn("%n shortcut", "%n shortcuts", KeybindState.total)
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.label
@@ -70,14 +70,14 @@ ColumnLayout {
     }
     Text {
         visible: !!KeybindState.data && root.shown === 0
-        text: "Ningún atajo coincide con «" + search.text + "»"
+        text: I18n.tr("No shortcut matches “%1”", search.text)
         color: Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.body
     }
     Text {
         Layout.fillWidth: true
-        text: "Las descripciones salen de binds.lua; para cambiar un atajo, hoy se edita ese archivo."
+        text: I18n.tr("The descriptions come from binds.lua; to change a shortcut, edit that file for now.")
         wrapMode: Text.WordWrap
         color: Colors.textMuted
         font.family: Tokens.font.ui

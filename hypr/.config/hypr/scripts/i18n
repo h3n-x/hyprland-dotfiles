@@ -14,14 +14,21 @@
 #                                      (data/i18n.rules.json); salida 0/1
 #   i18n stats                         cobertura por idioma
 #
+# Los scripts en python lo importan (lookup()); marcan sus textos con N_(contexto,
+# texto), dos cadenas literales, para que extract los vea. Tambien se extraen las descripciones de binds.lua
+# ("Group · Text", contextos "keybind group" y "keybind"; Fase 15 B3).
+#
 # Pruebas: I18N_DIR (catalogos), I18N_QML (carpeta dotshell), I18N_LANG (idioma
-# sin consultar el almacen), SETTINGS (otro motor de opciones).
+# sin consultar el almacen), SETTINGS (otro motor de opciones), I18N_BINDS (binds.lua),
+# I18N_SCRIPTS (carpeta de los scripts).
 import json, os, re, subprocess, sys
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 QML = os.environ.get("I18N_QML") or os.path.expanduser("~/.config/quickshell/dotshell")
 CATS = os.environ.get("I18N_DIR") or os.path.join(QML, "data", "i18n")
 RULES = os.path.join(QML, "data", "i18n.rules.json")
+BINDS = os.environ.get("I18N_BINDS") or os.path.join(os.path.dirname(HERE), "modules", "binds.lua")
+SCRIPTS = os.environ.get("I18N_SCRIPTS") or HERE
 SEP = "\u0004"
 
 
@@ -91,6 +98,12 @@ def fill(s, args):
     return s
 
 
+def lookup(cat, text, ctx=None):
+    """La traduccion de text en un catalogo ya cargado (load()); el texto fuente si falta."""
+    v = cat.get((ctx + SEP + text) if ctx else text)
+    return v if isinstance(v, str) and v else text
+
+
 # ---- Extraccion ---------------------------------------------------------------------------
 STR = r'"((?:[^"\\]|\\.)*)"'
 CALLS = [
@@ -99,6 +112,9 @@ CALLS = [
     (re.compile(r"\bI18n\.trn\(\s*" + STR + r"\s*,\s*" + STR), lambda m: m.group(1)),
     (re.compile(r"\bI18n\.date\([^,]+,\s*" + STR), lambda m: "format" + SEP + m.group(1)),
 ]
+BIND_DESC = re.compile(r'desc\s*=\s*"([^"·]+) · ([^"]+)"')
+SCRIPT_MARK = re.compile(r"\bN_\(\s*" + STR + r"\s*,\s*" + STR + r"\s*\)")
+TRC_CTX = re.compile(r"\bI18n\.trc\(\s*" + STR + r"\s*,")
 PLURAL_SRC = re.compile(r"\bI18n\.trn\(\s*" + STR + r"\s*,\s*" + STR)
 
 
@@ -130,6 +146,27 @@ def extract():
         for rx, key in CALLS:
             for m in rx.finditer(text):
                 add(unescape(key(m)), f"{rel}:{text.count(chr(10), 0, m.start()) + 1}", rx is CALLS[2][0])
+    # Descripciones de los atajos (binds.lua, sin comentarios): grupo y texto.
+    try:
+        for n, line in enumerate(open(BINDS, encoding="utf-8"), 1):
+            if line.lstrip().startswith("--"):
+                continue
+            for m in BIND_DESC.finditer(line):
+                add("keybind group" + SEP + m.group(1).strip(), f"binds.lua:{n}")
+                add("keybind" + SEP + m.group(2).strip(), f"binds.lua:{n}")
+    except OSError:
+        pass
+    # Textos de los scripts en python marcados con N_(contexto, texto).
+    for f in sorted(os.listdir(SCRIPTS)) if os.path.isdir(SCRIPTS) else []:
+        p = os.path.join(SCRIPTS, f)
+        try:
+            text = open(p, encoding="utf-8").read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        if not text.startswith("#!/usr/bin/env python3"):
+            continue
+        for m in SCRIPT_MARK.finditer(text):
+            add(unescape(m.group(1)) + SEP + unescape(m.group(2)), f"scripts/{f}:{text.count(chr(10), 0, m.start()) + 1}")
     # Nombres del esquema que la shell muestra: ajustes rapidos ("tile") y zonas de Inicio ("zone").
     try:
         sch = json.load(open(os.path.join(QML, "data", "settings.schema.json")))
@@ -182,6 +219,8 @@ def literals(path, allow):
         code = core_calls(path, re.sub(r"\s//\s.*$", "", line))
         for rx, _ in CALLS:
             code = rx.sub("I18N(", code)
+        # El contexto de un trc con texto variable (trc("keybind", it.text)) no se ve.
+        code = TRC_CTX.sub("I18N(", code)
         for s in re.findall(STR, code):
             if human(s) and s not in allow:
                 out.append((n, s))
@@ -272,10 +311,7 @@ def main():
             ctx, rest = rest[1], rest[2:]
         if not rest:
             die("tr: falta el texto")
-        cat = load(language())
-        key = (ctx + SEP + rest[0]) if ctx else rest[0]
-        v = cat.get(key)
-        print(fill(v if isinstance(v, str) and v else rest[0], rest[1:]))
+        print(fill(lookup(load(language()), rest[0], ctx), rest[1:]))
     elif cmd == "trn":
         if len(rest) < 3:
             die("trn: SINGULAR PLURAL N")
@@ -310,4 +346,5 @@ def main():
         die(f"orden desconocida: {cmd}")
 
 
-main()
+if __name__ == "__main__":
+    main()
