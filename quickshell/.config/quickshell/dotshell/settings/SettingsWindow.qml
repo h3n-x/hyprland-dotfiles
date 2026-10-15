@@ -132,7 +132,7 @@ Rectangle {
         Text {
             x: Tokens.space.xl
             anchors.verticalCenter: parent.verticalCenter
-            text: "Configuración"
+            text: I18n.tr("Settings")
             color: Colors.text
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.display
@@ -145,7 +145,7 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: Tokens.px(420)
             size: "regular"
-            placeholder: "Buscar en la configuración (Ctrl+F)"
+            placeholder: I18n.tr("Search the settings (Ctrl+F)")
             keyHandler: (event) => results.handleKey(event)
         }
     }
@@ -270,8 +270,7 @@ Rectangle {
                 Icon { anchors.verticalCenter: parent.verticalCenter; name: "restart_alt"; color: Colors.textOnWarningContainer }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: win.restartKeys.length === 1 ? "1 cambio se aplica al reiniciar la shell"
-                        : win.restartKeys.length + " cambios se aplican al reiniciar la shell"
+                    text: I18n.trn("%n change applies when the shell restarts", "%n changes apply when the shell restarts", win.restartKeys.length)
                     color: Colors.textOnWarningContainer
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
@@ -285,7 +284,7 @@ Rectangle {
                 ink: Colors.textOnWarningContainer
                 edge: Colors.textOnWarningContainer
                 icon: "restart_alt"
-                label: "Reiniciar la shell"
+                label: I18n.tr("Restart the shell")
                 onClicked: {
                     Quickshell.execDetached(["qs", "-c", "dotshell", "ipc", "call", "shell", "reload"]);
                     SettingsState.pendingRestart = SettingsState.pendingRestart.filter(k => win.restartKeys.indexOf(k) < 0);
@@ -358,7 +357,8 @@ Rectangle {
             category: win.page
             model: win.model
             // Apariencia (Fase 10 B2): tema actual y avatar arriba de sus secciones.
-            extras: win.page === "appearance" ? { "Color": themeCard, "Avatar": avatarCard }
+            // Las claves son secciones del esquema (en ingles, no se muestran).
+            extras: win.page === "appearance" ? { "Color": themeCard, "Avatar": avatarCard } // i18n-ok
                 : win.page === "keybinds" ? { "_top": keybindsBrowser } : ({})
             highlightKey: win.highlightKey
         }

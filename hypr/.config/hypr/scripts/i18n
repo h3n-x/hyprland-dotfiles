@@ -167,14 +167,38 @@ def extract():
             continue
         for m in SCRIPT_MARK.finditer(text):
             add(unescape(m.group(1)) + SEP + unescape(m.group(2)), f"scripts/{f}:{text.count(chr(10), 0, m.start()) + 1}")
-    # Nombres del esquema que la shell muestra: ajustes rapidos ("tile") y zonas de Inicio ("zone").
+    # El esquema de opciones (en ingles, Fase 15 B3): todo lo que muestra el centro de
+    # configuracion va con el contexto "settings" (SettingsModel.localized); las palabras
+    # clave de cada opcion, juntas, con "settings keywords"; los nombres de los ajustes
+    # rapidos y de las zonas de Inicio con "tile" y "zone" (los usa la shell).
     try:
         sch = json.load(open(os.path.join(QML, "data", "settings.schema.json")))
-        for key, ctx in (("controlCenter.tiles", "tile"), ("dashboard.home.zones", "zone")):
-            for w in (sch["keys"].get(key, {}).get("widgets") or {}).values():
-                add(ctx + SEP + w["label"], "settings.schema.json:" + key)
-    except (OSError, ValueError, KeyError):
-        pass
+    except (OSError, ValueError):
+        sch = {}
+    def shown(v, where):
+        if isinstance(v, str) and re.search(r"[^\W\d_]", v):
+            add("settings" + SEP + v, where)
+    for cid, c in (sch.get("categories") or {}).items():
+        shown(c.get("label"), "settings.schema.json:categories." + cid)
+    for key, m in (sch.get("keys") or {}).items():
+        where = "settings.schema.json:" + key
+        for f in ("section", "label", "description", "unit", "placeholder"):
+            shown(m.get(f), where)
+        for d in (m.get("values"), m.get("labels"), (m.get("items") or {}).get("values")):
+            for v in (d or {}).values() if isinstance(d, dict) else []:
+                shown(v, where)
+        for pr in m.get("presets") or []:
+            if isinstance(pr, list):
+                shown(pr[1], where)
+        for w in (m.get("modules") or {}).values():
+            shown(w.get("label"), where)
+        ctx = {"controlCenter.tiles": "tile", "dashboard.home.zones": "zone"}.get(key)
+        for w in (m.get("widgets") or {}).values():
+            if ctx:
+                add(ctx + SEP + w["label"], where)
+            shown(w.get("description"), where)
+        if m.get("keywords"):
+            add("settings keywords" + SEP + " | ".join(m["keywords"]), where)
     return keys
 
 
@@ -210,6 +234,9 @@ def literals(path, allow):
     for n, line in enumerate(open(path, errors="replace"), 1):
         t = line.strip()
         if t.startswith(("//", "import ", "*")):
+            continue
+        # Atajos de teclado de Qt (Shortcut) y lineas marcadas como no visibles.
+        if re.search(r"\bsequences?\s*:", line) or "// i18n-ok" in line:
             continue
         # Mensajes para quien desarrolla (consola) y codigo de Hyprland: no se muestran.
         if re.search(r"\bconsole\.(log|warn|error|debug|info)\(|\bdispatch\(", line):

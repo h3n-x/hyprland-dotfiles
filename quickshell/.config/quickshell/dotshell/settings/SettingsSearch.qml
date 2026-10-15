@@ -62,7 +62,7 @@ Rectangle {
             leftPadding: Tokens.space.md
             topPadding: Tokens.space.sm
             bottomPadding: Tokens.space.sm
-            text: "Nada coincide con «" + box.query.trim() + "»"
+            text: I18n.tr("Nothing matches “%1”", box.query.trim())
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.body
@@ -97,7 +97,7 @@ Rectangle {
                     }
                     Text {
                         width: parent.width
-                        text: box.model.categoryLabel(res.meta.category) + (res.meta.section ? " · " + res.meta.section : "")
+                        text: box.model.categoryLabel(res.meta.category) + (res.meta.sectionLabel ? " · " + res.meta.sectionLabel : "")
                         elide: Text.ElideRight
                         color: res.sel ? Colors.textOnAccentAltContainer : Colors.textMuted
                         font.family: Tokens.font.ui
@@ -109,7 +109,7 @@ Rectangle {
                     anchors.right: parent.right
                     anchors.rightMargin: Tokens.space.md
                     anchors.verticalCenter: parent.verticalCenter
-                    text: res.sel ? "Enter" : ""
+                    text: res.sel ? I18n.trc("key", "Enter") : ""
                     color: Colors.textOnAccentAltContainer
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.caption

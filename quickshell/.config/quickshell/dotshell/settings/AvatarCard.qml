@@ -42,7 +42,7 @@ Item {
             spacing: Tokens.space.xs
             Text {
                 Layout.fillWidth: true
-                text: card.own ? "Tu imagen, recortada al centro." : "Se recorta del fondo en cada cambio de tema."
+                text: card.own ? I18n.tr("Your image, cropped to the center.") : I18n.tr("Cut from the wallpaper at every theme change.")
                 wrapMode: Text.WordWrap
                 color: Colors.text
                 font.family: Tokens.font.ui
@@ -50,7 +50,7 @@ Item {
             }
             Text {
                 Layout.fillWidth: true
-                text: "En el bloqueo al momento; en la pantalla de inicio de sesión y en el arranque, en el próximo pase del sistema (un minuto)."
+                text: I18n.tr("On the lock screen right away; on the login screen and at boot, in the next system pass (a minute).")
                 wrapMode: Text.WordWrap
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
@@ -63,7 +63,7 @@ Item {
                 Icon { name: "warning"; filled: true; size: Tokens.icon.sm; color: Colors.warning }
                 Text {
                     Layout.fillWidth: true
-                    text: "No se puede leer la imagen: el avatar sigue siendo el anterior."
+                    text: I18n.tr("The image can't be read: the avatar stays the previous one.")
                     wrapMode: Text.WordWrap
                     color: Colors.text
                     font.family: Tokens.font.ui

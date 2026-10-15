@@ -63,14 +63,14 @@ Item {
             Layout.fillWidth: true
             spacing: Tokens.space.xs
             Text {
-                text: "Tema actual"
+                text: I18n.tr("Current theme")
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
             }
             Text {
                 Layout.fillWidth: true
-                text: card.wallpaper.split("/").pop() || "Ningún tema aplicado todavía"
+                text: card.wallpaper.split("/").pop() || I18n.tr("No theme applied yet")
                 elide: Text.ElideMiddle
                 color: Colors.text
                 font.family: Tokens.font.ui
@@ -80,9 +80,9 @@ Item {
             Text {
                 visible: !!card.current && !!card.current.scheme
                 Layout.fillWidth: true
-                text: card.current ? "Aplicado con esquema " + card.model.format("appearance.scheme", card.current.scheme).toLowerCase()
-                    + ", contraste " + card.model.format("appearance.contrast", Number(card.current.contrast || 0)).toLowerCase()
-                    + " y modo " + (card.current.mode === "light" ? "claro" : "oscuro") : ""
+                text: card.current ? I18n.tr("Applied with the %1 scheme, %2 contrast and %3 mode", card.model.format("appearance.scheme", card.current.scheme).toLowerCase(),
+                    card.model.format("appearance.contrast", Number(card.current.contrast || 0)).toLowerCase(),
+                    card.current.mode === "light" ? I18n.trc("mode", "light") : I18n.trc("mode", "dark")) : ""
                 wrapMode: Text.WordWrap
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
@@ -91,8 +91,8 @@ Item {
             Text {
                 visible: !!card.override.scheme
                 Layout.fillWidth: true
-                text: "Este fondo tiene su propio esquema (" + card.model.format("appearance.scheme", card.override.scheme || "").toLowerCase()
-                    + ", elegido en la galería): el de todos los fondos no lo cambia."
+                text: I18n.tr("This wallpaper has its own scheme (%1, chosen in the gallery): the one for every wallpaper doesn't change it.",
+                    card.model.format("appearance.scheme", card.override.scheme || "").toLowerCase())
                 wrapMode: Text.WordWrap
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
@@ -106,12 +106,12 @@ Item {
                     activeFocusOnTab: visible
                     main: true
                     icon: card.applying ? "hourglass_top" : "check"
-                    label: card.applying ? "Aplicando…" : "Aplicar al tema actual"
+                    label: card.applying ? I18n.tr("Applying…") : I18n.tr("Apply to the current theme")
                     onClicked: if (!card.applying) card.applyNow()
                 }
                 Text {
                     visible: !card.differs && !!card.current && !!card.current.scheme
-                    text: "El tema actual ya usa estas opciones."
+                    text: I18n.tr("The current theme already uses these options.")
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label
@@ -119,7 +119,7 @@ Item {
                 Button {
                     activeFocusOnTab: true
                     icon: "wallpaper"
-                    label: "Cambiar fondo"
+                    label: I18n.tr("Change wallpaper")
                     onClicked: Quickshell.execDetached(["qs", "-c", "dotshell", "ipc", "call", "gallery", "open"])
                 }
             }

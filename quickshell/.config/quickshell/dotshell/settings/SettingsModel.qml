@@ -16,7 +16,42 @@ QtObject {
     id: model
 
     readonly property var schema: SettingsState.schema
-    readonly property var keys: model.schema && model.schema.keys ? model.schema.keys : ({})
+    // Las claves con sus textos en el idioma elegido (Fase 15 B3): el esquema esta en
+    // ingles (la clave del catalogo, contexto "settings"); aqui se traduce una vez y
+    // todas las paginas leen esto. "section" sigue en ingles (identifica la seccion,
+    // p. ej. extras["Color"]) y sectionLabel es su texto; source guarda el ingles de
+    // lo que se busca. Se rearma al cambiar el catalogo (I18n.rev).
+    readonly property var keys: model.localized(model.schema && model.schema.keys ? model.schema.keys : ({}), I18n.rev)
+    function t(s: var): var {
+        return typeof s === "string" && s ? I18n.trc("settings", s) : s;
+    }
+    function localized(raw: var, rev: int): var {
+        const each = (o, f) => {
+            const r = {};
+            for (const k in o) r[k] = f(o[k]);
+            return r;
+        };
+        const out = {};
+        for (const k in raw) {
+            const m = raw[k];
+            const c = Object.assign({}, m);
+            for (const f of ["label", "description", "unit", "placeholder"])
+                if (m[f] !== undefined) c[f] = model.t(m[f]);
+            c.sectionLabel = model.t(m.section || "");
+            if (m.values) c.values = each(m.values, model.t);
+            if (m.labels) c.labels = each(m.labels, model.t);
+            if (m.items && m.items.values) c.items = Object.assign({}, m.items, { values: each(m.items.values, model.t) });
+            if (Array.isArray(m.presets)) c.presets = m.presets.map(p => Array.isArray(p) ? [p[0], model.t(p[1])] : p);
+            if (m.modules) c.modules = each(m.modules, x => Object.assign({}, x, { label: model.t(x.label) }));
+            if (m.widgets) c.widgets = each(m.widgets, x => x.description ? Object.assign({}, x, { description: model.t(x.description) }) : x);
+            // Palabras clave: el ingles del esquema y su traduccion (una cadena por clave).
+            const kw = (m.keywords || []).join(" | ");
+            c.keywords = kw ? I18n.trc("settings keywords", kw).split(" | ") : [];
+            c.source = { label: m.label || "", description: m.description || "", section: m.section || "", keywords: m.keywords || [] };
+            out[k] = c;
+        }
+        return out;
+    }
 
     // Claves de cada categoria, ordenadas por "order" (y por nombre si empatan).
     readonly property var byCategory: {
@@ -34,11 +69,11 @@ QtObject {
         return Object.keys(cats)
             .filter(id => (model.byCategory[id] || []).length > 0)
             .sort((a, b) => (cats[a].order || 0) - (cats[b].order || 0))
-            .map(id => ({ id: id, label: cats[id].label || id, icon: cats[id].icon || "settings" }));
+            .map(id => ({ id: id, label: model.t(cats[id].label || id), source: cats[id].label || id, icon: cats[id].icon || "settings" }));
     }
-    readonly property var pages: [{ id: "home", label: "Inicio", icon: "home" }]
+    readonly property var pages: [{ id: "home", label: I18n.tr("Home"), icon: "home" }]
         .concat(model.categories)
-        .concat([{ id: "about", label: "Acerca de", icon: "info" }])
+        .concat([{ id: "about", label: I18n.tr("About"), icon: "info" }])
 
     function page(id: string): var {
         return model.pages.find(p => p.id === id) || null;
@@ -49,7 +84,7 @@ QtObject {
     }
 
     // Secciones de una categoria en el orden de su primera clave:
-    // [{ name, keys: [normales], advanced: [avanzadas] }].
+    // [{ name (ingles, la identifica), label (su texto), keys: [normales], advanced: [avanzadas] }].
     function sections(category: string): var {
         const out = [];
         for (const k of model.byCategory[category] || []) {
@@ -57,7 +92,7 @@ QtObject {
             const name = m.section || "";
             let s = out.find(x => x.name === name);
             if (!s) {
-                s = { name: name, keys: [], advanced: [] };
+                s = { name: name, label: m.sectionLabel, keys: [], advanced: [] };
                 out.push(s);
             }
             (m.advanced ? s.advanced : s.keys).push(k);
@@ -112,13 +147,13 @@ QtObject {
         // Reproductores (Fase 10 B4): automatico, los abiertos ahora (MediaState,
         // cliente pasivo de MPRIS) y el elegido aunque no este abierto.
         if (m.kind === "player") {
-            const out = [["", "Automático"]];
+            const out = [["", I18n.tr("Automatic")]];
             for (const p of MediaState.players) {
                 const k = MediaState.keyOf(p);
                 if (k && !out.some(o => o[0] === k)) out.push([k, MediaState.nameOf(p)]);
             }
             const cur = SettingsState.value(key);
-            if (cur && !out.some(o => o[0] === cur)) out.push([cur, cur + " (cerrado)"]);
+            if (cur && !out.some(o => o[0] === cur)) out.push([cur, I18n.tr("%1 (closed)", cur)]);
             return out;
         }
         if (m.type === "enum") return Object.keys(m.values).map(v => [v, m.values[v]]);
@@ -127,39 +162,39 @@ QtObject {
         return [];
     }
 
-    // Un valor como se lee en la interfaz ("encendido", "Alta", "1,5 s").
+    // Un valor como se lee en la interfaz ("On", "High", "1.5 s"), en el idioma elegido.
     function format(key: string, v: var): string {
         const m = model.keys[key];
         if (!m || v === undefined || v === null) return "";
-        if (m.type === "bool") return v ? "Encendido" : "Apagado";
+        if (m.type === "bool") return v ? I18n.tr("On") : I18n.tr("Off");
         if (m.type === "enum") return (m.values && m.values[v]) || String(v);
-        if (m.type === "list") return (v || []).join(", ");
-        if (m.type === "location") return v ? v.name : "Sin ciudad";
-        if (m.kind === "player") return v || "Automático";
+        if (m.type === "list") return I18n.join(v || []);
+        if (m.type === "location") return v ? v.name : I18n.tr("No city");
+        if (m.kind === "player") return v || I18n.tr("Automatic");
         if (m.type === "time") return String(v);
         if (m.type === "barLayout") {
             const n = ["start", "center", "end"].reduce((a, s) => a + (v[s] || []).reduce((b, it) => b + (it && it.pill ? it.pill.length : it === "spacer" ? 0 : 1), 0), 0);
-            return n + (n === 1 ? " módulo" : " módulos");
+            return I18n.trn("%n module", "%n modules", n);
         }
-        if (m.kind === "screens") return (v || []).length ? v.join(", ") : "Todas";
+        if (m.kind === "screens") return (v || []).length ? I18n.join(v) : I18n.trc("options", "All");
         if (m.kind === "checks") {
             const all = Object.keys((m.items || {}).values || {}).length;
             const n = (v || []).length;
-            return n === all ? "Todas" : n === 0 ? "Ninguna" : n + " de " + all;
+            return n === all ? I18n.trc("options", "All") : n === 0 ? I18n.trc("options", "None") : I18n.tr("%1 of %2", I18n.number(n), I18n.number(all));
         }
-        if (m.kind === "apps") return (v || []).length ? (v || []).map(id => AppInfo.name(id)).join(", ") : "Ninguna";
-        if (m.kind === "folders") return (v || []).length ? (v || []).map(p => p.split("/").pop()).join(", ") : "Las carpetas personales";
+        if (m.kind === "apps") return (v || []).length ? I18n.join((v || []).map(id => AppInfo.name(id))) : I18n.trc("options", "None");
+        if (m.kind === "folders") return (v || []).length ? I18n.join((v || []).map(p => p.split("/").pop())) : I18n.tr("The personal folders");
         if (m.type === "tiles") {
             const n = (v || []).length;
-            return n === 0 ? "Ninguno" : n === 1 ? "1 ajuste" : n + " ajustes";
+            return n === 0 ? I18n.trc("tiles", "None") : I18n.trn("%n setting", "%n settings", n);
         }
         if (m.type === "homeZones") {
             const n = (v || []).length;
-            return n === 0 ? "Sin zonas" : n === 1 ? "1 zona" : n + " zonas";
+            return n === 0 ? I18n.tr("No zones") : I18n.trn("%n zone", "%n zones", n);
         }
         if (m.type === "outputs") {
             const n = Object.keys(v || {}).length;
-            return n === 0 ? "Automática" : n === 1 ? "1 pantalla ajustada" : n + " pantallas ajustadas";
+            return n === 0 ? I18n.trc("displays", "Automatic") : I18n.trn("%n display adjusted", "%n displays adjusted", n);
         }
         if (m.labels && m.labels.hasOwnProperty(String(v))) return m.labels[String(v)];
         const preset = Array.isArray(m.presets) ? m.presets.find(p => Array.isArray(p) && Math.abs(p[0] - v) < 0.01) : null;
@@ -168,8 +203,9 @@ QtObject {
             const home = SettingsState.home;
             return home && String(v).startsWith(home + "/") ? "~" + String(v).slice(home.length) : String(v);
         }
-        if (m.percent) return Math.round(v * 100) + " %";
-        return String(v).replace(".", ",") + (m.unit ? " " + m.unit : "");
+        if (m.percent) return I18n.tr("%1 %", I18n.number(Math.round(v * 100)));
+        // Con los decimales del valor y sin separador de miles (6500 K), con la coma o el punto del idioma.
+        return String(v).replace(".", I18n.locale.decimalPoint) + (m.unit ? " " + m.unit : "");
     }
 
     // ---- Valor en Hyprland (Fase 10 B3) ---------------------------------------------------
@@ -212,16 +248,18 @@ QtObject {
     function applyNote(key: string): string {
         const m = model.keys[key];
         return !m ? "" : ({
-            "next-use": "La próxima vez",
-            "reload-shell": "Reinicia la shell",
-            "relogin": "Al volver a entrar",
-            "reboot": "Al reiniciar el equipo"
+            "next-use": I18n.tr("Next time"),
+            "reload-shell": I18n.tr("Restarts the shell"),
+            "relogin": I18n.tr("On next login"),
+            "reboot": I18n.tr("On reboot")
         })[m.apply] || "";
     }
 
     // ---- Busqueda -------------------------------------------------------------------------
     // Sin tildes ni mayusculas; todas las palabras tienen que aparecer en la
-    // etiqueta, la descripcion, las palabras clave, la categoria o la seccion.
+    // etiqueta, la descripcion, las palabras clave, la categoria o la seccion, en el
+    // idioma elegido o en ingles (Fase 15 B3: un nombre visto en una guia en ingles
+    // tambien se encuentra).
     function fold(s: string): string {
         return String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
     }
@@ -232,7 +270,8 @@ QtObject {
             out.push({
                 key: k,
                 label: model.fold(m.label || k),
-                text: model.fold([m.label, m.description || "", (m.keywords || []).join(" "), model.categoryLabel(m.category), m.section || ""].join(" "))
+                text: model.fold([m.label, m.description || "", m.keywords.join(" "), model.categoryLabel(m.category), m.sectionLabel,
+                    m.source.label, m.source.description, m.source.keywords.join(" "), (model.categories.find(c => c.id === m.category) || {}).source || "", m.source.section].join(" "))
             });
         }
         return out;

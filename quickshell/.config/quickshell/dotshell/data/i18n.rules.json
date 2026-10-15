@@ -89,6 +89,7 @@
   "modules/QuickZone.qml",
   "modules/RecordingPill.qml",
   "modules/Resources.qml",
+  "modules/Slider.qml",
   "modules/Sparkline.qml",
   "modules/StatusBadge.qml",
   "modules/Switcher.qml",
@@ -108,8 +109,23 @@
   "modules/WorkspaceStrip.qml",
   "modules/Workspaces.qml",
   "modules/WorkspacesView.qml",
+  "settings.qml",
+  "settings/AboutPage.qml",
+  "settings/AvatarCard.qml",
+  "settings/BarLayoutEditor.qml",
+  "settings/CategoryPage.qml",
+  "settings/DisplayCanvas.qml",
+  "settings/DisplayConfirm.qml",
+  "settings/DisplaysPanel.qml",
+  "settings/HomePage.qml",
   "settings/KeybindsBrowser.qml",
-  "settings/LayoutSummary.qml"
+  "settings/LayoutSummary.qml",
+  "settings/ScreenPicker.qml",
+  "settings/SettingRow.qml",
+  "settings/SettingsModel.qml",
+  "settings/SettingsSearch.qml",
+  "settings/SettingsWindow.qml",
+  "settings/ThemeCard.qml"
  ],
  "allow": [
   {

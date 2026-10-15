@@ -22,7 +22,7 @@ Item {
 
     readonly property var lay: SettingsState.value("bar.layout") || ({ "start": [], "center": [], "end": [] })
     readonly property var modules: (SettingsState.meta("bar.layout") || {}).modules || ({})
-    readonly property var sections: [["start", "Izquierda"], ["center", "Centro"], ["end", "Derecha"]]
+    readonly property var sections: [["start", I18n.trc("bar side", "Left")], ["center", I18n.trc("bar side", "Center")], ["end", I18n.trc("bar side", "Right")]]
     readonly property var used: {
         const out = [];
         for (const sec of ["start", "center", "end"])
@@ -168,7 +168,7 @@ Item {
                         }
                         Text {
                             visible: (editor.lay[col.sec] || []).length === 0
-                            text: "Vacía: arrastra aquí"
+                            text: I18n.tr("Empty: drag here")
                             color: Colors.textMuted
                             font.family: Tokens.font.ui
                             font.pixelSize: Tokens.type.label
@@ -199,7 +199,7 @@ Item {
                 width: parent.width - 2 * Tokens.space.md
                 spacing: Tokens.space.sm
                 Text {
-                    text: "Disponibles (arrastra aquí para quitar)"
+                    text: I18n.tr("Available (drag here to remove)")
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label
@@ -287,7 +287,10 @@ Item {
         property string mid
         property var src: null
         property bool inPill: false
-        readonly property var info: chip.mid === "spacer" ? { "label": "Espacio", "icon": "space_bar" } : (editor.modules[chip.mid] || { "label": chip.mid, "icon": "help" })
+        // El nombre del modulo viene del esquema en ingles (contexto "settings", Fase 15 B3).
+        readonly property var info: chip.mid === "spacer" ? { "label": I18n.trc("bar module", "Spacer"), "icon": "space_bar" }
+            : editor.modules[chip.mid] ? { "label": I18n.trc("settings", editor.modules[chip.mid].label), "icon": editor.modules[chip.mid].icon }
+            : { "label": chip.mid, "icon": "help" }
         // Se arrastra a mano (el arrastre de MouseArea pierde el umbral y se corre al reparentar).
         property bool dragging: false
 

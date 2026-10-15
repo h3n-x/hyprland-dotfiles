@@ -25,7 +25,7 @@ ShellRoot {
 
     FloatingWindow {
         id: window
-        title: "Configuración"
+        title: I18n.tr("Settings")
         implicitWidth: Tokens.px(1100)
         implicitHeight: Tokens.px(720)
         minimumSize: Qt.size(Tokens.px(900), Tokens.px(560))

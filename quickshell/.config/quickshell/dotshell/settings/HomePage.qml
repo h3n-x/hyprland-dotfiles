@@ -31,7 +31,7 @@ ColumnLayout {
     spacing: Tokens.space.lg
 
     Text {
-        text: "Inicio"
+        text: I18n.tr("Home")
         color: Colors.text
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.display
@@ -69,14 +69,14 @@ ColumnLayout {
                 Layout.fillWidth: true
                 spacing: Tokens.space.xs
                 Text {
-                    text: "Tema actual"
+                    text: I18n.tr("Current theme")
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.label
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: (Colors.image || "").split("/").pop() || "Sin fondo"
+                    text: (Colors.image || "").split("/").pop() || I18n.tr("No wallpaper")
                     elide: Text.ElideMiddle
                     color: Colors.text
                     font.family: Tokens.font.ui
@@ -85,8 +85,8 @@ ColumnLayout {
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: "Esquema " + page.model.format("appearance.scheme", SettingsState.value("appearance.scheme")).toLowerCase()
-                        + " · contraste " + page.model.format("appearance.contrast", SettingsState.value("appearance.contrast")).toLowerCase()
+                    text: I18n.tr("Scheme %1 · contrast %2", page.model.format("appearance.scheme", SettingsState.value("appearance.scheme")).toLowerCase(),
+                        page.model.format("appearance.contrast", SettingsState.value("appearance.contrast")).toLowerCase())
                     elide: Text.ElideRight
                     color: Colors.textMuted
                     font.family: Tokens.font.ui
@@ -99,13 +99,13 @@ ColumnLayout {
                         activeFocusOnTab: true
                         main: true
                         icon: "wallpaper"
-                        label: "Cambiar fondo"
+                        label: I18n.tr("Change wallpaper")
                         onClicked: Quickshell.execDetached(["qs", "-c", "dotshell", "ipc", "call", "gallery", "open"])
                     }
                     Button {
                         activeFocusOnTab: true
                         icon: "palette"
-                        label: "Opciones de tema"
+                        label: I18n.tr("Theme options")
                         onClicked: page.openPage("appearance")
                     }
                 }
@@ -117,7 +117,7 @@ ColumnLayout {
     Text {
         Layout.topMargin: Tokens.space.sm
         Layout.leftMargin: Tokens.space.xs
-        text: "Rápido"
+        text: I18n.tr("Quick")
         color: Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label
@@ -150,7 +150,7 @@ ColumnLayout {
     Text {
         Layout.topMargin: Tokens.space.sm
         Layout.leftMargin: Tokens.space.xs
-        text: "Tus cambios" + (page.changed.length ? " (" + page.changed.length + ")" : "")
+        text: I18n.tr("Your changes") + (page.changed.length ? " (" + I18n.number(page.changed.length) + ")" : "")
         color: Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label
@@ -167,7 +167,7 @@ ColumnLayout {
             visible: page.changed.length === 0
             x: Tokens.space.lg
             anchors.verticalCenter: parent.verticalCenter
-            text: "Todo está como de fábrica."
+            text: I18n.tr("Everything is at its default.")
             color: Colors.textMuted
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.body
@@ -215,7 +215,7 @@ ColumnLayout {
                                 }
                                 Text {
                                     Layout.fillWidth: true
-                                    text: page.model.categoryLabel(ch.meta.category) + " · de fábrica: " + page.model.format(ch.modelData, ch.meta.default)
+                                    text: I18n.tr("%1 · default: %2", page.model.categoryLabel(ch.meta.category), page.model.format(ch.modelData, ch.meta.default))
                                     elide: Text.ElideRight
                                     color: Colors.textMuted
                                     font.family: Tokens.font.ui

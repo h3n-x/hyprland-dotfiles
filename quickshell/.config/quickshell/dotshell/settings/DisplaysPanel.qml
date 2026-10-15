@@ -31,8 +31,8 @@ Column {
     // Escalas con las que el espacio que queda es entero (Hyprland redondea las
     // demas en silencio, V0): para 1920x1080, 1 · 1,2 · 1,25 · 1,33 · 1,5 · 1,6 · 1,67 · 2 · 2,4 · 2,5 · 3.
     readonly property var scaleCandidates: [1, 1.2, 1.25, 4 / 3, 1.5, 1.6, 5 / 3, 1.75, 1.8, 2, 2.25, 2.4, 2.5, 3]
-    readonly property var colorProfiles: [["auto", "Automático"], ["srgb", "sRGB"], ["dcip3", "DCI-P3"], ["dp3", "Display P3"],
-        ["adobe", "Adobe RGB"], ["wide", "Amplio (BT.2020)"], ["edid", "El de la pantalla (EDID)"], ["hdr", "HDR"], ["hdredid", "HDR (EDID)"]]
+    readonly property var colorProfiles: [["auto", I18n.tr("Automatic")], ["srgb", "sRGB"], ["dcip3", "DCI-P3"], ["dp3", "Display P3"], // i18n-ok
+        ["adobe", "Adobe RGB"], ["wide", I18n.tr("Wide (BT.2020)")], ["edid", I18n.tr("The display's own (EDID)")], ["hdr", "HDR"], ["hdredid", "HDR (EDID)"]] // i18n-ok
 
     function refresh(): void {
         monProc.running = true;
@@ -60,7 +60,7 @@ Column {
         const p = size.split("x").map(Number);
         const ok = panel.scaleCandidates.filter(s => Math.abs(p[0] / s - Math.round(p[0] / s)) < 0.01 && Math.abs(p[1] / s - Math.round(p[1] / s)) < 0.01);
         if (current && !ok.some(s => Math.abs(s - current) < 0.001)) ok.push(current);
-        return ok.sort((a, b) => a - b).map(s => [Math.round(s * 1e6) / 1e6, String(Math.round(s * 100) / 100).replace(".", ",")
+        return ok.sort((a, b) => a - b).map(s => [Math.round(s * 1e6) / 1e6, String(Math.round(s * 100) / 100).replace(".", I18n.locale.decimalPoint)
             + " · " + Math.round(p[0] / s) + " × " + Math.round(p[1] / s)]);
     }
     // Lo que la pantalla tiene ahora (Hyprland), con lo guardado donde Hyprland
@@ -197,7 +197,7 @@ Column {
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: [card.m.make, card.m.model].filter(x => x).join(" ") + (card.internal ? " · integrada" : "")
+                        text: [card.m.make, card.m.model].filter(x => x).join(" ") + (card.internal ? " · " + I18n.tr("built-in") : "")
                         elide: Text.ElideRight
                         color: Colors.textMuted
                         font.family: Tokens.font.ui
@@ -207,96 +207,96 @@ Column {
 
                 Line {
                     visible: panel.monitors.length > 1
-                    label: "Activada"
-                    note: card.v.enabled && panel.views.filter(x => x.enabled).length <= 1 ? "Es la única encendida." : ""
+                    label: I18n.tr("Enabled")
+                    note: card.v.enabled && panel.views.filter(x => x.enabled).length <= 1 ? I18n.tr("It's the only one on.") : ""
                     Switch {
                         checked: card.v.enabled
                         onToggled: if (!card.v.enabled || panel.views.filter(x => x.enabled).length > 1) panel.edit(card.m.name, "enabled", !card.v.enabled)
                     }
                 }
                 Choice {
-                    label: "Resolución"
+                    label: I18n.tr("Resolution")
                     options: panel.sizes(card.m).map(s => [s, s.replace("x", " × ")])
                     current: card.v.size
                     onChosen: (val) => panel.edit(card.m.name, "size", val)
                 }
                 Choice {
-                    label: "Frecuencia"
-                    options: panel.rates(card.m, card.v.size).map(r => [r, Math.round(r * 100) / 100 + " Hz"])
+                    label: I18n.tr("Refresh rate")
+                    options: panel.rates(card.m, card.v.size).map(r => [r, I18n.tr("%1 Hz", String(Math.round(r * 100) / 100).replace(".", I18n.locale.decimalPoint))])
                     current: panel.rates(card.m, card.v.size).reduce((a, b) => Math.abs(b - card.v.rate) < Math.abs(a - card.v.rate) ? b : a, 0)
                     onChosen: (val) => panel.edit(card.m.name, "rate", val)
                 }
                 Choice {
-                    label: "Escala"
-                    note: "El espacio que queda para las ventanas."
+                    label: I18n.tr("Scale")
+                    note: I18n.tr("The space left for the windows.")
                     options: panel.scales(card.v.size, card.v.scale)
                     current: Math.round(card.v.scale * 1e6) / 1e6
                     onChosen: (val) => panel.edit(card.m.name, "scale", val)
                 }
                 Line {
-                    label: "Rotación"
+                    label: I18n.tr("Rotation")
                     Segmented {
-                        options: [[0, "Normal"], [1, "90°"], [2, "180°"], [3, "270°"]]
+                        options: [[0, I18n.trc("rotation", "Normal")], [1, "90°"], [2, "180°"], [3, "270°"]]
                         current: card.v.transform % 4
                         onChosen: (val) => panel.edit(card.m.name, "transform", val + (card.v.transform >= 4 ? 4 : 0))
                     }
                 }
                 Line {
-                    label: "Volteada"
-                    note: "Espejo horizontal (proyectores, teleprompter)."
+                    label: I18n.tr("Flipped")
+                    note: I18n.tr("Horizontal mirror (projectors, teleprompter).")
                     Switch {
                         checked: card.v.transform >= 4
                         onToggled: panel.edit(card.m.name, "transform", card.v.transform % 4 + (card.v.transform >= 4 ? 0 : 4))
                     }
                 }
                 Line {
-                    label: "Frecuencia variable (VRR)"
-                    note: card.c.known && !card.c.vrr ? "Esta pantalla no informa un rango variable: puede no hacer nada. Cambiarla recarga Hyprland (un parpadeo)."
-                        : "Cambiarla recarga Hyprland (un parpadeo)."
+                    label: I18n.tr("Variable refresh rate (VRR)")
+                    note: card.c.known && !card.c.vrr ? I18n.tr("This display doesn't report a variable range: it may do nothing. Changing it reloads Hyprland (a flicker).")
+                        : I18n.tr("Changing it reloads Hyprland (a flicker).")
                     Segmented {
-                        options: [[0, "Apagada"], [1, "Siempre"], [2, "Pantalla completa"]]
+                        options: [[0, I18n.trc("vrr", "Off")], [1, I18n.trc("vrr", "Always")], [2, I18n.trc("vrr", "Fullscreen")]]
                         current: card.v.vrr
                         onChosen: (val) => panel.edit(card.m.name, "vrr", val)
                     }
                 }
                 Choice {
                     visible: panel.monitors.length > 1
-                    label: "Duplicar"
-                    note: "Muestra lo mismo que otra pantalla."
-                    options: [["", "No"]].concat(panel.monitors.filter(o => o.name !== card.m.name).map(o => [o.name, o.name]))
+                    label: I18n.tr("Mirror")
+                    note: I18n.tr("Shows the same as another display.")
+                    options: [["", I18n.trc("mirror", "No")]].concat(panel.monitors.filter(o => o.name !== card.m.name).map(o => [o.name, o.name]))
                     current: card.v.mirror
                     onChosen: (val) => panel.edit(card.m.name, "mirror", val)
                 }
 
                 // Color avanzado: plegado.
                 Button {
-                    label: card.advanced ? "Ocultar color avanzado" : "Color avanzado (10 bits, perfiles, HDR)"
+                    label: card.advanced ? I18n.tr("Hide advanced color") : I18n.tr("Advanced color (10 bits, profiles, HDR)")
                     icon: card.advanced ? "expand_less" : "expand_more"
                     onClicked: card.advanced = !card.advanced
                 }
                 Line {
                     visible: card.advanced
-                    label: "Profundidad de color"
-                    note: card.c.maxBpc && card.c.maxBpc < 10 ? "Esta pantalla dice " + card.c.maxBpc + " bits por color." : ""
+                    label: I18n.tr("Color depth")
+                    note: card.c.maxBpc && card.c.maxBpc < 10 ? I18n.tr("This display reports %1 bits per color.", I18n.number(card.c.maxBpc)) : ""
                     Segmented {
-                        options: [[8, "8 bits"], [10, "10 bits"]]
+                        options: [[8, I18n.tr("%1 bits", I18n.number(8))], [10, I18n.tr("%1 bits", I18n.number(10))]]
                         current: card.v.bitdepth
                         onChosen: (val) => panel.edit(card.m.name, "bitdepth", val)
                     }
                 }
                 Choice {
                     visible: card.advanced
-                    label: "Perfil de color"
+                    label: I18n.tr("Color profile")
                     note: (card.v.cm === "hdr" || card.v.cm === "hdredid") && !card.c.hdr
-                        ? (card.c.known ? "Esta pantalla no dice soportar HDR: quedará en sRGB." : "No se pudo leer si soporta HDR.")
-                        : (card.v.cm !== "auto" && card.v.cm !== "srgb" && !card.c.wide && card.c.known ? "Esta pantalla no dice tener color amplio." : "")
+                        ? (card.c.known ? I18n.tr("This display doesn't report HDR support: it will stay in sRGB.") : I18n.tr("Couldn't read whether it supports HDR."))
+                        : (card.v.cm !== "auto" && card.v.cm !== "srgb" && !card.c.wide && card.c.known ? I18n.tr("This display doesn't report wide color.") : "")
                     options: panel.colorProfiles
                     current: card.v.cm
                     onChosen: (val) => panel.edit(card.m.name, "cm", val)
                 }
                 Line {
                     visible: card.advanced && (card.v.cm === "hdr" || card.v.cm === "hdredid")
-                    label: "Brillo de lo SDR en HDR"
+                    label: I18n.tr("SDR brightness in HDR")
                     Slider {
                         from: 0.5
                         to: 2
@@ -307,7 +307,7 @@ Column {
                 }
                 Line {
                     visible: card.advanced && (card.v.cm === "hdr" || card.v.cm === "hdredid")
-                    label: "Saturación de lo SDR en HDR"
+                    label: I18n.tr("SDR saturation in HDR")
                     Slider {
                         from: 0.5
                         to: 2
@@ -324,7 +324,7 @@ Column {
     Text {
         width: parent.width
         visible: panel.overlap
-        text: "Dos pantallas se superponen: muévelas para poder aplicar."
+        text: I18n.tr("Two displays overlap: move them to be able to apply.")
         color: Colors.danger
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label
@@ -333,19 +333,19 @@ Column {
     Row {
         spacing: Tokens.space.sm
         Button {
-            label: "Detectar pantallas"
+            label: I18n.tr("Detect displays")
             icon: "refresh"
             onClicked: panel.refresh()
         }
         Button {
             visible: Object.keys(panel.store).length > 0
-            label: "Automática"
+            label: I18n.trc("displays", "Automatic")
             icon: "restart_alt"
             onClicked: panel.resetAll()
         }
         Button {
             visible: panel.dirty
-            label: "Descartar"
+            label: I18n.tr("Discard")
             onClicked: panel.edits = ({})
         }
         Button {
@@ -353,7 +353,7 @@ Column {
             visible: panel.dirty
             enabled: !panel.overlap
             opacity: enabled ? 1 : 0.5
-            label: "Aplicar"
+            label: I18n.tr("Apply")
             icon: "check"
             main: true
             onClicked: panel.apply()

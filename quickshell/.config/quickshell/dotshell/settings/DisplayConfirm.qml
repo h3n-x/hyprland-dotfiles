@@ -88,7 +88,7 @@ Rectangle {
         }
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: "¿Mantener esta configuración? Vuelve la anterior en " + bar.remaining + " s"
+            text: I18n.tr("Keep this configuration? The previous one comes back in %1 s", I18n.number(bar.remaining))
             color: Colors.textOnWarningContainer
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.body
@@ -105,13 +105,13 @@ Rectangle {
             objectName: "display-revert"
             ink: Colors.textOnWarningContainer
             edge: Colors.textOnWarningContainer
-            label: "Revertir"
+            label: I18n.tr("Revert")
             icon: "undo"
             onClicked: { act.command = [bar.applier, "display-revert"]; act.running = true; }
         }
         Button {
             objectName: "display-keep"
-            label: "Mantener"
+            label: I18n.tr("Keep")
             icon: "check"
             ink: Colors.textOnWarningContainer
             edge: Colors.textOnWarningContainer

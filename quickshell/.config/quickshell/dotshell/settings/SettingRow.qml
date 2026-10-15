@@ -18,7 +18,8 @@ Item {
     // Resultado de la busqueda: la fila se ilumina una vez.
     property bool highlighted: false
 
-    readonly property var meta: SettingsState.meta(row.key) || ({})
+    // Los textos ya traducidos (SettingsModel.keys, Fase 15 B3).
+    readonly property var meta: row.model.keys[row.key] || ({})
     readonly property var value: SettingsState.value(row.key)
     readonly property bool modified: SettingsState.isModified(row.key)
     readonly property string error: SettingsState.errors[row.key] || ""
@@ -85,7 +86,7 @@ Item {
                         font.pixelSize: Tokens.type.body
                         font.weight: Tokens.weight.medium
                     }
-                    Chip { visible: row.modified; icon: "edit"; label: "Cambiada" }
+                    Chip { visible: row.modified; icon: "edit"; label: I18n.tr("Changed") }
                     Chip { visible: row.note !== ""; icon: "schedule"; label: row.note }
                 }
                 Text {
@@ -103,8 +104,8 @@ Item {
                     Icon { anchors.verticalCenter: parent.verticalCenter; name: "info"; size: Tokens.icon.sm; color: Colors.textMuted }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: row.liveInfo ? "Hyprland usa ahora: " + row.liveInfo.live.map(v => typeof v === "boolean" ? (v ? "encendido" : "apagado")
-                            : String(v).replace(".", ",")).join(" · ") : ""
+                        text: row.liveInfo ? I18n.tr("Hyprland uses now: %1", row.liveInfo.live.map(v => typeof v === "boolean" ? (v ? I18n.trc("state", "on") : I18n.trc("state", "off"))
+                            : String(v).replace(".", I18n.locale.decimalPoint)).join(" · ")) : ""
                         color: Colors.textMuted
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
@@ -116,7 +117,7 @@ Item {
                     Icon { anchors.verticalCenter: parent.verticalCenter; name: "error"; filled: true; size: Tokens.icon.sm; color: Colors.danger }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "No se guardó: " + row.error.replace(/; no se guardó$/, "")
+                        text: I18n.tr("Not saved: %1", row.error.replace(/; no se guardó$/, ""))
                         color: Colors.danger
                         font.family: Tokens.font.ui
                         font.pixelSize: Tokens.type.label
@@ -184,7 +185,7 @@ Item {
             visible: row.listOpen && (row.kind === "layouts" || row.kind === "apps")
             Layout.fillWidth: true
             entries: (row.kind === "layouts" || row.kind === "apps") && control.item ? control.item.entries : []
-            placeholder: row.kind === "apps" ? "Buscar una aplicación" : "Buscar una distribución (spanish, latam, dvorak…)"
+            placeholder: row.kind === "apps" ? I18n.tr("Search an app") : I18n.tr("Search a layout (spanish, latam, dvorak…)")
             taken: row.value || []
             onChosen: (id) => control.item.add(id)
             onClosed: control.item.open = false
@@ -315,7 +316,7 @@ Item {
         PathField {
             objectName: "control-text"
             plain: true
-            placeholder: row.meta.placeholder || "Sin elegir"
+            placeholder: row.meta.placeholder || I18n.tr("Not chosen")
             value: row.value || ""
             onEdited: (v) => row.set(v)
         }

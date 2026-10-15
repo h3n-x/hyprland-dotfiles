@@ -25,7 +25,7 @@ ColumnLayout {
         const fams = Qt.fontFamilies();
         return ["appearance.font.ui", "appearance.font.mono"]
             .filter(k => SettingsState.isModified(k) && fams.indexOf(SettingsState.value(k)) < 0)
-            .map(k => (page.model.keys[k] || {}).label + ": «" + SettingsState.value(k) + "» no está instalada; se usa la de fábrica");
+            .map(k => I18n.tr("%1: “%2” isn't installed; the default is used", (page.model.keys[k] || {}).label, SettingsState.value(k)));
     }
     readonly property int issues: SettingsState.problems.length + page.missingFonts.length
 
@@ -44,7 +44,7 @@ ColumnLayout {
         stdout: StdioCollector {
             onStreamFinished: {
                 const l = this.text.trim().split("\n");
-                page.dotfiles = l.length === 2 ? "rama " + l[0] + " · " + l[1] : "sin datos";
+                page.dotfiles = l.length === 2 ? I18n.tr("branch %1 · %2", l[0], l[1]) : I18n.tr("no data");
             }
         }
     }
@@ -52,7 +52,7 @@ ColumnLayout {
         running: true
         command: ["qs", "--version"]
         stdout: StdioCollector {
-            onStreamFinished: page.quickshell = (this.text.match(/Quickshell\s+([^\s]+)/) || [, "sin datos"])[1]
+            onStreamFinished: page.quickshell = (this.text.match(/Quickshell\s+([^\s]+)/) || [, I18n.tr("no data")])[1]
         }
     }
     Process {
@@ -62,16 +62,16 @@ ColumnLayout {
             onStreamFinished: {
                 try {
                     const v = JSON.parse(this.text);
-                    page.hyprland = v.version || v.tag || "sin datos";
+                    page.hyprland = v.version || v.tag || I18n.tr("no data");
                 } catch (e) {
-                    page.hyprland = "sin datos";
+                    page.hyprland = I18n.tr("no data");
                 }
             }
         }
     }
 
     Text {
-        text: "Acerca de"
+        text: I18n.tr("About")
         color: Colors.text
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.display
@@ -92,11 +92,11 @@ ColumnLayout {
             spacing: Tokens.space.sm
             Repeater {
                 model: [
-                    ["Dotfiles", page.dotfiles],
-                    ["Quickshell", page.quickshell],
-                    ["Hyprland", page.hyprland],
-                    ["Opciones", Object.keys(page.model.keys).length + " en " + page.model.categories.length + " páginas · "
-                        + (SettingsState.modified.length === 1 ? "1 cambiada" : SettingsState.modified.length + " cambiadas")]
+                    ["Dotfiles", page.dotfiles], // i18n-ok
+                    ["Quickshell", page.quickshell], // i18n-ok
+                    ["Hyprland", page.hyprland], // i18n-ok
+                    [I18n.tr("Options"), I18n.tr("%1 on %2 pages · %3", I18n.number(Object.keys(page.model.keys).length), I18n.number(page.model.categories.length),
+                        I18n.trn("%n changed", "%n changed", SettingsState.modified.length))]
                 ]
                 delegate: Item {
                     id: cellItem
@@ -130,7 +130,7 @@ ColumnLayout {
     Text {
         Layout.topMargin: Tokens.space.sm
         Layout.leftMargin: Tokens.space.xs
-        text: "Diagnóstico"
+        text: I18n.tr("Diagnostics")
         color: Colors.textMuted
         font.family: Tokens.font.ui
         font.pixelSize: Tokens.type.label
@@ -157,9 +157,8 @@ ColumnLayout {
                     color: page.issues ? Colors.warning : Colors.success
                 }
                 Text {
-                    text: page.issues === 0 ? "Opciones válidas: ningún problema"
-                        : page.issues === 1 ? "1 problema: no se aplica, se usa el valor de fábrica"
-                        : page.issues + " problemas: no se aplican, se usan los valores de fábrica"
+                    text: page.issues === 0 ? I18n.tr("Valid options: no problems")
+                        : I18n.trn("%n problem: it isn't applied, the default value is used", "%n problems: they aren't applied, the default values are used", page.issues)
                     color: Colors.text
                     font.family: Tokens.font.ui
                     font.pixelSize: Tokens.type.body
@@ -196,13 +195,13 @@ ColumnLayout {
                 Button {
                     activeFocusOnTab: true
                     icon: "data_object"
-                    label: page.showFile ? "Ocultar el archivo" : "Ver como archivo"
+                    label: page.showFile ? I18n.tr("Hide the file") : I18n.tr("View as a file")
                     onClicked: page.showFile = !page.showFile
                 }
                 Button {
                     activeFocusOnTab: true
                     icon: "description"
-                    label: "Abrir el README"
+                    label: I18n.tr("Open the README")
                     onClicked: Quickshell.execDetached(["xdg-open", page.repo + "/README.md"])
                 }
             }
@@ -221,7 +220,7 @@ ColumnLayout {
                     width: parent.width - 2 * Tokens.space.md
                     spacing: Tokens.space.xs
                     Text {
-                        text: "Tus cambios, con los valores en uso · " + SettingsState.userPath.replace(Quickshell.env("HOME"), "~")
+                        text: I18n.tr("Your changes, with the values in use · %1", SettingsState.userPath.replace(Quickshell.env("HOME"), "~"))
                         color: Colors.textMuted
                         font.family: Tokens.font.mono
                         font.pixelSize: Tokens.type.caption

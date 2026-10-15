@@ -63,7 +63,7 @@ Item {
         if (root.percent) return Math.round(v * 100) + " %";
         const d = root.log ? (v < 1 ? 2 : v < 10 ? 1 : 0) : root.decimals(root.stepSize);
         const n = Number(v.toFixed(d));
-        return String(n).replace(".", ",") + (root.unit ? " " + root.unit : "");
+        return String(n).replace(".", I18n.locale.decimalPoint) + (root.unit ? " " + root.unit : "");
     }
     // Un paso (o diez) en la direccion pedida; en escala logaritmica, en
     // fraccion del riel.
@@ -218,7 +218,7 @@ Item {
             hoverEnabled: true
             cursorShape: Qt.IBeamCursor
             onClicked: {
-                edit.text = String(Number(root.value.toFixed(6))).replace(".", ",");
+                edit.text = String(Number(root.value.toFixed(6))).replace(".", I18n.locale.decimalPoint);
                 edit.forceActiveFocus();
                 edit.selectAll();
             }

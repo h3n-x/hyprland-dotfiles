@@ -42,7 +42,8 @@ Loader {
         onHoveredChanged: if (entry.panelWindow && entry.panelWindow.tip)
             entry.panelWindow.tip(hover.hovered ? entry : null)
     }
-    readonly property string tooltip: (entry.item && entry.item.tooltip) || ((SettingsState.meta("bar.layout") || {}).modules || {})[entry.mid]?.label || ""
+    // Sin rotulo propio, el nombre del modulo (del esquema en ingles, contexto "settings").
+    readonly property string tooltip: (entry.item && entry.item.tooltip) || I18n.trc("settings", ((SettingsState.meta("bar.layout") || {}).modules || {})[entry.mid]?.label || "")
 
     Rectangle {
         visible: BarVisibility.highlight !== "" && BarVisibility.highlight === entry.mid

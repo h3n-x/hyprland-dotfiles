@@ -55,14 +55,14 @@ ColumnLayout {
         Button {
             visible: page.changed > 0 && !page.confirming
             activeFocusOnTab: visible
-            label: "Restablecer la página"
+            label: I18n.tr("Reset the page")
             icon: "restart_alt"
             onClicked: page.confirming = true
         }
         // Confirmacion en el lugar: cuantas vuelven a fabrica.
         Text {
             visible: page.confirming
-            text: page.changed === 1 ? "¿Volver 1 opción a fábrica?" : "¿Volver " + page.changed + " opciones a fábrica?"
+            text: I18n.trn("Set %n option back to default?", "Set %n options back to default?", page.changed)
             color: Colors.text
             font.family: Tokens.font.ui
             font.pixelSize: Tokens.type.label
@@ -70,13 +70,13 @@ ColumnLayout {
         Button {
             visible: page.confirming
             activeFocusOnTab: visible
-            label: "Cancelar"
+            label: I18n.tr("Cancel")
             onClicked: page.confirming = false
         }
         Button {
             visible: page.confirming
             activeFocusOnTab: visible
-            label: "Restablecer"
+            label: I18n.tr("Reset")
             main: true
             onClicked: {
                 SettingsState.resetCategory(page.category);
@@ -109,7 +109,7 @@ ColumnLayout {
             Text {
                 visible: !!section.modelData.name
                 Layout.leftMargin: Tokens.space.xs
-                text: section.modelData.name
+                text: section.modelData.label
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label
@@ -180,7 +180,7 @@ ColumnLayout {
             Icon { anchors.verticalCenter: parent.verticalCenter; name: page.showAdvanced ? "expand_less" : "expand_more"; size: Tokens.icon.sm; color: Colors.textMuted }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: (page.showAdvanced ? "Ocultar las opciones avanzadas" : "Opciones avanzadas") + " (" + page.advancedCount + ")"
+                text: (page.showAdvanced ? I18n.tr("Hide the advanced options") : I18n.tr("Advanced options")) + " (" + I18n.number(page.advancedCount) + ")"
                 color: Colors.textMuted
                 font.family: Tokens.font.ui
                 font.pixelSize: Tokens.type.label

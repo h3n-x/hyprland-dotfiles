@@ -1,171 +1,171 @@
 {
   "version": 5,
   "categories": {
-    "appearance":    { "label": "Apariencia",       "icon": "palette",           "order": 10 },
-    "accessibility": { "label": "Accesibilidad",    "icon": "accessibility",     "order": 20 },
-    "bar":           { "label": "Barra",            "icon": "toolbar",           "order": 30 },
-    "dashboard":     { "label": "Dashboard",        "icon": "dashboard",         "order": 40 },
-    "capture":       { "label": "Capturas",         "icon": "screenshot_region", "order": 50 },
-    "media":         { "label": "Multimedia",       "icon": "music_note",        "order": 60 },
-    "notifications": { "label": "Notificaciones",   "icon": "notifications",     "order": 70 },
-    "controlCenter": { "label": "Centro de control", "icon": "tune",             "order": 75 },
-    "system":        { "label": "Sistema",          "icon": "settings",          "order": 80 },
-    "display":       { "label": "Pantallas",        "icon": "monitor",           "order": 82 },
-    "power":         { "label": "Energía",          "icon": "bolt",              "order": 84 },
-    "input":         { "label": "Teclado y ratón",  "icon": "mouse",             "order": 86 },
-    "lock":          { "label": "Bloqueo e inicio", "icon": "lock",              "order": 90 },
-    "keybinds":      { "label": "Atajos",           "icon": "keyboard",          "order": 100 }
+    "appearance":    { "label": "Appearance",         "icon": "palette",           "order": 10 },
+    "accessibility": { "label": "Accessibility",      "icon": "accessibility",     "order": 20 },
+    "bar":           { "label": "Bar",                "icon": "toolbar",           "order": 30 },
+    "dashboard":     { "label": "Dashboard",          "icon": "dashboard",         "order": 40 },
+    "capture":       { "label": "Capture",            "icon": "screenshot_region", "order": 50 },
+    "media":         { "label": "Media",              "icon": "music_note",        "order": 60 },
+    "notifications": { "label": "Notifications",      "icon": "notifications",     "order": 70 },
+    "controlCenter": { "label": "Control center",     "icon": "tune",              "order": 75 },
+    "system":        { "label": "System",             "icon": "settings",          "order": 80 },
+    "display":       { "label": "Displays",           "icon": "monitor",           "order": 82 },
+    "power":         { "label": "Power",              "icon": "bolt",              "order": 84 },
+    "input":         { "label": "Keyboard and mouse", "icon": "mouse",             "order": 86 },
+    "lock":          { "label": "Lock and login",     "icon": "lock",              "order": 90 },
+    "keybinds":      { "label": "Shortcuts",          "icon": "keyboard",          "order": 100 }
   },
   "keys": {
     "appearance.osdSeconds": {
       "type": "number", "default": 1.5, "min": 0.5, "max": 10, "step": 0.5, "unit": "s",
-      "category": "appearance", "section": "Indicadores", "order": 100,
-      "label": "Duración del indicador de volumen y brillo",
-      "keywords": ["osd", "volumen", "brillo"], "apply": "live"
+      "category": "appearance", "section": "Indicators", "order": 100,
+      "label": "Volume and brightness indicator duration",
+      "keywords": ["osd", "volume", "brightness"], "apply": "live"
     },
     "appearance.language": {
       "type": "enum", "default": "auto",
-      "values": { "auto": "Automático", "en": "English", "es": "Español", "ja": "日本語" },
-      "category": "appearance", "section": "Idioma", "order": 5,
-      "label": "Idioma",
-      "description": "El de la shell, los avisos y la configuración. Automático: el idioma de la sesión (inglés si no hay traducción).",
-      "keywords": ["idioma", "language", "lengua", "traducción", "inglés", "japonés", "言語"], "apply": "live"
+      "values": { "auto": "Automatic", "en": "English", "es": "Español", "ja": "日本語" },
+      "category": "appearance", "section": "Language", "order": 5,
+      "label": "Language",
+      "description": "The language of the shell, its notices and the settings. Automatic: the session language (English if there's no translation).",
+      "keywords": ["language", "translation", "english", "spanish", "japanese", "idioma", "言語"], "apply": "live"
     },
     "appearance.colorMode": {
       "type": "enum", "default": "dark",
-      "values": { "dark": "Oscuro", "light": "Claro", "auto": "Según el fondo" },
+      "values": { "dark": "Dark", "light": "Light", "auto": "From the wallpaper" },
       "autoLight": 0.62, "autoDark": 0.50,
       "category": "appearance", "section": "Color", "order": 15,
-      "label": "Modo",
-      "description": "Claro u oscuro para la shell y las apps. Según el fondo: claro con un fondo luminoso, oscuro con uno oscuro; en los intermedios queda el que estaba. El arranque y el inicio de sesión siguen oscuros.",
-      "keywords": ["claro", "oscuro", "tema", "dark", "light", "modo noche"], "apply": "live", "applyTo": "theme"
+      "label": "Mode",
+      "description": "Light or dark for the shell and the apps. From the wallpaper: light with a bright wallpaper, dark with a dark one; in between it keeps the current one. Boot and login stay dark.",
+      "keywords": ["light", "dark", "theme", "night mode"], "apply": "live", "applyTo": "theme"
     },
     "appearance.scheme": {
       "type": "enum", "default": "scheme-content",
-      "values": { "scheme-content": "Contenido", "scheme-tonal-spot": "Tonal", "scheme-vibrant": "Vibrante",
-                  "scheme-expressive": "Expresivo", "scheme-fidelity": "Fidelidad", "scheme-neutral": "Neutro",
-                  "scheme-monochrome": "Monocromo", "scheme-rainbow": "Arcoíris", "scheme-fruit-salad": "Macedonia" },
+      "values": { "scheme-content": "Content", "scheme-tonal-spot": "Tonal", "scheme-vibrant": "Vibrant",
+                  "scheme-expressive": "Expressive", "scheme-fidelity": "Fidelity", "scheme-neutral": "Neutral",
+                  "scheme-monochrome": "Monochrome", "scheme-rainbow": "Rainbow", "scheme-fruit-salad": "Fruit salad" },
       "category": "appearance", "section": "Color", "order": 20,
-      "label": "Esquema de color de todos los wallpapers",
-      "description": "Cómo se arma la paleta a partir del wallpaper; cada wallpaper puede tener su excepción. No cambia los colores de estado.",
-      "keywords": ["matugen", "paleta", "tema"], "apply": "next-use"
+      "label": "Color scheme for every wallpaper",
+      "description": "How the palette is built from the wallpaper; each wallpaper can have its own exception. Status colors don't change.",
+      "keywords": ["matugen", "palette", "theme"], "apply": "next-use"
     },
     "appearance.appColors": {
       "type": "bool", "default": true,
       "category": "appearance", "section": "Color", "order": 25,
-      "label": "Colores de las apps",
-      "description": "Cada app aporta su color, sacado de su icono y armonizado con tu fondo: el anillo de la ventana elegida al cambiar de ventana, un punto bajo la app activa en la barra, el fondito de su icono en los avisos y el lanzador. Solo en detalles; un icono gris usa el color de siempre.",
-      "keywords": ["color", "app", "icono", "acento", "adaptativo"], "apply": "live"
+      "label": "App colors",
+      "description": "Each app brings its color, taken from its icon and harmonized with your wallpaper: the ring of the chosen window when switching windows, a dot under the active app in the bar, the backdrop of its icon in notices and the launcher. Only in details; a grey icon uses the usual color.",
+      "keywords": ["color", "app", "icon", "accent", "adaptive"], "apply": "live"
     },
     "appearance.contrast": {
-      "type": "number", "default": 0, "min": 0, "max": 1, "presets": [[0, "Estándar"], [0.33, "Medio"], [0.66, "Alto"], [1, "Máximo"]],
+      "type": "number", "default": 0, "min": 0, "max": 1, "presets": [[0, "Standard"], [0.33, "Medium"], [0.66, "High"], [1, "Maximum"]],
       "category": "appearance", "section": "Color", "order": 30,
-      "label": "Contraste",
-      "description": "0 = estándar de Material; más contraste separa más textos y fondos (también los colores de estado).",
-      "keywords": ["legibilidad", "tema"], "apply": "next-use"
+      "label": "Contrast",
+      "description": "0 = Material standard; more contrast separates text and backgrounds more (status colors too).",
+      "keywords": ["legibility", "theme"], "apply": "next-use"
     },
     "appearance.transparency": {
       "type": "enum", "default": "normal",
-      "values": { "normal": "Normal", "reduced": "Reducida", "off": "Sin transparencia" },
-      "category": "appearance", "section": "Superficies", "order": 40,
-      "label": "Transparencia de los paneles",
-      "description": "Nunca baja del mínimo legible sobre el wallpaper.",
-      "keywords": ["opacidad", "blur", "translucidez"], "apply": "live"
+      "values": { "normal": "Normal", "reduced": "Reduced", "off": "No transparency" },
+      "category": "appearance", "section": "Surfaces", "order": 40,
+      "label": "Panel transparency",
+      "description": "Never drops below what stays readable over the wallpaper.",
+      "keywords": ["opacity", "blur", "translucency"], "apply": "live"
     },
     "appearance.font.ui": {
       "type": "string", "kind": "font-sans", "default": "Plus Jakarta Sans", "maxLength": 120,
-      "category": "appearance", "section": "Tipografía", "order": 60,
-      "label": "Fuente de la interfaz",
-      "description": "La de toda la shell, el bloqueo y la pantalla de inicio de sesión.",
-      "keywords": ["letra", "tipografía", "font"], "apply": "live"
+      "category": "appearance", "section": "Typography", "order": 60,
+      "label": "Interface font",
+      "description": "For the whole shell, the lock screen and the login screen.",
+      "keywords": ["letter", "typography", "font"], "apply": "live"
     },
     "appearance.font.mono": {
       "type": "string", "kind": "font-mono", "default": "Maple Mono NF", "maxLength": 120,
-      "category": "appearance", "section": "Tipografía", "order": 70,
-      "label": "Fuente de código",
-      "description": "Rutas, comandos y valores técnicos.",
-      "keywords": ["monoespaciada", "letra", "tipografía", "font"], "apply": "live"
+      "category": "appearance", "section": "Typography", "order": 70,
+      "label": "Code font",
+      "description": "Paths, commands and technical values.",
+      "keywords": ["monospace", "letter", "typography", "font"], "apply": "live"
     },
     "appearance.avatar": {
       "type": "enum", "default": "wallpaper",
-      "values": { "wallpaper": "Del fondo", "image": "Imagen propia" },
+      "values": { "wallpaper": "Cut from the wallpaper", "image": "Own image" },
       "category": "appearance", "section": "Avatar", "order": 80,
       "label": "Avatar",
-      "description": "En el bloqueo, la pantalla de inicio de sesión y el arranque. Del fondo: se recorta del wallpaper en cada cambio de tema.",
-      "keywords": ["foto", "perfil", "imagen", "face"], "apply": "live"
+      "description": "On the lock screen, the login screen and at boot. Cut from the wallpaper: cropped from the wallpaper at every theme change.",
+      "keywords": ["photo", "profile", "image", "face"], "apply": "live"
     },
     "appearance.avatarImage": {
       "type": "path", "kind": "image", "default": "~/Pictures/avatar.png",
       "category": "appearance", "section": "Avatar", "order": 90,
-      "label": "Imagen del avatar",
-      "description": "Se usa con «Imagen propia»; se recorta al centro.",
-      "keywords": ["foto", "perfil"], "apply": "live"
+      "label": "Avatar image",
+      "description": "Used with “Own image”; cropped to the center.",
+      "keywords": ["photo", "profile"], "apply": "live"
     },
     "accessibility.uiScale": {
       "type": "number", "default": 1, "min": 0.85, "max": 1.5, "step": 0.05, "percent": true,
       "labels": { "1": "100 % · normal" },
-      "category": "accessibility", "section": "Tamaño", "order": 25,
-      "label": "Escala de la interfaz",
-      "description": "De 85 % a 150 %. Todo crece junto: texto, iconos, la barra, filas, espacios y paneles. Solo la shell; para las apps, Pantallas → Escala.",
-      "keywords": ["tamaño", "grande", "zoom", "escala", "baja visión", "iconos", "barra"], "apply": "live"
+      "category": "accessibility", "section": "Size", "order": 25,
+      "label": "Interface scale",
+      "description": "From 85 % to 150 %. Everything grows together: text, icons, the bar, rows, spacing and panels. Only the shell; for apps, Displays → Scale.",
+      "keywords": ["size", "big", "zoom", "scale", "low vision", "icons", "bar"], "apply": "live"
     },
     "accessibility.textScale": {
       "type": "number", "default": 1, "min": 0.85, "max": 1.5, "step": 0.05, "percent": true,
       "labels": { "1": "100 % · normal" },
-      "category": "accessibility", "section": "Tamaño", "order": 30,
-      "label": "Tamaño del texto",
-      "description": "De 85 % a 150 %, solo el texto, encima de la escala de la interfaz (por ejemplo, todo al 125 % y el texto un poco más).",
-      "keywords": ["letra", "grande", "legibilidad", "baja visión", "zoom"], "apply": "live"
+      "category": "accessibility", "section": "Size", "order": 30,
+      "label": "Text size",
+      "description": "From 85 % to 150 %, only the text, on top of the interface scale (for example, everything at 125 % and the text a bit more).",
+      "keywords": ["letter", "big", "legibility", "low vision", "zoom"], "apply": "live"
     },
     "accessibility.focusRing": {
       "type": "bool", "default": false,
-      "category": "accessibility", "section": "Teclado", "order": 40,
-      "label": "Foco siempre visible",
-      "description": "Un anillo alrededor de lo que tiene el foco del teclado.",
-      "keywords": ["teclado", "tab", "foco", "navegación"], "apply": "live"
+      "category": "accessibility", "section": "Keyboard", "order": 40,
+      "label": "Always-visible focus",
+      "description": "A ring around whatever has the keyboard focus.",
+      "keywords": ["keyboard", "tab", "focus", "navigation"], "apply": "live"
     },
     "accessibility.highContrast": {
       "type": "bool", "default": false,
       "category": "accessibility", "section": "Color", "order": 20,
-      "label": "Alto contraste",
-      "description": "Textos secundarios y bordes con el contraste de los principales; paneles opacos.",
-      "keywords": ["legibilidad", "contraste", "baja visión"], "apply": "live"
+      "label": "High contrast",
+      "description": "Secondary text and borders with the contrast of the main ones; opaque panels.",
+      "keywords": ["legibility", "contrast", "low vision"], "apply": "live"
     },
     "accessibility.reduceMotion": {
       "type": "bool", "default": false,
-      "category": "accessibility", "section": "Movimiento", "order": 10,
-      "label": "Reducir movimiento",
-      "description": "Sin animaciones ni transiciones en toda la shell ni en las ventanas.",
-      "keywords": ["animaciones", "transiciones", "mareo"], "apply": "live",
+      "category": "accessibility", "section": "Motion", "order": 10,
+      "label": "Reduce motion",
+      "description": "No animations or transitions anywhere in the shell or the windows.",
+      "keywords": ["animations", "transitions", "motion sickness"], "apply": "live",
       "hypr": "animations:enabled", "hyprInvert": true
     },
     "lock.glance.weather": {
       "type": "bool", "default": true,
-      "category": "lock", "section": "De un vistazo", "order": 10,
-      "label": "Clima",
-      "description": "Temperatura y estado del cielo, sin la ubicación. No se muestra si los datos tienen más de 2 horas.",
-      "keywords": ["bloqueo", "pantalla de bloqueo", "tiempo"], "apply": "next-use"
+      "category": "lock", "section": "At a glance", "order": 10,
+      "label": "Weather",
+      "description": "Temperature and sky, without the location. Hidden if the data is more than 2 hours old.",
+      "keywords": ["lock", "lock screen", "forecast"], "apply": "next-use"
     },
     "lock.glance.media": {
       "type": "bool", "default": true,
-      "category": "lock", "section": "De un vistazo", "order": 20,
-      "label": "Música",
-      "description": "Cuando algo suena: el título y el artista (o el reproductor); nunca la portada. Se ve aunque la sesión esté bloqueada.",
-      "keywords": ["bloqueo", "reproductor", "canción"], "apply": "next-use"
+      "category": "lock", "section": "At a glance", "order": 20,
+      "label": "Music",
+      "description": "When something plays: the title and the artist (or the player); never the cover. Visible even while the session is locked.",
+      "keywords": ["lock", "player", "song"], "apply": "next-use"
     },
     "lock.glance.battery": {
       "type": "bool", "default": true,
-      "category": "lock", "section": "De un vistazo", "order": 30,
-      "label": "Batería",
-      "description": "Solo cuando el equipo funciona con batería, con el color de aviso en los umbrales de batería baja.",
-      "keywords": ["bloqueo", "carga", "energía"], "apply": "next-use"
+      "category": "lock", "section": "At a glance", "order": 30,
+      "label": "Battery",
+      "description": "Only when running on battery, with the warning color at the low-battery thresholds.",
+      "keywords": ["lock", "charge", "power"], "apply": "next-use"
     },
     "lock.glance.notifications": {
       "type": "bool", "default": true,
-      "category": "lock", "section": "De un vistazo", "order": 40,
-      "label": "Avisos",
-      "description": "Cuántos avisos llegaron mientras estaba bloqueado, sin contenido. Con No molestar activo no se muestra.",
-      "keywords": ["bloqueo", "notificaciones", "privacidad"], "apply": "next-use"
+      "category": "lock", "section": "At a glance", "order": 40,
+      "label": "Notices",
+      "description": "How many notices arrived while locked, without their content. Hidden with Do not disturb on.",
+      "keywords": ["lock", "notifications", "privacy"], "apply": "next-use"
     },
     "bar.layout": {
       "type": "barLayout",
@@ -175,585 +175,585 @@
         "end": ["recording", { "pill": ["updates", "network", "bluetooth", "tray", "microphone"] }, { "pill": ["battery", "idle", "ports"] }, "power"]
       },
       "modules": {
-        "workspaces": { "label": "Escritorios",     "icon": "space_dashboard" },
-        "media":      { "label": "Música",          "icon": "music_note" },
-        "clock":      { "label": "Reloj y clima",   "icon": "schedule" },
-        "recording":  { "label": "Grabación",       "icon": "radio_button_checked", "bare": true },
-        "updates":    { "label": "Actualizaciones", "icon": "download" },
-        "network":    { "label": "Red",             "icon": "wifi" },
+        "workspaces": { "label": "Workspaces",     "icon": "space_dashboard" },
+        "media":      { "label": "Music",          "icon": "music_note" },
+        "clock":      { "label": "Clock and weather",   "icon": "schedule" },
+        "recording":  { "label": "Recording",       "icon": "radio_button_checked", "bare": true },
+        "updates":    { "label": "Updates", "icon": "download" },
+        "network":    { "label": "Network",             "icon": "wifi" },
         "bluetooth":  { "label": "Bluetooth",       "icon": "bluetooth" },
-        "tray":       { "label": "Bandeja",         "icon": "apps" },
-        "microphone": { "label": "Micrófono",       "icon": "mic" },
-        "battery":    { "label": "Batería",         "icon": "battery_full" },
-        "idle":       { "label": "Inactividad",     "icon": "visibility_off" },
-        "ports":      { "label": "Puertos",         "icon": "lan" },
-        "power":      { "label": "Apagar",          "icon": "power_settings_new", "bare": true },
-        "keyboard":      { "label": "Distribución del teclado", "icon": "keyboard" },
-        "lockKeys":      { "label": "Bloq Mayús y Num",         "icon": "keyboard_capslock" },
-        "activeWindow":  { "label": "Ventana activa",           "icon": "web_asset" },
-        "notifications": { "label": "Avisos",                   "icon": "notifications" },
-        "privacy":       { "label": "Privacidad",               "icon": "privacy_tip" },
-        "launcher":      { "label": "Lanzador",                 "icon": "apps" },
-        "resources":     { "label": "Recursos",                 "icon": "memory" },
-        "netspeed":      { "label": "Velocidad de la red",      "icon": "swap_vert" },
-        "timer":         { "label": "Temporizador",             "icon": "timer" }
+        "tray":       { "label": "Tray",         "icon": "apps" },
+        "microphone": { "label": "Microphone",       "icon": "mic" },
+        "battery":    { "label": "Battery",         "icon": "battery_full" },
+        "idle":       { "label": "Idle",     "icon": "visibility_off" },
+        "ports":      { "label": "Ports",         "icon": "lan" },
+        "power":      { "label": "Power menu",          "icon": "power_settings_new", "bare": true },
+        "keyboard":      { "label": "Keyboard layout", "icon": "keyboard" },
+        "lockKeys":      { "label": "Caps and Num Lock",         "icon": "keyboard_capslock" },
+        "activeWindow":  { "label": "Active window",           "icon": "web_asset" },
+        "notifications": { "label": "Notices",                   "icon": "notifications" },
+        "privacy":       { "label": "Privacy",               "icon": "privacy_tip" },
+        "launcher":      { "label": "Launcher",                 "icon": "apps" },
+        "resources":     { "label": "Resources",                 "icon": "memory" },
+        "netspeed":      { "label": "Network speed",      "icon": "swap_vert" },
+        "timer":         { "label": "Timer",             "icon": "timer" }
       },
-      "category": "bar", "section": "Disposición", "order": 1,
-      "label": "Disposición de la barra", "description": "Arrastra los módulos entre izquierda, centro y derecha, dentro o fuera de una píldora, o a Disponibles para quitarlos.",
-      "keywords": ["módulos", "orden", "ocultar", "mostrar", "píldora", "layout"], "apply": "live"
+      "category": "bar", "section": "Layout", "order": 1,
+      "label": "Bar layout", "description": "Drag the modules between left, center and right, in or out of a pill, or to Available to remove them.",
+      "keywords": ["modules", "order", "hide", "show", "pill", "layout"], "apply": "live"
     },
     "bar.screens": {
       "type": "list", "default": [], "items": { "type": "string", "maxLength": 200 }, "maxItems": 8, "kind": "screens",
-      "category": "bar", "section": "Disposición", "order": 2,
-      "label": "Pantallas con barra", "description": "Apaga las pantallas donde no la quieres. Con todas encendidas, también va en las que conectes después.",
-      "keywords": ["monitor", "pantalla", "barra"], "apply": "live"
+      "category": "bar", "section": "Layout", "order": 2,
+      "label": "Screens with a bar", "description": "Turn off the screens where you don't want it. With all of them on, it also goes on screens you connect later.",
+      "keywords": ["monitor", "screen", "bar"], "apply": "live"
     },
     "bar.activeWindow.maxWidth": {
       "type": "int", "default": 320, "min": 120, "max": 800, "step": 20, "unit": "px",
-      "category": "bar", "section": "Módulos", "order": 10,
-      "label": "Ancho máximo de la ventana activa", "description": "El título se recorta con puntos suspensivos.",
-      "keywords": ["título", "ventana", "active window"], "apply": "live"
+      "category": "bar", "section": "Modules", "order": 10,
+      "label": "Active window maximum width", "description": "The title is cut with an ellipsis.",
+      "keywords": ["title", "window", "active window"], "apply": "live"
     },
     "bar.notifications.count": {
-      "type": "enum", "default": "dot", "values": { "dot": "Un punto", "number": "El número" },
-      "category": "bar", "section": "Módulos", "order": 20,
-      "label": "Avisos pendientes", "description": "Cómo marca la campana que hay avisos en el historial.",
-      "keywords": ["notificaciones", "campana", "contador"], "apply": "live"
+      "type": "enum", "default": "dot", "values": { "dot": "A dot", "number": "The number" },
+      "category": "bar", "section": "Modules", "order": 20,
+      "label": "Pending notices", "description": "How the bell shows there are notices in the history.",
+      "keywords": ["notifications", "bell", "counter"], "apply": "live"
     },
     "bar.resources.cpu": {
       "type": "bool", "default": true,
-      "category": "bar", "section": "Módulos", "order": 30,
-      "label": "Recursos: procesador", "keywords": ["cpu", "uso"], "apply": "live"
+      "category": "bar", "section": "Modules", "order": 30,
+      "label": "Resources: processor", "keywords": ["cpu", "usage"], "apply": "live"
     },
     "bar.resources.mem": {
       "type": "bool", "default": true,
-      "category": "bar", "section": "Módulos", "order": 31,
-      "label": "Recursos: memoria", "keywords": ["ram", "memoria"], "apply": "live"
+      "category": "bar", "section": "Modules", "order": 31,
+      "label": "Resources: memory", "keywords": ["ram", "memory"], "apply": "live"
     },
     "bar.resources.temp": {
       "type": "bool", "default": false,
-      "category": "bar", "section": "Módulos", "order": 32,
-      "label": "Recursos: temperatura", "keywords": ["temperatura", "calor"], "apply": "live"
+      "category": "bar", "section": "Modules", "order": 32,
+      "label": "Resources: temperature", "keywords": ["temperature", "heat"], "apply": "live"
     },
     "bar.resources.warnPct": {
       "type": "int", "default": 90, "min": 50, "max": 100, "step": 5, "unit": "%",
-      "category": "bar", "section": "Módulos", "order": 33,
-      "label": "Recursos: aviso a partir de", "description": "Por encima, el valor se ve en amarillo.",
-      "keywords": ["umbral", "cpu", "memoria"], "apply": "live", "advanced": true
+      "category": "bar", "section": "Modules", "order": 33,
+      "label": "Resources: warn from", "description": "Above it, the value shows in yellow.",
+      "keywords": ["threshold", "cpu", "memory"], "apply": "live", "advanced": true
     },
     "bar.workspaces.perMonitor": {
       "type": "bool", "default": false,
-      "category": "bar", "section": "Escritorios", "order": 20,
-      "label": "Solo los de esta pantalla", "description": "Con varias pantallas, cada barra muestra sus escritorios.",
+      "category": "bar", "section": "Workspaces", "order": 20,
+      "label": "Only this screen's", "description": "With several screens, each bar shows its own workspaces.",
       "keywords": ["monitor", "workspaces"], "apply": "live"
     },
     "bar.workspaces.showEmpty": {
       "type": "bool", "default": true,
-      "category": "bar", "section": "Escritorios", "order": 25,
-      "label": "Mostrar los vacíos", "keywords": ["workspaces", "vacío"], "apply": "live"
+      "category": "bar", "section": "Workspaces", "order": 25,
+      "label": "Show the empty ones", "keywords": ["workspaces", "empty"], "apply": "live"
     },
     "bar.workspaces.windowIcons": {
       "type": "bool", "default": false,
-      "category": "bar", "section": "Escritorios", "order": 30,
-      "label": "Iconos de las ventanas", "description": "En vez de círculos, el icono de cada ventana del escritorio.",
-      "keywords": ["workspaces", "iconos", "apps"], "apply": "live"
+      "category": "bar", "section": "Workspaces", "order": 30,
+      "label": "Window icons", "description": "Instead of circles, the icon of each window on the workspace.",
+      "keywords": ["workspaces", "icons", "apps"], "apply": "live"
     },
     "bar.workspaces.maxIcons": {
       "type": "int", "default": 3, "min": 1, "max": 6,
-      "category": "bar", "section": "Escritorios", "order": 31,
-      "label": "Iconos por escritorio", "description": "Más ventanas se cuentan con +n.",
-      "keywords": ["workspaces", "iconos"], "apply": "live"
+      "category": "bar", "section": "Workspaces", "order": 31,
+      "label": "Icons per workspace", "description": "More windows are counted as +n.",
+      "keywords": ["workspaces", "icons"], "apply": "live"
     },
     "bar.tooltips": {
       "type": "bool", "default": false,
-      "category": "bar", "section": "Comportamiento", "order": 10,
-      "label": "Información al pasar el ratón", "description": "Un rótulo con el detalle de cada módulo (la fecha completa, la batería, la ventana...).",
-      "keywords": ["tooltip", "hover", "rótulo"], "apply": "live"
+      "category": "bar", "section": "Behavior", "order": 10,
+      "label": "Info on hover", "description": "A tooltip with each module's detail (the full date, the battery, the window…).",
+      "keywords": ["tooltip", "hover", "label"], "apply": "live"
     },
     "bar.scroll": {
-      "type": "enum", "default": "none", "values": { "none": "Nada", "volume": "Volumen", "brightness": "Brillo" },
-      "category": "bar", "section": "Comportamiento", "order": 20,
-      "label": "La rueda sobre la barra", "description": "Fuera de los escritorios (ellos tienen su propia rueda).",
-      "keywords": ["scroll", "rueda", "volumen", "brillo"], "apply": "live"
+      "type": "enum", "default": "none", "values": { "none": "Nothing", "volume": "Volume", "brightness": "Brightness" },
+      "category": "bar", "section": "Behavior", "order": 20,
+      "label": "The wheel over the bar", "description": "Outside the workspaces (they have their own wheel).",
+      "keywords": ["scroll", "wheel", "volume", "brightness"], "apply": "live"
     },
     "system.sampleSeconds": {
       "type": "int", "default": 2, "min": 2, "max": 10, "unit": "s",
-      "category": "system", "section": "Recursos", "order": 5,
-      "label": "Actualizar los recursos cada", "description": "Para el dashboard (Sistema) y los módulos de recursos y red de la barra; solo mientras se ven.",
-      "keywords": ["intervalo", "cpu", "red", "muestreo"], "apply": "live"
+      "category": "system", "section": "Resources", "order": 5,
+      "label": "Refresh the resources every", "description": "For the dashboard (System) and the bar's resources and network modules; only while visible.",
+      "keywords": ["interval", "cpu", "network", "sampling"], "apply": "live"
     },
     "bar.edge": {
-      "type": "enum", "default": "top", "values": { "top": "Arriba", "bottom": "Abajo", "left": "Izquierda", "right": "Derecha" },
-      "category": "bar", "section": "Posición", "order": 3,
-      "label": "Borde de la pantalla", "description": "A un costado, los módulos se apilan (el reloj en dos líneas, solo iconos).",
-      "keywords": ["vertical", "posición", "abajo", "izquierda", "derecha", "lateral"], "apply": "live"
+      "type": "enum", "default": "top", "values": { "top": "Top", "bottom": "Bottom", "left": "Left", "right": "Right" },
+      "category": "bar", "section": "Position", "order": 3,
+      "label": "Screen edge", "description": "On a side, the modules stack (the clock on two lines, icons only).",
+      "keywords": ["vertical", "position", "bottom", "left", "right", "side"], "apply": "live"
     },
     "bar.size": {
       "type": "int", "default": 40, "min": 32, "max": 48, "step": 2, "unit": "px",
-      "category": "bar", "section": "Posición", "order": 4,
-      "label": "Grosor", "description": "Alto de la barra (o ancho, si está a un costado).",
-      "keywords": ["alto", "ancho", "tamaño", "grosor"], "apply": "live"
+      "category": "bar", "section": "Position", "order": 4,
+      "label": "Thickness", "description": "Bar height (or width, if it's on a side).",
+      "keywords": ["height", "width", "size", "thickness"], "apply": "live"
     },
     "bar.style": {
-      "type": "enum", "default": "floating", "values": { "floating": "Flotante", "solid": "Sólida", "transparent": "Transparente", "marco": "Marco" },
-      "category": "bar", "section": "Posición", "order": 5,
-      "label": "Estilo", "description": "Flotante: píldoras sueltas. Sólida: una barra pegada al borde. Transparente: sin fondos (sobre el fondo de pantalla). Marco: la barra es el lado grueso de un marco alrededor de la pantalla, con las esquinas de adentro redondas.",
-      "keywords": ["fondo", "sólida", "transparente", "flotante", "estilo"], "apply": "live"
+      "type": "enum", "default": "floating", "values": { "floating": "Floating", "solid": "Solid", "transparent": "Transparent", "marco": "Frame" },
+      "category": "bar", "section": "Position", "order": 5,
+      "label": "Style", "description": "Floating: separate pills. Solid: a bar attached to the edge. Transparent: no backgrounds (over the wallpaper). Frame: the bar is the thick side of a frame around the screen, with rounded inner corners.",
+      "keywords": ["background", "solid", "transparent", "floating", "style"], "apply": "live"
     },
     "bar.frame.thickness": {
       "type": "int", "default": 8, "min": 2, "max": 16, "unit": "px",
-      "category": "bar", "section": "Posición", "order": 6,
-      "label": "Grosor del marco", "description": "Solo con el estilo Marco: los tres lados que no son la barra.",
-      "keywords": ["marco", "borde", "grosor"], "apply": "live"
+      "category": "bar", "section": "Position", "order": 6,
+      "label": "Frame thickness", "description": "Only with the Frame style: the three sides that aren't the bar.",
+      "keywords": ["frame", "border", "thickness"], "apply": "live"
     },
     "bar.frame.radius": {
       "type": "int", "default": 20, "min": 8, "max": 32, "step": 2, "unit": "px",
-      "category": "bar", "section": "Posición", "order": 6,
-      "label": "Esquinas del marco", "description": "Solo con el estilo Marco: el radio de las esquinas de adentro.",
-      "keywords": ["marco", "esquinas", "redondeo"], "apply": "live"
+      "category": "bar", "section": "Position", "order": 6,
+      "label": "Frame corners", "description": "Only with the Frame style: the radius of the inner corners.",
+      "keywords": ["frame", "corners", "rounding"], "apply": "live"
     },
     "bar.peek": {
       "type": "bool", "default": false,
-      "category": "bar", "section": "Posición", "order": 6,
-      "label": "Mostrar solo mientras se mantiene Super", "description": "La barra no ocupa lugar y aparece al mantener la tecla Super. Para mirarla; para usarla, déjala fija (con Super, el clic mueve ventanas).",
-      "keywords": ["ocultar", "auto", "super", "esconder"], "apply": "live"
+      "category": "bar", "section": "Position", "order": 6,
+      "label": "Show only while holding Super", "description": "The bar takes no space and appears while you hold Super. For looking at it; to use it, keep it fixed (with Super, a click moves windows).",
+      "keywords": ["hide", "auto", "super", "autohide"], "apply": "live"
     },
     "bar.peekMode": {
-      "type": "enum", "default": "overlay", "values": { "overlay": "Encima de las ventanas", "push": "Empujar las ventanas" },
-      "category": "bar", "section": "Posición", "order": 7,
-      "label": "Al mantener Super", "description": "Encima: aparece sobre lo abierto, con fondo, sin mover nada. Empujar: reserva su lugar mientras se ve y las ventanas se acomodan.",
-      "keywords": ["super", "ocultar", "empujar", "encima"], "apply": "live"
+      "type": "enum", "default": "overlay", "values": { "overlay": "Over the windows", "push": "Push the windows" },
+      "category": "bar", "section": "Position", "order": 7,
+      "label": "While holding Super", "description": "Over: it appears over what's open, with a background, moving nothing. Push: it reserves its space while visible and the windows make room.",
+      "keywords": ["super", "hide", "push", "over"], "apply": "live"
     },
     "bar.peekDelay": {
       "type": "int", "default": 250, "min": 0, "max": 1000, "step": 50, "unit": "ms",
-      "category": "bar", "section": "Posición", "order": 8,
-      "label": "Esperar antes de mostrarla", "description": "Así los atajos rápidos con Super (Super+D, Super+A...) no la hacen aparecer.",
-      "keywords": ["retardo", "super", "demora"], "apply": "live", "advanced": true
+      "category": "bar", "section": "Position", "order": 8,
+      "label": "Wait before showing it", "description": "So quick Super shortcuts (Super+D, Super+A…) don't make it appear.",
+      "keywords": ["delay", "super", "wait"], "apply": "live", "advanced": true
     },
     "bar.minWorkspaces": {
       "type": "int", "default": 5, "min": 1, "max": 10,
-      "category": "bar", "section": "Escritorios", "order": 10,
-      "label": "Escritorios que se muestran siempre",
-      "description": "Cuántos escritorios aparecen en la barra aunque estén vacíos.",
+      "category": "bar", "section": "Workspaces", "order": 10,
+      "label": "Workspaces always shown",
+      "description": "How many workspaces appear in the bar even when empty.",
       "keywords": ["workspaces"], "apply": "live"
     },
     "dashboard.weatherRefreshMinutes": {
       "type": "int", "default": 30, "min": 10, "max": 180, "step": 5, "unit": "min",
-      "category": "dashboard", "section": "Hoy", "order": 10,
-      "label": "Actualizar el clima cada",
-      "description": "Cada consulta va a Open-Meteo; más tiempo, menos peticiones.",
-      "keywords": ["clima", "tiempo", "open-meteo"], "apply": "live"
+      "category": "dashboard", "section": "Today", "order": 10,
+      "label": "Refresh the weather every",
+      "description": "Each query goes to Open-Meteo; a longer time means fewer requests.",
+      "keywords": ["weather", "forecast", "open-meteo"], "apply": "live"
     },
     "capture.cardSeconds": {
       "type": "int", "default": 6, "min": 2, "max": 30, "unit": "s",
-      "category": "capture", "section": "Vista previa", "order": 10,
-      "label": "Duración de la tarjeta",
-      "description": "Tiempo que la tarjeta de una captura queda en pantalla (se pausa con el puntero encima).",
+      "category": "capture", "section": "Preview", "order": 10,
+      "label": "Card duration",
+      "description": "How long a capture's card stays on screen (it pauses with the pointer over it).",
       "apply": "live"
     },
     "capture.screenshotsDir": {
       "type": "path", "kind": "dir", "default": "~/Pictures/Screenshots",
-      "category": "capture", "section": "Carpetas", "order": 20,
-      "label": "Carpeta de capturas", "apply": "next-use"
+      "category": "capture", "section": "Folders", "order": 20,
+      "label": "Screenshots folder", "apply": "next-use"
     },
     "capture.recordingsDir": {
       "type": "path", "kind": "dir", "default": "~/Videos/Recordings",
-      "category": "capture", "section": "Carpetas", "order": 30,
-      "label": "Carpeta de grabaciones", "apply": "next-use"
+      "category": "capture", "section": "Folders", "order": 30,
+      "label": "Recordings folder", "apply": "next-use"
     },
     "capture.recordingQuality": {
       "type": "enum", "default": "balanced",
-      "values": { "high": "Alta (archivos más grandes)", "balanced": "Equilibrada", "small": "Archivos pequeños" },
-      "category": "capture", "section": "Grabación", "order": 40,
-      "label": "Calidad de grabación",
-      "description": "Con la codificación por hardware: alta = qp 20, equilibrada = qp 24, pequeños = qp 28.",
+      "values": { "high": "High (bigger files)", "balanced": "Balanced", "small": "Small files" },
+      "category": "capture", "section": "Recording", "order": 40,
+      "label": "Recording quality",
+      "description": "With hardware encoding: high = qp 20, balanced = qp 24, small = qp 28.",
       "apply": "next-use"
     },
     "notifications.defaultSeconds": {
       "type": "int", "default": 5, "min": 2, "max": 30, "unit": "s",
-      "category": "notifications", "section": "Avisos", "order": 10,
-      "label": "Duración de los avisos",
-      "description": "Para las notificaciones que no indican su propia duración.",
+      "category": "notifications", "section": "Notices", "order": 10,
+      "label": "Notice duration",
+      "description": "For notifications that don't set their own duration.",
       "apply": "live"
     },
     "notifications.fullscreen": {
       "type": "enum", "default": "critical",
-      "values": { "critical": "Solo las críticas", "show": "Todas", "hide": "Ninguna" },
-      "category": "notifications", "section": "Avisos", "order": 20,
-      "label": "Avisos en pantalla completa y al compartir la pantalla",
-      "description": "Los que no se muestran quedan en el historial y al salir aparece un resumen. Los avisos de batería siempre se muestran.",
-      "keywords": ["juegos", "video", "transmisión", "grabación", "no molestar"], "apply": "live"
+      "values": { "critical": "Only critical ones", "show": "All", "hide": "None" },
+      "category": "notifications", "section": "Notices", "order": 20,
+      "label": "Notices in fullscreen and while sharing the screen",
+      "description": "The ones not shown stay in the history and a summary appears when you leave. Battery notices always show.",
+      "keywords": ["games", "video", "streaming", "recording", "do not disturb"], "apply": "live"
     },
     "system.battery.warnPct": {
       "type": "int", "default": 20, "min": 5, "max": 50, "unit": "%",
-      "category": "system", "section": "Batería", "order": 10,
-      "label": "Aviso de batería baja", "apply": "live"
+      "category": "system", "section": "Battery", "order": 10,
+      "label": "Low battery notice", "apply": "live"
     },
     "system.battery.criticalPct": {
       "type": "int", "default": 10, "min": 3, "max": 30, "unit": "%",
-      "category": "system", "section": "Batería", "order": 20,
-      "label": "Aviso de batería crítica", "apply": "live"
+      "category": "system", "section": "Battery", "order": 20,
+      "label": "Critical battery notice", "apply": "live"
     },
     "system.maintenance.checkIntervalMinutes": {
       "type": "int", "default": 60, "min": 15, "max": 1440, "step": 15, "unit": "min",
-      "category": "system", "section": "Mantenimiento", "order": 10,
-      "label": "Revisar el sistema cada",
-      "description": "Actualizaciones y estado del sistema; también se revisa después de cada operación de pacman.",
+      "category": "system", "section": "Maintenance", "order": 10,
+      "label": "Check the system every",
+      "description": "Updates and system state; it's also checked after every pacman operation.",
       "apply": "live"
     },
     "system.maintenance.staleUpgradeDays": {
-      "type": "int", "default": 14, "min": 1, "max": 90, "unit": "días",
-      "category": "system", "section": "Mantenimiento", "order": 20,
-      "label": "Advertir si no se actualiza en", "advanced": true, "apply": "live"
+      "type": "int", "default": 14, "min": 1, "max": 90, "unit": "days",
+      "category": "system", "section": "Maintenance", "order": 20,
+      "label": "Warn if not updated in", "advanced": true, "apply": "live"
     },
     "system.maintenance.diskWarnPct": {
       "type": "int", "default": 80, "min": 50, "max": 99, "unit": "%",
-      "category": "system", "section": "Mantenimiento", "order": 30,
-      "label": "Advertencia de disco lleno", "advanced": true, "apply": "live"
+      "category": "system", "section": "Maintenance", "order": 30,
+      "label": "Full disk warning", "advanced": true, "apply": "live"
     },
     "system.maintenance.diskCriticalPct": {
       "type": "int", "default": 90, "min": 60, "max": 99, "unit": "%",
-      "category": "system", "section": "Mantenimiento", "order": 40,
-      "label": "Disco lleno: acción importante", "advanced": true, "apply": "live"
+      "category": "system", "section": "Maintenance", "order": 40,
+      "label": "Full disk: important action", "advanced": true, "apply": "live"
     },
     "system.maintenance.trashRecommendGiB": {
       "type": "number", "default": 1, "min": 0.1, "max": 100, "unit": "GiB",
-      "category": "system", "section": "Mantenimiento", "order": 50,
-      "label": "Recomendar vaciar la papelera desde", "advanced": true, "apply": "live"
+      "category": "system", "section": "Maintenance", "order": 50,
+      "label": "Suggest emptying the trash from", "advanced": true, "apply": "live"
     },
     "system.maintenance.trashWarnGiB": {
       "type": "number", "default": 10, "min": 0.5, "max": 500, "unit": "GiB",
-      "category": "system", "section": "Mantenimiento", "order": 60,
-      "label": "Advertir por la papelera desde", "advanced": true, "apply": "live"
+      "category": "system", "section": "Maintenance", "order": 60,
+      "label": "Warn about the trash from", "advanced": true, "apply": "live"
     },
     "system.maintenance.coredumpRecommendMiB": {
       "type": "int", "default": 256, "min": 16, "max": 10240, "unit": "MiB",
-      "category": "system", "section": "Mantenimiento", "order": 70,
-      "label": "Recomendar limpiar volcados desde", "advanced": true, "apply": "live"
+      "category": "system", "section": "Maintenance", "order": 70,
+      "label": "Suggest cleaning dumps from", "advanced": true, "apply": "live"
     },
     "system.maintenance.coredumpWarnGiB": {
       "type": "number", "default": 1, "min": 0.1, "max": 100, "unit": "GiB",
-      "category": "system", "section": "Mantenimiento", "order": 80,
-      "label": "Advertir por los volcados desde", "advanced": true, "apply": "live"
+      "category": "system", "section": "Maintenance", "order": 80,
+      "label": "Warn about dumps from", "advanced": true, "apply": "live"
     },
     "system.maintenance.packageCacheGiB": {
       "type": "number", "default": 2, "min": 0.1, "max": 100, "unit": "GiB",
-      "category": "system", "section": "Mantenimiento", "order": 90,
-      "label": "Recomendar limpiar cachés de paquetes desde", "advanced": true, "apply": "live"
+      "category": "system", "section": "Maintenance", "order": 90,
+      "label": "Suggest cleaning package caches from", "advanced": true, "apply": "live"
     },
     "system.maintenance.journalGiB": {
       "type": "number", "default": 1, "min": 0.1, "max": 50, "unit": "GiB",
-      "category": "system", "section": "Mantenimiento", "order": 100,
-      "label": "Recomendar reducir el diario desde", "advanced": true, "apply": "live"
+      "category": "system", "section": "Maintenance", "order": 100,
+      "label": "Suggest shrinking the journal from", "advanced": true, "apply": "live"
     },
     "system.maintenance.capturesGiB": {
       "type": "number", "default": 5, "min": 0.5, "max": 500, "unit": "GiB",
-      "category": "system", "section": "Mantenimiento", "order": 110,
-      "label": "Recomendar revisar capturas desde", "advanced": true, "apply": "live"
+      "category": "system", "section": "Maintenance", "order": 110,
+      "label": "Suggest reviewing captures from", "advanced": true, "apply": "live"
     },
     "keybinds.columns": {
       "type": "int", "default": 0, "min": 0, "max": 6,
-      "category": "keybinds", "section": "Guía de atajos", "order": 10,
-      "label": "Columnas de la guía",
-      "labels": {"0": "Automático"},
-      "description": "0 = según el ancho de la pantalla.", "apply": "live"
+      "category": "keybinds", "section": "Shortcut guide", "order": 10,
+      "label": "Guide columns",
+      "labels": {"0": "Automatic"},
+      "description": "0 = depends on the screen width.", "apply": "live"
     },
     "keybinds.modifierStyle": {
       "type": "enum", "default": "words",
-      "values": { "words": "Palabras (Super, Ctrl, Alt, Shift)", "symbols": "Símbolos" },
-      "category": "keybinds", "section": "Guía de atajos", "order": 20,
-      "label": "Modificadores", "apply": "live"
+      "values": { "words": "Words (Super, Ctrl, Alt, Shift)", "symbols": "Symbols" },
+      "category": "keybinds", "section": "Shortcut guide", "order": 20,
+      "label": "Modifiers", "apply": "live"
     },
     "keybinds.showModes": {
       "type": "bool", "default": true,
-      "category": "keybinds", "section": "Guía de atajos", "order": 30,
-      "label": "Mostrar los modos (cambiar tamaño)", "apply": "live"
+      "category": "keybinds", "section": "Shortcut guide", "order": 30,
+      "label": "Show the modes (resize)", "apply": "live"
     },
     "appearance.windows.gapsIn": {
       "type": "int", "default": 4, "min": 0, "max": 24, "unit": "px",
-      "category": "appearance", "section": "Ventanas", "order": 50,
-      "label": "Espacio entre ventanas", "keywords": ["gaps", "márgenes"], "apply": "live", "hypr": "general:gaps_in"
+      "category": "appearance", "section": "Windows", "order": 50,
+      "label": "Space between windows", "keywords": ["gaps", "margins"], "apply": "live", "hypr": "general:gaps_in"
     },
     "appearance.windows.gapsOut": {
       "type": "int", "default": 12, "min": 0, "max": 48, "unit": "px",
-      "category": "appearance", "section": "Ventanas", "order": 51,
-      "label": "Espacio con el borde de la pantalla", "keywords": ["gaps", "márgenes"], "apply": "live", "hypr": "general:gaps_out"
+      "category": "appearance", "section": "Windows", "order": 51,
+      "label": "Space to the screen edge", "keywords": ["gaps", "margins"], "apply": "live", "hypr": "general:gaps_out"
     },
     "appearance.windows.rounding": {
       "type": "int", "default": 12, "min": 0, "max": 24, "unit": "px",
-      "category": "appearance", "section": "Ventanas", "order": 52,
-      "label": "Esquinas redondeadas", "description": "12 = el radio de los paneles de la shell.", "keywords": ["rounding", "radio"], "apply": "live", "hypr": "decoration:rounding"
+      "category": "appearance", "section": "Windows", "order": 52,
+      "label": "Rounded corners", "description": "12 = the radius of the shell's panels.", "keywords": ["rounding", "radius"], "apply": "live", "hypr": "decoration:rounding"
     },
     "appearance.windows.borderSize": {
       "type": "int", "default": 2, "min": 0, "max": 6, "unit": "px",
-      "category": "appearance", "section": "Ventanas", "order": 53,
-      "label": "Grosor del borde", "keywords": ["border"], "apply": "live", "hypr": "general:border_size"
+      "category": "appearance", "section": "Windows", "order": 53,
+      "label": "Border thickness", "keywords": ["border"], "apply": "live", "hypr": "general:border_size"
     },
     "appearance.windows.activeOpacity": {
       "type": "number", "default": 0.92, "min": 0.5, "max": 1, "step": 0.01,
-      "category": "appearance", "section": "Ventanas", "order": 54,
-      "label": "Opacidad de la ventana activa", "keywords": ["transparencia"], "apply": "live", "hypr": "decoration:active_opacity"
+      "category": "appearance", "section": "Windows", "order": 54,
+      "label": "Active window opacity", "keywords": ["transparency"], "apply": "live", "hypr": "decoration:active_opacity"
     },
     "appearance.windows.inactiveOpacity": {
       "type": "number", "default": 0.85, "min": 0.5, "max": 1, "step": 0.01,
-      "category": "appearance", "section": "Ventanas", "order": 55,
-      "label": "Opacidad de las demás ventanas", "keywords": ["transparencia"], "apply": "live", "hypr": "decoration:inactive_opacity"
+      "category": "appearance", "section": "Windows", "order": 55,
+      "label": "Other windows' opacity", "keywords": ["transparency"], "apply": "live", "hypr": "decoration:inactive_opacity"
     },
     "appearance.windows.blur": {
       "type": "bool", "default": true,
-      "category": "appearance", "section": "Ventanas", "order": 56,
-      "label": "Desenfoque detrás de las ventanas", "keywords": ["blur"], "apply": "live", "hypr": "decoration:blur:enabled"
+      "category": "appearance", "section": "Windows", "order": 56,
+      "label": "Blur behind windows", "keywords": ["blur"], "apply": "live", "hypr": "decoration:blur:enabled"
     },
     "appearance.windows.blurSize": {
       "type": "int", "default": 6, "min": 1, "max": 20,
-      "category": "appearance", "section": "Ventanas", "order": 57, "advanced": true,
-      "label": "Intensidad del desenfoque", "keywords": ["blur"], "apply": "live", "hypr": "decoration:blur:size"
+      "category": "appearance", "section": "Windows", "order": 57, "advanced": true,
+      "label": "Blur strength", "keywords": ["blur"], "apply": "live", "hypr": "decoration:blur:size"
     },
     "appearance.windows.blurPasses": {
       "type": "int", "default": 2, "min": 1, "max": 6,
-      "category": "appearance", "section": "Ventanas", "order": 58, "advanced": true,
-      "label": "Pasadas del desenfoque", "description": "Más pasadas, más suave y más costoso.", "keywords": ["blur"], "apply": "live", "hypr": "decoration:blur:passes"
+      "category": "appearance", "section": "Windows", "order": 58, "advanced": true,
+      "label": "Blur passes", "description": "More passes, smoother and more costly.", "keywords": ["blur"], "apply": "live", "hypr": "decoration:blur:passes"
     },
     "appearance.windows.shadows": {
       "type": "bool", "default": true,
-      "category": "appearance", "section": "Ventanas", "order": 59,
-      "label": "Sombras de las ventanas", "keywords": ["shadow"], "apply": "live", "hypr": "decoration:shadow:enabled"
+      "category": "appearance", "section": "Windows", "order": 59,
+      "label": "Window shadows", "keywords": ["shadow"], "apply": "live", "hypr": "decoration:shadow:enabled"
     },
     "input.keyboard.layouts": {
       "type": "list", "kind": "xkb", "default": ["us"], "maxItems": 4, "items": {"type": "string", "pattern": "[a-z]{2,8}(:[A-Za-z0-9_-]+)?"},
-      "category": "input", "section": "Teclado", "order": 10,
-      "label": "Distribuciones del teclado", "description": "La primera es la de siempre; con más de una, la combinación de abajo las alterna.", "keywords": ["idioma", "layout", "xkb", "español", "latam"], "apply": "live", "hypr": "input:kb_layout"
+      "category": "input", "section": "Keyboard", "order": 10,
+      "label": "Keyboard layouts", "description": "The first one is the default; with more than one, the combination below switches them.", "keywords": ["language", "layout", "xkb", "spanish", "latam"], "apply": "live", "hypr": "input:kb_layout"
     },
     "input.keyboard.switch": {
       "type": "enum", "default": "",
-      "values": { "": "Ninguna", "grp:alt_shift_toggle": "Alt + Mayús", "grp:win_space_toggle": "Super + Espacio", "grp:ctrl_shift_toggle": "Ctrl + Mayús", "grp:alts_toggle": "Las dos Alt" },
-      "category": "input", "section": "Teclado", "order": 20,
-      "label": "Cambiar de distribución con", "keywords": ["idioma", "layout", "atajo"], "apply": "live", "hypr": "input:kb_options"
+      "values": { "": "None", "grp:alt_shift_toggle": "Alt + Shift", "grp:win_space_toggle": "Super + Space", "grp:ctrl_shift_toggle": "Ctrl + Shift", "grp:alts_toggle": "Both Alt keys" },
+      "category": "input", "section": "Keyboard", "order": 20,
+      "label": "Switch layout with", "keywords": ["language", "layout", "shortcut"], "apply": "live", "hypr": "input:kb_options"
     },
     "input.keyboard.repeatRate": {
       "type": "int", "default": 40, "min": 10, "max": 80, "unit": "/s",
-      "category": "input", "section": "Teclado", "order": 30,
-      "label": "Velocidad de repetición", "description": "Letras por segundo al mantener una tecla.", "keywords": ["repeat"], "apply": "live", "hypr": "input:repeat_rate"
+      "category": "input", "section": "Keyboard", "order": 30,
+      "label": "Repeat rate", "description": "Characters per second while holding a key.", "keywords": ["repeat"], "apply": "live", "hypr": "input:repeat_rate"
     },
     "input.keyboard.repeatDelay": {
       "type": "int", "default": 300, "min": 150, "max": 1000, "step": 25, "unit": "ms",
-      "category": "input", "section": "Teclado", "order": 40,
-      "label": "Espera antes de repetir", "keywords": ["repeat", "delay"], "apply": "live", "hypr": "input:repeat_delay"
+      "category": "input", "section": "Keyboard", "order": 40,
+      "label": "Delay before repeating", "keywords": ["repeat", "delay"], "apply": "live", "hypr": "input:repeat_delay"
     },
     "input.keyboard.numlock": {
       "type": "bool", "default": true,
-      "category": "input", "section": "Teclado", "order": 50,
-      "label": "Bloq Num activado al iniciar", "keywords": ["numlock", "teclado numérico"], "apply": "next-use", "hypr": "input:numlock_by_default"
+      "category": "input", "section": "Keyboard", "order": 50,
+      "label": "Num Lock on at startup", "keywords": ["numlock", "numeric keypad"], "apply": "next-use", "hypr": "input:numlock_by_default"
     },
     "input.mouse.followMouse": {
       "type": "enum", "default": "1", "cast": "int",
-      "values": { "1": "Sigue al ratón", "2": "Solo el teclado sigue al ratón", "3": "Teclado y ratón por separado", "0": "No sigue al ratón" },
-      "category": "input", "section": "Ratón", "order": 10,
-      "label": "El foco de las ventanas", "description": "Sigue al ratón: la ventana bajo el puntero recibe el teclado.", "keywords": ["follow mouse", "foco"], "apply": "live", "hypr": "input:follow_mouse"
+      "values": { "1": "Follows the mouse", "2": "Only the keyboard follows the mouse", "3": "Keyboard and mouse separately", "0": "Doesn't follow the mouse" },
+      "category": "input", "section": "Mouse", "order": 10,
+      "label": "Window focus", "description": "Follows the mouse: the window under the pointer gets the keyboard.", "keywords": ["follow mouse", "focus"], "apply": "live", "hypr": "input:follow_mouse"
     },
     "input.mouse.sensitivity": {
       "type": "number", "default": 0, "min": -1, "max": 1, "step": 0.05,
-      "category": "input", "section": "Ratón", "order": 20,
-      "label": "Velocidad del puntero", "keywords": ["sensibilidad", "sensitivity"], "apply": "live", "hypr": "input:sensitivity"
+      "category": "input", "section": "Mouse", "order": 20,
+      "label": "Pointer speed", "keywords": ["sensitivity", "speed"], "apply": "live", "hypr": "input:sensitivity"
     },
     "input.mouse.accel": {
       "type": "enum", "default": "adaptive",
-      "values": { "adaptive": "Adaptativa", "flat": "Constante" },
-      "category": "input", "section": "Ratón", "order": 30,
-      "label": "Aceleración", "description": "Constante: el puntero se mueve lo mismo sin importar la velocidad del gesto (juegos, diseño).", "keywords": ["accel", "aceleración"], "apply": "live", "hypr": "input:accel_profile"
+      "values": { "adaptive": "Adaptive", "flat": "Flat" },
+      "category": "input", "section": "Mouse", "order": 30,
+      "label": "Acceleration", "description": "Flat: the pointer moves the same regardless of how fast you move (games, design).", "keywords": ["accel", "acceleration"], "apply": "live", "hypr": "input:accel_profile"
     },
     "input.touchpad.naturalScroll": {
       "type": "bool", "default": false,
       "category": "input", "section": "Touchpad", "order": 10,
-      "label": "Desplazamiento natural", "description": "El contenido sigue a los dedos, como en un teléfono.", "keywords": ["scroll", "invertido"], "apply": "live", "hypr": "input:touchpad:natural_scroll"
+      "label": "Natural scrolling", "description": "The content follows your fingers, like on a phone.", "keywords": ["scroll", "inverted"], "apply": "live", "hypr": "input:touchpad:natural_scroll"
     },
     "input.touchpad.tapToClick": {
       "type": "bool", "default": false,
       "category": "input", "section": "Touchpad", "order": 20,
-      "label": "Tocar para hacer clic", "keywords": ["tap"], "apply": "live", "hypr": "input:touchpad:tap-to-click"
+      "label": "Tap to click", "keywords": ["tap"], "apply": "live", "hypr": "input:touchpad:tap-to-click"
     },
     "input.touchpad.disableWhileTyping": {
       "type": "bool", "default": true,
       "category": "input", "section": "Touchpad", "order": 30,
-      "label": "Desactivar mientras se escribe", "keywords": ["dwt", "palma"], "apply": "live", "hypr": "input:touchpad:disable_while_typing"
+      "label": "Disable while typing", "keywords": ["dwt", "palm"], "apply": "live", "hypr": "input:touchpad:disable_while_typing"
     },
     "input.touchpad.clickfinger": {
       "type": "bool", "default": false,
       "category": "input", "section": "Touchpad", "order": 40,
-      "label": "Clic derecho con dos dedos", "description": "Apagado: clic derecho en la esquina inferior derecha.", "keywords": ["clickfinger", "clic derecho"], "apply": "live", "hypr": "input:touchpad:clickfinger_behavior"
+      "label": "Two-finger right click", "description": "Off: right click in the bottom-right corner.", "keywords": ["clickfinger", "right click"], "apply": "live", "hypr": "input:touchpad:clickfinger_behavior"
     },
     "input.touchpad.scrollFactor": {
       "type": "number", "default": 1, "min": 0.2, "max": 3, "step": 0.1,
       "category": "input", "section": "Touchpad", "order": 50,
-      "label": "Velocidad del desplazamiento", "keywords": ["scroll"], "apply": "live", "hypr": "input:touchpad:scroll_factor"
+      "label": "Scroll speed", "keywords": ["scroll"], "apply": "live", "hypr": "input:touchpad:scroll_factor"
     },
     "display.outputs": {
       "type": "outputs", "default": {},
-      "category": "display", "section": "Pantallas", "order": 10,
-      "label": "Disposición y modo", "description": "Cada cambio se prueba antes de guardarse: si no confirmas en 15 s, vuelve el anterior.",
-      "keywords": ["monitor", "resolución", "frecuencia", "hz", "escala", "rotación", "vrr", "hdr", "10 bits", "espejo", "duplicar"], "apply": "live", "applyTo": "display"
+      "category": "display", "section": "Displays", "order": 10,
+      "label": "Layout and mode", "description": "Each change is tried before it's saved: if you don't confirm within 15 s, the previous one comes back.",
+      "keywords": ["monitor", "resolution", "refresh rate", "hz", "scale", "rotation", "vrr", "hdr", "10 bits", "mirror", "duplicate"], "apply": "live", "applyTo": "display"
     },
     "display.highRefreshOnAC": {
       "type": "bool", "default": false,
-      "category": "display", "section": "Pantallas", "order": 20,
-      "label": "Frecuencia alta solo enchufado", "description": "Con batería, la pantalla integrada baja a 60 Hz; al enchufar vuelve a la más alta. Un aviso lo dice cada vez.",
-      "keywords": ["hz", "batería", "refresco", "144"], "apply": "live", "applyTo": "displaypower"
+      "category": "display", "section": "Displays", "order": 20,
+      "label": "High refresh rate only when plugged in", "description": "On battery, the built-in screen drops to 60 Hz; when plugged in it goes back to the highest. A notice says so each time.",
+      "keywords": ["hz", "battery", "refresh", "144"], "apply": "live", "applyTo": "displaypower"
     },
     "display.nightLight.enabled": {
       "type": "bool", "default": true,
-      "category": "display", "section": "Luz nocturna", "order": 100,
-      "label": "Luz nocturna", "description": "Calienta los colores de la pantalla por la noche (hyprsunset).",
-      "keywords": ["luz azul", "hyprsunset", "noche", "filtro"], "apply": "live", "applyTo": "nightlight"
+      "category": "display", "section": "Night light", "order": 100,
+      "label": "Night light", "description": "Warms the screen colors at night (hyprsunset).",
+      "keywords": ["blue light", "hyprsunset", "night", "filter"], "apply": "live", "applyTo": "nightlight"
     },
     "display.nightLight.mode": {
-      "type": "enum", "default": "schedule", "values": { "schedule": "Horario", "sun": "Del atardecer al amanecer" },
-      "category": "display", "section": "Luz nocturna", "order": 110,
-      "label": "Cuándo", "description": "\"Del atardecer al amanecer\" usa la ciudad del clima (Dashboard); sin ciudad, el horario.",
-      "keywords": ["sol", "atardecer", "amanecer"], "apply": "live", "applyTo": "nightlight"
+      "type": "enum", "default": "schedule", "values": { "schedule": "Schedule", "sun": "Sunset to sunrise" },
+      "category": "display", "section": "Night light", "order": 110,
+      "label": "When", "description": "“Sunset to sunrise” uses the weather city (Dashboard); without a city, the schedule.",
+      "keywords": ["sun", "sunset", "sunrise"], "apply": "live", "applyTo": "nightlight"
     },
     "display.nightLight.from": {
       "type": "time", "default": "20:00",
-      "category": "display", "section": "Luz nocturna", "order": 120,
-      "label": "Desde", "keywords": ["hora", "inicio"], "apply": "live", "applyTo": "nightlight"
+      "category": "display", "section": "Night light", "order": 120,
+      "label": "From", "keywords": ["time", "start"], "apply": "live", "applyTo": "nightlight"
     },
     "display.nightLight.to": {
       "type": "time", "default": "08:00",
-      "category": "display", "section": "Luz nocturna", "order": 130,
-      "label": "Hasta", "keywords": ["hora", "fin"], "apply": "live", "applyTo": "nightlight"
+      "category": "display", "section": "Night light", "order": 130,
+      "label": "Until", "keywords": ["time", "end"], "apply": "live", "applyTo": "nightlight"
     },
     "display.nightLight.temperature": {
       "type": "int", "default": 4500, "min": 2500, "max": 6500, "step": 100, "unit": "K",
-      "category": "display", "section": "Luz nocturna", "order": 140,
-      "label": "Temperatura", "description": "Más baja, más cálida.", "keywords": ["kelvin", "cálido"], "apply": "live", "applyTo": "nightlight"
+      "category": "display", "section": "Night light", "order": 140,
+      "label": "Temperature", "description": "Lower is warmer.", "keywords": ["kelvin", "warm"], "apply": "live", "applyTo": "nightlight"
     },
     "display.nightLight.late": {
       "type": "bool", "default": true,
-      "category": "display", "section": "Luz nocturna", "order": 150,
-      "label": "Más cálida de madrugada", "keywords": ["noche", "tarde"], "apply": "live", "applyTo": "nightlight"
+      "category": "display", "section": "Night light", "order": 150,
+      "label": "Warmer late at night", "keywords": ["night", "late"], "apply": "live", "applyTo": "nightlight"
     },
     "display.nightLight.lateFrom": {
       "type": "time", "default": "23:00",
-      "category": "display", "section": "Luz nocturna", "order": 160,
-      "label": "Desde las", "keywords": ["hora"], "apply": "live", "applyTo": "nightlight"
+      "category": "display", "section": "Night light", "order": 160,
+      "label": "Starting at", "keywords": ["time"], "apply": "live", "applyTo": "nightlight"
     },
     "display.nightLight.lateTemperature": {
       "type": "int", "default": 3500, "min": 2500, "max": 6500, "step": 100, "unit": "K",
-      "category": "display", "section": "Luz nocturna", "order": 170,
-      "label": "Temperatura de madrugada", "keywords": ["kelvin"], "apply": "live", "applyTo": "nightlight"
+      "category": "display", "section": "Night light", "order": 170,
+      "label": "Late-night temperature", "keywords": ["kelvin"], "apply": "live", "applyTo": "nightlight"
     },
     "display.nightLight.lateGamma": {
       "type": "int", "default": 90, "min": 50, "max": 100, "step": 5, "unit": "%",
-      "category": "display", "section": "Luz nocturna", "order": 180,
-      "label": "Brillo de madrugada", "keywords": ["gamma", "brillo"], "apply": "live", "applyTo": "nightlight"
+      "category": "display", "section": "Night light", "order": 180,
+      "label": "Late-night brightness", "keywords": ["gamma", "brightness"], "apply": "live", "applyTo": "nightlight"
     },
     "power.dim": {
       "type": "bool", "default": true,
-      "category": "power", "section": "Inactividad", "order": 10,
-      "label": "Bajar el brillo antes de bloquear", "keywords": ["idle", "brillo", "atenuar"], "apply": "live", "idle": "dim"
+      "category": "power", "section": "Idle", "order": 10,
+      "label": "Dim before locking", "keywords": ["idle", "brightness", "dim"], "apply": "live", "idle": "dim"
     },
     "power.dimAfter": {
       "type": "number", "default": 2.5, "min": 0.5, "max": 60, "step": 0.5, "unit": "min",
-      "category": "power", "section": "Inactividad", "order": 20,
-      "label": "Bajar el brillo a los", "keywords": ["idle", "brillo"], "apply": "live", "idle": "dim"
+      "category": "power", "section": "Idle", "order": 20,
+      "label": "Dim after", "keywords": ["idle", "brightness"], "apply": "live", "idle": "dim"
     },
     "power.lockAfter": {
-      "type": "number", "default": 5, "min": 0, "max": 60, "step": 0.5, "unit": "min", "labels": {"0": "Nunca"},
-      "category": "power", "section": "Inactividad", "order": 30,
-      "label": "Bloquear a los", "keywords": ["idle", "bloqueo", "inactividad"], "apply": "live", "idle": "lock"
+      "type": "number", "default": 5, "min": 0, "max": 60, "step": 0.5, "unit": "min", "labels": {"0": "Never"},
+      "category": "power", "section": "Idle", "order": 30,
+      "label": "Lock after", "keywords": ["idle", "lock", "inactivity"], "apply": "live", "idle": "lock"
     },
     "power.screenOffAfter": {
-      "type": "number", "default": 5.5, "min": 0, "max": 60, "step": 0.5, "unit": "min", "labels": {"0": "Nunca"},
-      "category": "power", "section": "Inactividad", "order": 40,
-      "label": "Apagar la pantalla a los", "keywords": ["idle", "dpms", "pantalla"], "apply": "live", "idle": "screenOff"
+      "type": "number", "default": 5.5, "min": 0, "max": 60, "step": 0.5, "unit": "min", "labels": {"0": "Never"},
+      "category": "power", "section": "Idle", "order": 40,
+      "label": "Turn the screen off after", "keywords": ["idle", "dpms", "screen"], "apply": "live", "idle": "screenOff"
     },
     "power.suspendAfter": {
-      "type": "number", "default": 20, "min": 0, "max": 240, "step": 5, "unit": "min", "labels": {"0": "Nunca"},
-      "category": "power", "section": "Inactividad", "order": 50,
-      "label": "Suspender a los", "keywords": ["idle", "suspender", "dormir"], "apply": "live", "idle": "suspend"
+      "type": "number", "default": 20, "min": 0, "max": 240, "step": 5, "unit": "min", "labels": {"0": "Never"},
+      "category": "power", "section": "Idle", "order": 50,
+      "label": "Suspend after", "keywords": ["idle", "suspend", "sleep"], "apply": "live", "idle": "suspend"
     },
     "power.suspendOnAC": {
       "type": "bool", "default": true,
-      "category": "power", "section": "Condiciones", "order": 60,
-      "label": "Suspender también enchufado", "description": "Apagado: solo se suspende funcionando con batería.", "keywords": ["cargador", "batería", "suspender"], "apply": "live", "idle": "suspend"
+      "category": "power", "section": "Conditions", "order": 60,
+      "label": "Suspend when plugged in too", "description": "Off: it only suspends on battery.", "keywords": ["charger", "battery", "suspend"], "apply": "live", "idle": "suspend"
     },
     "power.inhibitWhileMedia": {
       "type": "bool", "default": false,
-      "category": "power", "section": "Condiciones", "order": 70,
-      "label": "No entrar en reposo mientras suena algo", "description": "Con música o video sonando no se baja el brillo, ni se bloquea, ni se apaga la pantalla.", "keywords": ["música", "video", "inhibir"], "apply": "live"
+      "category": "power", "section": "Conditions", "order": 70,
+      "label": "Stay awake while something plays", "description": "With music or video playing, it doesn't dim, lock or turn the screen off.", "keywords": ["music", "video", "inhibit"], "apply": "live"
     },
     "bar.clock.format": {
-      "type": "enum", "default": "24", "values": { "24": "24 horas", "12": "12 horas" },
-      "category": "bar", "section": "Reloj", "order": 40,
-      "label": "Formato de la hora", "keywords": ["reloj", "am", "pm"], "apply": "live"
+      "type": "enum", "default": "24", "values": { "24": "24 hours", "12": "12 hours" },
+      "category": "bar", "section": "Clock", "order": 40,
+      "label": "Time format", "keywords": ["clock", "am", "pm"], "apply": "live"
     },
     "bar.clock.date": {
       "type": "bool", "default": false,
-      "category": "bar", "section": "Reloj", "order": 41,
-      "label": "Fecha junto a la hora", "keywords": ["reloj", "día"], "apply": "live"
+      "category": "bar", "section": "Clock", "order": 41,
+      "label": "Date next to the time", "keywords": ["clock", "day"], "apply": "live"
     },
     "bar.workspaces.scroll": {
       "type": "bool", "default": true,
-      "category": "bar", "section": "Escritorios", "order": 15,
-      "label": "Cambiar de escritorio con la rueda", "description": "Con el puntero sobre los escritorios de la barra.", "keywords": ["scroll", "rueda"], "apply": "live"
+      "category": "bar", "section": "Workspaces", "order": 15,
+      "label": "Switch workspaces with the wheel", "description": "With the pointer over the bar's workspaces.", "keywords": ["scroll", "wheel"], "apply": "live"
     },
     "bar.media.title": {
       "type": "bool", "default": true,
-      "category": "bar", "section": "Música", "order": 50,
-      "label": "Título en la píldora de música", "description": "Apagado: solo el icono.", "keywords": ["mpris", "canción"], "apply": "live"
+      "category": "bar", "section": "Music", "order": 50,
+      "label": "Title in the music pill", "description": "Off: only the icon.", "keywords": ["mpris", "song"], "apply": "live"
     },
     "dashboard.tabs": {
       "type": "list", "kind": "checks", "default": ["music", "system", "workspaces"], "unique": true,
-      "items": { "type": "enum", "values": { "music": "Música", "today": "Hoy", "system": "Sistema", "workspaces": "Escritorios", "maintenance": "Mantenimiento" } },
-      "category": "dashboard", "section": "Pestañas", "order": 0,
-      "label": "Pestañas", "description": "Las que se ven en la barra del dashboard, después de Inicio. Las que no, se abren igual desde su zona o su letra.",
-      "keywords": ["pestaña", "tab", "música", "sistema", "escritorios", "hoy", "mantenimiento"], "apply": "live"
+      "items": { "type": "enum", "values": { "music": "Music", "today": "Today", "system": "System", "workspaces": "Workspaces", "maintenance": "Maintenance" } },
+      "category": "dashboard", "section": "Tabs", "order": 0,
+      "label": "Tabs", "description": "The ones shown in the dashboard's tab bar, after Home. The others still open from their zone or their letter.",
+      "keywords": ["tab", "music", "system", "workspaces", "today", "maintenance"], "apply": "live"
     },
     "dashboard.openOn": {
-      "type": "enum", "default": "home", "values": { "home": "Inicio", "last": "La última que miraste" },
-      "category": "dashboard", "section": "Pestañas", "order": 0,
-      "label": "Al abrir", "description": "En qué pestaña se abre el dashboard (la última se recuerda mientras corre la shell).",
-      "keywords": ["pestaña", "abrir", "recordar"], "apply": "live"
+      "type": "enum", "default": "home", "values": { "home": "Home", "last": "The last one you viewed" },
+      "category": "dashboard", "section": "Tabs", "order": 0,
+      "label": "On opening", "description": "Which tab the dashboard opens on (the last one is remembered while the shell runs).",
+      "keywords": ["tab", "open", "remember"], "apply": "live"
     },
     "dashboard.home.zones": {
       "type": "homeZones",
       "default": [{ "id": "context", "size": "full" }, { "id": "system", "size": "compact" }, { "id": "workspaces", "size": "wide" }, { "id": "media", "size": "full" }],
-      "category": "dashboard", "section": "Inicio", "order": 1,
-      "label": "Zonas de Inicio", "description": "Qué se ve en Inicio (también la hora y la música), en qué orden y de qué tamaño. Se edita en el dashboard mismo (lápiz o Ctrl+E).",
-      "keywords": ["dashboard", "zona", "widget", "editar", "inicio"], "apply": "live",
+      "category": "dashboard", "section": "Home", "order": 1,
+      "label": "Home zones", "description": "What Home shows (the time and the music too), in what order and at what size. Edited in the dashboard itself (pencil or Ctrl+E).",
+      "keywords": ["dashboard", "zone", "widget", "edit", "home"], "apply": "live",
       "widgets": {
         "context": { "label": "Time and notices", "icon": "schedule", "sizes": ["full"], "bare": true, "view": "today",
-                     "description": "La hora, la fecha, los avisos (solo si los hay) y el clima." },
+                     "description": "The time, the date, the notices (only if there are any) and the weather." },
         "media": { "label": "Music", "icon": "music_note", "sizes": ["full"], "bare": true, "needs": "media", "view": "music",
-                   "description": "Lo que suena, en una tarjeta; el reproductor entero y la letra, en la pestaña Música." },
+                   "description": "What's playing, on a card; the full player and the lyrics, in the Music tab." },
         "system": { "label": "System", "icon": "monitor_heart", "sizes": ["compact", "wide"], "view": "system",
-                    "description": "Estado, procesador, memoria, temperatura y batería." },
+                    "description": "Status, processor, memory, temperature and battery." },
         "workspaces": { "label": "Workspaces", "icon": "space_dashboard", "sizes": ["wide", "compact"], "view": "workspaces",
-                        "description": "Los escritorios en miniatura." },
+                        "description": "The workspaces, in miniature." },
         "calendar": { "label": "Calendar", "icon": "calendar_month", "sizes": ["compact", "wide"], "view": "today",
-                      "description": "El mes, como en Hoy." },
+                      "description": "The month, like in Today." },
         "weather": { "label": "Next hours", "icon": "partly_cloudy_day", "sizes": ["wide", "compact"], "view": "today", "needs": "weather",
-                     "description": "El clima de las próximas horas. Necesita una ciudad (Clima)." },
+                     "description": "The weather for the next hours. Needs a city (Weather)." },
         "profile": { "label": "Profile", "icon": "account_circle", "sizes": ["compact", "wide"], "action": "avatar",
-                     "description": "Tu avatar, un saludo y el equipo." },
+                     "description": "Your avatar, a greeting and the computer." },
         "quick": { "label": "Quick access", "icon": "apps", "sizes": ["compact", "wide"],
-                   "description": "Las aplicaciones y carpetas que fijes (Configuración → Dashboard)." },
+                   "description": "The apps and folders you pin (Settings → Dashboard)." },
         "notes": { "label": "Notes", "icon": "sticky_note_2", "sizes": ["wide", "compact"],
-                   "description": "Una nota que se guarda sola, solo en este equipo." },
+                   "description": "A note that saves itself, only on this computer." },
         "todo": { "label": "Tasks", "icon": "checklist", "sizes": ["compact", "wide"],
-                  "description": "Una lista de pendientes, solo en este equipo." },
+                  "description": "A to-do list, only on this computer." },
         "timer": { "label": "Timer", "icon": "timer", "sizes": ["compact", "wide"],
-                   "description": "Pomodoro, cronómetro y cuenta atrás; avisa al terminar cada fase." },
+                   "description": "Pomodoro, stopwatch and countdown; notifies at the end of each phase." },
         "now": { "label": "Now", "icon": "bolt", "sizes": ["wide", "compact"], "needs": "now",
-                 "description": "Lo más relevante del momento (lluvia cerca, un temporizador, tareas, la puesta de sol); aparece solo cuando hay algo." }
+                 "description": "What matters most right now (rain nearby, a timer, tasks, the sunset); it appears only when there's something." }
       }
     },
     "controlCenter.tiles": {
       "type": "tiles",
       "default": [{ "id": "wifi", "size": "small" }, { "id": "bluetooth", "size": "small" }, { "id": "nightLight", "size": "small" },
                   { "id": "gameMode", "size": "small" }, { "id": "lock", "size": "small" }, { "id": "profile", "size": "row" }, { "id": "dnd", "size": "row" }],
-      "category": "controlCenter", "section": "Ajustes rápidos", "order": 1,
-      "label": "Ajustes rápidos", "description": "Qué ajustes muestra el centro de control, en qué orden y de qué tamaño. Se edita en el centro de control mismo (lápiz).",
-      "keywords": ["accesos", "toggles", "wifi", "bluetooth", "no molestar", "perfil", "editar", "centro de control"], "apply": "live",
+      "category": "controlCenter", "section": "Quick settings", "order": 1,
+      "label": "Quick settings", "description": "Which settings the control center shows, in what order and at what size. Edited in the control center itself (pencil).",
+      "keywords": ["shortcuts", "toggles", "wifi", "bluetooth", "do not disturb", "profile", "edit", "control center"], "apply": "live",
       "widgets": {
         "wifi": { "label": "Wi-Fi", "icon": "wifi", "sizes": ["small", "wide"] },
         "bluetooth": { "label": "Bluetooth", "icon": "bluetooth", "sizes": ["small", "wide"], "needs": "bluetooth" },
@@ -774,212 +774,212 @@
     },
     "dashboard.weather.location": {
       "type": "location", "default": null, "nullable": true,
-      "category": "dashboard", "section": "Clima", "order": 5,
-      "label": "Ciudad del clima", "description": "Se guarda redondeada (~10 km) y solo en este equipo; sin ciudad, el clima no consulta nada.", "keywords": ["clima", "tiempo", "ubicación"], "apply": "live"
+      "category": "dashboard", "section": "Weather", "order": 5,
+      "label": "Weather city", "description": "It's saved rounded (~10 km) and only on this computer; without a city, the weather queries nothing.", "keywords": ["weather", "forecast", "location"], "apply": "live"
     },
     "dashboard.weather.units": {
       "type": "enum", "default": "c", "values": { "c": "°C", "f": "°F" },
-      "category": "dashboard", "section": "Clima", "order": 6,
-      "label": "Unidades de temperatura", "keywords": ["clima", "celsius", "fahrenheit"], "apply": "live"
+      "category": "dashboard", "section": "Weather", "order": 6,
+      "label": "Temperature units", "keywords": ["weather", "celsius", "fahrenheit"], "apply": "live"
     },
     "dashboard.profile.name": {
-      "type": "string", "default": "", "maxLength": 40, "placeholder": "El de tu cuenta",
-      "category": "dashboard", "section": "Perfil", "order": 20,
-      "label": "Nombre del saludo", "description": "Vacío: el nombre de tu cuenta.",
-      "keywords": ["perfil", "nombre", "saludo", "usuario"], "apply": "live"
+      "type": "string", "default": "", "maxLength": 40, "placeholder": "Your account's",
+      "category": "dashboard", "section": "Profile", "order": 20,
+      "label": "Name in the greeting", "description": "Empty: your account name.",
+      "keywords": ["profile", "name", "greeting", "user"], "apply": "live"
     },
     "dashboard.profile.showSystem": {
       "type": "bool", "default": true,
-      "category": "dashboard", "section": "Perfil", "order": 21,
-      "label": "Mostrar el equipo y el tiempo encendido", "keywords": ["perfil", "uptime", "host"], "apply": "live"
+      "category": "dashboard", "section": "Profile", "order": 21,
+      "label": "Show the computer and the uptime", "keywords": ["profile", "uptime", "host"], "apply": "live"
     },
     "dashboard.quick.apps": {
       "type": "list", "kind": "apps", "default": [], "maxItems": 12, "unique": true,
       "items": { "type": "string", "maxLength": 200, "pattern": "[^/\\s][^/]*" },
-      "category": "dashboard", "section": "Accesos rápidos", "order": 30,
-      "label": "Aplicaciones fijadas", "description": "Las que abre la zona Accesos rápidos, en este orden.",
-      "keywords": ["accesos", "apps", "aplicaciones", "fijar", "favoritos"], "apply": "live"
+      "category": "dashboard", "section": "Quick access", "order": 30,
+      "label": "Pinned apps", "description": "The ones the Quick access zone opens, in this order.",
+      "keywords": ["shortcuts", "apps", "applications", "pin", "favorites"], "apply": "live"
     },
     "dashboard.quick.folders": {
       "type": "list", "kind": "folders", "default": [], "maxItems": 6, "unique": true,
       "items": { "type": "path" },
-      "category": "dashboard", "section": "Accesos rápidos", "order": 31,
-      "label": "Carpetas fijadas", "description": "Vacío: tus carpetas personales (Descargas, Documentos, Imágenes…).",
-      "keywords": ["accesos", "carpetas", "directorios", "fijar"], "apply": "live"
+      "category": "dashboard", "section": "Quick access", "order": 31,
+      "label": "Pinned folders", "description": "Empty: your personal folders (Downloads, Documents, Pictures…).",
+      "keywords": ["shortcuts", "folders", "directories", "pin"], "apply": "live"
     },
     "dashboard.timer.focusMinutes": {
       "type": "int", "default": 25, "min": 5, "max": 90, "step": 5, "unit": "min",
-      "category": "dashboard", "section": "Temporizador", "order": 40,
-      "label": "Concentración (pomodoro)", "keywords": ["pomodoro", "temporizador", "foco", "trabajo"], "apply": "live"
+      "category": "dashboard", "section": "Timer", "order": 40,
+      "label": "Focus (pomodoro)", "keywords": ["pomodoro", "timer", "focus", "work"], "apply": "live"
     },
     "dashboard.timer.breakMinutes": {
       "type": "int", "default": 5, "min": 1, "max": 30, "unit": "min",
-      "category": "dashboard", "section": "Temporizador", "order": 41,
-      "label": "Descanso", "keywords": ["pomodoro", "pausa", "descanso"], "apply": "live"
+      "category": "dashboard", "section": "Timer", "order": 41,
+      "label": "Break", "keywords": ["pomodoro", "pause", "break"], "apply": "live"
     },
     "dashboard.timer.longBreakMinutes": {
       "type": "int", "default": 15, "min": 5, "max": 60, "step": 5, "unit": "min",
-      "category": "dashboard", "section": "Temporizador", "order": 42,
-      "label": "Descanso largo", "keywords": ["pomodoro", "pausa", "descanso"], "apply": "live"
+      "category": "dashboard", "section": "Timer", "order": 42,
+      "label": "Long break", "keywords": ["pomodoro", "pause", "break"], "apply": "live"
     },
     "dashboard.timer.cycles": {
       "type": "int", "default": 4, "min": 2, "max": 8,
-      "category": "dashboard", "section": "Temporizador", "order": 43,
-      "label": "Concentraciones antes del descanso largo", "keywords": ["pomodoro", "ciclos"], "apply": "live"
+      "category": "dashboard", "section": "Timer", "order": 43,
+      "label": "Focus rounds before the long break", "keywords": ["pomodoro", "cycles"], "apply": "live"
     },
     "dashboard.timer.autoContinue": {
       "type": "bool", "default": true,
-      "category": "dashboard", "section": "Temporizador", "order": 44,
-      "label": "Seguir solo con la fase siguiente", "description": "Apagado: al terminar una fase, la siguiente espera a que la empieces.",
-      "keywords": ["pomodoro", "automático"], "apply": "live"
+      "category": "dashboard", "section": "Timer", "order": 44,
+      "label": "Continue on to the next phase", "description": "Off: when a phase ends, the next one waits for you to start it.",
+      "keywords": ["pomodoro", "automatic"], "apply": "live"
     },
     "dashboard.timer.sound": {
       "type": "bool", "default": false,
-      "category": "dashboard", "section": "Temporizador", "order": 45,
-      "label": "Sonido al terminar", "description": "Además del aviso. Necesita pw-play (PipeWire) y el tema de sonidos freedesktop.",
-      "keywords": ["pomodoro", "alarma", "sonido"], "apply": "live"
+      "category": "dashboard", "section": "Timer", "order": 45,
+      "label": "Sound when done", "description": "Besides the notice. Needs pw-play (PipeWire) and the freedesktop sound theme.",
+      "keywords": ["pomodoro", "alarm", "sound"], "apply": "live"
     },
     "dashboard.system.style": {
-      "type": "enum", "default": "instrumentos", "values": { "instrumentos": "Instrumentos", "anillos": "Anillos" },
-      "category": "dashboard", "section": "Sistema", "order": 59,
-      "label": "Estilo de los cuatro de arriba", "description": "Instrumentos: la cifra, una palabra y la barra o la historia. Anillos: la cifra dentro de un anillo y la temperatura por fuera (sin historia).",
-      "keywords": ["anillos", "círculos", "medidores", "sistema", "estilo"], "apply": "live"
+      "type": "enum", "default": "instrumentos", "values": { "instrumentos": "Gauges", "anillos": "Rings" },
+      "category": "dashboard", "section": "System", "order": 59,
+      "label": "Style of the top four", "description": "Gauges: the figure, a word and the bar or the history. Rings: the figure inside a ring and the temperature outside (no history).",
+      "keywords": ["rings", "circles", "gauges", "system", "style"], "apply": "live"
     },
     "dashboard.system.history": {
       "type": "bool", "default": true,
-      "category": "dashboard", "section": "Sistema", "order": 60,
-      "label": "Historia corta en Sistema", "description": "Gráficos de los últimos minutos con lo que ya se mide mientras miras el dashboard; nada se mide con el dashboard cerrado (por eso puede haber huecos).",
-      "keywords": ["historia", "gráfico", "rendimiento", "cpu", "memoria", "red"], "apply": "live"
+      "category": "dashboard", "section": "System", "order": 60,
+      "label": "Short history in System", "description": "Charts of the last minutes from what's already measured while you look at the dashboard; nothing is measured with the dashboard closed (so there can be gaps).",
+      "keywords": ["history", "chart", "performance", "cpu", "memory", "network"], "apply": "live"
     },
     "dashboard.system.historyMinutes": {
       "type": "int", "default": 5, "min": 1, "max": 10, "unit": "min",
-      "category": "dashboard", "section": "Sistema", "order": 61,
-      "label": "Cuánto recordar", "keywords": ["historia", "minutos"], "apply": "live"
+      "category": "dashboard", "section": "System", "order": 61,
+      "label": "How much to keep", "keywords": ["history", "minutes"], "apply": "live"
     },
     "dashboard.system.charts": {
       "type": "list", "kind": "checks", "default": ["cpu", "memory", "energy", "network", "gpu"], "unique": true,
-      "items": { "type": "enum", "values": { "cpu": "Procesador", "memory": "Memoria", "energy": "Batería (si hay)", "network": "Red", "gpu": "Gráficas (si se pueden leer)" } },
-      "category": "dashboard", "section": "Sistema", "order": 62,
-      "label": "Con gráfico", "description": "Sin gráfico, la barra de nivel de siempre.",
-      "keywords": ["historia", "gráfico", "tarjetas"], "apply": "live"
+      "items": { "type": "enum", "values": { "cpu": "Processor", "memory": "Memory", "energy": "Battery (if any)", "network": "Network", "gpu": "Graphics (if readable)" } },
+      "category": "dashboard", "section": "System", "order": 62,
+      "label": "With a chart", "description": "Without a chart, the usual level bar.",
+      "keywords": ["history", "chart", "cards"], "apply": "live"
     },
     "dashboard.now.kinds": {
       "type": "list", "kind": "checks", "default": ["timer", "rain", "todo", "heat", "sunset"], "unique": true,
-      "items": { "type": "enum", "values": { "timer": "Un temporizador en marcha", "rain": "Lluvia en las próximas 3 horas", "todo": "Tareas pendientes", "heat": "Calor o frío fuerte", "sunset": "La puesta de sol (en la próxima hora)" } },
-      "category": "dashboard", "section": "Ahora", "order": 50,
-      "label": "Qué puede mostrar la zona Ahora", "description": "En este orden de prioridad; muestra solo lo primero que aplique.",
-      "keywords": ["ahora", "tarjeta", "aviso", "lluvia", "atardecer"], "apply": "live"
+      "items": { "type": "enum", "values": { "timer": "A running timer", "rain": "Rain in the next 3 hours", "todo": "Pending tasks", "heat": "Strong heat or cold", "sunset": "The sunset (within the next hour)" } },
+      "category": "dashboard", "section": "Now", "order": 50,
+      "label": "What the Now zone can show", "description": "In this order of priority; it shows only the first that applies.",
+      "keywords": ["now", "card", "notice", "rain", "sunset"], "apply": "live"
     },
     "capture.copyToClipboard": {
       "type": "bool", "default": true,
-      "category": "capture", "section": "Capturas", "order": 11,
-      "label": "Copiar cada captura al portapapeles", "keywords": ["captura", "portapapeles"], "apply": "next-use"
+      "category": "capture", "section": "Capture", "order": 11,
+      "label": "Copy every capture to the clipboard", "keywords": ["capture", "clipboard"], "apply": "next-use"
     },
     "capture.freeze": {
       "type": "bool", "default": true,
-      "category": "capture", "section": "Capturas", "order": 12,
-      "label": "Congelar la pantalla al elegir una zona", "keywords": ["captura", "zona"], "apply": "next-use"
+      "category": "capture", "section": "Capture", "order": 12,
+      "label": "Freeze the screen while choosing an area", "keywords": ["capture", "area"], "apply": "next-use"
     },
     "capture.format": {
-      "type": "enum", "default": "png", "values": { "png": "PNG", "jpeg": "JPEG (más liviano)" },
-      "category": "capture", "section": "Capturas", "order": 13,
-      "label": "Formato de las capturas", "keywords": ["captura", "jpg", "png"], "apply": "next-use"
+      "type": "enum", "default": "png", "values": { "png": "PNG", "jpeg": "JPEG (lighter)" },
+      "category": "capture", "section": "Capture", "order": 13,
+      "label": "Capture format", "keywords": ["capture", "jpg", "png"], "apply": "next-use"
     },
     "capture.recordAudio": {
-      "type": "enum", "default": "none", "values": { "none": "Sin audio", "system": "Sonido del equipo", "mic": "Micrófono", "both": "Ambos" },
-      "category": "capture", "section": "Grabación", "order": 41,
-      "label": "Audio de la grabación", "keywords": ["grabación", "sonido", "micrófono"], "apply": "next-use"
+      "type": "enum", "default": "none", "values": { "none": "No audio", "system": "System sound", "mic": "Microphone", "both": "Both" },
+      "category": "capture", "section": "Recording", "order": 41,
+      "label": "Recording audio", "keywords": ["recording", "sound", "microphone"], "apply": "next-use"
     },
     "capture.fps": {
-      "type": "enum", "default": "60", "cast": "int", "values": { "60": "60 por segundo", "30": "30 por segundo" },
-      "category": "capture", "section": "Grabación", "order": 42,
-      "label": "Fotogramas", "keywords": ["grabación", "fps"], "apply": "next-use"
+      "type": "enum", "default": "60", "cast": "int", "values": { "60": "60 per second", "30": "30 per second" },
+      "category": "capture", "section": "Recording", "order": 42,
+      "label": "Frame rate", "keywords": ["recording", "fps"], "apply": "next-use"
     },
     "media.preferredPlayer": {
       "type": "string", "kind": "player", "default": "", "maxLength": 120,
-      "category": "media", "section": "Reproductor", "order": 10,
-      "label": "Reproductor preferido", "description": "Si está abierto, la barra, el dashboard y las teclas multimedia lo usan antes que a los demás.", "keywords": ["mpris", "spotify", "música"], "apply": "live"
+      "category": "media", "section": "Player", "order": 10,
+      "label": "Preferred player", "description": "If it's open, the bar, the dashboard and the media keys use it before the others.", "keywords": ["mpris", "spotify", "music"], "apply": "live"
     },
     "media.ignoreBrowsers": {
       "type": "bool", "default": false,
-      "category": "media", "section": "Reproductor", "order": 20,
-      "label": "Ignorar los navegadores", "description": "Los videos del navegador no aparecen como reproductor.", "keywords": ["firefox", "chrome", "zen", "youtube"], "apply": "live"
+      "category": "media", "section": "Player", "order": 20,
+      "label": "Ignore browsers", "description": "Browser videos don't show up as a player.", "keywords": ["firefox", "chrome", "zen", "youtube"], "apply": "live"
     },
     "media.lyrics.enabled": {
       "type": "bool", "default": false,
-      "category": "media", "section": "Letras", "order": 40,
-      "label": "Buscar letras en internet",
-      "description": "Si no hay una letra en tu equipo, la busca en lrclib.net (abierto, sin cuenta). Se envían el título, el artista y la duración de la canción; nada más.",
-      "keywords": ["letra", "lyrics", "lrclib", "canción", "karaoke"], "apply": "live"
+      "category": "media", "section": "Lyrics", "order": 40,
+      "label": "Look up lyrics online",
+      "description": "If there are no lyrics on your computer, it looks them up on lrclib.net (open, no account). It sends the song's title, artist and length; nothing else.",
+      "keywords": ["lyrics", "lrclib", "song", "karaoke"], "apply": "live"
     },
     "media.lyrics.dir": {
       "type": "path", "kind": "dir", "default": "~/Music/Lyrics",
-      "category": "media", "section": "Letras", "order": 41,
-      "label": "Carpeta de letras",
-      "description": "Archivos .lrc («Artista - Título.lrc», también en subcarpetas). Solo se leen. Un .lrc junto al archivo de la canción también vale.",
-      "keywords": ["letra", "lrc", "carpeta"], "apply": "live"
+      "category": "media", "section": "Lyrics", "order": 41,
+      "label": "Lyrics folder",
+      "description": "Files .lrc (“Artist - Title.lrc”, in subfolders too). Only read. A .lrc next to the song's file works too.",
+      "keywords": ["lyrics", "lrc", "folder"], "apply": "live"
     },
     "media.cover.shape": {
-      "type": "enum", "default": "rounded", "values": { "rounded": "Cuadrada", "circle": "Círculo", "cookie4": "Galleta de 4", "cookie7": "Galleta de 7", "cookie9": "Galleta de 9", "burst": "Estallido suave" },
-      "category": "media", "section": "Portada", "order": 30,
-      "label": "Forma de la portada", "description": "En la pestaña Música y en la tarjeta de Inicio. Las onduladas giran un poco con cada canción.",
-      "keywords": ["portada", "forma", "círculo", "galleta", "carátula"], "apply": "live"
+      "type": "enum", "default": "rounded", "values": { "rounded": "Square", "circle": "Circle", "cookie4": "4-sided cookie", "cookie7": "7-sided cookie", "cookie9": "9-sided cookie", "burst": "Soft burst" },
+      "category": "media", "section": "Cover", "order": 30,
+      "label": "Cover shape", "description": "In the Music tab and on the Home card. The wavy ones turn a little with each song.",
+      "keywords": ["cover", "shape", "circle", "cookie", "artwork"], "apply": "live"
     },
     "media.colors.fromCover": {
       "type": "bool", "default": true,
-      "category": "media", "section": "Portada", "order": 31,
-      "label": "Colores de la portada",
-      "description": "La barra de progreso, el botón de reproducir y las barras de audio toman el color de la portada, armonizado con tu fondo. Una portada gris o un color que se confunda con un aviso usan el de siempre.",
-      "keywords": ["color", "portada", "acento", "adaptativo"], "apply": "live"
+      "category": "media", "section": "Cover", "order": 31,
+      "label": "Cover colors",
+      "description": "The progress bar, the play button and the audio bars take the cover's color, harmonized with your wallpaper. A grey cover or a color that could be mistaken for a warning uses the usual one.",
+      "keywords": ["color", "cover", "accent", "adaptive"], "apply": "live"
     },
     "media.visualizer.enabled": {
       "type": "bool", "default": false,
-      "category": "media", "section": "Visualizador", "order": 35,
-      "label": "Barras de audio alrededor de la portada",
-      "description": "En la pestaña Música, mientras suena algo. Necesita cava; corre solo mientras la ves (y no con «reducir movimiento»).",
-      "keywords": ["cava", "visualizador", "barras", "espectro", "audio"], "apply": "live"
+      "category": "media", "section": "Visualizer", "order": 35,
+      "label": "Audio bars around the cover",
+      "description": "In the Music tab, while something plays. Needs cava; it runs only while you see it (and not with “reduce motion”).",
+      "keywords": ["cava", "visualizer", "bars", "spectrum", "audio"], "apply": "live"
     },
     "media.visualizer.bars": {
       "type": "int", "default": 64, "min": 32, "max": 96, "step": 8,
-      "category": "media", "section": "Visualizador", "order": 36,
-      "label": "Cantidad de barras",
-      "description": "Más barras, más finas.",
-      "keywords": ["cava", "barras"], "apply": "live"
+      "category": "media", "section": "Visualizer", "order": 36,
+      "label": "Number of bars",
+      "description": "More bars, thinner ones.",
+      "keywords": ["cava", "bars"], "apply": "live"
     },
     "media.volumeLimit": {
       "type": "number", "default": 1, "min": 1, "max": 1.5, "presets": [[1, "100 %"], [1.25, "125 %"], [1.5, "150 %"]],
-      "category": "media", "section": "Volumen", "order": 30,
-      "label": "Volumen máximo con las teclas", "description": "Por encima de 100 % el sonido puede distorsionar.", "keywords": ["volumen", "amplificar"], "apply": "live"
+      "category": "media", "section": "Volume", "order": 30,
+      "label": "Maximum volume with the keys", "description": "Above 100 % the sound can distort.", "keywords": ["volume", "amplify"], "apply": "live"
     },
     "notifications.position": {
-      "type": "enum", "default": "top-right", "values": { "top-right": "Arriba a la derecha", "top-center": "Arriba al centro", "bottom-right": "Abajo a la derecha" },
-      "category": "notifications", "section": "Avisos", "order": 30,
-      "label": "Dónde aparecen", "description": "También el centro de control se abre ahí.", "keywords": ["posición", "toast", "centro de control"], "apply": "live"
+      "type": "enum", "default": "top-right", "values": { "top-right": "Top right", "top-center": "Top center", "bottom-right": "Bottom right" },
+      "category": "notifications", "section": "Notices", "order": 30,
+      "label": "Where they appear", "description": "The control center opens there too.", "keywords": ["position", "toast", "control center"], "apply": "live"
     },
     "notifications.maxVisible": {
-      "type": "enum", "default": "0", "cast": "int", "values": { "0": "Sin límite", "3": "3", "5": "5" },
-      "category": "notifications", "section": "Avisos", "order": 40,
-      "label": "Avisos visibles a la vez", "description": "Los demás esperan su turno.", "keywords": ["cantidad", "toast"], "apply": "live"
+      "type": "enum", "default": "0", "cast": "int", "values": { "0": "No limit", "3": "3", "5": "5" },
+      "category": "notifications", "section": "Notices", "order": 40,
+      "label": "Notices visible at once", "description": "The others wait their turn.", "keywords": ["count", "toast"], "apply": "live"
     },
     "notifications.sound": {
       "type": "bool", "default": false,
-      "category": "notifications", "section": "Avisos", "order": 50,
-      "label": "Sonido al llegar un aviso", "description": "No suena con No molestar ni con avisos ocultos en pantalla completa.", "keywords": ["sonido"], "apply": "live"
+      "category": "notifications", "section": "Notices", "order": 50,
+      "label": "Sound when a notice arrives", "description": "Silent with Do not disturb and with notices hidden in fullscreen.", "keywords": ["sound"], "apply": "live"
     },
     "notifications.system.capsLock": {
       "type": "bool", "default": false,
-      "category": "notifications", "section": "Avisos del sistema", "order": 60,
-      "label": "Bloq Mayús", "description": "Al activarlo y al desactivarlo.", "keywords": ["aviso", "sistema", "osd"], "apply": "live"
+      "category": "notifications", "section": "System notices", "order": 60,
+      "label": "Caps Lock", "description": "When turning it on and off.", "keywords": ["notice", "system", "osd"], "apply": "live"
     },
     "notifications.system.layout": {
       "type": "bool", "default": false,
-      "category": "notifications", "section": "Avisos del sistema", "order": 61,
-      "label": "Cambio de distribución del teclado", "keywords": ["aviso", "sistema", "osd"], "apply": "live"
+      "category": "notifications", "section": "System notices", "order": 61,
+      "label": "Keyboard layout change", "keywords": ["notice", "system", "osd"], "apply": "live"
     },
     "notifications.system.charger": {
       "type": "bool", "default": false,
-      "category": "notifications", "section": "Avisos del sistema", "order": 62,
-      "label": "Cargador conectado o desconectado", "keywords": ["aviso", "sistema", "osd"], "apply": "live"
+      "category": "notifications", "section": "System notices", "order": 62,
+      "label": "Charger plugged in or out", "keywords": ["notice", "system", "osd"], "apply": "live"
     }
   }
 }
