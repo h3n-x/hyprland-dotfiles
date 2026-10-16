@@ -268,7 +268,13 @@ resolve_mode() { # wallpaper -> dark|light
 desktop_mode() { # dark|light
   command -v gsettings >/dev/null 2>&1 || { log "  modo: falta gsettings"; return 0; }
   local scheme gtk icons
-  if [ "$1" = light ]; then scheme=prefer-light gtk=Adwaita; else scheme=prefer-dark gtk=Adwaita-dark; fi
+  # GTK3 (Thunar, pavucontrol...): adw-gtk3 lee los colores de libadwaita que deja la plantilla
+  # gtk.css; el Adwaita de GTK3 los ignora y dibuja con los suyos (Fase 19). Sin adw-gtk3, Adwaita.
+  local base=Adwaita d
+  for d in "${XDG_DATA_HOME:-$HOME/.local/share}/themes" "$HOME/.themes" /usr/share/themes; do
+    [ -d "$d/adw-gtk3" ] && { base=adw-gtk3; break; }
+  done
+  if [ "$1" = light ]; then scheme=prefer-light gtk=$base; else scheme=prefer-dark gtk=$base-dark; fi
   if [ "$DRY" = true ]; then
     icons="$("$SCRIPTS_DIR/icon-theme" "$1" --dry-run 2>> "$LOG")"
   else
