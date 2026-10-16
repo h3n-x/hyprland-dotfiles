@@ -244,6 +244,37 @@ QtObject {
         }
     }
 
+    // ---- Cuando se aplica (Fase 16 B3) -----------------------------------------------------
+    // Una opcion con "when" en el esquema solo hace algo si se cumplen sus condiciones (otra
+    // opcion con ciertos valores, una opcion con valor, un modulo puesto en la barra). blocked()
+    // da el motivo de la primera que no se cumple, en el idioma elegido, o "" si se aplica; la fila
+    // sigue editable (se puede dejar lista) pero lo dice.
+    function inLayout(id: string): bool {
+        const lay = SettingsState.value("bar.layout") || {};
+        for (const sec of ["start", "center", "end"])
+            for (const it of lay[sec] || [])
+                if (it === id || (it && Array.isArray(it.pill) && it.pill.indexOf(id) >= 0)) return true;
+        return false;
+    }
+    function blocked(key: string): string {
+        const m = model.keys[key];
+        if (!m || !Array.isArray(m.when)) return "";
+        for (const c of m.when) {
+            if (c.module !== undefined) {
+                if (model.inLayout(c.module)) continue;
+                const mods = (model.keys["bar.layout"] || {}).modules || {};
+                return I18n.tr("Only with the %1 module on the bar.", (mods[c.module] || {}).label || c.module);
+            }
+            const v = SettingsState.value(c.key);
+            const ok = c.set === true ? (v !== null && v !== undefined && v !== "") : (c["in"] || []).some(x => model.canon(x) === model.canon(v));
+            if (!ok) return model.t(c.reason || "");
+        }
+        return "";
+    }
+    function canon(v: var): string {
+        return JSON.stringify(v);
+    }
+
     // Que pasa al cambiarla (badge de la fila); "" = al instante.
     function applyNote(key: string): string {
         const m = model.keys[key];

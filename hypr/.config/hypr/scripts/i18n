@@ -298,6 +298,9 @@ def extract():
             shown(w.get("description"), where)
         if m.get("keywords"):
             add("settings keywords" + SEP + " | ".join(m["keywords"]), where)
+        # Por que una opcion no se aplica (when, Fase 16 B3).
+        for c in m.get("when") or []:
+            shown(c.get("reason") if isinstance(c, dict) else None, where)
     return keys
 
 

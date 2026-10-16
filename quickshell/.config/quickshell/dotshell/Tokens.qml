@@ -182,6 +182,9 @@ QtObject {
         // Contenido deshabilitado (M3). Mismo valor que SemanticPalette.disabledOpacity
         // (la paleta no importa Tokens: la comparte la superficie de login).
         readonly property real disabled: 0.38
+        // Un control que sigue funcionando pero ahora no se aplica (Fase 16 B3: una opcion con "when"
+        // que no se cumple): se lee como secundario, no como roto.
+        readonly property real dimmed: 0.6
     }
     readonly property Opacities opacity: Opacities {}
 

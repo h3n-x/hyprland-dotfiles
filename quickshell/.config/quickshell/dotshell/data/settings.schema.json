@@ -70,7 +70,8 @@
       "category": "appearance", "section": "Surfaces", "order": 40,
       "label": "Panel transparency",
       "description": "Never drops below what stays readable over the wallpaper.",
-      "keywords": ["opacity", "blur", "translucency"], "apply": "live"
+      "keywords": ["opacity", "blur", "translucency"], "apply": "live",
+      "when": [{"key": "accessibility.highContrast", "in": [false], "reason": "High contrast makes the panels opaque."}]
     },
     "appearance.font.ui": {
       "type": "string", "kind": "font-sans", "default": "Plus Jakarta Sans", "maxLength": 120,
@@ -99,7 +100,8 @@
       "category": "appearance", "section": "Avatar", "order": 90,
       "label": "Avatar image",
       "description": "Used with “Own image”; cropped to the center.",
-      "keywords": ["photo", "profile"], "apply": "live"
+      "keywords": ["photo", "profile"], "apply": "live",
+      "when": [{"key": "appearance.avatar", "in": ["image"], "reason": "Only with “Own image”."}]
     },
     "accessibility.uiScale": {
       "type": "number", "default": 1, "min": 0.85, "max": 1.5, "step": 0.05, "percent": true,
@@ -212,57 +214,67 @@
       "type": "int", "default": 320, "min": 120, "max": 800, "step": 20, "unit": "px",
       "category": "bar", "section": "Modules", "order": 10,
       "label": "Active window maximum width", "description": "The title is cut with an ellipsis.",
-      "keywords": ["title", "window", "active window"], "apply": "live"
+      "keywords": ["title", "window", "active window"], "apply": "live",
+      "when": [{"module": "activeWindow"}]
     },
     "bar.notifications.count": {
       "type": "enum", "default": "dot", "values": { "dot": "A dot", "number": "The number" },
       "category": "bar", "section": "Modules", "order": 20,
       "label": "Pending notices", "description": "How the bell shows there are notices in the history.",
-      "keywords": ["notifications", "bell", "counter"], "apply": "live"
+      "keywords": ["notifications", "bell", "counter"], "apply": "live",
+      "when": [{"module": "notifications"}]
     },
     "bar.resources.cpu": {
       "type": "bool", "default": true,
       "category": "bar", "section": "Modules", "order": 30,
-      "label": "Resources: processor", "keywords": ["cpu", "usage"], "apply": "live"
+      "label": "Resources: processor", "keywords": ["cpu", "usage"], "apply": "live",
+      "when": [{"module": "resources"}]
     },
     "bar.resources.mem": {
       "type": "bool", "default": true,
       "category": "bar", "section": "Modules", "order": 31,
-      "label": "Resources: memory", "keywords": ["ram", "memory"], "apply": "live"
+      "label": "Resources: memory", "keywords": ["ram", "memory"], "apply": "live",
+      "when": [{"module": "resources"}]
     },
     "bar.resources.temp": {
       "type": "bool", "default": false,
       "category": "bar", "section": "Modules", "order": 32,
-      "label": "Resources: temperature", "keywords": ["temperature", "heat"], "apply": "live"
+      "label": "Resources: temperature", "keywords": ["temperature", "heat"], "apply": "live",
+      "when": [{"module": "resources"}]
     },
     "bar.resources.warnPct": {
       "type": "int", "default": 90, "min": 50, "max": 100, "step": 5, "unit": "%",
       "category": "bar", "section": "Modules", "order": 33,
       "label": "Resources: warn from", "description": "Above it, the value shows in yellow.",
-      "keywords": ["threshold", "cpu", "memory"], "apply": "live", "advanced": true
+      "keywords": ["threshold", "cpu", "memory"], "apply": "live", "advanced": true,
+      "when": [{"module": "resources"}]
     },
     "bar.workspaces.perMonitor": {
       "type": "bool", "default": false,
       "category": "bar", "section": "Workspaces", "order": 20,
       "label": "Only this screen's", "description": "With several screens, each bar shows its own workspaces.",
-      "keywords": ["monitor", "workspaces"], "apply": "live"
+      "keywords": ["monitor", "workspaces"], "apply": "live",
+      "when": [{"module": "workspaces"}]
     },
     "bar.workspaces.showEmpty": {
       "type": "bool", "default": true,
       "category": "bar", "section": "Workspaces", "order": 25,
-      "label": "Show the empty ones", "keywords": ["workspaces", "empty"], "apply": "live"
+      "label": "Show the empty ones", "keywords": ["workspaces", "empty"], "apply": "live",
+      "when": [{"module": "workspaces"}]
     },
     "bar.workspaces.windowIcons": {
       "type": "bool", "default": false,
       "category": "bar", "section": "Workspaces", "order": 30,
       "label": "Window icons", "description": "Instead of circles, the icon of each window on the workspace.",
-      "keywords": ["workspaces", "icons", "apps"], "apply": "live"
+      "keywords": ["workspaces", "icons", "apps"], "apply": "live",
+      "when": [{"module": "workspaces"}]
     },
     "bar.workspaces.maxIcons": {
       "type": "int", "default": 3, "min": 1, "max": 6,
       "category": "bar", "section": "Workspaces", "order": 31,
       "label": "Icons per workspace", "description": "More windows are counted as +n.",
-      "keywords": ["workspaces", "icons"], "apply": "live"
+      "keywords": ["workspaces", "icons"], "apply": "live",
+      "when": [{"module": "workspaces"}, {"key": "bar.workspaces.windowIcons", "in": [true], "reason": "Only with window icons on."}]
     },
     "bar.tooltips": {
       "type": "bool", "default": false,
@@ -304,13 +316,15 @@
       "type": "int", "default": 8, "min": 2, "max": 16, "unit": "px",
       "category": "bar", "section": "Position", "order": 6,
       "label": "Frame thickness", "description": "Only with the Frame style: the three sides that aren't the bar.",
-      "keywords": ["frame", "border", "thickness"], "apply": "live"
+      "keywords": ["frame", "border", "thickness"], "apply": "live",
+      "when": [{"key": "bar.style", "in": ["marco"], "reason": "Only with the Frame style."}]
     },
     "bar.frame.radius": {
       "type": "int", "default": 20, "min": 8, "max": 32, "step": 2, "unit": "px",
       "category": "bar", "section": "Position", "order": 6,
       "label": "Frame corners", "description": "Only with the Frame style: the radius of the inner corners.",
-      "keywords": ["frame", "corners", "rounding"], "apply": "live"
+      "keywords": ["frame", "corners", "rounding"], "apply": "live",
+      "when": [{"key": "bar.style", "in": ["marco"], "reason": "Only with the Frame style."}]
     },
     "bar.peek": {
       "type": "bool", "default": false,
@@ -322,27 +336,31 @@
       "type": "enum", "default": "overlay", "values": { "overlay": "Over the windows", "push": "Push the windows" },
       "category": "bar", "section": "Position", "order": 7,
       "label": "While holding Super", "description": "Over: it appears over what's open, with a background, moving nothing. Push: it reserves its space while visible and the windows make room.",
-      "keywords": ["super", "hide", "push", "over"], "apply": "live"
+      "keywords": ["super", "hide", "push", "over"], "apply": "live",
+      "when": [{"key": "bar.peek", "in": [true], "reason": "Only with “Show only while holding Super” on."}]
     },
     "bar.peekDelay": {
       "type": "int", "default": 250, "min": 0, "max": 1000, "step": 50, "unit": "ms",
       "category": "bar", "section": "Position", "order": 8,
       "label": "Wait before showing it", "description": "So quick Super shortcuts (Super+D, Super+A…) don't make it appear.",
-      "keywords": ["delay", "super", "wait"], "apply": "live", "advanced": true
+      "keywords": ["delay", "super", "wait"], "apply": "live", "advanced": true,
+      "when": [{"key": "bar.peek", "in": [true], "reason": "Only with “Show only while holding Super” on."}]
     },
     "bar.minWorkspaces": {
       "type": "int", "default": 5, "min": 1, "max": 10,
       "category": "bar", "section": "Workspaces", "order": 10,
       "label": "Workspaces always shown",
       "description": "How many workspaces appear in the bar even when empty.",
-      "keywords": ["workspaces"], "apply": "live"
+      "keywords": ["workspaces"], "apply": "live",
+      "when": [{"module": "workspaces"}]
     },
     "dashboard.weatherRefreshMinutes": {
       "type": "int", "default": 30, "min": 10, "max": 180, "step": 5, "unit": "min",
       "category": "dashboard", "section": "Today", "order": 10,
       "label": "Refresh the weather every",
       "description": "Each query goes to Open-Meteo; a longer time means fewer requests.",
-      "keywords": ["weather", "forecast", "open-meteo"], "apply": "live"
+      "keywords": ["weather", "forecast", "open-meteo"], "apply": "live",
+      "when": [{"key": "dashboard.weather.location", "set": true, "reason": "Needs a weather city."}]
     },
     "capture.cardSeconds": {
       "type": "int", "default": 6, "min": 2, "max": 30, "unit": "s",
@@ -609,42 +627,50 @@
       "type": "enum", "default": "schedule", "values": { "schedule": "Schedule", "sun": "Sunset to sunrise" },
       "category": "display", "section": "Night light", "order": 110,
       "label": "When", "description": "“Sunset to sunrise” uses the weather city (Dashboard); without a city, the schedule.",
-      "keywords": ["sun", "sunset", "sunrise"], "apply": "live", "applyTo": "nightlight"
+      "keywords": ["sun", "sunset", "sunrise"], "apply": "live", "applyTo": "nightlight",
+      "when": [{"key": "display.nightLight.enabled", "in": [true], "reason": "Night light is off."}]
     },
     "display.nightLight.from": {
       "type": "time", "default": "20:00",
       "category": "display", "section": "Night light", "order": 120,
-      "label": "From", "keywords": ["time", "start"], "apply": "live", "applyTo": "nightlight"
+      "label": "From", "keywords": ["time", "start"], "apply": "live", "applyTo": "nightlight",
+      "when": [{"key": "display.nightLight.enabled", "in": [true], "reason": "Night light is off."}, {"key": "display.nightLight.mode", "in": ["schedule"], "reason": "Only with the schedule (sunset to sunrise sets its own times)."}]
     },
     "display.nightLight.to": {
       "type": "time", "default": "08:00",
       "category": "display", "section": "Night light", "order": 130,
-      "label": "Until", "keywords": ["time", "end"], "apply": "live", "applyTo": "nightlight"
+      "label": "Until", "keywords": ["time", "end"], "apply": "live", "applyTo": "nightlight",
+      "when": [{"key": "display.nightLight.enabled", "in": [true], "reason": "Night light is off."}, {"key": "display.nightLight.mode", "in": ["schedule"], "reason": "Only with the schedule (sunset to sunrise sets its own times)."}]
     },
     "display.nightLight.temperature": {
       "type": "int", "default": 4500, "min": 2500, "max": 6500, "step": 100, "unit": "K",
       "category": "display", "section": "Night light", "order": 140,
-      "label": "Temperature", "description": "Lower is warmer.", "keywords": ["kelvin", "warm"], "apply": "live", "applyTo": "nightlight"
+      "label": "Temperature", "description": "Lower is warmer.", "keywords": ["kelvin", "warm"], "apply": "live", "applyTo": "nightlight",
+      "when": [{"key": "display.nightLight.enabled", "in": [true], "reason": "Night light is off."}]
     },
     "display.nightLight.late": {
       "type": "bool", "default": true,
       "category": "display", "section": "Night light", "order": 150,
-      "label": "Warmer late at night", "keywords": ["night", "late"], "apply": "live", "applyTo": "nightlight"
+      "label": "Warmer late at night", "keywords": ["night", "late"], "apply": "live", "applyTo": "nightlight",
+      "when": [{"key": "display.nightLight.enabled", "in": [true], "reason": "Night light is off."}]
     },
     "display.nightLight.lateFrom": {
       "type": "time", "default": "23:00",
       "category": "display", "section": "Night light", "order": 160,
-      "label": "Starting at", "keywords": ["time"], "apply": "live", "applyTo": "nightlight"
+      "label": "Starting at", "keywords": ["time"], "apply": "live", "applyTo": "nightlight",
+      "when": [{"key": "display.nightLight.enabled", "in": [true], "reason": "Night light is off."}, {"key": "display.nightLight.late", "in": [true], "reason": "Only with “Warmer late at night” on."}]
     },
     "display.nightLight.lateTemperature": {
       "type": "int", "default": 3500, "min": 2500, "max": 6500, "step": 100, "unit": "K",
       "category": "display", "section": "Night light", "order": 170,
-      "label": "Late-night temperature", "keywords": ["kelvin"], "apply": "live", "applyTo": "nightlight"
+      "label": "Late-night temperature", "keywords": ["kelvin"], "apply": "live", "applyTo": "nightlight",
+      "when": [{"key": "display.nightLight.enabled", "in": [true], "reason": "Night light is off."}, {"key": "display.nightLight.late", "in": [true], "reason": "Only with “Warmer late at night” on."}]
     },
     "display.nightLight.lateGamma": {
       "type": "int", "default": 90, "min": 50, "max": 100, "step": 5, "unit": "%",
       "category": "display", "section": "Night light", "order": 180,
-      "label": "Late-night brightness", "keywords": ["gamma", "brightness"], "apply": "live", "applyTo": "nightlight"
+      "label": "Late-night brightness", "keywords": ["gamma", "brightness"], "apply": "live", "applyTo": "nightlight",
+      "when": [{"key": "display.nightLight.enabled", "in": [true], "reason": "Night light is off."}, {"key": "display.nightLight.late", "in": [true], "reason": "Only with “Warmer late at night” on."}]
     },
     "power.dim": {
       "type": "bool", "default": true,
@@ -654,7 +680,8 @@
     "power.dimAfter": {
       "type": "number", "default": 2.5, "min": 0.5, "max": 60, "step": 0.5, "unit": "min",
       "category": "power", "section": "Idle", "order": 20,
-      "label": "Dim after", "keywords": ["idle", "brightness"], "apply": "live", "idle": "dim"
+      "label": "Dim after", "keywords": ["idle", "brightness"], "apply": "live", "idle": "dim",
+      "when": [{"key": "power.dim", "in": [true], "reason": "Only with “Dim before locking” on."}]
     },
     "power.lockAfter": {
       "type": "number", "default": 5, "min": 0, "max": 60, "step": 0.5, "unit": "min", "labels": {"0": "Never"},
@@ -684,22 +711,26 @@
     "bar.clock.format": {
       "type": "enum", "default": "24", "values": { "24": "24 hours", "12": "12 hours" },
       "category": "bar", "section": "Clock", "order": 40,
-      "label": "Time format", "keywords": ["clock", "am", "pm"], "apply": "live"
+      "label": "Time format", "keywords": ["clock", "am", "pm"], "apply": "live",
+      "when": [{"module": "clock"}]
     },
     "bar.clock.date": {
       "type": "bool", "default": false,
       "category": "bar", "section": "Clock", "order": 41,
-      "label": "Date next to the time", "keywords": ["clock", "day"], "apply": "live"
+      "label": "Date next to the time", "keywords": ["clock", "day"], "apply": "live",
+      "when": [{"module": "clock"}]
     },
     "bar.workspaces.scroll": {
       "type": "bool", "default": true,
       "category": "bar", "section": "Workspaces", "order": 15,
-      "label": "Switch workspaces with the wheel", "description": "With the pointer over the bar's workspaces.", "keywords": ["scroll", "wheel"], "apply": "live"
+      "label": "Switch workspaces with the wheel", "description": "With the pointer over the bar's workspaces.", "keywords": ["scroll", "wheel"], "apply": "live",
+      "when": [{"module": "workspaces"}]
     },
     "bar.media.title": {
       "type": "bool", "default": true,
       "category": "bar", "section": "Music", "order": 50,
-      "label": "Title in the music pill", "description": "Off: only the icon.", "keywords": ["mpris", "song"], "apply": "live"
+      "label": "Title in the music pill", "description": "Off: only the icon.", "keywords": ["mpris", "song"], "apply": "live",
+      "when": [{"module": "media"}, {"key": "bar.edge", "in": ["top", "bottom"], "reason": "Only with the bar on top or at the bottom (a side bar has no room for the title)."}]
     },
     "dashboard.tabs": {
       "type": "list", "kind": "checks", "default": ["music", "system", "workspaces"], "unique": true,
@@ -854,14 +885,16 @@
     "dashboard.system.historyMinutes": {
       "type": "int", "default": 5, "min": 1, "max": 10, "unit": "min",
       "category": "dashboard", "section": "System", "order": 61,
-      "label": "How much to keep", "keywords": ["history", "minutes"], "apply": "live"
+      "label": "How much to keep", "keywords": ["history", "minutes"], "apply": "live",
+      "when": [{"key": "dashboard.system.history", "in": [true], "reason": "Only with the short history on."}]
     },
     "dashboard.system.charts": {
       "type": "list", "kind": "checks", "default": ["cpu", "memory", "energy", "network", "gpu"], "unique": true,
       "items": { "type": "enum", "values": { "cpu": "Processor", "memory": "Memory", "energy": "Battery (if any)", "network": "Network", "gpu": "Graphics (if readable)" } },
       "category": "dashboard", "section": "System", "order": 62,
       "label": "With a chart", "description": "Without a chart, the usual level bar.",
-      "keywords": ["history", "chart", "cards"], "apply": "live"
+      "keywords": ["history", "chart", "cards"], "apply": "live",
+      "when": [{"key": "dashboard.system.history", "in": [true], "reason": "Only with the short history on."}]
     },
     "dashboard.now.kinds": {
       "type": "list", "kind": "checks", "default": ["timer", "rain", "todo", "heat", "sunset"], "unique": true,
@@ -944,7 +977,8 @@
       "category": "media", "section": "Visualizer", "order": 36,
       "label": "Number of bars",
       "description": "More bars, thinner ones.",
-      "keywords": ["cava", "bars"], "apply": "live"
+      "keywords": ["cava", "bars"], "apply": "live",
+      "when": [{"key": "media.visualizer.enabled", "in": [true], "reason": "Only with the audio bars on."}]
     },
     "media.volumeLimit": {
       "type": "number", "default": 1, "min": 1, "max": 1.5, "presets": [[1, "100 %"], [1.25, "125 %"], [1.5, "150 %"]],

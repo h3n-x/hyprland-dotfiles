@@ -25,6 +25,8 @@ Item {
     readonly property string error: SettingsState.errors[row.key] || ""
     readonly property string kind: row.model.control(row.key)
     readonly property string note: row.model.applyNote(row.key)
+    // Por que no se aplica ahora (Fase 16 B3): "" si se aplica.
+    readonly property string blockedReason: row.model.blocked(row.key)
     // Pantallas (B5) siempre a todo el ancho, debajo del texto.
     readonly property bool stacked: ["outputs", "barLayout", "screens", "homeZones", "tiles", "apps", "folders", "checks"].indexOf(row.kind) >= 0 || (!!control.item && control.item.implicitWidth > col.width * 0.6)
     // El selector abierto (su lista va debajo, a lo ancho de la fila).
@@ -99,6 +101,18 @@ Item {
                     wrapMode: Text.WordWrap
                 }
                 Row {
+                    visible: row.blockedReason !== ""
+                    spacing: Tokens.space.xs
+                    Icon { anchors.verticalCenter: parent.verticalCenter; name: "info"; size: Tokens.icon.sm; color: Colors.textMuted }
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: row.blockedReason
+                        color: Colors.textMuted
+                        font.family: Tokens.font.ui
+                        font.pixelSize: Tokens.type.label
+                    }
+                }
+                Row {
                     visible: !!row.liveInfo && !row.liveInfo.same
                     spacing: Tokens.space.xs
                     Icon { anchors.verticalCenter: parent.verticalCenter; name: "info"; size: Tokens.icon.sm; color: Colors.textMuted }
@@ -151,6 +165,8 @@ Item {
 
             Loader {
                 id: control
+                // Sigue editable (se puede dejar lista para cuando se aplique), atenuado mientras no.
+                opacity: row.blockedReason !== "" ? Tokens.opacity.dimmed : 1
                 Layout.alignment: Qt.AlignVCenter
                 Layout.columnSpan: row.stacked ? 2 : 1
                 Layout.fillWidth: row.stacked

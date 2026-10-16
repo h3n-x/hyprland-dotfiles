@@ -132,6 +132,42 @@ def schema_problems(s):
             ok, _, why = validate(m, m["default"])
             if not ok:
                 out.append(T("%1: invalid default (%2)", key, why))
+        out += when_problems(s, key, m.get("when"))
+    return out
+
+
+def when_problems(s, key, when):
+    """Condiciones de una clave (Fase 16 B3): todas tienen que valer para que la opcion se aplique.
+    {"key": k, "in": [valores]}, {"key": k, "set": true} o {"module": id} (en la disposicion de la barra)."""
+    if when is None:
+        return []
+    if not isinstance(when, list) or not when:
+        return [T("%1: when must be a non-empty list", key)]
+    out, keys = [], s.get("keys", {})
+    modules = keys.get("bar.layout", {}).get("modules", {})
+    for c in when:
+        if not isinstance(c, dict):
+            out.append(T("%1: invalid when condition %2", key, repr(c)))
+        elif "module" in c:
+            if c["module"] not in modules:
+                out.append(T("%1: when: unknown module %2", key, repr(c["module"])))
+        elif c.get("key") not in keys or c.get("key") == key:
+            out.append(T("%1: when: unknown key %2", key, repr(c.get("key"))))
+        elif "in" in c:
+            target = keys[c["key"]]
+            if not isinstance(c["in"], list) or not c["in"]:
+                out.append(T("%1: when: %2 needs a list of values", key, c["key"]))
+            else:
+                for v in c["in"]:
+                    if not validate(target, v)[0]:
+                        out.append(T("%1: when: %2 is not a value of %3", key, repr(v), c["key"]))
+            if not c.get("reason"):
+                out.append(T("%1: when: the reason is missing", key))
+        elif c.get("set") is True:
+            if not c.get("reason"):
+                out.append(T("%1: when: the reason is missing", key))
+        else:
+            out.append(T("%1: invalid when condition %2", key, repr(c)))
     return out
 
 
