@@ -44,7 +44,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("sh -c 'command -v nm-applet >/dev/null && nm-applet --indicator &'")
     hl.exec_cmd("sh -c 'command -v blueman-applet >/dev/null && blueman-applet &'")
 
-
     -- Gestor de energia (power-profiles-daemon ya esta como servicio de systemd,
     -- pero el applet grafico si aplica se puede sumar aca)
 end)
