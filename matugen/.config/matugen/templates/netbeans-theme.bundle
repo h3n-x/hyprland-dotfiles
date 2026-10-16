@@ -871,6 +871,20 @@ TabControlIcon.close.rolloverBackground = #{{status.error.default.hex_stripped}}
 TabControlIcon.close.rolloverForeground = #{{status.on_error.default.hex_stripped}}
 nb.html.link.foreground.visited = #{{colors.tertiary.default.hex_stripped}}
 
+# Ventana Output (compilacion, ejecucion): texto y fondo del tema; errores, avisos, exito y fallo con
+# los colores de estado fijos. "backgorund" es la clave real de NetBeans (asi, mal escrita).
+nb.output.foreground = #{{colors.on_surface.default.hex_stripped}}
+nb.output.backgorund = #{{colors.surface.default.hex_stripped}}
+nb.output.selectionBackground = #{{colors.primary_container.default.hex_stripped}}
+nb.output.input = #{{colors.tertiary.default.hex_stripped}}
+nb.output.link.foreground = #{{colors.primary.default.hex_stripped}}
+nb.output.link.foreground.important = #{{colors.primary.default.hex_stripped}}
+nb.output.debug.foreground = #{{colors.outline.default.hex_stripped}}
+nb.output.err.foreground = #{{status.error.default.hex_stripped}}
+nb.output.failure.foreground = #{{status.error.default.hex_stripped}}
+nb.output.warning.foreground = #{{status.warning.default.hex_stripped}}
+nb.output.success.foreground = #{{status.success.default.hex_stripped}}
+
 nb.errorForeground = #{{status.error.default.hex_stripped}}
 nb.warningForeground = #{{status.warning.default.hex_stripped}}
 nb.preferred.color.profile = Matugen
