@@ -136,8 +136,13 @@ rm -f "$OUT_DIR/_sel_mask.png" "$OUT_DIR/_sel_color.png" "$OUT_DIR/_sel_pill.png
 # solida o casi transparente, pocos colores) que son los unicos con riesgo
 # real de bit depth invalido -- el fondo queda afuera a proposito, tal
 # cual lo escribio ImageMagick antes.
-magick mogrify -depth 8 -define png:color-type=6 -define png:bit-depth=8 \
-  "$OUT_DIR"/corner_*.png "$OUT_DIR"/menu_*.png "$OUT_DIR"/select_*.png
+# Cada uno reescrito con formato explicito PNG32 (RGBA de 8 bits = color-type 6, bit-depth 8):
+# desde ImageMagick 7.1.2-33 `magick mogrify` ya no deduce el formato de salida ("no encode
+# delegate for this image format ''"), el script salia con 1 y el post_hook nunca sincronizaba
+# GRUB (Fase 19: el GRUB quedo con el fondo del 11 de octubre).
+for f in "$OUT_DIR"/corner_*.png "$OUT_DIR"/menu_*.png "$OUT_DIR"/select_*.png; do
+  magick "$f" -depth 8 "PNG32:$f"
+done
 
 # theme.txt ya lo escribio matugen en este mismo directorio (es su
 # output_path) justo antes de correr este post_hook -- le mete el
