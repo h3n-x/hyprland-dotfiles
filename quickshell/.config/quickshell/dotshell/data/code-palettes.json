@@ -1,0 +1,74 @@
+{
+  "note": "Fase 18: paletas base de la paleta de codigo (scripts/palette code). De cada color solo cuentan el tono y el croma (la luminosidad la resuelve el motor por modo y contraste). 'roles': el mapeo propio de cada paleta (code.roles.<rol> = auto); lo que falta sale de 'defaultRoles'. Colores de referencia de los temas publicos (oscuros); los que una paleta no tiene (rosa de Gruvbox, azul de Dracula...) estan derivados de sus vecinos.",
+  "slots": ["red", "orange", "yellow", "green", "cyan", "blue", "purple", "pink"],
+  "roles": ["keyword", "function", "type", "string", "number", "constant", "variable", "field", "parameter", "operator",
+            "punctuation", "comment", "doc", "escape", "tag", "attribute", "annotation", "builtin"],
+  "neutral": {"accent": "primary", "accentAlt": "secondary", "decor": "tertiary", "text": "on_surface",
+              "muted": "on_surface_variant", "subtle": "outline"},
+  "defaultRoles": {
+    "keyword": "purple", "function": "blue", "type": "yellow", "string": "green", "number": "orange",
+    "constant": "orange", "variable": "text", "field": "cyan", "parameter": "red", "operator": "cyan",
+    "punctuation": "muted", "comment": "subtle", "doc": "muted", "escape": "pink", "tag": "blue",
+    "attribute": "yellow", "annotation": "pink", "builtin": "red"
+  },
+  "materialRoles": {
+    "keyword": "accent", "function": "accentAlt", "type": "decor", "string": "green", "number": "orange",
+    "constant": "orange", "variable": "text", "field": "decor", "parameter": "muted", "operator": "muted",
+    "punctuation": "muted", "comment": "subtle", "doc": "muted", "escape": "accentAlt", "tag": "accent",
+    "attribute": "accentAlt", "annotation": "decor", "builtin": "accent"
+  },
+  "bases": {
+    "catppuccin": {
+      "label": "Catppuccin",
+      "colors": {"red": "#f38ba8", "orange": "#fab387", "yellow": "#f9e2af", "green": "#a6e3a1",
+                 "cyan": "#89dceb", "blue": "#89b4fa", "purple": "#cba6f7", "pink": "#f5c2e7"},
+      "roles": {}
+    },
+    "gruvbox": {
+      "label": "Gruvbox",
+      "colors": {"red": "#fb4934", "orange": "#fe8019", "yellow": "#fabd2f", "green": "#b8bb26",
+                 "cyan": "#8ec07c", "blue": "#83a598", "purple": "#d3869b", "pink": "#e9a3b8"},
+      "roles": {"keyword": "red", "function": "blue", "string": "green", "number": "purple", "constant": "purple",
+                "field": "cyan", "operator": "orange", "parameter": "text", "tag": "red", "attribute": "cyan",
+                "annotation": "orange", "builtin": "orange"}
+    },
+    "tokyonight": {
+      "label": "Tokyo Night",
+      "colors": {"red": "#f7768e", "orange": "#ff9e64", "yellow": "#e0af68", "green": "#9ece6a",
+                 "cyan": "#7dcfff", "blue": "#7aa2f7", "purple": "#bb9af7", "pink": "#ff9ac1"},
+      "roles": {"type": "cyan", "field": "green", "parameter": "yellow", "tag": "red", "attribute": "purple",
+                "annotation": "yellow"}
+    },
+    "dracula": {
+      "label": "Dracula",
+      "colors": {"red": "#ff5555", "orange": "#ffb86c", "yellow": "#f1fa8c", "green": "#50fa7b",
+                 "cyan": "#8be9fd", "blue": "#80a0ff", "purple": "#bd93f9", "pink": "#ff79c6"},
+      "roles": {"keyword": "pink", "function": "green", "type": "cyan", "string": "yellow", "number": "purple",
+                "constant": "purple", "field": "text", "parameter": "orange", "operator": "pink", "tag": "pink",
+                "attribute": "green", "annotation": "orange", "escape": "purple", "builtin": "cyan"}
+    },
+    "nord": {
+      "label": "Nord",
+      "colors": {"red": "#bf616a", "orange": "#d08770", "yellow": "#ebcb8b", "green": "#a3be8c",
+                 "cyan": "#88c0d0", "blue": "#81a1c1", "purple": "#b48ead", "pink": "#c895bf"},
+      "roles": {"keyword": "blue", "function": "cyan", "number": "purple", "constant": "purple", "field": "text",
+                "parameter": "text", "operator": "blue", "tag": "blue", "attribute": "cyan", "annotation": "orange",
+                "builtin": "blue"}
+    },
+    "onedark": {
+      "label": "One Dark",
+      "colors": {"red": "#e06c75", "orange": "#d19a66", "yellow": "#e5c07b", "green": "#98c379",
+                 "cyan": "#56b6c2", "blue": "#61afef", "purple": "#c678dd", "pink": "#e48fc6"},
+      "roles": {"field": "red", "parameter": "red", "tag": "red", "attribute": "orange", "escape": "cyan",
+                "annotation": "yellow", "builtin": "cyan"}
+    },
+    "rosepine": {
+      "label": "Rosé Pine",
+      "colors": {"red": "#eb6f92", "orange": "#f0a07a", "yellow": "#f6c177", "green": "#95c2a0",
+                 "cyan": "#9ccfd8", "blue": "#3e8fb0", "purple": "#c4a7e7", "pink": "#ebbcba"},
+      "roles": {"keyword": "blue", "function": "pink", "type": "cyan", "string": "yellow", "parameter": "purple",
+                "field": "cyan", "operator": "muted", "tag": "cyan", "attribute": "purple", "annotation": "purple",
+                "builtin": "red"}
+    }
+  }
+}

@@ -13,7 +13,8 @@
 #   theme-apply.sh --backend quickshell|hyprpaper|status   (quien dibuja el wallpaper, B6)
 #   theme-apply.sh --face [--dry-run]   (rehace ~/.face con el avatar elegido, Fase 10 B2)
 #   theme-apply.sh --system   (agenda la pasada del sistema con el tema actual: el idioma, Fase 15 B3)
-#   theme-apply.sh --reapply [--source settings|ipc] [--dry-run]   (el tema actual en el modo del almacen, P5.5)
+#   theme-apply.sh --reapply [--source settings|ipc] [--force] [--dry-run]   (el tema actual en el modo del almacen, P5.5;
+#                  --force: aunque el modo no cambie, para las opciones de colores de codigo, Fase 18)
 #   theme-apply.sh --override <wallpaper> seed <#hex>|scheme <tipo>|reset   (excepcion por wallpaper, B8a;
 #                  "default" en seed o scheme quita solo ese campo, B8b)
 #
@@ -54,7 +55,7 @@
 #
 # Modo claro u oscuro (P5.5): appearance.colorMode del almacen, resuelto al
 # PEDIR como el resto ("auto": la luminancia del wallpaper, con una banda
-# muerta) y guardado en el pedido y el historial. Pasa a palette status y a
+# muerta) y guardado en el pedido y el historial. Pasa a palette (estado y codigo) y a
 # matugen (-m) y al escritorio por gsettings (GTK, libadwaita, portales, iconos;
 # KI-S13): theme-apply escribe gsettings, nunca lo lee. Cambiar solo el modo
 # (--reapply) reaplica el tema actual sin la pasada de sistema: arranque y
@@ -96,8 +97,9 @@ CACHE_DIR="${WALLPAPER_CACHE_DIR:-$HOME/.cache/dotfiles/wallpapers}"
 CACHE_INDEX="$CACHE_DIR/palettes.json"
 # Opciones globales de color: las lee y escribe solo el motor de opciones.
 SETTINGS="$SCRIPTS_DIR/settings"
-# Colores de estado fijos (P8.7): palette status los deja en el JSON que
-# importan las dos configs de matugen (import_json_files) antes de cada corrida.
+# Colores de estado fijos (P8.7) y paleta de codigo (Fase 18): palette los deja en los JSON que
+# importan las configs de matugen (import_json_files) antes de cada corrida (la de sistema, solo
+# el estado: palette status).
 PALETTE="$SCRIPTS_DIR/palette"
 COLORS_JSON="${XDG_CACHE_HOME:-$HOME/.cache}/matugen/quickshell-colors.json"
 RULE="dominante"
@@ -131,7 +133,7 @@ theme-apply.sh --undo [--no-notify] [--dry-run]   (previous theme in the history
 theme-apply.sh --backend quickshell|hyprpaper|status   (who draws the wallpaper, B6)
 theme-apply.sh --face [--dry-run]   (remakes ~/.face with the chosen avatar, Phase 10 B2)
 theme-apply.sh --system   (schedules the system pass with the current theme: the language, Phase 15 B3)
-theme-apply.sh --reapply [--source settings|ipc] [--dry-run]   (the current theme in the store's mode, P5.5)
+theme-apply.sh --reapply [--source settings|ipc] [--force] [--dry-run]   (the current theme in the store's mode, P5.5)
 theme-apply.sh --override <wallpaper> seed <#hex>|scheme <type>|reset   (per-wallpaper exception, B8a;
                \"default\" in seed or scheme removes only that field, B8b)" >&2
   exit 2
@@ -340,13 +342,18 @@ EOF
   #    no puede renderizar (import_json_files).
   local args
   mapfile -t args < <(matugen_args "$wp" "$scheme" "$contrast" "$seed" "$rule" "$mode")
+  # Paleta de codigo (Fase 18) y colores de estado en un solo paso: con la misma semilla, esquema,
+  # contraste y modo (temas viejos sin semilla: desde la imagen); matugen importa los dos JSON.
+  local code_src=(--image "$wp")
+  [ "${rule:-legacy}" != legacy ] && [ -n "$seed" ] && code_src=(--seed "$seed")
+  [ -n "$scheme" ] && code_src+=(--scheme "$scheme")
   if [ "$DRY" = true ]; then
-    log "  dry: palette status --mode $mode --contrast ${contrast:-0} --write"
+    log "  dry: palette code ${code_src[*]} --mode $mode --contrast ${contrast:-0} --write (+ estado)"
     log "  dry: matugen ${args[*]}"
     sleep "$DRY_DELAY"
     rc=0
   elif command -v matugen >/dev/null 2>&1; then
-    "$PALETTE" status --mode "$mode" --contrast "${contrast:-0}" --write 2>> "$LOG"
+    "$PALETTE" code "${code_src[@]}" --mode "$mode" --contrast "${contrast:-0}" --write 2>> "$LOG"
     matugen "${args[@]}" >/dev/null 2>&1
     rc=$?
   else
@@ -519,11 +526,12 @@ fi
 # semilla) en el modo efectivo de ahora; nada si ya esta en ese modo. Lo llama
 # settings-apply al cambiar appearance.colorMode. Sin pasada de sistema.
 if [ "${1:-}" = "--reapply" ]; then
-  DRY=false rsource=settings
+  DRY=false rsource=settings rforce=false
   shift
   while [ $# -gt 0 ]; do
     case "$1" in
       --source) rsource="${2:-}"; shift 2 ;;
+      --force) rforce=true; shift ;;
       --dry-run) DRY=true; shift ;;
       *) die "$(i18n_tr "unknown option for %1: %2" --reapply "$1")" ;;
     esac
@@ -534,7 +542,7 @@ if [ "${1:-}" = "--reapply" ]; then
   cwp="$(jq -r '.wallpaper // empty' <<< "$cur")"
   [ -n "$cwp" ] && [ -f "$cwp" ] || { log "reaplicar: no hay un tema aplicado"; exit 0; }
   rmode="$(resolve_mode "$cwp")"
-  if [ "$rmode" = "$(jq -r '.mode // "dark"' <<< "$cur")" ]; then
+  if [ "$rforce" != true ] && [ "$rmode" = "$(jq -r '.mode // "dark"' <<< "$cur")" ]; then
     log "reaplicar: el tema actual ya esta en modo $rmode"
     exit 0
   fi

@@ -297,7 +297,7 @@
     },
     {
       "file": "nvim-colors.lua",
-      "line": "base08\\s*=",
+      "line": "^\\s*error\\s*=",
       "role": "status.error"
     },
     {
@@ -315,13 +315,28 @@
     },
     {
       "file": "nvim-colors.lua",
-      "line": "base09\\s*=",
+      "line": "^\\s*warning\\s*=",
       "role": "status.warning"
     },
     {
       "file": "nvim-colors.lua",
-      "line": "base0B\\s*=",
+      "line": "^\\s*success\\s*=",
       "role": "status.success"
+    },
+    {
+      "file": "netbeans-theme.bundle",
+      "line": "name=\"added\"",
+      "role": "status.success"
+    },
+    {
+      "file": "netbeans-theme.bundle",
+      "line": "name=\"removed\"",
+      "role": "status.error"
+    },
+    {
+      "file": "netbeans-theme.bundle",
+      "line": "name=\"error\" waveUnderlined",
+      "role": "status.error"
     },
     {
       "file": "starship.toml",

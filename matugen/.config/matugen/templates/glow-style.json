@@ -100,65 +100,83 @@
         "background_color": "{{status.error.default.hex}}"
       },
       "comment": {
-        "color": "{{colors.outline.default.hex}}"
+        "color": "{{code.comment.default.hex}}",
+        "bold": {{code_style_flag.comment_bold}},
+        "italic": {{code_style_flag.comment_italic}}
       },
       "comment_preproc": {
-        "color": "{{colors.outline.default.hex}}"
+        "color": "{{code.annotation.default.hex}}"
       },
       "keyword": {
-        "color": "{{colors.primary.default.hex}}"
+        "color": "{{code.keyword.default.hex}}",
+        "bold": {{code_style_flag.keyword_bold}},
+        "italic": {{code_style_flag.keyword_italic}}
       },
       "keyword_reserved": {
-        "color": "{{colors.primary.default.hex}}"
+        "color": "{{code.keyword.default.hex}}",
+        "bold": {{code_style_flag.keyword_bold}},
+        "italic": {{code_style_flag.keyword_italic}}
       },
       "keyword_namespace": {
-        "color": "{{colors.primary.default.hex}}"
+        "color": "{{code.keyword.default.hex}}",
+        "bold": {{code_style_flag.keyword_bold}},
+        "italic": {{code_style_flag.keyword_italic}}
       },
       "keyword_type": {
-        "color": "{{colors.secondary.default.hex}}"
+        "color": "{{code.type.default.hex}}",
+        "bold": {{code_style_flag.type_bold}},
+        "italic": {{code_style_flag.type_italic}}
       },
       "operator": {
-        "color": "{{colors.on_surface_variant.default.hex}}"
+        "color": "{{code.operator.default.hex}}"
       },
       "punctuation": {
-        "color": "{{colors.on_surface_variant.default.hex}}"
+        "color": "{{code.punctuation.default.hex}}"
       },
       "name": {
-        "color": "{{colors.on_surface.default.hex}}"
+        "color": "{{code.variable.default.hex}}"
       },
       "name_builtin": {
-        "color": "{{colors.primary.default.hex}}"
+        "color": "{{code.builtin.default.hex}}"
       },
       "name_tag": {
-        "color": "{{status.error.default.hex}}"
+        "color": "{{code.tag.default.hex}}"
       },
       "name_attribute": {
-        "color": "{{colors.tertiary.default.hex}}"
+        "color": "{{code.attribute.default.hex}}"
       },
       "name_class": {
-        "color": "{{colors.primary.default.hex}}",
-        "underline": true,
-        "bold": true
+        "color": "{{code.type.default.hex}}",
+        "bold": {{code_style_flag.type_bold}},
+        "italic": {{code_style_flag.type_italic}}
       },
-      "name_constant": {},
+      "name_constant": {
+        "color": "{{code.constant.default.hex}}"
+      },
       "name_decorator": {
-        "color": "{{colors.secondary.default.hex}}"
+        "color": "{{code.annotation.default.hex}}"
       },
-      "name_exception": {},
+      "name_exception": {
+        "color": "{{code.type.default.hex}}"
+      },
       "name_function": {
-        "color": "{{colors.secondary.default.hex}}"
+        "color": "{{code.function.default.hex}}"
       },
       "name_other": {},
-      "literal": {},
-      "literal_number": {
-        "color": "{{colors.primary.default.hex}}"
+      "literal": {
+        "color": "{{code.constant.default.hex}}"
       },
-      "literal_date": {},
+      "literal_number": {
+        "color": "{{code.number.default.hex}}"
+      },
+      "literal_date": {
+        "color": "{{code.number.default.hex}}"
+      },
       "literal_string": {
-        "color": "{{colors.tertiary.default.hex}}"
+        "color": "{{code.string.default.hex}}"
       },
       "literal_string_escape": {
-        "color": "{{colors.on_secondary_container.default.hex}}"
+        "color": "{{code.escape.default.hex}}"
       },
       "generic_deleted": {
         "color": "{{status.error.default.hex}}"
@@ -167,7 +185,7 @@
         "italic": true
       },
       "generic_inserted": {
-        "color": "{{colors.tertiary.default.hex}}"
+        "color": "{{status.success.default.hex}}"
       },
       "generic_strong": {
         "bold": true

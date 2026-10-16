@@ -113,7 +113,8 @@ fi
 # Colores de estado fijos (P8.7): cada config de matugen importa los suyos
 # (import_json_files); sin ese archivo matugen no renderiza. La sesion arranca
 # oscura (appearance.colorMode, P5.5); el arranque y el login son siempre oscuros.
-~/.config/hypr/scripts/palette status --mode dark --write
+# Paleta de codigo (Fase 18): palette code --write deja los dos JSON (estado y codigo).
+~/.config/hypr/scripts/palette code --image "$seed" --mode dark --write
 matugen image "$seed" --prefer saturation -m dark
 # Temas de arranque/login (SDDM, Plymouth, GRUB) van en una config aparte
 # (Fase 3 B2); su sync con sudo solo funciona tras el setup del README.

@@ -44,7 +44,57 @@ function M.get_colors()
 		end
 	end
 
-	return prefixed
+	-- Tabla "semantic" (Fase 18): colores de estado y estilos, fuera de base16
+	return prefixed, raw_colors.semantic
+end
+
+-- Grupos con significado (principio 23): siempre los colores de estado, nunca la sintaxis
+local STATUS_GROUPS = {
+	error = { "DiagnosticError", "DiagnosticSignError", "DiagnosticFloatingError", "DiagnosticVirtualTextError",
+		"ErrorMsg", "DiffDelete", "Removed", "@diff.minus", "GitSignsDelete", "diffRemoved" },
+	warning = { "DiagnosticWarn", "DiagnosticSignWarn", "DiagnosticFloatingWarn", "DiagnosticVirtualTextWarn",
+		"WarningMsg", "DiffChange", "Changed", "@diff.delta", "GitSignsChange", "diffChanged" },
+	success = { "DiagnosticOk", "DiagnosticSignOk", "DiffAdd", "Added", "@diff.plus", "GitSignsAdd", "diffAdded" },
+}
+local UNDERLINES = { error = "DiagnosticUnderlineError", warning = "DiagnosticUnderlineWarn", success = "DiagnosticUnderlineOk" }
+-- Estilos de las opciones (appearance.code.style.*)
+local STYLE_GROUPS = {
+	comment = { "Comment", "@comment", "SpecialComment" },
+	keyword = { "Keyword", "Statement", "Conditional", "Repeat", "@keyword", "@keyword.function", "@keyword.return" },
+	type = { "Type", "@type", "@type.builtin", "StorageClass", "Structure" },
+}
+
+---Pone los colores de estado y los estilos encima de base16 (Fase 18)
+---@param semantic? table { error, warning, success, styles = { comment, keyword, type } }
+function M.apply_semantic(semantic)
+	if type(semantic) ~= "table" then
+		return
+	end
+	for state, groups in pairs(STATUS_GROUPS) do
+		local color = semantic[state]
+		if color then
+			for _, g in ipairs(groups) do
+				local hl = vim.api.nvim_get_hl(0, { name = g, link = false })
+				-- Los diff de fondo (DiffAdd...) conservan su fondo y toman el color de estado como texto
+				hl.fg = color
+				hl.link = nil
+				vim.api.nvim_set_hl(0, g, hl)
+			end
+			vim.api.nvim_set_hl(0, UNDERLINES[state], { undercurl = true, sp = color })
+		end
+	end
+	for role, groups in pairs(STYLE_GROUPS) do
+		local style = semantic.styles and semantic.styles[role]
+		if style then
+			for _, g in ipairs(groups) do
+				local hl = vim.api.nvim_get_hl(0, { name = g, link = false })
+				hl.link = nil
+				hl.italic = style == "italic"
+				hl.bold = style == "bold"
+				vim.api.nvim_set_hl(0, g, hl)
+			end
+		end
+	end
 end
 
 ---Aplica transparencia de fondo para integrarse armónicamente con Hyprland y kitty
@@ -92,12 +142,13 @@ end
 ---Recarga la paleta completa de colores dinámicos y repinta la interfaz entera.
 ---@param silent? boolean Si es true, no muestra notificación flotante al recargar
 function M.reload(silent)
-	local colors = M.get_colors()
+	local colors, semantic = M.get_colors()
 
 	local ok_base16, base16 = pcall(require, "base16-colorscheme")
 	if ok_base16 and base16 and base16.setup then
 		base16.setup(colors)
 	end
+	M.apply_semantic(semantic)
 
 	-- Aplicar transparencia si el usuario la tiene activada
 	M.apply_transparency()

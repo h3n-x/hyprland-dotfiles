@@ -335,6 +335,14 @@ with `qs -c dotshell` (autostart in `autostart.lua`). It fully replaces Waybar.
   yellow and red are always the same). `palette check`
   validates the color system (contrasts, fixed colors, literal colors in
   the QML, the templates' semantic table).
+- **Code colors** (Phase 18): syntax in NetBeans, Neovim and glow (and, as an option, the terminal's blue, magenta and
+  cyan) comes from a third palette, separate from the wallpaper roles and the status colors. `palette code` takes 8 hues
+  from a classic base palette (Catppuccin, Gruvbox, Tokyo Night, Dracula, Nord, One Dark, Rosé Pine:
+  `dotshell/data/code-palettes.json`), turns them toward the wallpaper (harmony and maximum shift), solves their
+  brightness for contrast against the editor background in each mode, keeps them away from the status colors and
+  apart from each other, and writes `~/.cache/matugen/code.json` together with `status.json` before each matugen run.
+  Settings → Appearance → Code colors / Code roles: palette, base, harmony, vibrance, the color of each syntax role,
+  bold/italic for comments, keywords and types. Errors, warnings and diffs keep the fixed status colors.
 - **Languages** (Phase 15): every visible text goes through `I18n` (`I18nCore.qml` + `I18n.qml`); the English text is the
   source and the key, and each language is a catalog in `dotshell/data/i18n/<language>.json`. Dates, numbers, durations and
   plurals follow the language. Scripts translate with `hypr/.config/hypr/scripts/i18n`; `i18n check` must stay at 0 (missing

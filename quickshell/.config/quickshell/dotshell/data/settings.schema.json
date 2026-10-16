@@ -537,6 +537,175 @@
       "category": "appearance", "section": "Windows", "order": 59,
       "label": "Window shadows", "keywords": ["shadow"], "apply": "live", "hypr": "decoration:shadow:enabled"
     },
+    "appearance.code.palette": {
+      "type": "enum", "default": "harmonized", "values": {"harmonized": "Harmonized with the wallpaper", "material": "Wallpaper roles"},
+      "category": "appearance", "section": "Code colors", "order": 110,
+      "label": "Code colors",
+      "description": "Syntax colors in NetBeans, Neovim and glow: varied hues from a classic palette nudged toward the wallpaper, or the wallpaper's own roles. Errors, warnings and diffs keep their fixed colors.",
+      "keywords": ["syntax", "highlighting", "editor", "neovim", "netbeans", "theme", "code"], "apply": "live", "applyTo": "code"
+    },
+    "appearance.code.base": {
+      "type": "enum", "default": "catppuccin", "values": {"catppuccin": "Catppuccin", "gruvbox": "Gruvbox", "tokyonight": "Tokyo Night", "dracula": "Dracula", "nord": "Nord", "onedark": "One Dark", "rosepine": "Rosé Pine"},
+      "category": "appearance", "section": "Code colors", "order": 111,
+      "label": "Base palette",
+      "description": "The hues the code colors start from (their brightness always adapts to the theme).",
+      "keywords": ["catppuccin", "gruvbox", "tokyo night", "dracula", "nord", "one dark", "rose pine", "syntax"], "apply": "live", "applyTo": "code"
+    },
+    "appearance.code.harmony": {
+      "type": "int", "default": 25, "min": 0, "max": 100, "step": 5, "unit": "%",
+      "category": "appearance", "section": "Code colors", "order": 112,
+      "label": "Harmony with the wallpaper",
+      "description": "How much each hue moves toward the wallpaper's color. More harmony, fewer distinct colors.",
+      "keywords": ["tint", "harmonize", "syntax"], "apply": "live", "applyTo": "code"
+    },
+    "appearance.code.threshold": {
+      "type": "int", "default": 20, "min": 0, "max": 180, "step": 5, "unit": "°",
+      "category": "appearance", "section": "Code colors", "order": 113,
+      "label": "Maximum shift",
+      "description": "The most a hue may turn toward the wallpaper, in degrees.",
+      "keywords": ["harmonize", "angle", "syntax"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.vibrance": {
+      "type": "int", "default": 100, "min": 50, "max": 150, "step": 5, "unit": "%",
+      "category": "appearance", "section": "Code colors", "order": 114,
+      "label": "Vibrance",
+      "description": "Saturation of the code colors.",
+      "keywords": ["saturation", "chroma", "syntax"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.terminal": {
+      "type": "bool", "default": false,
+      "category": "appearance", "section": "Code colors", "order": 115,
+      "label": "Terminal colors from the code palette",
+      "description": "Blue, magenta and cyan in the terminal follow the code colors. Red, green and yellow keep meaning error, success and warning.",
+      "keywords": ["kitty", "ansi", "terminal", "bat"], "apply": "live", "applyTo": "code"
+    },
+    "appearance.code.style.comment": {
+      "type": "enum", "default": "italic", "values": {"normal": "Normal", "italic": "Italic", "bold": "Bold"},
+      "category": "appearance", "section": "Code roles", "order": 125,
+      "label": "Comment style",
+      "keywords": ["italic", "bold", "font", "syntax"], "apply": "live", "applyTo": "code"
+    },
+    "appearance.code.style.keyword": {
+      "type": "enum", "default": "normal", "values": {"normal": "Normal", "italic": "Italic", "bold": "Bold"},
+      "category": "appearance", "section": "Code roles", "order": 126,
+      "label": "Keyword style",
+      "keywords": ["italic", "bold", "font", "syntax"], "apply": "live", "applyTo": "code"
+    },
+    "appearance.code.style.type": {
+      "type": "enum", "default": "normal", "values": {"normal": "Normal", "italic": "Italic", "bold": "Bold"},
+      "category": "appearance", "section": "Code roles", "order": 127,
+      "label": "Type style",
+      "keywords": ["italic", "bold", "font", "syntax"], "apply": "live", "applyTo": "code"
+    },
+    "appearance.code.roles.keyword": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 130,
+      "label": "Keywords",
+      "description": "Automatic follows the base palette.",
+      "keywords": ["syntax", "color", "keyword"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.function": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 131,
+      "label": "Functions",
+      "keywords": ["syntax", "color", "function"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.type": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 132,
+      "label": "Types",
+      "keywords": ["syntax", "color", "type"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.string": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 133,
+      "label": "Strings",
+      "keywords": ["syntax", "color", "string"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.number": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 134,
+      "label": "Numbers",
+      "keywords": ["syntax", "color", "number"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.constant": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 135,
+      "label": "Constants",
+      "keywords": ["syntax", "color", "constant"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.variable": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 136,
+      "label": "Variables",
+      "keywords": ["syntax", "color", "variable"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.field": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 137,
+      "label": "Fields",
+      "keywords": ["syntax", "color", "field"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.parameter": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 138,
+      "label": "Parameters",
+      "keywords": ["syntax", "color", "parameter"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.operator": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 139,
+      "label": "Operators",
+      "keywords": ["syntax", "color", "operator"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.punctuation": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 140,
+      "label": "Punctuation",
+      "keywords": ["syntax", "color", "punctuation"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.comment": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 141,
+      "label": "Comments",
+      "keywords": ["syntax", "color", "comment"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.doc": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 142,
+      "label": "Documentation",
+      "keywords": ["syntax", "color", "doc"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.escape": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 143,
+      "label": "Escapes and regex",
+      "keywords": ["syntax", "color", "escape"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.tag": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 144,
+      "label": "Tags (HTML, XML)",
+      "keywords": ["syntax", "color", "tag"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.attribute": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 145,
+      "label": "Attributes",
+      "keywords": ["syntax", "color", "attribute"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.annotation": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 146,
+      "label": "Annotations",
+      "keywords": ["syntax", "color", "annotation"], "apply": "live", "applyTo": "code", "advanced": true
+    },
+    "appearance.code.roles.builtin": {
+      "type": "enum", "default": "auto", "values": {"auto": "Automatic", "red": "Red", "orange": "Orange", "yellow": "Yellow", "green": "Green", "cyan": "Cyan", "blue": "Blue", "purple": "Purple", "pink": "Pink", "accent": "Accent", "accentAlt": "Second accent", "decor": "Decoration", "text": "Text", "muted": "Muted text", "subtle": "Subtle"},
+      "category": "appearance", "section": "Code roles", "order": 147,
+      "label": "Built-ins",
+      "keywords": ["syntax", "color", "builtin"], "apply": "live", "applyTo": "code", "advanced": true
+    },
     "input.keyboard.layouts": {
       "type": "list", "kind": "xkb", "default": ["us"], "maxItems": 4, "items": {"type": "string", "pattern": "[a-z]{2,8}(:[A-Za-z0-9_-]+)?"},
       "category": "input", "section": "Keyboard", "order": 10,

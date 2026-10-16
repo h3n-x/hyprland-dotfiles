@@ -17,7 +17,10 @@
 # status --write` antes de cada corrida; las plantillas los leen como
 # {{status.warning.default.hex}} y {{theme.contrast}}. Solo cambian con el
 # modo: nunca con el wallpaper, el esquema ni el contraste (principio 23).
-import_json_files = ["~/.cache/matugen/status.json"]
+# Paleta de codigo (Fase 18): theme-apply.sh la escribe con `palette code --write` justo despues
+# de los colores de estado; las plantillas que muestran codigo la leen como
+# {{code.keyword.default.hex}}, {{code_slot.red.default.hex}} y {{code_style.comment}}.
+import_json_files = ["~/.cache/matugen/status.json", "~/.cache/matugen/code.json"]
 
 [templates.btop]
 input_path = "~/.config/matugen/templates/btop.theme"

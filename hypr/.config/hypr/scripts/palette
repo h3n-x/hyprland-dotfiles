@@ -11,19 +11,28 @@
 #       plantillas de matugen ({{status.warning.default.hex}}; C va a
 #       {{theme.contrast}}, solo informativo); --write lo deja en
 #       ~/.cache/matugen/status.json (import_json_files de config*.toml).
+#   palette code (--seed S | --image F) [--scheme T] [--mode M] [--contrast C] [--write]
+#       Paleta de codigo (Fase 18): 8 tonos de una paleta base armonizados hacia el primario del
+#       wallpaper, luminosidad resuelta para el contraste contra el fondo real del editor (roles
+#       de Material exactos por `matugen color` con la semilla), lejos de los colores de estado;
+#       los roles de sintaxis (appearance.code.roles.*) y estilos de las opciones (settings dump). --write lo
+#       deja en ~/.cache/matugen/code.json, junto con status.json (lo mismo que palette status --write: un
+#       solo proceso por cambio de tema) ({{code.keyword.default.hex}}, {{code_slot.red...}},
+#       {{code_style.comment}}). Pruebas: --colors F (roles de Material ya hechos), --settings F.
 #   palette check [--palette F]... [--samples] [--code] [--templates] [--all] [--quiet]
 #       PC-P pares de contraste, PC-S invariantes de estado (sobre una paleta
 #       generada: el JSON de Quickshell o muestras de los wallpapers del
 #       historial), PC-Q reglas del QML, PC-T tabla semantica de las plantillas,
 #       PC-T5 texto de las plantillas legible en oscuro y claro (P5.5), PC-A lista
-#       de literales permitidos. Sin opciones: --all (sin muestras).
+#       de literales permitidos, PC-K paleta de codigo de cada paleta base sobre las
+#       muestras (Fase 18: contraste, distancia a los estados, roles distinguibles). Sin opciones: --all (sin muestras).
 #       Salida 0 limpio, 1 fallos, 2 error interno. Los AVISO no fallan.
 #
 # Datos (SOURCE): dotshell/data/palette.rules.json (semillas, umbrales, pares,
 # tabla de plantillas) y palette.allow.json (literales justificados). Los alias
 # y su rol salen de dotshell/SemanticPalette.qml (unica fuente).
 # Pruebas: PALETTE_DATA, PALETTE_QML, PALETTE_TEMPLATES, PALETTE_STATUS_OUT,
-# PALETTE_STATE (historial de wallpapers para --samples).
+# PALETTE_STATE (historial de wallpapers para --samples), PALETTE_CODE_OUT.
 set -uo pipefail
 
 export PALETTE_DATA=${PALETTE_DATA:-$HOME/.config/quickshell/dotshell/data}
@@ -195,19 +204,288 @@ def cmd_status(args):
         die(T("--mode: dark or light"))
     if not -1 <= contrast <= 1:
         die(T("--contrast out of -1..1"))
+    text = status_json(mode, contrast)
+    if write:
+        write_atomic(STATUS_OUT, text)
+    else:
+        print(text)
+
+
+def status_json(mode, contrast):
     tab = status_table()
-    t = tab[mode]
     # status_dark / status_light (P5.5): las dos familias, para la vista previa
     # de un tema en el otro modo (plantilla de Quickshell).
-    out = {"status": {k: {"default": fmt(v)} for k, v in t.items()},
+    out = {"status": {k: {"default": fmt(v)} for k, v in tab[mode].items()},
            "theme": {"mode": mode, "contrast": contrast}}
     out.update({"status_" + m: {k: {"default": fmt(v)} for k, v in tab[m].items()} for m in ("dark", "light")})
+    return json.dumps(out, separators=(",", ":"))
+
+
+def write_atomic(path, text):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path + ".tmp", "w") as f:
+        f.write(text + "\n")
+    os.replace(path + ".tmp", path)
+
+
+# ---- Codigo (palette code, Fase 18) ---------------------------------------------------------------
+# Paleta de codigo: tercera categoria de color (adaptativa, armonizada), aparte de la identidad
+# (roles de Material) y del estado (fijo, principio 23). 8 tonos de una paleta base (data/code-
+# palettes.json) giran hacia el primario del wallpaper min(|dh| x armonia, tope); la luminosidad
+# se resuelve por modo y contraste contra el fondo real del editor; un tono que se parece a un
+# color de estado se aparta. Los roles de sintaxis apuntan a un tono, a un rol de Material o al texto.
+CODE = load(os.path.join(DATA, "code-palettes.json"))
+CODE_OUT = os.environ.get("PALETTE_CODE_OUT") or os.path.join(os.path.dirname(STATUS_OUT), "code.json")
+CODE_DEFAULTS = {"code.palette": "harmonized", "code.base": "catppuccin", "code.harmony": 25, "code.threshold": 20,
+                 "code.vibrance": 100, "code.terminal": False}
+CODE_STYLE_ROLES = ("comment", "keyword", "type")
+# Luminosidad OKLab de partida por modo y cuanto se respeta la variacion propia de la paleta base.
+CODE_L = {"dark": (0.80, 0.64, 0.95), "light": (0.47, 0.28, 0.62)}
+CODE_L_SPREAD = 1.0
+CODE_STATUS_MIN = 6.0          # deltaE x100 minimo contra danger/warning/success del modo
+CODE_TEXT_MIN = 4.5       # contraste minimo del texto de codigo (comentarios: los da Material)
+CODE_MAJOR = ("keyword", "function", "type", "string", "number")
+CODE_MAJOR_MIN = 6.0      # deltaE x100 minimo entre roles principales distintos (con las opciones de fabrica)
+CODE_CVD_MIN = 3.0        # idem con daltonismo simulado (aviso)
+
+
+def lab_to_lin(L, a, b):
+    l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3
+    m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3
+    s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3
+    return (4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+            -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+            -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s)
+
+
+def oklch(x):
+    L, a, b = oklab(lin(rgb(x)))
+    return L, math.hypot(a, b), math.degrees(math.atan2(b, a)) % 360
+
+
+def from_oklch(L, C, h):
+    """Hex del color OKLCh; si se sale de sRGB, baja el croma (mismo tono y luminosidad)."""
+    def at(c):
+        a, b = c * math.cos(math.radians(h)), c * math.sin(math.radians(h))
+        return lab_to_lin(L, a, b)
+    lo, hi = 0.0, C
+    if any(v < -1e-4 or v > 1 + 1e-4 for v in at(C)):
+        for _ in range(24):
+            mid = (lo + hi) / 2
+            if any(v < -1e-4 or v > 1 + 1e-4 for v in at(mid)):
+                hi = mid
+            else:
+                lo = mid
+        C = lo
+    out = []
+    for v in at(C):
+        v = max(0.0, min(1.0, v))
+        out.append(round(255 * (12.92 * v if v <= 0.0031308 else 1.055 * v ** (1 / 2.4) - 0.055)))
+    return "#" + "".join("%02x" % c for c in out)
+
+
+def harmonize(h, target, harmony, threshold):
+    d = (target - h + 540) % 360 - 180
+    return (h + math.copysign(min(abs(d) * harmony, threshold), d)) % 360
+
+
+def solve_l(L0, C, h, bgs, need, mode):
+    """La luminosidad mas cercana a L0 con contraste >= need contra todos los fondos: se aleja del
+    fondo (sube en oscuro, baja en claro) de a poco."""
+    step = 0.005 if mode == "dark" else -0.005
+    L = L0
+    for _ in range(120):
+        c = from_oklch(L, C, h)
+        if min(ratio(c, b) for b in bgs) >= need:
+            return c, L
+        L = max(0.0, min(1.0, L + step))
+    return from_oklch(L, C, h), L
+
+
+def code_palette(opts, colors, status, mode, contrast):
+    """{slot: hex}, {rol: hex}, avisos. colors: roles de Material del modo; status: los del modo."""
+    base = CODE["bases"].get(opts["code.base"]) or CODE["bases"]["catppuccin"]
+    harmony = max(0, min(100, opts["code.harmony"])) / 100
+    threshold = max(0, min(180, opts["code.threshold"]))
+    vib = max(50, min(150, opts["code.vibrance"])) / 100
+    target = oklch(colors["primary"])[2]
+    # Fondos reales del texto de codigo: el editor (surface) y la linea del cursor (surface_container).
+    bgs = [colors["surface"], colors["surface_container"]]
+    need = CODE_TEXT_MIN + 2.5 * max(0.0, contrast)
+    l0, lmin, lmax = CODE_L[mode]
+    src = {k: oklch(v) for k, v in base["colors"].items()}
+    mean_l = sum(v[0] for v in src.values()) / len(src)
+    stat = [lin(rgb(status[k])) for k in ("error", "warning", "success")]
+    # 1. Cada tono armonizado, con la luminosidad resuelta para el contraste.
+    shape, slots, notes = {}, {}, []
+    for name in CODE["slots"]:
+        L, C, h = src[name]
+        h = harmonize(h, target, harmony, threshold)
+        C = min(C * vib, 0.25)
+        Lt = max(lmin, min(lmax, l0 + CODE_L_SPREAD * (L - mean_l)))
+        shape[name] = (Lt, C, h)
+        slots[name] = solve_l(Lt, C, h, bgs, need, mode)[0]
+
+    def to_status(c):
+        return min(delta_e(lin(rgb(c)), s) for s in stat)
+
+    def to_others(c, name):
+        return min(delta_e(lin(rgb(c)), lin(rgb(v))) for k, v in slots.items() if k != name)
+
+    # 2. Un tono que se parece a un color de estado se aparta (principio 23): de los candidatos
+    #    (tono +-8..32 grados, luminosidad +-0.04) que quedan lejos del estado, el que mas se
+    #    separa del resto de los tonos; nunca se arregla uno pisando a otro.
+    for name in CODE["slots"]:
+        if to_status(slots[name]) >= CODE_STATUS_MIN:
+            continue
+        Lt, C, h = shape[name]
+        best = None
+        for off in (8, -8, 16, -16, 24, -24, 32, -32):
+            for dl in (0.0, 0.04, -0.04):
+                c = solve_l(max(0.0, min(1.0, Lt + dl)), C, (h + off) % 360, bgs, need, mode)[0]
+                ds = to_status(c)
+                key = (ds >= CODE_STATUS_MIN, to_others(c, name) if ds >= CODE_STATUS_MIN else ds)
+                if best is None or key > best[0]:
+                    best = (key, c, ds)
+        slots[name] = best[1]
+        if best[2] < CODE_STATUS_MIN:
+            notes.append(T("the %1 code color stays close to a status color (deltaE %2)", name, round(best[2], 1)))
+    auto = dict(CODE["defaultRoles"])
+    if opts["code.palette"] == "material":
+        auto.update(CODE["materialRoles"])
+    else:
+        auto.update(base.get("roles") or {})
+    picks = {r: (auto[r] if opts.get("code.roles." + r, "auto") in ("auto", None) else opts["code.roles." + r])
+             for r in CODE["roles"]}
+    # 3. Roles principales que quedan parecidos (contraste alto y modo claro aprietan todo en una
+    #    franja de luminosidad, y algunas paletas traen pares cercanos: verde/aqua de Gruvbox,
+    #    azul/cian de Nord): pasos chicos de luminosidad (+-0.03, con el contraste siempre a salvo)
+    #    o de tono (+-6, hasta 24 del suyo y lejos de los estados), cada uno elegido por la menor
+    #    distancia entre TODOS los roles principales (sin arreglar un par rompiendo otro).
+    major = []
+    for r in CODE_MAJOR:
+        if picks[r] in slots and picks[r] not in major:
+            major.append(picks[r])
+
+    def spread(cur):
+        return min((delta_e(lin(rgb(cur[a])), lin(rgb(cur[b]))) for i, a in enumerate(major) for b in major[i + 1:]),
+                   default=99.0)
+
+    turned = {n: 0 for n in major}
+    goal = CODE_MAJOR_MIN + 1.5
+    for _ in range(40):
+        now = spread(slots)
+        if now >= goal:
+            break
+        best = None
+        for name in major:
+            L, C, h = oklch(slots[name])
+            for dL, dh in ((0.03, 0), (-0.03, 0), (0, 6), (0, -6)):
+                if abs(turned[name] + dh) > 24 or not 0.18 <= L + dL <= 0.97:
+                    continue
+                c = from_oklch(L + dL, C, (h + dh) % 360)
+                if min(ratio(c, bg) for bg in bgs) < need or (dh and to_status(c) < CODE_STATUS_MIN):
+                    continue
+                trial = dict(slots)
+                trial[name] = c
+                score = spread(trial)
+                if score > now + 0.05 and (best is None or score > best[0]):
+                    best = (score, name, c, dh)
+        if best is None:
+            break
+        slots[best[1]] = best[2]
+        turned[best[1]] += best[3]
+    roles = {r: slots[p] if p in slots else colors[CODE["neutral"].get(p, "on_surface")] for r, p in picks.items()}
+    return slots, roles, notes
+
+
+def material_colors(args_seed, scheme, contrast, mode, image):
+    """Roles de Material del modo, exactos (mismos que da theme-apply.sh): por la semilla con
+    `matugen color` (~5 ms) o, sin semilla (temas viejos), por la imagen."""
+    cfg = os.path.join(TMP, "empty.toml")
+    if not os.path.exists(cfg):
+        with open(cfg, "w") as f:
+            f.write("[config]\n[templates]\n")
+    if args_seed:
+        cmd = ["matugen", "-c", cfg, "color", "hex", args_seed]
+    elif image:
+        cmd = ["matugen", "-c", cfg, "image", image, "--prefer", "saturation"]
+    else:
+        die(T("palette code needs --seed or --image"))
+    if scheme:
+        cmd += ["-t", scheme]
+    cmd += ["--contrast", str(contrast), "-m", mode, "--dry-run", "-j", "hex", "-q"]
+    r = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
+    try:
+        return {k: v[mode]["color"].lower() for k, v in json.loads(r.stdout)["colors"].items()}
+    except (ValueError, KeyError):
+        die(T("matugen didn't return a palette: %1", r.stderr.strip()[:200]))
+
+
+def code_options(path):
+    """Opciones code.* resueltas: la cache efectiva por scripts/settings (nunca settings.json)."""
+    if path:
+        vals = load(path)
+    else:
+        r = subprocess.run([os.path.join(os.environ["PALETTE_BIN"], "settings"), "dump"], capture_output=True, text=True)
+        try:
+            vals = json.loads(r.stdout)
+        except ValueError:
+            vals = {}
+    vals = vals.get("values", vals)
+    opts = dict(CODE_DEFAULTS)
+    # Claves appearance.code.* del almacen; adentro, sin el prefijo de la categoria.
+    opts.update({k[len("appearance."):]: v for k, v in vals.items() if k.startswith("appearance.code.")})
+    return opts
+
+
+def cmd_code(args):
+    v = {"--mode": "dark", "--contrast": "0"}
+    write = False
+    it = iter(args)
+    for a in it:
+        if a in ("--seed", "--scheme", "--image", "--settings", "--colors", "--mode", "--contrast"):
+            v[a] = next(it, "")
+        elif a == "--write":
+            write = True
+        else:
+            die(T("unknown option: %1", a))
+    mode = v["--mode"]
+    try:
+        contrast = float(v["--contrast"])
+    except ValueError:
+        die(T("--contrast needs a number"))
+    if mode not in ("dark", "light"):
+        die(T("--mode: dark or light"))
+    if not -1 <= contrast <= 1:
+        die(T("--contrast out of -1..1"))
+    opts = code_options(v.get("--settings"))
+    colors = load(v["--colors"]) if v.get("--colors") else \
+        material_colors(v.get("--seed"), v.get("--scheme"), contrast, mode, v.get("--image"))
+    slots, roles, notes = code_palette(opts, colors, status_table()[mode], mode, contrast)
+    styles = {r: opts.get("code.style." + r, "italic" if r == "comment" else "normal") for r in CODE_STYLE_ROLES}
+    terminal = ({"blue": slots["blue"], "magenta": slots["purple"], "cyan": slots["cyan"]} if opts["code.terminal"] else
+                {"blue": colors["secondary"], "magenta": colors["primary"], "cyan": colors["tertiary"]})
+    out = {"code": {r: {"default": fmt(v)} for r, v in roles.items()},
+           "code_slot": {s: {"default": fmt(v)} for s, v in slots.items()},
+           "code_style": styles,
+           # Lo mismo en el formato de cada app (las plantillas de matugen no tienen condicionales):
+           # NetBeans plain/bold/italic, y banderas true/false para glow y Neovim.
+           "code_style_nb": {r: "plain" if v == "normal" else v for r, v in styles.items()},
+           "code_style_flag": {f"{r}_{f}": "true" if v == f else "false" for r, v in styles.items() for f in ("bold", "italic")},
+           # Terminal (ANSI 4/5/6 y sus brillantes): de la paleta de codigo solo con la opcion; si no, los
+           # roles de identidad de siempre. Rojo, verde y amarillo siempre son estado (principio 23).
+           "code_term": {k: {"default": fmt(v)} for k, v in terminal.items()},
+           "code_meta": {"palette": opts["code.palette"], "base": opts["code.base"],
+                         "terminal": "on" if opts["code.terminal"] else "off"}}
+    for n in notes:
+        print(f"palette code: {n}", file=sys.stderr)
     text = json.dumps(out, separators=(",", ":"))
     if write:
-        os.makedirs(os.path.dirname(STATUS_OUT), exist_ok=True)
-        with open(STATUS_OUT + ".tmp", "w") as f:
-            f.write(text + "\n")
-        os.replace(STATUS_OUT + ".tmp", STATUS_OUT)
+        # Un solo proceso por cambio de tema: escribe tambien los colores de estado del modo y el
+        # contraste (lo mismo que palette status --write; ~100 ms menos que dos llamadas).
+        write_atomic(STATUS_OUT, status_json(mode, contrast))
+        write_atomic(CODE_OUT, text)
     else:
         print(text)
 
@@ -382,6 +660,39 @@ def samples():
                 pal.update({"mode": mode, "contrast": contrast})
                 out.append((f"{os.path.basename(wp)}/{scheme}/{mode}/c{contrast:g}", pal))
     return out
+
+
+def check_code_palette(rep, pal, label):
+    """Paleta de codigo (Fase 18) sobre una paleta generada, cada paleta base con las opciones de
+    fabrica. PC-K1 contraste del texto de codigo, PC-K2 lejos de los colores de estado (aviso),
+    PC-K3 los roles principales distinguibles (y con daltonismo, aviso)."""
+    mode, contrast = pal.get("mode", "dark"), float(pal.get("contrast", 0))
+    status = {k: pal[k] for k in ("error", "warning", "success")}
+    need = CODE_TEXT_MIN + 2.5 * max(0.0, contrast) - 0.05
+    for base in CODE["bases"]:
+        opts = dict(CODE_DEFAULTS)
+        opts["code.base"] = base
+        slots, roles, _ = code_palette(opts, pal, status, mode, contrast)
+        where = f"{label}/{base}"
+        for name, c in slots.items():
+            r = min(ratio(c, pal[b]) for b in ("surface", "surface_container"))
+            if r < need:
+                rep.add("FAIL", "PC-K1", where, T("code color %1 %2 contrast %3 < %4", name, c, round(r, 2), round(need, 2)))
+            de = min(delta_e(lin(rgb(c)), lin(rgb(s))) for s in status.values())
+            if de < CODE_STATUS_MIN:
+                rep.add("NOTICE", "PC-K2", where, T("code color %1 %2 close to a status color (deltaE %3)", name, c, round(de, 1)))
+        major = [r for r in CODE_MAJOR if roles[r] not in [roles[x] for x in CODE_MAJOR[:CODE_MAJOR.index(r)]]]
+        for i, a in enumerate(major):
+            for b in major[i + 1:]:
+                de = delta_e(lin(rgb(roles[a])), lin(rgb(roles[b])))
+                if de < CODE_MAJOR_MIN:
+                    # Con el contraste maximo manda la legibilidad (todo cerca del blanco o del negro):
+                    # roles parecidos ahi son aviso; en el resto, falla.
+                    rep.add("NOTICE" if contrast >= 1 else "FAIL", "PC-K3", where,
+                            T("code roles %1/%2 too similar (deltaE %3)", a, b, round(de, 1)))
+                cv, kind = cvd_min(roles[a], roles[b])
+                if cv < CODE_CVD_MIN:
+                    rep.add("NOTICE", "PC-K3", where, T("code roles %1/%2 alike with %3 (deltaE %4)", a, b, kind, round(cv, 1)))
 
 
 # ---- QML ------------------------------------------------------------------------------------------
@@ -626,6 +937,7 @@ def cmd_check(args):
     if do_samples:
         for label, pal in samples():
             check_palette(rep, pal, label, al)
+            check_code_palette(rep, pal, label)
             n += 1
     if do_code:
         check_code(rep)
@@ -642,6 +954,8 @@ if cmd == "status":
     cmd_status(sys.argv[2:])
 elif cmd == "check":
     cmd_check(sys.argv[2:])
+elif cmd == "code":
+    cmd_code(sys.argv[2:])
 else:
-    die(T("usage: %1", "palette status [--mode M] [--contrast C] [--write] | palette check [--palette F] [--samples] [--code] [--templates] [--all] [--quiet]"))
+    die(T("usage: %1", "palette status [--mode M] [--contrast C] [--write] | palette code (--seed S | --image F) [--scheme T] [--mode M] [--contrast C] [--write] | palette check [--palette F] [--samples] [--code] [--templates] [--all] [--quiet]"))
 PY

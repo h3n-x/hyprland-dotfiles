@@ -1,31 +1,35 @@
 <!-- Generado por matugen - no editar a mano, editar templates/netbeans-theme.bundle -->
-<!-- NetBeans con los colores del wallpaper (Fase 17). Cada bloque "file:" es un archivo que
+<!-- NetBeans con los colores del wallpaper (Fases 17-18). Cada bloque "file:" es un archivo que
      scripts/netbeans-theme copia a <userdir>/config/<ruta>: el perfil del editor "Matugen" (lista de
-     tokens del perfil FlatLaf Dark de NetBeans 30; colores = roles con la tabla de nvim-colors.lua y
-     estados fijos, P8.7) y, al final, el bloque de la ventana para LookAndFeel/FlatLaf.properties.
-     Una sola plantilla: un solo post_hook, sin carrera entre archivos. -->
+     tokens del perfil FlatLaf Dark de NetBeans 30; sintaxis = paleta de codigo, code.<rol>; estilos de
+     comentarios, palabras clave y tipos de las opciones; estados fijos, P8.7) y, al final, el bloque de
+     la ventana para LookAndFeel/FlatLaf.properties. Una sola plantilla: un solo post_hook. -->
 <!-- file: Editors/FontsColors/Matugen/org-netbeans-modules-editor-settings-CustomFontsColors-tokenColorings.xml -->
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE fontscolors PUBLIC "-//NetBeans//DTD Editor Fonts and Colors settings 1.1//EN" "http://www.netbeans.org/dtds/EditorFontsColors-1_1.dtd">
 <!-- Generado por matugen - no editar a mano, editar templates/netbeans-theme.bundle -->
 <fontscolors>
-    <fontcolor name="char" foreColor="ff{{status.success.default.hex_stripped}}"/>
-    <fontcolor name="comment" foreColor="ff{{colors.outline.default.hex_stripped}}"/>
+    <fontcolor name="char" foreColor="ff{{code.string.default.hex_stripped}}"/>
+    <fontcolor name="comment" foreColor="ff{{code.comment.default.hex_stripped}}">
+        <font style="{{code_style_nb.comment}}"/>
+    </fontcolor>
     <fontcolor name="default" foreColor="ff{{colors.on_surface.default.hex_stripped}}" bgColor="ff{{colors.surface.default.hex_stripped}}"/>
     <fontcolor name="entity-reference" default="default"/>
     <fontcolor name="error" waveUnderlined="ff{{status.error.default.hex_stripped}}"/>
-    <fontcolor name="field" default="identifier" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
-    <fontcolor name="identifier" foreColor="ff{{colors.on_surface.default.hex_stripped}}"/>
-    <fontcolor name="keyword" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="field" default="identifier" foreColor="ff{{code.field.default.hex_stripped}}"/>
+    <fontcolor name="identifier" foreColor="ff{{code.variable.default.hex_stripped}}"/>
+    <fontcolor name="keyword" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
     <fontcolor name="mark-occurrences" bgColor="ff{{colors.secondary_container.default.hex_stripped}}"/>
-    <fontcolor name="markup-attribute" default="field" foreColor="ff{{colors.secondary.default.hex_stripped}}"/>
-    <fontcolor name="markup-attribute-value" default="string" foreColor="ff{{status.success.default.hex_stripped}}"/>
-    <fontcolor name="markup-element" default="keyword" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="method" default="identifier" foreColor="ff{{colors.secondary.default.hex_stripped}}"/>
-    <fontcolor name="number" foreColor="ff{{status.warning.default.hex_stripped}}"/>
-    <fontcolor name="operator" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
-    <fontcolor name="separator" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
-    <fontcolor name="string" foreColor="ff{{status.success.default.hex_stripped}}"/>
+    <fontcolor name="markup-attribute" default="field" foreColor="ff{{code.attribute.default.hex_stripped}}"/>
+    <fontcolor name="markup-attribute-value" default="string" foreColor="ff{{code.string.default.hex_stripped}}"/>
+    <fontcolor name="markup-element" default="keyword" foreColor="ff{{code.tag.default.hex_stripped}}"/>
+    <fontcolor name="method" default="identifier" foreColor="ff{{code.function.default.hex_stripped}}"/>
+    <fontcolor name="number" foreColor="ff{{code.number.default.hex_stripped}}"/>
+    <fontcolor name="operator" foreColor="ff{{code.operator.default.hex_stripped}}"/>
+    <fontcolor name="separator" foreColor="ff{{code.punctuation.default.hex_stripped}}"/>
+    <fontcolor name="string" foreColor="ff{{code.string.default.hex_stripped}}"/>
     <fontcolor name="url" foreColor="ff{{colors.primary.default.hex_stripped}}" underline="ff{{colors.primary.default.hex_stripped}}"/>
     <fontcolor name="warning" waveUnderlined="ff{{status.warning.default.hex_stripped}}"/>
     <fontcolor name="whitespace" foreColor="ff{{colors.outline_variant.default.hex_stripped}}"/>
@@ -193,8 +197,8 @@
     <fontcolor name="org-netbeans-spi-editor-hints-parser_annotation_err_fixable" waveUnderlined="ff{{status.error.default.hex_stripped}}"/>
     <fontcolor name="org-netbeans-spi-editor-hints-parser_annotation_hint"/>
     <fontcolor name="org-netbeans-spi-editor-hints-parser_annotation_hint_fixable"/>
-    <fontcolor name="org-netbeans-spi-editor-hints-parser_annotation_todo" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
-    <fontcolor name="org-netbeans-spi-editor-hints-parser_annotation_todo_fixable" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
+    <fontcolor name="org-netbeans-spi-editor-hints-parser_annotation_todo" foreColor="ff{{code.annotation.default.hex_stripped}}"/>
+    <fontcolor name="org-netbeans-spi-editor-hints-parser_annotation_todo_fixable" foreColor="ff{{code.annotation.default.hex_stripped}}"/>
     <fontcolor name="org-netbeans-spi-editor-hints-parser_annotation_verifier" waveUnderlined="ff{{status.warning.default.hex_stripped}}"/>
     <fontcolor name="org-netbeans-spi-editor-hints-parser_annotation_verifier_fixable" waveUnderlined="ff{{status.warning.default.hex_stripped}}"/>
     <fontcolor name="org-netbeans-spi-editor-hints-parser_annotation_warn" waveUnderlined="ff{{status.warning.default.hex_stripped}}"/>
@@ -228,11 +232,15 @@
     <fontcolor name="dtd-comment" default="comment"/>
     <fontcolor name="dtd-eol" default="whitespace"/>
     <fontcolor name="dtd-error" default="error"/>
-    <fontcolor name="dtd-keyword" default="keyword" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="dtd-keyword" default="keyword" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
     <fontcolor name="dtd-plain" default="default"/>
     <fontcolor name="dtd-ref" default="entity-reference"/>
     <fontcolor name="dtd-string" default="string"/>
-    <fontcolor name="dtd-symbol" default="operator" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="dtd-symbol" default="operator" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
     <fontcolor name="dtd-target" default="default"/>
 </fontscolors>
 <!-- file: Editors/text/css/FontsColors/Matugen/org-netbeans-modules-editor-settings-CustomFontsColors-tokenColorings.xml -->
@@ -240,19 +248,31 @@
 <!DOCTYPE fontscolors PUBLIC "-//NetBeans//DTD Editor Fonts and Colors settings 1.1//EN" "http://www.netbeans.org/dtds/EditorFontsColors-1_1.dtd">
 <!-- Generado por matugen - no editar a mano, editar templates/netbeans-theme.bundle -->
 <fontscolors>
-    <fontcolor name="at_rule_symbol" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="at_rule_symbol" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
     <fontcolor name="braces" default="separator"/>
     <fontcolor name="comments" default="comment"/>
     <fontcolor name="hashes" default="number"/>
     <fontcolor name="identifiers" default="identifier"/>
-    <fontcolor name="mod-class" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="mod-constructor"/>
+    <fontcolor name="mod-class" foreColor="ff{{code.type.default.hex_stripped}}">
+        <font style="{{code_style_nb.type}}"/>
+    </fontcolor>
+    <fontcolor name="mod-constructor">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="mod-custom1"/>
-    <fontcolor name="mod-custom2"/>
-    <fontcolor name="mod-custom3" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="mod-local-variable" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
-    <fontcolor name="mod-method" foreColor="ff{{status.success.default.hex_stripped}}"/>
-    <fontcolor name="mod-private" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
+    <fontcolor name="mod-custom2">
+        <font style="italic"/>
+    </fontcolor>
+    <fontcolor name="mod-custom3" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
+    <fontcolor name="mod-local-variable" foreColor="ff{{code.field.default.hex_stripped}}"/>
+    <fontcolor name="mod-method" foreColor="ff{{code.function.default.hex_stripped}}"/>
+    <fontcolor name="mod-private" foreColor="ff{{code.field.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="numbers" default="number"/>
     <fontcolor name="operators" default="operator"/>
     <fontcolor name="others" default="default"/>
@@ -268,18 +288,24 @@
 <fontscolors>
     <fontcolor name="argument" default="markup-attribute"/>
     <fontcolor name="block-comment" default="comment"/>
-    <fontcolor name="character" default="entity-reference" foreColor="ff{{status.warning.default.hex_stripped}}"/>
+    <fontcolor name="character" default="entity-reference" foreColor="ff{{code.escape.default.hex_stripped}}">
+        <font style="plain"/>
+    </fontcolor>
     <fontcolor name="css-embedded" default="default"/>
-    <fontcolor name="el-content" default="default" foreColor="ff{{colors.on_surface.default.hex_stripped}}"/>
+    <fontcolor name="el-content" default="default" foreColor="ff{{code.variable.default.hex_stripped}}"/>
     <fontcolor name="el-delimiter" default="default"/>
     <fontcolor name="error" default="error"/>
     <fontcolor name="javascript-embedded" default="default"/>
     <fontcolor name="mod-class" waveUnderlined="ff{{status.error.default.hex_stripped}}"/>
-    <fontcolor name="mod-constructor" default="markup-attribute"/>
-    <fontcolor name="mod-method"/>
+    <fontcolor name="mod-constructor" default="markup-attribute">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="mod-method">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="operator" default="argument"/>
     <fontcolor name="sgml-comment" default="comment"/>
-    <fontcolor name="sgml-declaration" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
+    <fontcolor name="sgml-declaration" default="default" foreColor="ff{{code.annotation.default.hex_stripped}}"/>
     <fontcolor name="tag" default="markup-element"/>
     <fontcolor name="text" default="default"/>
     <fontcolor name="value" default="markup-attribute-value"/>
@@ -293,19 +319,25 @@
 <fontscolors>
     <fontcolor name="COMMENT" default="comment"/>
     <fontcolor name="comment-line" default="comment"/>
-    <fontcolor name="COMMENT_HTML" default="comment" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
-    <fontcolor name="COMMENT_KEYWORD" default="comment"/>
+    <fontcolor name="COMMENT_HTML" default="comment" foreColor="ff{{code.doc.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="COMMENT_KEYWORD" default="comment">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="constant" default="number"/>
     <fontcolor name="error" default="error"/>
     <fontcolor name="identifier" default="identifier"/>
-    <fontcolor name="keyword" default="keyword"/>
+    <fontcolor name="keyword" default="keyword">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="mod-class"/>
     <fontcolor name="mod-field" default="field"/>
     <fontcolor name="mod-global"/>
     <fontcolor name="mod-local-variable" default="identifier"/>
     <fontcolor name="mod-local-variable-declaration" default="identifier"/>
-    <fontcolor name="mod-method" foreColor="ff{{colors.secondary.default.hex_stripped}}"/>
-    <fontcolor name="mod-regexp" default="regexp" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
+    <fontcolor name="mod-method" foreColor="ff{{code.function.default.hex_stripped}}"/>
+    <fontcolor name="mod-regexp" default="regexp" foreColor="ff{{code.escape.default.hex_stripped}}"/>
     <fontcolor name="mod-unused" waveUnderlined="ff{{colors.outline.default.hex_stripped}}"/>
     <fontcolor name="operator" default="operator"/>
     <fontcolor name="separator" default="separator"/>
@@ -318,14 +350,16 @@
 <!-- Generado por matugen - no editar a mano, editar templates/netbeans-theme.bundle -->
 <fontscolors>
     <fontcolor name="comment" default="comment"/>
-    <fontcolor name="directive" default="keyword"/>
-    <fontcolor name="directiveparam" default="keyword" foreColor="ff{{colors.on_surface.default.hex_stripped}}"/>
+    <fontcolor name="directive" default="keyword">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="directiveparam" default="keyword" foreColor="ff{{code.variable.default.hex_stripped}}"/>
     <fontcolor name="error" default="error"/>
-    <fontcolor name="flag" default="separator" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
+    <fontcolor name="flag" default="separator" foreColor="ff{{code.builtin.default.hex_stripped}}"/>
     <fontcolor name="number" default="number"/>
     <fontcolor name="string" default="string"/>
-    <fontcolor name="tag" default="keyword" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="tagparam" default="keyword" foreColor="ff{{colors.secondary.default.hex_stripped}}"/>
+    <fontcolor name="tag" default="keyword" foreColor="ff{{code.tag.default.hex_stripped}}"/>
+    <fontcolor name="tagparam" default="keyword" foreColor="ff{{code.attribute.default.hex_stripped}}"/>
     <fontcolor name="variable" default="identifier"/>
     <fontcolor name="whitespace" default="whitespace"/>
 </fontscolors>
@@ -336,9 +370,15 @@
 <fontscolors>
     <fontcolor name="added" foreColor="ff{{status.success.default.hex_stripped}}"/>
     <fontcolor name="error" default="error"/>
-    <fontcolor name="filename" bgColor="ff{{colors.surface_container_high.default.hex_stripped}}"/>
-    <fontcolor name="header"/>
-    <fontcolor name="index"/>
+    <fontcolor name="filename" bgColor="ff{{colors.surface_container_high.default.hex_stripped}}">
+        <font style="bold+italic"/>
+    </fontcolor>
+    <fontcolor name="header">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="index">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="plain"/>
     <fontcolor name="removed" foreColor="ff{{status.error.default.hex_stripped}}"/>
 </fontscolors>
@@ -351,11 +391,15 @@
     <fontcolor name="eol" default="default"/>
     <fontcolor name="errors" default="error"/>
     <fontcolor name="identifier" default="identifier"/>
-    <fontcolor name="keywords" default="keyword"/>
+    <fontcolor name="keywords" default="keyword">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="numeric-literals" default="number"/>
     <fontcolor name="operators" default="operator"/>
     <fontcolor name="string" default="string"/>
-    <fontcolor name="tag-lib-prefix" default="default" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="tag-lib-prefix" default="default" foreColor="ff{{code.builtin.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="whitespace" default="whitespace"/>
 </fontscolors>
 <!-- file: Editors/text/x-ini/FontsColors/Matugen/org-netbeans-modules-editor-settings-CustomFontsColors-tokenColorings.xml -->
@@ -368,7 +412,9 @@
     <fontcolor name="error" default="error"/>
     <fontcolor name="key" default="keyword"/>
     <fontcolor name="section" default="number"/>
-    <fontcolor name="section_delim" default="number"/>
+    <fontcolor name="section_delim" default="number">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="value" default="string"/>
     <fontcolor name="whitespace"/>
 </fontscolors>
@@ -378,49 +424,79 @@
 <!-- Generado por matugen - no editar a mano, editar templates/netbeans-theme.bundle -->
 <fontscolors>
     <fontcolor name="character" default="char"/>
-    <fontcolor name="character-escape" default="character"/>
-    <fontcolor name="character-escape-invalid" default="character"/>
+    <fontcolor name="character-escape" default="character">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="character-escape-invalid" default="character">
+        <font style="italic"/>
+    </fontcolor>
     <fontcolor name="comment" default="comment"/>
-    <fontcolor name="html-tag" default="comment" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
+    <fontcolor name="html-tag" default="comment" foreColor="ff{{code.doc.default.hex_stripped}}">
+        <font style="italic"/>
+    </fontcolor>
     <fontcolor name="identifier" default="identifier"/>
-    <fontcolor name="javadoc-first-sentence" default="comment"/>
-    <fontcolor name="javadoc-identifier" default="comment" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
-    <fontcolor name="javadoc-tag" default="comment"/>
+    <fontcolor name="javadoc-first-sentence" default="comment" foreColor="ff{{code.doc.default.hex_stripped}}"/>
+    <fontcolor name="javadoc-identifier" default="comment" foreColor="ff{{code.doc.default.hex_stripped}}"/>
+    <fontcolor name="javadoc-tag" default="comment" foreColor="ff{{code.annotation.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="keyword" default="keyword"/>
     <fontcolor name="keyword-directive" default="keyword"/>
-    <fontcolor name="literal" default="keyword"/>
+    <fontcolor name="literal" default="keyword" foreColor="ff{{code.constant.default.hex_stripped}}"/>
     <fontcolor name="mod-abstract"/>
-    <fontcolor name="mod-annotation-type" default="identifier" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
-    <fontcolor name="mod-annotation-type-declaration" default="identifier" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
-    <fontcolor name="mod-class" default="identifier"/>
-    <fontcolor name="mod-class-declaration" default="identifier" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
+    <fontcolor name="mod-annotation-type" default="identifier" foreColor="ff{{code.annotation.default.hex_stripped}}"/>
+    <fontcolor name="mod-annotation-type-declaration" default="identifier" foreColor="ff{{code.annotation.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="mod-class" default="identifier" foreColor="ff{{code.type.default.hex_stripped}}">
+        <font style="{{code_style_nb.type}}"/>
+    </fontcolor>
+    <fontcolor name="mod-class-declaration" default="identifier" foreColor="ff{{code.type.default.hex_stripped}}">
+        <font style="{{code_style_nb.type}}"/>
+    </fontcolor>
     <fontcolor name="mod-constructor" default="identifier"/>
-    <fontcolor name="mod-constructor-declaration" default="identifier"/>
+    <fontcolor name="mod-constructor-declaration" default="identifier">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="mod-deprecated" strikeThrough="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
-    <fontcolor name="mod-enum" default="identifier"/>
-    <fontcolor name="mod-enum-declaration" default="identifier" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
+    <fontcolor name="mod-enum" default="identifier" foreColor="ff{{code.type.default.hex_stripped}}">
+        <font style="{{code_style_nb.type}}"/>
+    </fontcolor>
+    <fontcolor name="mod-enum-declaration" default="identifier" foreColor="ff{{code.type.default.hex_stripped}}">
+        <font style="{{code_style_nb.type}}"/>
+    </fontcolor>
     <fontcolor name="mod-field" default="field"/>
     <fontcolor name="mod-field-declaration" default="field"/>
-    <fontcolor name="mod-interface" default="identifier"/>
-    <fontcolor name="mod-interface-declaration" default="identifier" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
-    <fontcolor name="mod-local-variable" default="identifier"/>
-    <fontcolor name="mod-local-variable-declaration" default="identifier"/>
+    <fontcolor name="mod-interface" default="identifier" foreColor="ff{{code.type.default.hex_stripped}}">
+        <font style="{{code_style_nb.type}}"/>
+    </fontcolor>
+    <fontcolor name="mod-interface-declaration" default="identifier" foreColor="ff{{code.type.default.hex_stripped}}">
+        <font style="{{code_style_nb.type}}"/>
+    </fontcolor>
+    <fontcolor name="mod-local-variable" default="identifier" foreColor="ff{{code.variable.default.hex_stripped}}"/>
+    <fontcolor name="mod-local-variable-declaration" default="identifier" foreColor="ff{{code.variable.default.hex_stripped}}"/>
     <fontcolor name="mod-method" default="method"/>
-    <fontcolor name="mod-method-declaration" default="method" foreColor="ff{{colors.secondary.default.hex_stripped}}"/>
+    <fontcolor name="mod-method-declaration" default="method" foreColor="ff{{code.function.default.hex_stripped}}"/>
     <fontcolor name="mod-package-private"/>
-    <fontcolor name="mod-parameter" default="identifier" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
-    <fontcolor name="mod-parameter-declaration" default="identifier" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
+    <fontcolor name="mod-parameter" default="identifier" foreColor="ff{{code.parameter.default.hex_stripped}}"/>
+    <fontcolor name="mod-parameter-declaration" default="identifier" foreColor="ff{{code.parameter.default.hex_stripped}}"/>
     <fontcolor name="mod-private"/>
     <fontcolor name="mod-protected"/>
     <fontcolor name="mod-public"/>
-    <fontcolor name="mod-record-declaration" default="identifier" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
-    <fontcolor name="mod-static"/>
-    <fontcolor name="mod-unused" foreColor="ff{{colors.outline.default.hex_stripped}}" waveUnderlined="ff{{colors.outline.default.hex_stripped}}"/>
+    <fontcolor name="mod-record-declaration" default="identifier" foreColor="ff{{code.type.default.hex_stripped}}">
+        <font style="{{code_style_nb.type}}"/>
+    </fontcolor>
+    <fontcolor name="mod-static">
+        <font style="italic"/>
+    </fontcolor>
+    <fontcolor name="mod-unused" foreColor="ff{{code.comment.default.hex_stripped}}" waveUnderlined="ff{{colors.outline.default.hex_stripped}}">
+        <font style="{{code_style_nb.comment}}"/>
+    </fontcolor>
     <fontcolor name="number" default="number"/>
     <fontcolor name="operator" default="operator"/>
     <fontcolor name="separator" default="separator"/>
     <fontcolor name="string" default="string"/>
-    <fontcolor name="string-escape" default="string" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
+    <fontcolor name="string-escape" default="string" foreColor="ff{{code.escape.default.hex_stripped}}"/>
     <fontcolor name="string-escape-invalid" default="string" waveUnderlined="ff{{status.error.default.hex_stripped}}"/>
     <fontcolor name="whitespace" default="whitespace"/>
 </fontscolors>
@@ -431,19 +507,27 @@
 <fontscolors>
     <fontcolor name="COMMENT" default="comment"/>
     <fontcolor name="comment-line" default="comment"/>
-    <fontcolor name="COMMENT_HTML" default="comment" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
-    <fontcolor name="COMMENT_KEYWORD" default="comment"/>
+    <fontcolor name="COMMENT_HTML" default="comment" foreColor="ff{{code.doc.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="COMMENT_KEYWORD" default="comment">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="constant" default="number"/>
     <fontcolor name="error" default="error"/>
     <fontcolor name="identifier" default="identifier"/>
     <fontcolor name="keyword" default="keyword"/>
-    <fontcolor name="mod-class" foreColor="ff{{colors.on_surface.default.hex_stripped}}"/>
+    <fontcolor name="mod-class" foreColor="ff{{code.variable.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="mod-field" default="field"/>
-    <fontcolor name="mod-global" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
+    <fontcolor name="mod-global" foreColor="ff{{code.constant.default.hex_stripped}}"/>
     <fontcolor name="mod-local-variable" default="identifier"/>
     <fontcolor name="mod-local-variable-declaration" default="identifier"/>
-    <fontcolor name="mod-method" foreColor="ff{{colors.on_surface.default.hex_stripped}}"/>
-    <fontcolor name="mod-regexp" default="regexp" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
+    <fontcolor name="mod-method" foreColor="ff{{code.variable.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="mod-regexp" default="regexp" foreColor="ff{{code.escape.default.hex_stripped}}"/>
     <fontcolor name="mod-unused" waveUnderlined="ff{{colors.outline.default.hex_stripped}}"/>
     <fontcolor name="operator" default="operator"/>
     <fontcolor name="separator" default="separator"/>
@@ -456,16 +540,26 @@
 <!-- Generado por matugen - no editar a mano, editar templates/netbeans-theme.bundle -->
 <fontscolors>
     <fontcolor name="attribute-name" default="default"/>
-    <fontcolor name="attribute-value" default="default" foreColor="ff{{status.success.default.hex_stripped}}"/>
-    <fontcolor name="comment" default="default" foreColor="ff{{colors.outline.default.hex_stripped}}"/>
-    <fontcolor name="endtag" default="default" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="error" default="default" foreColor="ff{{status.error.default.hex_stripped}}"/>
+    <fontcolor name="attribute-value" default="default" foreColor="ff{{code.string.default.hex_stripped}}"/>
+    <fontcolor name="comment" default="default" foreColor="ff{{code.comment.default.hex_stripped}}">
+        <font style="{{code_style_nb.comment}}"/>
+    </fontcolor>
+    <fontcolor name="endtag" default="default" foreColor="ff{{code.tag.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="error" default="default" foreColor="ff{{status.error.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="expression-language" default="default" bgColor="ff{{colors.surface_container_low.default.hex_stripped}}"/>
-    <fontcolor name="jsp-whitespace" default="default"/>
+    <fontcolor name="jsp-whitespace" default="default">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="scriptlet" default="default" bgColor="ff{{colors.surface_container_low.default.hex_stripped}}"/>
     <fontcolor name="scriptlet-delimiter" default="default" bgColor="ff{{colors.surface_container_low.default.hex_stripped}}"/>
     <fontcolor name="symbol" default="default"/>
-    <fontcolor name="tag-directive" default="default" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="tag-directive" default="default" foreColor="ff{{code.tag.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
 </fontscolors>
 <!-- file: Editors/text/x-markdown/FontsColors/Matugen/org-netbeans-modules-editor-settings-CustomFontsColors-tokenColorings.xml -->
 <?xml version="1.0" encoding="UTF-8"?>
@@ -476,21 +570,35 @@
     <fontcolor name="anchorlink" default="link"/>
     <fontcolor name="autolink" default="link"/>
     <fontcolor name="blockquote" default="comment"/>
-    <fontcolor name="bulletlist" default="keyword" foreColor="ff{{colors.secondary.default.hex_stripped}}"/>
+    <fontcolor name="bulletlist" default="keyword" foreColor="ff{{code.function.default.hex_stripped}}"/>
     <fontcolor name="code" default="comment"/>
     <fontcolor name="definition" default="keyword"/>
     <fontcolor name="definition_list" default="keyword"/>
     <fontcolor name="definition_term" default="keyword"/>
-    <fontcolor name="emph"/>
+    <fontcolor name="emph">
+        <font style="italic"/>
+    </fontcolor>
     <fontcolor name="expimage" default="image"/>
     <fontcolor name="explink" default="link"/>
-    <fontcolor name="header" default="keyword" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="header" default="keyword" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
     <fontcolor name="header1" default="header"/>
-    <fontcolor name="header2" default="header" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="header3" default="header" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="header4" default="header" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="header5" default="header" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="header6" default="header" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="header2" default="header" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
+    <fontcolor name="header3" default="header" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
+    <fontcolor name="header4" default="header" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
+    <fontcolor name="header5" default="header" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
+    <fontcolor name="header6" default="header" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
     <fontcolor name="horizontalrule" default="separator"/>
     <fontcolor name="htmlblock" default="string"/>
     <fontcolor name="image" default="keyword"/>
@@ -498,14 +606,16 @@
     <fontcolor name="link" default="keyword"/>
     <fontcolor name="listitem" default="keyword"/>
     <fontcolor name="maillink" default="link"/>
-    <fontcolor name="orderedlist" default="keyword" foreColor="ff{{colors.secondary.default.hex_stripped}}"/>
+    <fontcolor name="orderedlist" default="keyword" foreColor="ff{{code.function.default.hex_stripped}}"/>
     <fontcolor name="plain"/>
     <fontcolor name="quoted" default="keyword"/>
     <fontcolor name="ref_image" default="image"/>
     <fontcolor name="ref_link" default="link"/>
     <fontcolor name="reference" default="keyword"/>
     <fontcolor name="strikethrough" strikeThrough="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
-    <fontcolor name="strong"/>
+    <fontcolor name="strong">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="table" default="string"/>
     <fontcolor name="verbatim" default="comment"/>
     <fontcolor name="whitespace" default="whitespace"/>
@@ -518,37 +628,51 @@
 <fontscolors>
     <fontcolor name="comment" default="comment"/>
     <fontcolor name="commentline" default="comment"/>
-    <fontcolor name="constant" default="constant"/>
+    <fontcolor name="constant" default="constant">
+        <font style="italic"/>
+    </fontcolor>
     <fontcolor name="covered" default="covered"/>
     <fontcolor name="heredocdelimiter"/>
-    <fontcolor name="htmltag" default="comment" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
+    <fontcolor name="htmltag" default="comment" foreColor="ff{{code.doc.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="identifier" default="identifier"/>
     <fontcolor name="inferred" default="inferred"/>
-    <fontcolor name="keyword" default="keyword"/>
-    <fontcolor name="mod-annotation-type" default="comment"/>
+    <fontcolor name="keyword" default="keyword">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="mod-annotation-type" default="comment">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="mod-class"/>
     <fontcolor name="mod-custom1" default="method"/>
     <fontcolor name="mod-deprecated" strikeThrough="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
     <fontcolor name="mod-field" default="field"/>
-    <fontcolor name="mod-method" default="method" foreColor="ff{{colors.secondary.default.hex_stripped}}"/>
-    <fontcolor name="mod-static"/>
+    <fontcolor name="mod-method" default="method" foreColor="ff{{code.function.default.hex_stripped}}"/>
+    <fontcolor name="mod-static">
+        <font style="italic"/>
+    </fontcolor>
     <fontcolor name="mod-unused" waveUnderlined="ff{{colors.outline.default.hex_stripped}}"/>
     <fontcolor name="number" default="number"/>
     <fontcolor name="operator" default="operator"/>
     <fontcolor name="partial" default="partial"/>
-    <fontcolor name="phpdockeyword" default="comment"/>
-    <fontcolor name="phpopenclose" default="separator" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="phpdockeyword" default="comment">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="phpopenclose" default="separator" foreColor="ff{{code.keyword.default.hex_stripped}}">
+        <font style="{{code_style_nb.keyword}}"/>
+    </fontcolor>
     <fontcolor name="separator" default="separator"/>
     <fontcolor name="string" default="string"/>
     <fontcolor name="uncovered" default="uncovered"/>
-    <fontcolor name="variable" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
+    <fontcolor name="variable" foreColor="ff{{code.variable.default.hex_stripped}}"/>
 </fontscolors>
 <!-- file: Editors/text/x-properties/FontsColors/Matugen/org-netbeans-modules-editor-settings-CustomFontsColors-tokenColorings.xml -->
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE fontscolors PUBLIC "-//NetBeans//DTD Editor Fonts and Colors settings 1.1//EN" "http://www.netbeans.org/dtds/EditorFontsColors-1_1.dtd">
 <!-- Generado por matugen - no editar a mano, editar templates/netbeans-theme.bundle -->
 <fontscolors>
-    <fontcolor name="properties-equal-sign" default="operator" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
+    <fontcolor name="properties-equal-sign" default="operator" foreColor="ff{{code.operator.default.hex_stripped}}"/>
     <fontcolor name="properties-key" default="keyword"/>
     <fontcolor name="properties-line-comment" default="comment"/>
     <fontcolor name="properties-text" default="default"/>
@@ -578,36 +702,56 @@
 <!-- Generado por matugen - no editar a mano, editar templates/netbeans-theme.bundle -->
 <fontscolors>
     <fontcolor name="attribute-name" default="default"/>
-    <fontcolor name="attribute-value" default="default" foreColor="ff{{status.success.default.hex_stripped}}"/>
-    <fontcolor name="comment" default="default" foreColor="ff{{colors.outline.default.hex_stripped}}"/>
-    <fontcolor name="endtag" default="default" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="error" default="default" foreColor="ff{{status.error.default.hex_stripped}}"/>
+    <fontcolor name="attribute-value" default="default" foreColor="ff{{code.string.default.hex_stripped}}"/>
+    <fontcolor name="comment" default="default" foreColor="ff{{code.comment.default.hex_stripped}}">
+        <font style="{{code_style_nb.comment}}"/>
+    </fontcolor>
+    <fontcolor name="endtag" default="default" foreColor="ff{{code.tag.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="error" default="default" foreColor="ff{{status.error.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="expression-language" default="default" bgColor="ff{{colors.surface_container_low.default.hex_stripped}}"/>
-    <fontcolor name="jsp-whitespace" default="default"/>
+    <fontcolor name="jsp-whitespace" default="default">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="scriptlet" default="default" bgColor="ff{{colors.surface_container_low.default.hex_stripped}}"/>
     <fontcolor name="scriptlet-delimiter" default="default" bgColor="ff{{colors.surface_container_low.default.hex_stripped}}"/>
-    <fontcolor name="symbol" default="default"/>
-    <fontcolor name="tag-directive" default="default" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="symbol" default="default">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="tag-directive" default="default" foreColor="ff{{code.tag.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
 </fontscolors>
 <!-- file: Editors/text/x-tpl/FontsColors/Matugen/org-netbeans-modules-editor-settings-CustomFontsColors-tokenColorings.xml -->
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE fontscolors PUBLIC "-//NetBeans//DTD Editor Fonts and Colors settings 1.1//EN" "http://www.netbeans.org/dtds/EditorFontsColors-1_1.dtd">
 <!-- Generado por matugen - no editar a mano, editar templates/netbeans-theme.bundle -->
 <fontscolors>
-    <fontcolor name="argument" default="smarty" foreColor="ff{{colors.secondary.default.hex_stripped}}"/>
-    <fontcolor name="argument_value" default="smarty" foreColor="ff{{status.success.default.hex_stripped}}"/>
-    <fontcolor name="comment" default="smarty" foreColor="ff{{colors.outline.default.hex_stripped}}"/>
-    <fontcolor name="config_variable" default="smarty" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
+    <fontcolor name="argument" default="smarty" foreColor="ff{{code.attribute.default.hex_stripped}}"/>
+    <fontcolor name="argument_value" default="smarty" foreColor="ff{{code.string.default.hex_stripped}}"/>
+    <fontcolor name="comment" default="smarty" foreColor="ff{{code.comment.default.hex_stripped}}">
+        <font style="{{code_style_nb.comment}}"/>
+    </fontcolor>
+    <fontcolor name="config_variable" default="smarty" foreColor="ff{{code.field.default.hex_stripped}}"/>
     <fontcolor name="error" waveUnderlined="ff{{status.error.default.hex_stripped}}"/>
     <fontcolor name="other" default="smarty"/>
-    <fontcolor name="php_variable" default="smarty" foreColor="ff{{colors.tertiary.default.hex_stripped}}"/>
-    <fontcolor name="pipe" default="smarty" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
+    <fontcolor name="php_variable" default="smarty" foreColor="ff{{code.field.default.hex_stripped}}"/>
+    <fontcolor name="pipe" default="smarty" foreColor="ff{{code.operator.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="smarty" default="default" bgColor="ff{{colors.surface_container_low.default.hex_stripped}}"/>
-    <fontcolor name="smarty_delimiter" default="smarty" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="smarty_function" default="smarty" foreColor="ff{{colors.secondary.default.hex_stripped}}"/>
-    <fontcolor name="smarty_operator" default="smarty" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
-    <fontcolor name="string" default="smarty" foreColor="ff{{status.success.default.hex_stripped}}"/>
-    <fontcolor name="variable_modifier" default="smarty" foreColor="ff{{colors.secondary.default.hex_stripped}}"/>
+    <fontcolor name="smarty_delimiter" default="smarty" foreColor="ff{{code.tag.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="smarty_function" default="smarty" foreColor="ff{{code.function.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="smarty_operator" default="smarty" foreColor="ff{{code.operator.default.hex_stripped}}"/>
+    <fontcolor name="string" default="smarty" foreColor="ff{{code.string.default.hex_stripped}}"/>
+    <fontcolor name="variable_modifier" default="smarty" foreColor="ff{{code.attribute.default.hex_stripped}}"/>
     <fontcolor name="whitespace" default="smarty"/>
 </fontscolors>
 <!-- file: Editors/text/x-yaml/FontsColors/Matugen/org-netbeans-modules-editor-settings-CustomFontsColors-tokenColorings.xml -->
@@ -616,11 +760,17 @@
 <!-- Generado por matugen - no editar a mano, editar templates/netbeans-theme.bundle -->
 <fontscolors>
     <fontcolor name="comment" default="comment"/>
-    <fontcolor name="mod-method" default="keyword"/>
-    <fontcolor name="mustache" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
-    <fontcolor name="mustache-delimiter" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
-    <fontcolor name="ruby" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
-    <fontcolor name="ruby-delimiter" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
+    <fontcolor name="mod-method" default="keyword">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="mustache" default="default" foreColor="ff{{code.escape.default.hex_stripped}}"/>
+    <fontcolor name="mustache-delimiter" default="default" foreColor="ff{{code.escape.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="ruby" default="default" foreColor="ff{{code.escape.default.hex_stripped}}"/>
+    <fontcolor name="ruby-delimiter" default="default" foreColor="ff{{code.escape.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="RUBYCOMMENT" default="comment" bgColor="ff{{colors.surface_container_low.default.hex_stripped}}"/>
     <fontcolor name="whitespace" default="whitespace"/>
 </fontscolors>
@@ -639,18 +789,18 @@
     <fontcolor name="xml-attribute" default="markup-attribute"/>
     <fontcolor name="xml-cdata-section" default="default"/>
     <fontcolor name="xml-comment" default="comment"/>
-    <fontcolor name="xml-doctype" default="default" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="xml-doctype" default="default" foreColor="ff{{code.tag.default.hex_stripped}}"/>
     <fontcolor name="xml-EOL" default="whitespace"/>
     <fontcolor name="xml-error" default="error"/>
-    <fontcolor name="xml-operator" default="operator" foreColor="ff{{colors.on_surface_variant.default.hex_stripped}}"/>
-    <fontcolor name="xml-pi-content" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
-    <fontcolor name="xml-pi-end" default="default" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
-    <fontcolor name="xml-pi-start" default="default" foreColor="ff{{colors.primary.default.hex_stripped}}"/>
+    <fontcolor name="xml-operator" default="operator" foreColor="ff{{code.operator.default.hex_stripped}}"/>
+    <fontcolor name="xml-pi-content" default="default" foreColor="ff{{code.annotation.default.hex_stripped}}"/>
+    <fontcolor name="xml-pi-end" default="default" foreColor="ff{{code.tag.default.hex_stripped}}"/>
+    <fontcolor name="xml-pi-start" default="default" foreColor="ff{{code.tag.default.hex_stripped}}"/>
     <fontcolor name="xml-pi-target" default="default"/>
     <fontcolor name="xml-ref" default="entity-reference"/>
     <fontcolor name="xml-tag" default="markup-element"/>
     <fontcolor name="xml-text" default="default"/>
-    <fontcolor name="xml-value" default="default" foreColor="ff{{status.success.default.hex_stripped}}"/>
+    <fontcolor name="xml-value" default="default" foreColor="ff{{code.string.default.hex_stripped}}"/>
     <fontcolor name="xml-ws" default="whitespace"/>
 </fontscolors>
 <!-- file: Editors/text/xml-external-parsed-entity/FontsColors/Matugen/org-netbeans-modules-editor-settings-CustomFontsColors-tokenColorings.xml -->
@@ -659,20 +809,28 @@
 <!-- Generado por matugen - no editar a mano, editar templates/netbeans-theme.bundle -->
 <fontscolors>
     <fontcolor name="xml-attribute" default="markup-attribute"/>
-    <fontcolor name="xml-cdata-section" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
+    <fontcolor name="xml-cdata-section" default="default" foreColor="ff{{code.doc.default.hex_stripped}}"/>
     <fontcolor name="xml-comment" default="comment"/>
-    <fontcolor name="xml-doctype" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
+    <fontcolor name="xml-doctype" default="default" foreColor="ff{{code.annotation.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="xml-EOL" default="whitespace"/>
     <fontcolor name="xml-error" default="error"/>
     <fontcolor name="xml-operator" default="operator"/>
-    <fontcolor name="xml-pi-content" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
-    <fontcolor name="xml-pi-end" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
-    <fontcolor name="xml-pi-start" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
-    <fontcolor name="xml-pi-target" default="default" foreColor="ff{{colors.on_secondary_container.default.hex_stripped}}"/>
+    <fontcolor name="xml-pi-content" default="default" foreColor="ff{{code.annotation.default.hex_stripped}}"/>
+    <fontcolor name="xml-pi-end" default="default" foreColor="ff{{code.annotation.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="xml-pi-start" default="default" foreColor="ff{{code.annotation.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
+    <fontcolor name="xml-pi-target" default="default" foreColor="ff{{code.annotation.default.hex_stripped}}">
+        <font style="bold"/>
+    </fontcolor>
     <fontcolor name="xml-ref" default="entity-reference"/>
     <fontcolor name="xml-tag" default="markup-element"/>
     <fontcolor name="xml-text" default="default"/>
-    <fontcolor name="xml-value" default="default" foreColor="ff{{status.success.default.hex_stripped}}"/>
+    <fontcolor name="xml-value" default="default" foreColor="ff{{code.string.default.hex_stripped}}"/>
     <fontcolor name="xml-ws" default="whitespace"/>
 </fontscolors>
 <!-- file: LookAndFeel/FlatLaf.properties -->

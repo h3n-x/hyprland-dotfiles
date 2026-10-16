@@ -333,6 +333,14 @@ con `qs -c dotshell` (autostart en `autostart.lua`). Reemplaza a Waybar del todo
   amarillo y rojo de la terminal son siempre los mismos). `palette check`
   valida el sistema de color (contrastes, colores fijos, colores literales en
   el QML, tabla semantica de las plantillas).
+- **Colores de código** (Fase 18): la sintaxis de NetBeans, Neovim y glow (y, como opción, el azul, el magenta y el
+  cian de la terminal) sale de una tercera paleta, aparte de los roles del wallpaper y de los colores de estado.
+  `palette code` toma 8 tonos de una paleta base clásica (Catppuccin, Gruvbox, Tokyo Night, Dracula, Nord, One Dark,
+  Rosé Pine: `dotshell/data/code-palettes.json`), los gira hacia el wallpaper (armonía y giro máximo), resuelve su
+  brillo para el contraste contra el fondo del editor en cada modo, los aleja de los colores de estado y entre sí, y
+  deja `~/.cache/matugen/code.json` junto con `status.json` antes de cada matugen. Configuración → Apariencia →
+  Colores de código / Roles del código: paleta, base, armonía, viveza, el color de cada rol de sintaxis, negrita o
+  cursiva para comentarios, palabras clave y tipos. Errores, avisos y diffs mantienen los colores de estado fijos.
 - **Estructura**: `shell.qml` (entry point + los `IpcHandler` de abajo),
   `modules/Bar.qml` (`PanelWindow`, una instancia por pantalla via
   `Variants` sobre `Quickshell.screens`; arma la disposicion que guarda
