@@ -203,7 +203,8 @@ def markdown(groups, lang):
     return "\n".join(lines).rstrip() + "\n"
 
 
-README = os.environ.get("KEYBINDS_README") or os.path.expanduser("~/Dotfiles/README.md")
+# El README del repo de este script (enlazado por stow), en cualquier carpeta (Fase 19 B3).
+README = os.environ.get("KEYBINDS_README") or os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", "..", "..", "README.md"))
 # Cada README con su idioma: el principal en ingles y su copia en espanol al lado.
 READMES = [(README, "en"), (os.path.join(os.path.dirname(README), "README.es.md"), "es")]
 START = "<!-- keybinds:start"

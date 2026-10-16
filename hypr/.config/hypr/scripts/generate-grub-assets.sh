@@ -38,6 +38,10 @@ OUTLINE_VARIANT_HEX="${5:?$usage}"
 WALLPAPER="${6:?$usage}"
 OUT_DIR="$HOME/.cache/matugen/grub-theme"
 mkdir -p "$OUT_DIR"
+# Lo estatico del tema (las fuentes, Fase 19 B3) tambien va al armado: la copia de root
+# (sync-grub-theme) solo lee el armado, no el repo (que puede estar en cualquier carpeta).
+REPO=$(cd "$(dirname "$(readlink -f "$0")")/../../../.." && pwd)
+cp "$REPO/grub/theme/font.pf2" "$REPO/grub/theme/font-bold.pf2" "$OUT_DIR/"
 
 # Fondo: blur fuerte + oscurecido + vignette radial, igual que Plymouth --
 # GRUB lo escala solo via "desktop-image-scale-method: stretch" en

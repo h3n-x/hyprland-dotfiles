@@ -75,6 +75,12 @@ stow_packages() {
 # con stow es esperable; el instalador los deja como estan y doctor solo lo anota.
 REWRITTEN='.config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml'
 
+# sudo_nopasswd COMANDO: 0 si una regla deja correrlo sin contrasena (o NOPASSWD: ALL). Se lee la
+# lista de reglas: "sudo -n -l COMANDO" tambien da 0 solo por tener sudo recien pedido.
+sudo_nopasswd() {
+    sudo -n -l 2>/dev/null | grep -qE "NOPASSWD:[[:space:]]*(ALL([[:space:],]|\$)|.*$1([[:space:],]|\$))"
+}
+
 # package_list GRUPO...: los paquetes de los repos de esos grupos (sin comentarios).
 package_list() {
     local g

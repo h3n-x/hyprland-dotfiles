@@ -13,7 +13,8 @@ set -euo pipefail
 REPO_DIR=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
 INSTALL_DIR="$REPO_DIR/install"
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
-DRY=false YES=false NO_AUR=false SKIP_SYSUPDATE=false FORCE=false
+DRY=false YES=false NO_AUR=false SKIP_SYSUPDATE=false FORCE=false WITH_SYSTEM=false
+SYSTEM_STEPS=()
 PROFILE='' WITH='' WITHOUT='' AUR_HELPER='' LOG=''
 export REPO_DIR INSTALL_DIR
 
@@ -33,12 +34,15 @@ $(tr_ "Commands:")
   files        $(tr_ "link the configuration (existing files are backed up first)")
   first-run    $(tr_ "first color palette, ~/.face")
   apps         $(tr_ "set up the personal apps (profile full)")
+  system [sddm|plymouth|grub|gpu]
+               $(tr_ "optional system steps (login screen, boot splash, GRUB theme, GPU); all if none given")
   doctor       $(tr_ "check this installation (changes nothing)")
   uninstall    $(tr_ "remove the links, restore the backup, optionally the packages")
 
 $(tr_ "Options:")
   -y, --yes               $(tr_ "no questions: take the default answers")
   -n, --dry-run           $(tr_ "show every command without running it")
+  --with-system           $(tr_ "install: also the system steps (with --yes, without asking)")
   --profile minimal|full  $(tr_ "minimal: the desktop; full: also dev tools and personal apps (default: full, or the last one used)")
   --with G1,G2            $(tr_ "add package groups (dev, apps)")
   --without G1,G2         $(tr_ "leave package groups out")
@@ -53,7 +57,9 @@ USAGE
 CMD=install HELP=false
 while [ $# -gt 0 ]; do
     case "$1" in
-        install|deps|services|files|first-run|apps|doctor|uninstall) CMD=$1 ;;
+        install|deps|services|files|first-run|apps|doctor|uninstall|system) CMD=$1 ;;
+        sddm|plymouth|grub|gpu) [ "$CMD" = system ] || { err "Unknown option: %1" "$1"; exit 2; }; SYSTEM_STEPS+=("$1") ;;
+        --with-system) WITH_SYSTEM=true ;;
         -y|--yes) YES=true ;;
         -n|--dry-run) DRY=true ;;
         --profile) PROFILE=${2:-}; shift ;;
@@ -88,7 +94,6 @@ exec 3>&1; DRY_FD=3   # do_ muestra los comandos en seco aunque su salida vaya a
 LOG="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/install-$(date +%Y%m%d-%H%M%S).log"
 mkdir -p "$(dirname "$LOG")"
 log_ "instalador: $CMD perfil=$PROFILE dry=$DRY yes=$YES no_aur=$NO_AUR with=$WITH without=$WITHOUT"
-SUDO_KEEPALIVE=
 trap '[ -n "$SUDO_KEEPALIVE" ] && kill "$SUDO_KEEPALIVE" 2>/dev/null; true' EXIT
 
 # run PASO...: corre los pasos en orden; el primero que falla para todo (y lo dice).
@@ -106,11 +111,12 @@ run() {
 }
 
 case "$CMD" in
-    install)   run preflight packages services files first_run apps ;;
+    install)   run preflight packages services files first_run apps system_gate ;;
     deps)      run preflight packages ;;
     services)  detect_distro; run services ;;
     files)     detect_distro; run files ;;
     first-run) detect_distro; run first_run ;;
     apps)      detect_distro; run apps ;;
     uninstall) detect_distro; run uninstall ;;
+    system)    detect_distro; run system ;;
 esac

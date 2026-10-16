@@ -31,13 +31,21 @@ Running it again only does what is missing.
 ./install.sh files                  # one step alone: deps, services, files, first-run, apps
 ./install.sh doctor                 # check an installation (changes nothing)
 ./install.sh uninstall              # remove the links, restore your backed-up files, optionally the packages it added
+./install.sh system                 # optional system steps (below); or one: system sddm|plymouth|grub|gpu
 ```
 
 Manjaro: if its Hyprland/Quickshell/matugen are older than the configuration needs, the installer stops before linking anything
 and says so. Artix: it offers to enable Arch's repositories (some packages are only there) and skips `uwsm` (it needs systemd).
 
-Not automated yet (they need sudo and differ per machine): your git identity (`git/.gitconfig`), the hybrid GPU udev rule, and
-SDDM/Plymouth/GRUB; the sections below explain them.
+**System steps** (optional, they touch root-owned files): `./install.sh system` (or `install --with-system`) offers each one
+after detecting what this machine has, and never runs with `--yes` alone. The login screen (SDDM with the `dotfiles-login`
+theme), the boot splash (Plymouth: its initramfs hook for mkinitcpio or dracut, and `quiet splash` on the kernel command line
+for a UKI, systemd-boot, GRUB, Limine or rEFInd), the GRUB theme (only if you boot with GRUB) and the GPU (udev aliases on a
+hybrid laptop, NVIDIA modesetting). Each one installs a root-owned copy of its `sync-*-theme` script and a sudoers rule limited
+to it (checked with `visudo`), so a wallpaper change can update it without a password. A boot file it edits is copied to
+`<file>.dotfiles-orig` the first time. `./install.sh doctor` says when a root copy is out of date.
+
+Not automated: your git identity (`git/.gitconfig` has the author's: edit it, then `stow git`).
 
 ## Stack
 
@@ -78,33 +86,20 @@ SDDM/Plymouth/GRUB; the sections below explain them.
 | Terminal | kitty |
 | File manager | Thunar |
 
-## 1. Install the packages
+## 1. Packages
+
+`./install.sh deps` installs them (the profile's groups, then the version check). The lists are data, one package per line with
+a comment saying who uses it, in `install/packages/`: `core.txt` (the desktop), `shell-tools.txt`, `fonts-themes.txt`, and for
+the `full` profile `dev.txt` and `apps.txt` (Spotify, NetBeans, the JDKs); `aur.txt` holds the AUR ones with the
+repository alternative `--no-aur` uses. By hand:
 
 ```bash
-sudo pacman -S --needed satty cliphist wl-clip-persist \
-  hyprpolkitagent hyprshutdown hyprsunset hyprpicker hyprpaper hyprlock hypridle \
-  qt5ct qt6ct nwg-look papirus-icon-theme ttf-jetbrains-mono-nerd noto-fonts-emoji python-pillow python-gobject xdg-desktop-portal-gtk wtype \
-  gvfs tumbler thunar network-manager-applet blueman pavucontrol brightnessctl \
-  jq btop wireplumber pipewire-pulse pipewire-alsa stow gnome-themes-extra wf-recorder mpv loupe \
-  matugen quickshell bluez-utils fzf zsh starship zoxide eza bat ttf-nerd-fonts-symbols-mono ttf-material-symbols-variable \
-  yazi tdf fd imagemagick 7zip resvg cava fastfetch pacman-contrib \
-  dust duf procs tealdeer glow xh zellij plymouth \
-  neovim nodejs npm ripgrep tree-sitter-cli spotify-launcher \
-  jdk21-openjdk jdk25-openjdk
-
-yay -S --needed bibata-cursor-theme-bin papirus-folders spicetify-bin
-# Design-system fonts: Plus Jakarta Sans (interface) and Maple Mono NF
-# (code/terminal, with Nerd Font glyphs)
-yay -S --needed ttf-plus-jakarta-sans maplemono-nf
-
-# papirus-folders needs a LOCAL copy of the theme so it doesn't ask for sudo
-# on every wallpaper change (matugen calls it automatically, without a terminal).
-# Papirus-Dark and Papirus-Light (the light mode one) are mostly relative
-# symlinks to the base "Papirus" theme (e.g. 48x48 -> ../Papirus/48x48), so
-# all three have to be copied:
-mkdir -p ~/.local/share/icons
-cp -r /usr/share/icons/Papirus /usr/share/icons/Papirus-Dark /usr/share/icons/Papirus-Light ~/.local/share/icons/
+sudo pacman -S --needed $(grep -hvE '^\s*(#|$)' install/packages/{core,shell-tools,fonts-themes}.txt | awk '{print $1}')
+yay -S --needed $(grep -vE '^\s*(#|$)' install/packages/aur.txt | awk '{print $1}')
 ```
+
+papirus-folders recolors the folder icons on every wallpaper change without sudo, so it needs a local copy of Papirus,
+Papirus-Dark and Papirus-Light in `~/.local/share/icons` (`./install.sh files` makes it).
 
 `pipewire`/`wireplumber` are critical: without them neither audio (`wpctl`)
 nor screen sharing work. If you had `pipewire-media-session`, uninstall it (it conflicts).
@@ -123,34 +118,15 @@ alone none. The aliases have no `:` in the name and come from the udev rule
 (needed because `AQ_DRM_DEVICES` separates the list with `:`, and the paths
 `/dev/dri/by-path/pci-0000:XX:00.0-card` already have `:` in their own name,
 which breaks Aquamarine's parsing and makes Hyprland crash with
-`CBackend::create() failed!`). Install it like this on a new machine:
+`CBackend::create() failed!`). On a hybrid laptop `./install.sh system gpu` does the whole setup:
 
-```bash
-sudo tee /etc/udev/rules.d/71-gpu-drm-aliases.rules <<'EOF'
-SUBSYSTEM=="drm", KERNEL=="card[0-9]*", ENV{ID_PATH}=="pci-0000:06:00.0", SYMLINK+="dri/gpu-amd"
-SUBSYSTEM=="drm", KERNEL=="card[0-9]*", ENV{ID_PATH}=="pci-0000:01:00.0", SYMLINK+="dri/gpu-nvidia"
-EOF
-sudo udevadm control --reload && sudo udevadm trigger --subsystem-match=drm
-```
+- writes that rule from your machine's real PCI addresses, reloads udev and rewrites `hypr-gpu.lua` (now with `AQ_DRM_DEVICES`);
+- turns on NVIDIA modesetting (`options nvidia_drm modeset=1`) if the driver doesn't already;
+- enables `nvidia-suspend`/`-hibernate`/`-resume` (systemd).
 
-(adjust the PCI addresses `pci-0000:06:00.0` / `pci-0000:01:00.0` if the AMD
-and the NVIDIA are on another bus on your machine; check it with
-`udevadm info -q property -n /dev/dri/card0 | grep ID_PATH` for each card).
-
-For NVIDIA modesetting to work well (occasional offload, suspend/resume,
-VA-API) it still has to be enabled:
-
-```bash
-echo "options nvidia_drm modeset=1" | sudo tee /etc/modprobe.d/nvidia.conf
-
-# optional but recommended: load amdgpu before nvidia in the initramfs
-# to avoid ~1 min hangs in Electron apps at boot.
-# Edit /etc/mkinitcpio.conf and leave the MODULES line like this:
-#   MODULES=(amdgpu nvidia nvidia_modeset nvidia_uvm nvidia_drm)
-sudo mkinitcpio -P
-
-sudo systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service
-```
+It takes effect at the next boot. Optional and not automated: loading the iGPU driver before NVIDIA's in the initramfs
+(`MODULES=(amdgpu nvidia nvidia_modeset nvidia_uvm nvidia_drm)` in `/etc/mkinitcpio.conf`, then `sudo mkinitcpio -P`) avoids
+~1 min hangs in Electron apps at boot on some laptops.
 
 To run something on the NVIDIA (games, Blender, etc.):
 
@@ -174,10 +150,14 @@ reinstall; to confirm before rebooting: `uname -r` (running kernel) vs
 
 ## 3. Apply the config with Stow
 
+`./install.sh files` links every package folder of the repo with stow (except `git`, `sddm`, `grub`, `plymouth` and
+`install`). Any file of yours in the way, like the `hyprland.lua` Hyprland autogenerates, is moved first to
+`~/.local/state/dotfiles/backup-<date>/`. By hand:
+
 ```bash
 cd ~/Dotfiles
-mv ~/.config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua.bak  # backup of the autogenerated one
-stow hypr quickshell kitty gtk-3.0 gtk-4.0 zsh bat yazi nvim btop thunar matugen spicetify fastfetch git
+stow -n -v hypr quickshell kitty gtk-3.0 gtk-4.0 zsh bat yazi nvim btop thunar matugen spicetify fastfetch   # see what clashes first
+stow hypr quickshell kitty gtk-3.0 gtk-4.0 zsh bat yazi nvim btop thunar matugen spicetify fastfetch
 ```
 
 Quickshell (see the Quickshell section below -- bar, notifications AND
@@ -199,12 +179,9 @@ theme, which delegates color to the 16 ANSI colors kitty already defines.
 `~/.config/starship.toml` is 100% generated by matugen (it isn't
 tracked in the repo, only the template in
 `matugen/.config/matugen/templates/starship.toml`). After `stow` it has to
-be generated once by hand, otherwise those apps' `@import`/`include`/`source`/`require`/
-`color_scheme_path` point to files that don't exist yet:
-
-```bash
-matugen image ~/Pictures/Wallpapers/imagen_161.png
-```
+be generated once, otherwise those apps' `@import`/`include`/`source`/`require`/
+`color_scheme_path` point to files that don't exist yet. `./install.sh first-run` does it (from the first image in
+`~/Pictures/Wallpapers`, or a gradient if there's none), and the installer runs it.
 
 To change the wallpaper (and recolor everything together) use `SUPER+SHIFT+W`: the
 Quickshell gallery (search, tags, favorites, recent, preview with `Space`,
@@ -229,11 +206,7 @@ pass, a minute later), and wallpaper changes no longer overwrite it
 
 Shell: zsh (with [zinit](https://github.com/zdharma-continuum/zinit) for
 plugins -- it clones itself the first time you open a terminal, no need
-to install it by hand). To make it the default shell:
-
-```bash
-chsh -s /usr/bin/zsh
-```
+to install it by hand). The installer offers to make it your login shell (`chsh -s /usr/bin/zsh`).
 
 Neovim: a modular config in `nvim/.config/nvim/lua/` (lazy.nvim + mason/LSP +
 treesitter + telescope + blink.cmp + gitsigns + lualine/which-key +
@@ -862,31 +835,13 @@ the avatar and `I18n.qml`: your language with only the greeter's texts) and the 
 links): SDDM runs as the `sddm` user and can't read your home. Changing the language schedules the system pass, so the
 greeter follows it a minute later.
 
-Setup (once, with sudo):
+Setup: `./install.sh system sddm`. It installs SDDM, the root-owned copy `/usr/local/bin/sync-sddm-theme` (the sudoers rule
+points to that copy, never to the repo's script, which you can edit: otherwise NOPASSWD would amount to unrestricted sudo) and
+its sudoers rule, builds and installs the theme, writes `/etc/sddm.conf.d/theme.conf` (`Current=dotfiles-login`) and makes SDDM
+the login manager from the next boot (asking before replacing another one; it is never started in your open session).
 
-```bash
-# Root-owned copy of the script (the sudoers rule does NOT point to this repo's one, which
-# you can edit -- otherwise NOPASSWD would be equivalent to unrestricted sudo)
-sudo install -m 755 -o root -g root \
-  hypr/.config/hypr/scripts/sync-sddm-theme.sh /usr/local/bin/sync-sddm-theme
-
-# Sudoers rule, limited to THAT specific script -- validate with visudo before
-# installing any sudoers change, a mistake there breaks sudo entirely:
-echo 'h3n ALL=(root) NOPASSWD: /usr/local/bin/sync-sddm-theme' > /tmp/matugen-sddm-sudoers
-visudo -c -f /tmp/matugen-sddm-sudoers && \
-  sudo install -m 440 -o root -g root /tmp/matugen-sddm-sudoers /etc/sudoers.d/matugen-sddm
-rm /tmp/matugen-sddm-sudoers
-
-# Builds and installs the theme for the first time and activates it
-~/.config/hypr/scripts/sddm-theme-stage
-sudo /usr/local/bin/sync-sddm-theme
-sudo mkdir -p /etc/sddm.conf.d
-printf '[Theme]\nCurrent=dotfiles-login\n' | sudo tee /etc/sddm.conf.d/theme.conf
-```
-
-If you edit `sync-sddm-theme.sh`, repeat the first `install` for
-the change to apply (the copy in `/usr/local/bin` is the one that actually
-runs, not the repo's). To try the theme without logging out:
+If you edit `sync-sddm-theme.sh`, run it again: the copy in `/usr/local/bin` is the one that actually runs (`doctor` tells you
+when it differs). To try the theme without logging out:
 `sddm-greeter-qt6 --test-mode --theme ~/.cache/matugen/sddm-login` (QML
 errors go to the journal: `journalctl --user -e`).
 
@@ -995,103 +950,29 @@ sudo, runs as a `post_hook` on every wallpaper change):
   delay the quit to animate it, and this machine's boot is already
   too fast for it to be worth the risk).
 
-Same reason and pattern as SDDM: Plymouth runs inside the **initramfs**
-(before the real disk is mounted), it can't read `~/.config` live,
-so it needs: 1) a setup step with sudo (once), and 2) every
-wallpaper change to rebuild the initramfs (`mkinitcpio -P`, done by
-`plymouth-set-default-theme -R`) instead of just copying a CSS. The
-`plymouth` template's `post_hook` in `config.toml` already triggers all of that
-by itself, in the background, through the same `sudo -n` mechanism to a specific script
-as SDDM (not unrestricted sudo -- see the comment right there):
+Same reason and pattern as SDDM: Plymouth runs inside the **initramfs** (before the real disk is mounted) and can't read
+`~/.config` live, so every wallpaper change rebuilds the initramfs through the root-owned copy `sync-plymouth-theme` (run with
+`sudo -n` from the system pass, never unrestricted sudo). It rebuilds with whatever the system uses (mkinitcpio, dracut), and
+if the firmware boots `EFI/BOOT/BOOTX64.EFI` as a copy of a UKI, it copies the new UKI there too (atomically: a failed copy, for
+example on a full ESP, leaves the old one intact).
 
-```bash
-# Root-owned copy of the script (same reason as sync-sddm-theme: the
-# sudoers rule does NOT point to this repo's one, which you can edit)
-sudo install -m 755 -o root -g root \
-  hypr/.config/hypr/scripts/sync-plymouth-theme.sh /usr/local/bin/sync-plymouth-theme
+Setup: `./install.sh system plymouth`. It detects the initramfs generator and the boot loader, then:
 
-# Sudoers rule, limited to THAT specific script -- validate with visudo before
-# installing any sudoers change, a mistake there breaks sudo entirely:
-echo 'h3n ALL=(root) NOPASSWD: /usr/local/bin/sync-plymouth-theme' > /tmp/matugen-plymouth-sudoers
-visudo -c -f /tmp/matugen-plymouth-sudoers && \
-  sudo install -m 440 -o root -g root /tmp/matugen-plymouth-sudoers /etc/sudoers.d/matugen-plymouth
-rm /tmp/matugen-plymouth-sudoers
+- installs Plymouth, the root copy and its sudoers rule;
+- adds the `plymouth` hook: after `systemd` or `udev` in `HOOKS` (mkinitcpio; in the file that defines it last, so a
+  `mkinitcpio.conf.d/` drop-in wins), or `/etc/dracut.conf.d/dotfiles-plymouth.conf` (dracut). booster has no Plymouth support;
+- adds `quiet splash` where the kernel command line really comes from: `/etc/kernel/cmdline` with a UKI or systemd-boot
+  (mkinitcpio and kernel-install read it), otherwise the systemd-boot entries, `GRUB_CMDLINE_LINUX_DEFAULT` (then
+  `grub-mkconfig`), `/etc/default/limine` (CachyOS) or `limine.conf`, or `refind_linux.conf`;
+- installs the theme and rebuilds the initramfs.
 
-# Generates the theme for the first time, copies it to /usr/share and sets it as
-# default (plymouth-set-default-theme -R rebuilds the initramfs by itself,
-# but it still does nothing visible without the mkinitcpio step below)
-sudo /usr/local/bin/sync-plymouth-theme
+Each boot file it edits is copied to `<file>.dotfiles-orig` the first time. Safety net if the next boot misbehaves: in GRUB or
+systemd-boot, `e` on the entry edits the command line for that boot only; from a live USB, put the `.dotfiles-orig` copy back.
+If you edit `sync-plymouth-theme.sh`, run it again (`doctor` tells you when the copy differs).
 
-# mkinitcpio hook: "plymouth" goes right after "udev", before
-# "autodetect" (classic busybox/HOOKS format, not systemd) -- edit
-# /etc/mkinitcpio.conf by hand:
-#   HOOKS=(base udev plymouth autodetect microcode modconf kms keyboard keymap consolefont block filesystems fsck)
-
-# IMPORTANT: this machine boots with a UKI (Unified Kernel Image,
-# /boot/EFI/Linux/arch-linux-zen.efi, see the preset in
-# /etc/mkinitcpio.d/linux-zen.preset) generated directly by mkinitcpio, NOT
-# with the separate vmlinuz+initramfs+GRUB_CMDLINE_LINUX_DEFAULT scheme.
-# `bootctl status` confirms the cmdline actually used at each boot
-# comes from /etc/kernel/cmdline (NOT from /etc/default/grub -- grub.cfg on this
-# machine doesn't even have a real entry to boot linux-zen). For
-# "splash" the right file to edit is that one:
-#   sudoedit /etc/kernel/cmdline
-#   # add " quiet splash" at the end of the existing line
-
-sudo mkinitcpio -P
-```
-
-If your machine DOES boot through the classic GRUB scheme (check with `bootctl
-status`: if the cmdline shown in "Default Boot Loader Entry" doesn't match
-`/etc/kernel/cmdline`, that's your case), the cmdline step is in
-`/etc/default/grub` (`GRUB_CMDLINE_LINUX_DEFAULT`) followed by `sudo
-grub-mkconfig -o /boot/grub/grub.cfg`, and the safety net is the
-classic one: in the GRUB menu press `e` on the entry and edit the
-cmdline on the fly.
-
-If you edit `sync-plymouth-theme.sh` or `generate-plymouth-assets.sh`,
-repeat the first `install` (same reason as SDDM).
-
-#### This machine's real boot: UEFI fallback instead of GRUB
-
-On this particular machine, the GRUB and Limine NVRAM entries ended up
-pointing to `.efi` files that no longer exist (`efibootmgr -v` lists them,
-but `/boot/EFI/GRUB/` and `/boot/EFI/limine/` aren't there) -- the firmware
-tries each one in `BootOrder`, all fail, and it ends up falling back to the
-generic fallback path the UEFI spec requires when an entry has no
-explicit file: `/boot/EFI/BOOT/BOOTX64.EFI`. That turned out to be a
-standalone GRUB binary with its config **embedded and frozen** since
-it was generated -- it never sees the changes we make in `/etc/kernel/cmdline`
-or `mkinitcpio.conf`. Confirm it with:
-
-```bash
-efibootmgr -v   # BootCurrent: <n> -- if that entry has no explicit \path\file.efi,
-                # your firmware is also falling back
-```
-
-The fix applied there was taking GRUB out of the equation: a UKI is
-a valid EFI executable on its own, so `BOOTX64.EFI` is
-simply a copy of `arch-linux-zen.efi`. `sync-plymouth-theme.sh`
-keeps that copy up to date by itself (via a `cp` to a temporary file + an atomic `mv`,
-so if something fails halfway -- for example the ESP out of space
--- `BOOTX64.EFI` stays intact instead of corrupted), **if the file already
-exists** (a guard meant not to touch machines that boot through a normal NVRAM
-entry, where this path isn't used).
-
-**Mind the ESP size**: on this machine it's only 1GB, and each
-UKI weighs ~280MB. With `arch-linux-zen.efi` + `BOOTX64.EFI` ~560MB are already
-used -- avoid keeping manual backups of the full UKI there (it happened to us:
-`cp` ran out of space halfway and we truncated `BOOTX64.EFI`, it had
-to be recovered). As a light emergency net it's enough to keep the
-original standalone GRUB (160KB, it boots Arch without Plymouth but it boots):
-
-```bash
-sudo cp /boot/EFI/BOOT/BOOTX64.EFI /boot/EFI/BOOT/BOOTX64.EFI.grub-backup
-```
-
-If something goes wrong after that, most UEFI firmwares let you
-boot a specific `.efi` from their own boot menu (F9/F11/Esc at
-power-on, "Boot from file"), without needing a live USB.
+**Mind the ESP size** with UKIs: each one weighs a few hundred MB, and a `BOOTX64.EFI` copy doubles that; avoid keeping manual
+backups of a full UKI on a small ESP. Most firmwares can also boot a specific `.efi` from their own boot menu (F9/F11/Esc at
+power-on, "Boot from file"), without a live USB.
 
 ### GRUB (boot menu)
 
@@ -1101,8 +982,9 @@ a rounded "pill" selection highlight, Plus Jakarta
 Sans type -- the rice's interface font) generated by matugen, same
 pattern as SDDM/Plymouth: `matugen/.config/matugen/templates/grub-theme.txt`
 (template) + `hypr/.config/hypr/scripts/generate-grub-assets.sh`
-(ImageMagick, no sudo; it also fills in the hostname and the footer text in your language) + `hypr/.config/hypr/scripts/sync-grub-theme.sh`
-(root, copies to `/boot/grub/themes/` and runs `grub-mkconfig`). The fonts
+(ImageMagick, no sudo; it also fills in the hostname and the footer text in your language, and copies the fonts next to the
+images) + `hypr/.config/hypr/scripts/sync-grub-theme.sh` (root, copies that folder to `/boot/grub/themes/` and runs
+`grub-mkconfig`; it never reads the repo). The fonts
 (`grub/theme/font.pf2` and `font-bold.pf2`) are static -- generated ONCE
 with `grub-mkfont` from Plus Jakarta Sans, with their own
 name (`--name`) so as not to depend on which font GRUB ships with by
@@ -1119,21 +1001,13 @@ grub-mkfont -o grub/theme/font-bold.pf2 -s 28 --name "DotfilesSansSemiBold" \
 (`grub-mkconfig` detects and loads by itself the `.pf2` files it finds in the
 theme folder -- no manual `loadfont` needed.)
 
-**This machine's real boot (important, grounded in the Wiki):**
-GRUB was installed (`/boot/grub/x86_64-efi/` complete) but without a
-live NVRAM entry or a real `grub.cfg` -- someone deleted it in an earlier bootloader
-migration (see Plymouth's "This machine's real boot" section
-above, same finding). Restored with:
+Setup: `./install.sh system grub` (only offered when the system boots with GRUB). It installs the root copy
+`sync-grub-theme` and its sudoers rule, then the theme: it copies it to `/boot/grub/themes/`, sets `GRUB_THEME` in
+`/etc/default/grub` and runs `grub-mkconfig`. Installing GRUB itself (`grub-install`) is left to you: it depends on your ESP and
+firmware.
 
-```bash
-sudo grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
-```
-
-The real boot entry is a direct `chainloader` to the UKI (NOT the
-`linux`/`initrd` commands, which would rebuild the cmdline with
-`GRUB_CMDLINE_LINUX_DEFAULT` and lose the embedded `quiet splash`) --
-the same pattern the Wiki documents for chainloading Windows'
-`bootmgfw.efi`. In `/etc/grub.d/40_custom`:
+**Booting a UKI from GRUB** (optional): a `chainloader` entry boots the UKI with the command line embedded in it (the
+`linux`/`initrd` commands would rebuild it from `GRUB_CMDLINE_LINUX_DEFAULT`). In `/etc/grub.d/40_custom`:
 
 ```
 menuentry "Arch Linux" --class arch --class gnu-linux --class gnu --class os {
@@ -1145,24 +1019,7 @@ menuentry "Arch Linux" --class arch --class gnu-linux --class gnu --class os {
 }
 ```
 
-`GRUB_DEFAULT="Arch Linux"` in `/etc/default/grub` (by name, not by
-index `0` -- the "UEFI Firmware Settings" entry `grub-mkconfig` adds
-can end up earlier in the file). `os-prober` isn't
-installed on purpose (no dual boot on this machine).
-
-Theme setup (same sudoers pattern as SDDM/Plymouth):
-
-```bash
-sudo install -m 755 -o root -g root \
-  hypr/.config/hypr/scripts/sync-grub-theme.sh /usr/local/bin/sync-grub-theme
-
-echo 'h3n ALL=(root) NOPASSWD: /usr/local/bin/sync-grub-theme' > /tmp/matugen-grub-sudoers
-visudo -c -f /tmp/matugen-grub-sudoers && \
-  sudo install -m 440 -o root -g root /tmp/matugen-grub-sudoers /etc/sudoers.d/matugen-grub
-rm /tmp/matugen-grub-sudoers
-
-sudo /usr/local/bin/sync-grub-theme
-```
+With `GRUB_DEFAULT="Arch Linux"` in `/etc/default/grub` (by name: the "UEFI Firmware Settings" entry can come first).
 
 **Try it without risking the normal boot**: `efibootmgr --bootnext <entry-number>`
 boots through that entry ONCE only (it doesn't touch `BootOrder`), ideal to
@@ -1175,8 +1032,7 @@ sudo efibootmgr --bootnext <number>
 sudo efibootmgr --bootorder <number>,<rest-of-the-order-you-already-had>
 ```
 
-If you edit `sync-grub-theme.sh` or `generate-grub-assets.sh`,
-repeat the first `install` (same reason as SDDM/Plymouth).
+If you edit `sync-grub-theme.sh`, run `./install.sh system grub` again (same reason as SDDM/Plymouth).
 
 ## 4. Log in again
 

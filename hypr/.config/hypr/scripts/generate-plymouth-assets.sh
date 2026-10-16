@@ -17,6 +17,10 @@ PRIMARY_HEX="${1:?uso: generate-plymouth-assets.sh <hex primary sin '#'> <path w
 WALLPAPER="${2:?uso: generate-plymouth-assets.sh <hex primary sin '#'> <path wallpaper>}"
 OUT_DIR="$HOME/.cache/matugen/plymouth-theme"
 mkdir -p "$OUT_DIR"
+# Lo estatico del tema (la metadata .plymouth, Fase 19 B3) tambien va al armado: la copia de
+# root (sync-plymouth-theme) solo lee el armado, no el repo (que puede estar en cualquier carpeta).
+REPO=$(cd "$(dirname "$(readlink -f "$0")")/../../../.." && pwd)
+cp "$REPO/plymouth/theme/dotfiles-matugen.plymouth" "$OUT_DIR/"
 
 # Fondo: blur fuerte + oscurecido + vignette radial (multiply contra un
 # gradiente blanco-a-negro) para que el spinner y el texto se lean bien

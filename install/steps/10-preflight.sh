@@ -1,5 +1,4 @@
 # shellcheck shell=bash
-# shellcheck disable=SC2034  # SUDO_KEEPALIVE lo cierra el trap de install.sh
 # Paso 1 (Fase 19 B2): que el equipo sirva antes de tocar nada. Distribucion (Arch o derivada),
 # x86_64, no root, sudo, pacman libre, red, espacio; actualiza el sistema (sin actualizacion
 # parcial) salvo --skip-sysupdate.
@@ -20,12 +19,7 @@ step_preflight() {
     detect_init
     ok "Init system: %1" "$INIT"
 
-    # sudo una vez, y vivo mientras dure el instalador.
-    if [ "${DRY:-false}" != true ]; then
-        sudo -v || { err "sudo is needed to install packages"; return 1; }
-        ( while kill -0 "$$" 2>/dev/null; do sudo -n -v 2>/dev/null; sleep 50; done ) &
-        SUDO_KEEPALIVE=$!
-    fi
+    sudo_keepalive || return 1
     if [ -e /var/lib/pacman/db.lck ]; then
         err "pacman is busy (/var/lib/pacman/db.lck): wait for the other update to finish"; return 1
     fi

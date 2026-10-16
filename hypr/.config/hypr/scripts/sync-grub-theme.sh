@@ -17,20 +17,20 @@ set -euo pipefail
 REAL_USER="${SUDO_USER:-$USER}"
 USER_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
 STAGING="$USER_HOME/.cache/matugen/grub-theme"
-REPO_THEME="$USER_HOME/Dotfiles/grub/theme"
 DEST="/boot/grub/themes/dotfiles-matugen"
 
 # matugen todavia no genero nada (primer stow, antes de `matugen image`) -- nada que sincronizar
 [ -d "$STAGING" ] || exit 0
 [ -f "$STAGING/theme.txt" ] || exit 0
+[ -f "$STAGING/font.pf2" ] || exit 0   # armado de antes de la Fase 19 B3: el proximo lo trae
 
 mkdir -p "$DEST"
 
-# Estatico: fuentes (JetBrains Mono Nerd Font, generadas una vez con
-# grub-mkfont -- no dependen de colores, no las genera matugen). grub-mkconfig
-# las carga solo por estar en la carpeta del theme.
-cp "$REPO_THEME/font.pf2" "$DEST/"
-cp "$REPO_THEME/font-bold.pf2" "$DEST/"
+# Estatico: fuentes (Plus Jakarta Sans, generadas una vez con grub-mkfont -- no dependen de
+# colores). generate-grub-assets.sh las deja en el armado (Fase 19 B3: root no lee el repo).
+# grub-mkconfig las carga solo por estar en la carpeta del theme.
+cp "$STAGING/font.pf2" "$DEST/"
+cp "$STAGING/font-bold.pf2" "$DEST/"
 
 # theme.txt (matugen, ya con __HOSTNAME__ resuelto por
 # generate-grub-assets.sh) + todos los assets generados con ImageMagick:

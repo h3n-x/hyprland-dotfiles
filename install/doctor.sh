@@ -109,9 +109,11 @@ if ! skip root; then
     info "System copies"
     for t in sddm plymouth grub; do
         dst=/usr/local/bin/sync-$t-theme; src="$REPO_DIR/hypr/.config/hypr/scripts/sync-$t-theme.sh"
-        if [ ! -e "$dst" ]; then note "%1 isn't installed (optional system step)" "$dst"
+        if [ ! -e "$dst" ]; then note "%1 isn't installed (optional system step: %2)" "$dst" "./install.sh system $t"; continue
         elif [ "$(sha256sum < "$dst")" = "$(sha256sum < "$src")" ]; then ok "%1 matches the repository" "$dst"
-        else problem "%1 differs from the repository: reinstall it with: sudo install -m755 %2 %1" "$dst" "$src"; fi
+        else problem "%1 differs from the repository: reinstall it with: %2" "$dst" "./install.sh system $t"; fi
+        # La regla de sudoers: sin ella el cambio de wallpaper no puede actualizarlo (sudo -n falla).
+        sudo_nopasswd "$dst" || problem "%1 can't run without a password (sudoers rule missing): %2" "$dst" "./install.sh system $t"
     done
 fi
 

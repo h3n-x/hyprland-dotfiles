@@ -21,7 +21,8 @@
 # Pruebas: SDDM_STAGE (destino), SDDM_COLORS (paleta generada), DOTFILES.
 set -euo pipefail
 
-REPO=${DOTFILES:-$HOME/Dotfiles}
+# El repo: el de este script (enlazado por stow), en cualquier carpeta (Fase 19 B3).
+REPO=${DOTFILES:-$(cd "$(dirname "$(readlink -f "$0")")/../../../.." && pwd)}
 SHELL_DIR=$REPO/quickshell/.config/quickshell/dotshell
 THEME_SRC=$REPO/sddm/theme
 COLORS=${SDDM_COLORS:-$HOME/.cache/matugen/sddm-login-colors.qml}

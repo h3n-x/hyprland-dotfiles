@@ -31,6 +31,17 @@ do_() {
     "$@"
 }
 
+# sudo_keepalive: pide sudo una vez y lo mantiene vivo mientras dure el instalador (el trap de
+# install.sh cierra el proceso). En seco no hace nada.
+SUDO_KEEPALIVE=''
+sudo_keepalive() {
+    [ "${DRY:-false}" = true ] && return 0
+    [ -n "$SUDO_KEEPALIVE" ] && return 0
+    sudo -v || { err "sudo is needed for this step"; return 1; }
+    ( while kill -0 "$$" 2>/dev/null; do sudo -n -v 2>/dev/null; sleep 50; done ) &
+    SUDO_KEEPALIVE=$!
+}
+
 # ask y|n TEXTO [ARG...]: 0 = si. Con YES=true, o sin terminal, la respuesta por defecto.
 ask() {
     local def=$1 q a; shift

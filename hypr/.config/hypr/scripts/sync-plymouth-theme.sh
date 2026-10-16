@@ -17,7 +17,6 @@ set -euo pipefail
 REAL_USER="${SUDO_USER:-${USER:-$(id -un)}}"
 USER_HOME="${SYNC_PLYMOUTH_HOME:-$(getent passwd "$REAL_USER" | cut -d: -f6)}"
 STAGING="$USER_HOME/.cache/matugen/plymouth-theme"
-REPO_THEME="$USER_HOME/Dotfiles/plymouth/theme"
 # Pruebas: SYNC_PLYMOUTH_ROOT (otra raiz con boot/, etc/ y usr/), SYNC_PLYMOUTH_FAKE=1 (solo dice
 # que haria con los comandos del sistema), SYNC_PLYMOUTH_HOME (otro home).
 ROOT="${SYNC_PLYMOUTH_ROOT:-}"
@@ -27,11 +26,13 @@ DEST="$ROOT/usr/share/plymouth/themes/dotfiles-matugen"
 # matugen todavia no genero nada (primer stow, antes de `matugen image`) -- nada que sincronizar
 [ -d "$STAGING" ] || exit 0
 [ -f "$STAGING/dotfiles-matugen.script" ] || exit 0
+[ -f "$STAGING/dotfiles-matugen.plymouth" ] || exit 0   # armado de antes de la Fase 19 B3
 
 mkdir -p "$DEST"
 
-# Estatico: metadata del theme (no lleva colores, no lo genera matugen)
-cp "$REPO_THEME/dotfiles-matugen.plymouth" "$DEST/"
+# Estatico: metadata del theme (no lleva colores). generate-plymouth-assets.sh la deja en el
+# armado (Fase 19 B3: root no lee el repo, que puede estar en cualquier carpeta).
+cp "$STAGING/dotfiles-matugen.plymouth" "$DEST/"
 
 # Script + fondo + avatar + frames del spinner, generados por matugen
 # (post_hook del template plymouth.script -- ver matugen/.config/matugen/config.toml)
