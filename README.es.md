@@ -170,7 +170,8 @@ no trackeado en el repo -- igual que starship), cava (100% generado,
 `~/.config/cava/config`, tampoco trackeado -- ver seccion `### cava`
 abajo), fastfetch (via ANSI de kitty + alias generado, ver `### fastfetch`
 abajo), zellij (100% generado, ver `### zellij` abajo), glow (via
-`GLOW_STYLE`, ver `### glow` abajo), SDDM, los iconos de carpeta de
+`GLOW_STYLE`, ver `### glow` abajo), NetBeans (perfil del editor y ventana, ver
+`### NetBeans` abajo), SDDM, los iconos de carpeta de
 Papirus-Dark y los bordes de Hyprland toman su paleta de un
 wallpaper via matugen (`matugen/.config/matugen/`) en vez de tener los
 colores hardcodeados. `bat` no necesita template propio: usa el tema
@@ -293,6 +294,23 @@ de TODO el archivo, no solo esa linea) -- esta escapado en el template como
 literales en el template, matugen ni se entera -- que se decodifica de
 vuelta a llaves reales cuando glow parsea el JSON generado) para que
 matugen no intente interpretarlo como una variable propia.
+
+### NetBeans
+
+El editor y la ventana también siguen al wallpaper. Una sola plantilla
+(`matugen/.config/matugen/templates/netbeans-theme.bundle`) tiene un perfil de colores del editor
+llamado `Matugen` (todos los lenguajes a los que NetBeans 30 les da color, con los mismos colores
+de sintaxis que Neovim; errores, avisos y diffs con los colores de estado fijos) y los colores de
+la ventana de FlatLaf. Después de cada cambio de tema `hypr/.config/hypr/scripts/netbeans-theme`
+lo copia en cada carpeta de usuario de NetBeans (`~/.netbeans/<versión>`), elige el perfil y
+cambia FlatLaf entre oscuro y claro según el modo. La fuente del editor es la monoespaciada de
+las opciones (`appearance.font.mono`, la misma de kitty); el tamaño que elijas en NetBeans se
+conserva. El suavizado del texto se activa en `~/.netbeans/<versión>/etc/netbeans.conf` (un bloque `matugen` al
+final: en XWayland no hay servicio de ajustes del escritorio y Java dibuja el texto sin suavizar). Tus líneas en
+`config/LookAndFeel/FlatLaf.properties` (debajo del bloque `matugen`), un perfil de colores que
+hayas instalado tú y un look and feel que no sea FlatLaf se respetan. NetBeans abierto no relee
+nada de esto: una notificación pide reiniciarlo. Sin NetBeans el script no hace nada;
+`netbeans-theme --check` dice si cada carpeta está al día.
 
 ### Quickshell
 

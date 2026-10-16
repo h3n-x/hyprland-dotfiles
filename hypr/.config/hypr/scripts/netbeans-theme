@@ -1,0 +1,317 @@
+#!/usr/bin/env python3
+# NetBeans con los colores del wallpaper (Fase 17). Lo corre el post_hook de matugen
+# (config.toml, templates.netbeans) en segundo plano; se puede correr a mano.
+#
+#   netbeans-theme [--dry-run | --check]
+#
+# Para cada carpeta de usuario de NetBeans (~/.netbeans/<version>, o la de XDG):
+#   - parte ~/.cache/matugen/netbeans-theme.bundle (bloques "<!-- file: ruta -->", una sola plantilla
+#     para que el post_hook nunca vea la mitad de un cambio);
+#   - perfil del editor "Matugen" en config/Editors/<ruta>, con el .nbattrs que pide cada carpeta,
+#     y borra los archivos del perfil que ya no estan en la plantilla. La fuente del editor es la
+#     monoespaciada de las opciones (appearance.font.mono, la misma de kitty); el tamano, el que
+#     elijas en NetBeans (Opciones -> Fuentes y colores), se conserva;
+#   - lo elige (config/.nbattrs, currentFontColorProfile) salvo que tengas elegido un perfil
+#     tuyo instalado (otra carpeta en config/Editors/FontsColors): ese se respeta;
+#   - ventana: bloque "matugen" al principio de config/LookAndFeel/FlatLaf.properties (tus
+#     lineas debajo se conservan y mandan, porque van despues);
+#   - Look and Feel FlatLaf oscuro o claro segun el modo (theme.mode de status.json; clave laf de
+#     config/Preferences/laf.properties), solo si usas FlatLaf (otro LaF elegido por ti se respeta).
+#   - texto suavizado: bloque "matugen" al final de <userdir>/etc/netbeans.conf (el lanzador lo lee
+#     despues del suyo y como shell: el bloque solo agrega a netbeans_default_options; va al final
+#     para sumarse a lo tuyo). En XWayland no hay servicio de ajustes del escritorio y Java dibuja
+#     el texto sin suavizar: escala de grises (sin subpixel, que deja bordes de color sobre el blur);
+# NetBeans abierto no relee nada de esto (probado): se escribe igual (al salir no lo pisa, probado)
+# y avisa una vez que hay que reiniciarlo.
+# Sin carpeta de NetBeans no hace nada. Escribe solo lo que cambia (temp + rename).
+# --dry-run: dice que escribiria. --check: 0 al dia, 1 algo pendiente.
+#
+# Pruebas: NETBEANS_USERDIRS (carpetas separadas por ":"), NETBEANS_BUNDLE, NETBEANS_FONT,
+# NETBEANS_MODE (dark|light), NETBEANS_RUNNING (0|1), NOTIFY=0.
+import glob
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+
+
+# Mensajes en el idioma del usuario (Fase 15 B4): scripts/i18n, texto fuente en ingles.
+def _i18n():
+    import importlib.machinery, importlib.util
+    sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
+    loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(os.path.dirname(os.path.realpath(__file__)), "i18n"))
+    mod = importlib.util.module_from_spec(importlib.util.spec_from_loader("i18n", loader))
+    loader.exec_module(mod)
+    return mod
+T, Tn = _i18n().translator()
+
+HOME = os.path.expanduser("~")
+CACHE = os.path.join(os.environ.get("XDG_CACHE_HOME") or os.path.join(HOME, ".cache"), "matugen")
+BUNDLE = os.environ.get("NETBEANS_BUNDLE") or os.path.join(CACHE, "netbeans-theme.bundle")
+FLATLAF = "LookAndFeel/FlatLaf.properties"
+PROFILE = "Matugen"
+BEGIN, END = "# >>> matugen (netbeans-theme)", "# <<< matugen"
+TYPES = {"tokenColorings": "token", "highlights": "highlight", "annotations": "annotation"}
+LAF = {"dark": "com.formdev.flatlaf.FlatDarkLaf", "light": "com.formdev.flatlaf.FlatLightLaf"}
+LAF_MAC = {"dark": "com.formdev.flatlaf.themes.FlatMacDarkLaf", "light": "com.formdev.flatlaf.themes.FlatMacLightLaf"}
+ATTRS_HEAD = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+              '<!DOCTYPE attributes PUBLIC "-//NetBeans//DTD DefaultAttributes 1.0//EN" '
+              '"http://www.netbeans.org/dtds/attributes-1_0.dtd">\n')
+
+
+def die(msg):
+    print(f"netbeans-theme: {msg}", file=sys.stderr)
+    sys.exit(2)
+
+
+def userdirs():
+    env = os.environ.get("NETBEANS_USERDIRS")
+    if env is not None:
+        return [d for d in env.split(":") if os.path.isdir(os.path.join(d, "config"))]
+    xdg = os.environ.get("XDG_DATA_HOME") or os.path.join(HOME, ".local", "share")
+    found = glob.glob(os.path.join(HOME, ".netbeans", "[0-9]*")) + glob.glob(os.path.join(xdg, "NetBeans", "[0-9]*"))
+    return sorted(d for d in found if os.path.isdir(os.path.join(d, "config")))
+
+
+def mode():
+    m = os.environ.get("NETBEANS_MODE")
+    if not m:
+        try:
+            with open(os.path.join(CACHE, "status.json")) as f:
+                m = json.load(f)["theme"]["mode"]
+        except (OSError, ValueError, KeyError):
+            m = "dark"
+    return m if m in LAF else "dark"
+
+
+def running(ud):
+    """NetBeans deja <userdir>/lock mientras corre; con un cierre brusco queda viejo, por eso
+    tambien se mira que haya un NetBeans vivo."""
+    env = os.environ.get("NETBEANS_RUNNING")
+    if env is not None:
+        return env == "1"
+    if not os.path.exists(os.path.join(ud, "lock")):
+        return False
+    r = subprocess.run(["pgrep", "-f", "org.netbeans.Main"], stdout=subprocess.DEVNULL)
+    return r.returncode == 0
+
+
+def bundle():
+    """{ruta relativa a config/: texto}; solo el perfil Matugen y el bloque de FlatLaf."""
+    try:
+        with open(BUNDLE) as f:
+            text = f.read()
+    except OSError:
+        die(T("missing %1 (run matugen first)", BUNDLE))
+    parts = re.split(r"^<!-- file: (\S+) -->\n", text, flags=re.M)
+    files = dict(zip(parts[1::2], parts[2::2]))
+    if FLATLAF not in files or len(files) < 2:
+        die(T("%1 has no profile files", BUNDLE))
+    for path in files:
+        if path != FLATLAF and (".." in path.split("/") or not re.fullmatch(rf"Editors/(\S+/)?FontsColors/{PROFILE}/[^/]+\.xml", path)):
+            die(T("unexpected path in the profile: %1", path))
+    return files
+
+
+def mono_font():
+    """La monoespaciada de las opciones, leida por scripts/settings (nunca settings.json directo)."""
+    if "NETBEANS_FONT" in os.environ:
+        return os.environ["NETBEANS_FONT"]
+    settings = os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings")
+    r = subprocess.run([settings, "get", "appearance.font.mono"], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
+DEFAULT_RE = re.compile(r'^(    <fontcolor name="default"[^>]*?)\s*/>$', re.M)
+
+
+def with_font(text, font, installed):
+    """Agrega <font> a la entrada "default" del perfil global: familia de las opciones y el
+    tamano que ya tenga el archivo instalado (lo que elegiste en NetBeans)."""
+    if not font:
+        return text
+    m = re.search(r'<fontcolor name="default".*?<font [^>]*size="(\d+)"', installed or "", re.S)
+    size = f' size="{m.group(1)}"' if m else ""
+    name = font.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;")
+    return DEFAULT_RE.sub(lambda d: f'{d.group(1)}>\n        <font name="{name}"{size}/>\n    </fontcolor>', text, count=1)
+
+
+class Plan:
+    """Lo que hay que escribir o borrar; --dry-run y --check lo leen sin tocar nada."""
+
+    def __init__(self):
+        self.writes, self.removes, self.notes = {}, [], []
+
+    def write(self, path, text):
+        try:
+            with open(path) as f:
+                if f.read() == text:
+                    return
+        except OSError:
+            pass
+        self.writes[path] = text
+
+    def apply(self):
+        for path, text in self.writes.items():
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            tmp = f"{path}.tmp-{os.getpid()}"
+            with open(tmp, "w") as f:
+                f.write(text)
+            os.replace(tmp, path)
+        for path in self.removes:
+            os.remove(path)
+
+
+def nbattrs_for(names):
+    body = "".join(f'    <fileobject name="{n}">\n        <attr name="nbeditor-settings-ColoringType" '
+                   f'stringvalue="{TYPES[re.search(r"-(\w+)\.xml$", n).group(1)]}"/>\n    </fileobject>\n'
+                   for n in sorted(names))
+    return f'{ATTRS_HEAD}<attributes version="1.0">\n{body}</attributes>\n'
+
+
+def plan_profile(plan, cfg, files, font):
+    editors = os.path.join(cfg, "Editors")
+    folders = {}
+    for rel, text in files.items():
+        if rel == FLATLAF:
+            continue
+        rel = rel.removeprefix("Editors/")
+        path = os.path.join(editors, rel)
+        if rel.startswith(f"FontsColors/{PROFILE}/") and rel.endswith("-tokenColorings.xml"):
+            try:
+                with open(path) as f:
+                    installed = f.read()
+            except OSError:
+                installed = ""
+            text = with_font(text, font, installed)
+        plan.write(path, text)
+        folders.setdefault(os.path.dirname(rel), []).append(os.path.basename(rel))
+    for folder, names in folders.items():
+        plan.write(os.path.join(editors, folder, ".nbattrs"), nbattrs_for(names))
+    # Lenguajes que ya no estan en la plantilla: fuera (solo dentro de carpetas Matugen).
+    for d in glob.glob(os.path.join(editors, "**", "FontsColors", PROFILE), recursive=True):
+        keep = folders.get(os.path.relpath(d, editors))
+        for n in os.listdir(d):
+            if keep is None or (n not in keep and n != ".nbattrs"):
+                plan.removes.append(os.path.join(d, n))
+
+
+def plan_selection(plan, cfg):
+    path = os.path.join(cfg, ".nbattrs")
+    try:
+        root = ET.parse(path).getroot()
+    except FileNotFoundError:
+        root = ET.Element("attributes", version="1.0")
+    except ET.ParseError:
+        plan.notes.append(T("%1 can't be read; the profile isn't selected", path))
+        return
+    fo = next((e for e in root.findall("fileobject") if e.get("name") == "Editors"), None)
+    if fo is None:
+        fo = ET.SubElement(root, "fileobject", name="Editors")
+    attr = next((a for a in fo.findall("attr") if a.get("name") == "currentFontColorProfile"), None)
+    current = attr.get("stringvalue") if attr is not None else None
+    if current == PROFILE:
+        return
+    mine = os.path.join(cfg, "Editors", "FontsColors")
+    if current and os.path.isdir(os.path.join(mine, current)):
+        plan.notes.append(T("your own profile \"%1\" stays selected", current))
+        return
+    if attr is None:
+        attr = ET.SubElement(fo, "attr", name="currentFontColorProfile")
+    attr.set("stringvalue", PROFILE)
+    ET.indent(root, space="    ")
+    plan.write(path, ATTRS_HEAD + ET.tostring(root, encoding="unicode") + "\n")
+
+
+def plan_flatlaf(plan, cfg, block):
+    block = block.rstrip("\n")
+    path = os.path.join(cfg, FLATLAF)
+    try:
+        with open(path) as f:
+            old = f.read()
+    except OSError:
+        old = ""
+    # Lo tuyo es todo lo que no esta entre las marcas.
+    rest = re.sub(rf"^{re.escape(BEGIN)}\n.*?^{re.escape(END)}\n?", "", old, flags=re.M | re.S).lstrip("\n")
+    plan.write(path, f"{BEGIN}\n{block}\n{END}\n" + (f"\n{rest}" if rest else ""))
+
+
+LAUNCHER = ('# Texto suavizado en escala de grises (Fase 17): XWayland no tiene servicio de ajustes y Java\n'
+            '# no suaviza por su cuenta.\n'
+            'netbeans_default_options="${netbeans_default_options} -J-Dawt.useSystemAAFontSettings=on"')
+
+
+def plan_launcher(plan, ud):
+    path = os.path.join(ud, "etc", "netbeans.conf")
+    try:
+        with open(path) as f:
+            old = f.read()
+    except OSError:
+        old = ""
+    rest = re.sub(rf"\n?^{re.escape(BEGIN)}\n.*?^{re.escape(END)}\n?", "", old, flags=re.M | re.S).rstrip("\n")
+    plan.write(path, (f"{rest}\n\n" if rest else "") + f"{BEGIN}\n{LAUNCHER}\n{END}\n")
+
+
+def plan_laf(plan, cfg, m):
+    path = os.path.join(cfg, "Preferences", "laf.properties")   # NbPreferences.root().node("laf")
+    try:
+        with open(path) as f:
+            lines = f.read().splitlines()
+    except OSError:
+        lines = []
+    cur = next((l.split("=", 1)[1] for l in lines if l.startswith("laf=")), None)
+    if cur in LAF_MAC.values():
+        want = LAF_MAC[m]
+    elif cur is None or cur in LAF.values():
+        want = LAF[m]
+    else:
+        return   # otro Look and Feel elegido por ti: sin tocar
+    if cur == want:
+        return
+    lines = [l for l in lines if not l.startswith("laf=")] + [f"laf={want}"]
+    plan.write(path, "\n".join(sorted(lines)) + "\n")
+
+
+def main():
+    args = sys.argv[1:]
+    if args not in ([], ["--dry-run"], ["--check"]):
+        die(T("usage: netbeans-theme [--dry-run | --check]"))
+    dirs = userdirs()
+    if not dirs:
+        if args:
+            print(T("no NetBeans user folder: nothing to do"))
+        return 0
+    files, m, font = bundle(), mode(), mono_font()
+    pending = restart = False
+    for ud in dirs:
+        cfg, plan = os.path.join(ud, "config"), Plan()
+        is_running = running(ud)
+        plan_profile(plan, cfg, files, font)
+        plan_selection(plan, cfg)
+        plan_flatlaf(plan, cfg, files[FLATLAF])
+        plan_laf(plan, cfg, m)
+        plan_launcher(plan, ud)
+        changed = bool(plan.writes or plan.removes)
+        if args == ["--check"]:
+            print((T("%1: pending", ud) if changed else T("%1: up to date", ud)) + "".join(f"\n  {n}" for n in plan.notes))
+            pending |= changed
+            continue
+        for p in plan.writes:
+            print(T("would write %1", os.path.relpath(p, ud)) if args else os.path.relpath(p, ud))
+        for p in plan.removes:
+            print(T("would remove %1", os.path.relpath(p, ud)) if args else T("removed %1", os.path.relpath(p, ud)))
+        for n in plan.notes:
+            print(f"{ud}: {n}")
+        if not args:
+            plan.apply()
+            restart |= is_running and changed
+    if restart and os.environ.get("NOTIFY", "1") != "0" and shutil.which("notify-send"):
+        subprocess.run(["notify-send", "-a", "NetBeans", "-i", "netbeans", T("NetBeans colours updated"),
+                        T("Restart NetBeans to see them.")], check=False)
+    return 1 if pending else 0
+
+
+sys.exit(main())

@@ -128,3 +128,12 @@ input_path = "~/.config/matugen/templates/icon-color.txt"
 output_path = "~/.cache/matugen/icon-color"
 # En segundo plano (setsid) desde la Fase 3 B2: ~3 s, no bloquea al resto.
 post_hook = "setsid -f ~/.config/hypr/scripts/recolor-icons.sh {{colors.primary.default.hex_stripped}} >/dev/null 2>&1 || true"
+
+[templates.netbeans]
+# NetBeans (Fase 17): perfil del editor "Matugen" y colores de la ventana (FlatLaf) en un solo
+# archivo, asi el post_hook nunca ve la mitad de un cambio. scripts/netbeans-theme lo reparte en
+# cada carpeta de usuario de NetBeans (sin NetBeans no hace nada; abierto, avisa que hay que
+# reiniciarlo). En segundo plano: no frena al resto.
+input_path = "~/.config/matugen/templates/netbeans-theme.bundle"
+output_path = "~/.cache/matugen/netbeans-theme.bundle"
+post_hook = "setsid -f ~/.config/hypr/scripts/netbeans-theme >/dev/null 2>&1 || true"

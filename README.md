@@ -172,7 +172,8 @@ not tracked in the repo -- same as starship), cava (100% generated,
 `~/.config/cava/config`, not tracked either -- see the `### cava` section
 below), fastfetch (via kitty's ANSI colors + a generated alias, see `### fastfetch`
 below), zellij (100% generated, see `### zellij` below), glow (via
-`GLOW_STYLE`, see `### glow` below), SDDM, the Papirus-Dark folder icons
+`GLOW_STYLE`, see `### glow` below), NetBeans (editor profile and window, see
+`### NetBeans` below), SDDM, the Papirus-Dark folder icons
 and Hyprland's borders take their palette from a
 wallpaper via matugen (`matugen/.config/matugen/`) instead of having
 hardcoded colors. `bat` needs no template of its own: it uses the `ansi`
@@ -295,6 +296,23 @@ of the WHOLE file, not just that line) -- it's escaped in the template as
 braces in the template matugen doesn't even notice -- which decodes
 back to real braces when glow parses the generated JSON) so that
 matugen doesn't try to interpret it as one of its own variables.
+
+### NetBeans
+
+The editor and the window follow the wallpaper too. One template
+(`matugen/.config/matugen/templates/netbeans-theme.bundle`) holds an editor color profile
+called `Matugen` (every language NetBeans 30 has colors for, with the same syntax colors as
+Neovim; errors, warnings and diffs in the fixed status colors) and the FlatLaf window colors.
+After each theme change `hypr/.config/hypr/scripts/netbeans-theme` copies it into every
+NetBeans user folder (`~/.netbeans/<version>`), selects the profile and switches FlatLaf
+between dark and light with the mode. The editor font is the monospace font from the settings
+(`appearance.font.mono`, the same as kitty); the size you pick in NetBeans is kept. Text smoothing is turned on in
+`~/.netbeans/<version>/etc/netbeans.conf` (a `matugen` block at the end: under XWayland there's no desktop settings
+service and Java draws text unsmoothed). Your own lines in `config/LookAndFeel/FlatLaf.properties`
+(below the `matugen` block), a color profile you installed yourself and a non-FlatLaf look and
+feel are kept. NetBeans doesn't reload any of this while it's open: a notification asks you to
+restart it. Without NetBeans the script does nothing; `netbeans-theme --check` says whether
+every folder is up to date.
 
 ### Quickshell
 
