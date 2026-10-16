@@ -20,6 +20,10 @@ export DRY
 . "$INSTALL_DIR/lib/detect.sh"
 # shellcheck source=lib/qt.sh
 . "$INSTALL_DIR/lib/qt.sh"
+# shellcheck source=lib/pkg.sh
+. "$INSTALL_DIR/lib/pkg.sh"
+# shellcheck source=lib/services.sh
+. "$INSTALL_DIR/lib/services.sh"
 
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
 problems=0
@@ -35,13 +39,15 @@ detect_init
 if ! skip packages; then
     info "Packages"
     profile=$(cat "$STATE/install-profile" 2>/dev/null || echo full)
-    groups=(core shell-tools fonts-themes)
-    [ "$profile" = full ] && groups+=(dev apps)
+    mapfile -t groups < <(profile_groups "$profile")
     missing=()
-    while read -r p; do pacman -Qq "$p" >/dev/null 2>&1 || missing+=("$p"); done < <(package_list "${groups[@]}")
-    # AUR: el paquete o su alternativa de los repos (los grupos del perfil).
+    while read -r p; do
+        [ "$p" = uwsm ] && [ "$INIT" != systemd ] && continue   # gestor de sesion de systemd
+        pacman -Qq "$p" >/dev/null 2>&1 || missing+=("$p")
+    done < <(package_list "${groups[@]}")
+    # AUR: el paquete o su alternativa de los repos (los de los grupos del perfil).
     while read -r p g alt _; do
-        case "$g" in fonts) ;; apps) [ "$profile" = full ] || continue ;; *) continue ;; esac
+        [[ " ${groups[*]} " == *" $g "* ]] || continue
         pacman -Qq "$p" >/dev/null 2>&1 || { [ "$alt" != - ] && pacman -Qq "$alt" >/dev/null 2>&1; } || missing+=("$p")
     done < <(grep -vE '^\s*(#|$)' "$INSTALL_DIR/packages/aur.txt")
     if [ ${#missing[@]} -eq 0 ]; then ok "All packages of the %1 profile are installed" "$profile"
@@ -57,28 +63,24 @@ fi
 # ---- Servicios ----
 if ! skip services; then
     info "Services"
-    if [ "$INIT" = systemd ]; then
-        for s in NetworkManager bluetooth; do
-            if systemctl is-enabled --quiet "$s" 2>/dev/null; then ok "%1 is enabled" "$s"
-            else problem "%1 is not enabled (the shell's network/bluetooth menus need it)" "$s"; fi
-        done
-        if systemctl is-enabled --quiet power-profiles-daemon 2>/dev/null; then ok "%1 is enabled" power-profiles-daemon
-        elif systemctl is-enabled --quiet tlp 2>/dev/null; then note "tlp manages power: the power-profile menu won't change anything"
-        else problem "%1 is not enabled (power profiles, game mode)" power-profiles-daemon; fi
-        if systemctl is-enabled --quiet sddm 2>/dev/null; then ok "%1 is enabled" sddm
-        else note "SDDM is not the login manager: the dotfiles-login screen won't show (optional system step)"; fi
-    else
-        note "Init system %1: services aren't checked yet" "$INIT"
-    fi
+    [ "$INIT" = systemd ] || note "Init system %1: services checked on a best-effort basis" "$INIT"
+    for s in NetworkManager bluetooth; do
+        if svc_enabled "$s"; then ok "%1 is enabled" "$s"
+        else problem "%1 is not enabled (the shell's network/bluetooth menus need it)" "$s"; fi
+    done
+    if svc_enabled power-profiles-daemon; then ok "%1 is enabled" power-profiles-daemon
+    elif svc_enabled tlp; then note "tlp manages power: the power-profile menu won't change anything"
+    else problem "%1 is not enabled (power profiles, game mode)" power-profiles-daemon; fi
+    if svc_enabled sddm; then ok "%1 is enabled" sddm
+    else note "SDDM is not the login manager: the dotfiles-login screen won't show (optional system step)"; fi
 fi
 
 # ---- Enlaces de stow ----
 if ! skip stow; then
     info "Configuration links"
     bad=()
-    # Archivos que su app reemplaza por una copia propia (xfconfd reescribe el de Thunar): el
-    # conflicto es esperable y no rompe nada.
-    rewritten='\.config/xfce4/xfconf/xfce-perchannel-xml/thunar\.xml'
+    # REWRITTEN (lib/detect.sh): archivos que su app reescribe; el choque es esperable.
+    rewritten=$(printf '%s\n' $REWRITTEN | sed 's/\./\\./g' | paste -sd'|')
     for pkg in $(stow_packages); do
         out=$(stow -n -v -d "$REPO_DIR" -t "$HOME" "$pkg" 2>&1)
         grep -qE '^LINK:|conflict|existing target' <<<"$out" || continue

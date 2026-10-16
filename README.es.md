@@ -17,13 +17,29 @@ git clone <este-repo> ~/Dotfiles && cd ~/Dotfiles
 ./install.sh
 ```
 
-Automatiza paquetes, stow, la primera paleta de matugen y la shell por
-defecto. Al final imprime los pasos manuales que no se pueden automatizar
-a ciegas: tu identidad de git, la GPU hibrida (bus PCI distinto por
-equipo), y SDDM/Plymouth/GRUB (cada uno necesita su propio sudoers
-puntual con tu usuario, y GRUB ademas depende del bootloader/particionado
-especifico de tu equipo). Los pasos de abajo son la version
-detallada/manual de lo mismo, por si preferis ir de a uno o algo falla.
+Funciona en Arch Linux y sus derivadas (EndeavourOS, CachyOS, Manjaro, Garuda; Artix lo mejor posible): cada una se prueba en
+un contenedor. Correlo como tu usuario; pide sudo una vez. Actualiza el sistema, instala los paquetes del perfil (de los
+repositorios, y los pocos del AUR con yay o paru, ofreciendo instalar yay si no tenes ninguno), activa NetworkManager, bluetooth
+y power-profiles-daemon, enlaza la configuracion con stow (cualquier archivo tuyo que estorbe se mueve antes a
+`~/.local/state/dotfiles/backup-<fecha>/`, nunca se pisa), genera la primera paleta y deja zsh como tu shell. Correrlo otra vez
+solo hace lo que falta.
+
+```bash
+./install.sh --help                 # comandos y opciones
+./install.sh --dry-run              # muestra cada comando sin correrlo
+./install.sh --profile minimal      # solo el escritorio (full suma herramientas de desarrollo y apps personales: Spotify, NetBeans, JDKs...)
+./install.sh --yes --no-aur         # sin preguntas; alternativas de los repositorios en vez del AUR
+./install.sh files                  # un paso solo: deps, services, files, first-run, apps
+./install.sh doctor                 # revisa una instalacion (no cambia nada)
+./install.sh uninstall              # quita los enlaces, devuelve tus archivos respaldados y, si queres, los paquetes que agrego
+```
+
+Manjaro: si su Hyprland/Quickshell/matugen son mas viejos de lo que la configuracion necesita, el instalador se detiene antes de
+enlazar nada y lo dice. Artix: ofrece activar los repositorios de Arch (algunos paquetes solo estan ahi) y omite `uwsm`
+(necesita systemd).
+
+Todavia no se automatiza (necesitan sudo y cambian segun el equipo): tu identidad de git (`git/.gitconfig`), la regla udev de la
+GPU hibrida y SDDM/Plymouth/GRUB; las secciones de abajo los explican.
 
 ## Stack
 

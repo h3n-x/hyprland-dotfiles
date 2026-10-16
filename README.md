@@ -16,13 +16,28 @@ git clone <this-repo> ~/Dotfiles && cd ~/Dotfiles
 ./install.sh
 ```
 
-It automates the packages, stow, the first matugen palette and the default
-shell. At the end it prints the manual steps that can't be automated
-blindly: your git identity, the hybrid GPU (a different PCI bus on each
-machine), and SDDM/Plymouth/GRUB (each needs its own narrow sudoers rule
-with your user, and GRUB also depends on your machine's specific
-bootloader/partitioning). The steps below are the detailed/manual version
-of the same thing, in case you'd rather go one at a time or something fails.
+Works on Arch Linux and the distributions based on it (EndeavourOS, CachyOS, Manjaro, Garuda; Artix on a best-effort basis):
+each one is tested in a container. Run it as your user; it asks for sudo once. It updates the system, installs the packages
+of the profile (from the repositories, and the few AUR ones with yay or paru, offering to install yay if you have neither),
+enables NetworkManager, bluetooth and power-profiles-daemon, links the configuration with stow (any file of yours in the way is
+moved to `~/.local/state/dotfiles/backup-<date>/` first, never overwritten), generates the first palette and makes zsh your shell.
+Running it again only does what is missing.
+
+```bash
+./install.sh --help                 # commands and options
+./install.sh --dry-run              # show every command without running it
+./install.sh --profile minimal      # the desktop only (full adds dev tools and personal apps: Spotify, NetBeans, JDKs...)
+./install.sh --yes --no-aur         # no questions; repository alternatives instead of the AUR
+./install.sh files                  # one step alone: deps, services, files, first-run, apps
+./install.sh doctor                 # check an installation (changes nothing)
+./install.sh uninstall              # remove the links, restore your backed-up files, optionally the packages it added
+```
+
+Manjaro: if its Hyprland/Quickshell/matugen are older than the configuration needs, the installer stops before linking anything
+and says so. Artix: it offers to enable Arch's repositories (some packages are only there) and skips `uwsm` (it needs systemd).
+
+Not automated yet (they need sudo and differ per machine): your git identity (`git/.gitconfig`), the hybrid GPU udev rule, and
+SDDM/Plymouth/GRUB; the sections below explain them.
 
 ## Stack
 

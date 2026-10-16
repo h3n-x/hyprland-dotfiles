@@ -1,7 +1,7 @@
-# AUR (yay o paru). Formato: paquete  grupo  [alternativa de los repos sin AUR]
-ttf-plus-jakarta-sans      fonts    noto-fonts            # fuente de la interfaz (D1)
-maplemono-nf               fonts    ttf-jetbrains-mono-nerd   # fuente de codigo y terminal (D1)
-bibata-cursor-theme-bin    fonts    -                     # cursor (env.lua)
-papirus-folders            fonts    -                     # carpetas de Papirus con el color del tema
+# AUR (yay o paru). Formato: paquete  grupo (el de su .txt)  alternativa de los repos ("-" = ninguna)
+ttf-plus-jakarta-sans      fonts-themes noto-fonts            # fuente de la interfaz (D1)
+maplemono-nf               fonts-themes ttf-jetbrains-mono-nerd   # fuente de codigo y terminal (D1)
+bibata-cursor-theme-bin    fonts-themes -                     # cursor (env.lua)
+papirus-folders            fonts-themes -                     # carpetas de Papirus con el color del tema
 spicetify-bin              apps     -                     # Spotify con el tema matugen
 zen-browser-bin            apps     -                     # navegador de Super+B (binds.lua)

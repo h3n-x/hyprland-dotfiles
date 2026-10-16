@@ -158,7 +158,7 @@ SCRIPT_MARK = re.compile(r"\bN_\(\s*" + STR + r"\s*,\s*" + STR + r"\s*\)")
 SHELL_TR = re.compile(r'(?:(?i:i18n)"?\s+tr|\bi18n_tr)\s+(?:--ctx\s+"?([\w ]+?)"?\s+)?' + STR)
 SHELL_TRN = re.compile(r'(?:(?i:i18n)"?\s+trn|\bi18n_trn)\s+' + STR)
 # En el instalador (Fase 19): info/ok/warn/err/problem/note/tr_ "texto" args...
-INSTALL_MSG = re.compile(r'(?<![\w-])(?:info|ok|warn|err|problem|note|tr_)\s+' + STR)
+INSTALL_MSG = re.compile(r'(?<![\w-])(?:info|ok|warn|err|problem|note|tr_|done_|skipped|ask\s+[yn])\s+' + STR)
 # En los scripts en python: T("texto", args..., ctx="c") y Tn("singular", "plural", n, ...).
 PY_T = re.compile(r"\bT\(\s*" + STR)
 PY_CTX = re.compile(r'\bctx\s*=\s*' + STR)
@@ -271,8 +271,12 @@ def extract():
                     add((m.group(1) + SEP if m.group(1) else "") + unescape(m.group(2)), line(m))
             for m in SHELL_TRN.finditer(text):
                 add(unescape(m.group(1)), line(m), True)
-    # El instalador (Fase 19): los mensajes de info/ok/warn/err/problem/note/tr_.
-    for dp, _dn, fn in sorted(os.walk(INSTALL)) if os.path.isdir(INSTALL) else []:
+    # El instalador (Fase 19): los mensajes de info/ok/warn/err/problem/note/tr_/done_/skipped/ask,
+    # en install/ y en el install.sh de la raiz del repo (la ayuda).
+    walk = list(sorted(os.walk(INSTALL))) if os.path.isdir(INSTALL) else []
+    if os.path.isfile(os.path.join(os.path.dirname(INSTALL), "install.sh")):
+        walk.insert(0, (os.path.dirname(INSTALL), [], ["install.sh"]))
+    for dp, _dn, fn in walk:
         for f in sorted(fn):
             if not f.endswith(".sh"):
                 continue
