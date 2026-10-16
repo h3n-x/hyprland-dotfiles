@@ -78,22 +78,6 @@ return {
 							{ "filename", path = 1, file_status = true },
 						},
 						lualine_x = {
-							{
-								function()
-									local supermaven_ok, api = pcall(require, "supermaven-nvim.api")
-									if supermaven_ok and api.is_running() then
-										return "󰚩 AI"
-									end
-									return "󰚩"
-								end,
-								color = function()
-									local supermaven_ok, api = pcall(require, "supermaven-nvim.api")
-									if supermaven_ok and api.is_running() then
-										return { fg = c.base0B }
-									end
-									return { fg = c.base04 }
-								end,
-							},
 							{ "encoding" },
 							{ "fileformat" },
 							{ "filetype" },
@@ -133,7 +117,6 @@ return {
 				{ "<leader>t", group = "Terminal y Pestañas" },
 				{ "<leader>q", group = "Sesión y Salida" },
 				{ "<leader>x", group = "Diagnósticos (Trouble)" },
-				{ "<leader>a", group = "Inteligencia Artificial" },
 				{ "<leader>s", group = "División de Ventanas (Splits)" },
 				{ "<leader>h", group = "Git Hunks" },
 			},
