@@ -35,7 +35,7 @@ Scope {
     readonly property bool barShown: BarVisibility.barSeen
     readonly property int t: Tokens.frame.thickness
     readonly property int r: Tokens.frame.radius
-    readonly property color fill: Colors.surfaceLow
+    readonly property color fill: Colors.frame
 
     // Grosor de cada lado (BarVisibility.edgeSize: el mismo que usan los paneles pegados).
     function th(side: string): int {

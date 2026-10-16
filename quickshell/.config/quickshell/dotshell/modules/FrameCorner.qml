@@ -10,7 +10,7 @@ Item {
     id: c
     property string v: "top"      // "top" | "bottom": de que lado esta el borde horizontal
     property string h: "left"     // "left" | "right": de que lado esta el borde vertical
-    property color color: Colors.surfaceLow
+    property color color: Colors.frame
 
     Shape {
         anchors.fill: parent

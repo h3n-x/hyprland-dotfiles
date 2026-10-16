@@ -97,7 +97,7 @@ PanelWindow {
             y: 0
             width: toastWindow.ear; height: toastWindow.ear
             v: "top"; h: index === 0 ? "right" : "left"
-            color: Colors.surfaceLow
+            color: Colors.frame
         }
     }
 

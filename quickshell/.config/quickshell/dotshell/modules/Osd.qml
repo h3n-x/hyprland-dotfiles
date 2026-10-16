@@ -55,7 +55,7 @@ PanelWindow {
             y: 0
             width: osd.ear; height: osd.ear
             v: "top"; h: index === 0 ? "right" : "left"
-            color: Colors.surfaceLow
+            color: Colors.frame
             opacity: presence.progress
         }
     }

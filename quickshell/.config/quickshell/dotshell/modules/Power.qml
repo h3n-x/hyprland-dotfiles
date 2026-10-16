@@ -14,7 +14,7 @@ Rectangle {
     implicitHeight: Tokens.pill.height
     radius: Tokens.radius.pill(height)
     // Como las pildoras: fondo propio solo en el estilo flotante (bar.style, Fase 11 B3b).
-    color: Tokens.bar.style === "floating" ? Colors.surfaceLow : "transparent"
+    color: Tokens.bar.style === "floating" ? Colors.frame : "transparent"
 
     StateLayer {
         hovered: mouseArea.containsMouse

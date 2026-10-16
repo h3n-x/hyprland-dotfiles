@@ -100,7 +100,7 @@ PanelWindow {
     Rectangle {
         anchors.fill: parent
         visible: (Tokens.bar.style === "solid" || Tokens.frame.on) && !bar.peekOverlay
-        color: Colors.surfaceLow
+        color: Colors.frame
     }
     // Encima de las ventanas (bar.peek, modo "overlay"): un panel para que se lea
     // sobre lo abierto, sea cual sea el estilo (sin sombra: la ventana mide justo la barra).

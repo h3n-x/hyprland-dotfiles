@@ -25,6 +25,10 @@ Item {
     // Texto de la informacion al pasar el raton (bar.tooltips, Fase 11 B2b).
     readonly property string tooltip: I18n.date(clock.date, "dddd, MMMM d, yyyy")
         + (root.showWeather ? " · " + WeatherText.describe(root.cur.weather_code, root.cur.is_day === 1).text : "")
+    // 12 h: la hora sale del formato con AP (sin AP, Qt da 0-23 aunque se pida "h"; Fase 16 B2).
+    readonly property bool h12: SettingsState.value("bar.clock.format") === "12"
+    readonly property bool showDate: SettingsState.value("bar.clock.date") === true
+    readonly property string ap: root.h12 ? clock.date.toLocaleTimeString(I18n.locale, "AP") : ""
     readonly property var cur: WeatherState.current
     readonly property bool showWeather: WeatherState.configured && !!root.cur
     readonly property bool weatherDim: root.showWeather && WeatherState.isDim(clock.date.getTime() / 1000)
@@ -38,14 +42,36 @@ Item {
         rowSpacing: Tokens.space.sm
         columnSpacing: Tokens.space.sm
 
-        // A un costado (Fase 11 B3) no hay lugar para el icono ni la fecha; la
-        // hora va en dos lineas.
+        // A un costado (Fase 11 B3) no hay lugar para el icono; la hora va en dos
+        // lineas, con la fecha apilada arriba y la marca de 12 h abajo (Fase 16 B2).
         Icon {
             visible: !Tokens.bar.vertical
             Layout.alignment: Qt.AlignCenter
             name: "schedule"
             size: Tokens.icon.sm
             color: Colors.textMuted
+        }
+        // A un costado, la fecha va arriba apilada (dia de la semana y numero).
+        ColumnLayout {
+            visible: root.showDate && Tokens.bar.vertical
+            Layout.alignment: Qt.AlignCenter
+            spacing: 0
+            Text {
+                Layout.alignment: Qt.AlignHCenter
+                text: I18n.dayName(clock.date.getDay(), true)
+                color: Colors.textMuted
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.caption
+            }
+            Text {
+                Layout.alignment: Qt.AlignHCenter
+                text: I18n.number(clock.date.getDate())
+                color: Colors.textMuted
+                font.family: Tokens.font.ui
+                font.pixelSize: Tokens.type.body
+                font.weight: Tokens.weight.semibold
+                font.features: Tokens.tabularNumbers
+            }
         }
         Text {
             Layout.alignment: Qt.AlignCenter
@@ -57,11 +83,21 @@ Item {
             font.features: Tokens.tabularNumbers
             horizontalAlignment: Text.AlignHCenter
             lineHeight: 0.9
-            text: clock.date.toLocaleTimeString(I18n.locale, SettingsState.value("bar.clock.format") === "12"
-                ? (Tokens.bar.vertical ? "h\nmm" : "h:mm AP") : (Tokens.bar.vertical ? "HH\nmm" : "HH:mm"))
+            text: !Tokens.bar.vertical ? clock.date.toLocaleTimeString(I18n.locale, root.h12 ? "h:mm AP" : "HH:mm")
+                : (root.h12 ? clock.date.toLocaleTimeString(I18n.locale, "h AP").replace(root.ap, "").trim() : clock.date.toLocaleTimeString(I18n.locale, "HH"))
+                  + "\n" + clock.date.toLocaleTimeString(I18n.locale, "mm")
+        }
+        // A un costado, en 12 h, la marca de la manana o la tarde en su propia linea.
+        Text {
+            visible: root.h12 && Tokens.bar.vertical
+            Layout.alignment: Qt.AlignCenter
+            text: root.ap.toLowerCase()
+            color: Colors.textMuted
+            font.family: Tokens.font.ui
+            font.pixelSize: Tokens.type.caption
         }
         Text {
-            visible: SettingsState.value("bar.clock.date") === true && !Tokens.bar.vertical
+            visible: root.showDate && !Tokens.bar.vertical
             Layout.alignment: Qt.AlignCenter
             color: Colors.textMuted
             font.family: Tokens.font.ui

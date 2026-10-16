@@ -27,6 +27,9 @@ QtObject {
     // dependen de el (veil). Lo fija quien instancia (Colors.qml, el greeter).
     property string mode: "dark"
     readonly property bool light: root.mode === "light"
+    // Opacidad de las superficies del marco y la barra (appearance.transparency, Fase 16 B2):
+    // la fija quien instancia (Colors.qml, desde Tokens.opacity.surface); el greeter la deja opaca.
+    property real frameOpacity: 1
     property color m3surface
     property color m3surfaceContainerLowest
     property color m3surfaceContainerLow
@@ -118,6 +121,9 @@ QtObject {
     // scrim oscurece para el texto claro del modo oscuro; en claro el texto es
     // oscuro y el velo aclara con la superficie.
     readonly property color veil: root.light ? root.m3surface : root.m3scrim
+    // El marco, la barra solida y lo que se pega a ellos (ScreenFrame, Bar, las orejas y
+    // los paneles pegados), con la transparencia elegida: una sola forma, un solo alfa.
+    readonly property color frame: root.tint(root.surfaceLow, root.frameOpacity)
 
     // Transparencia de un alias con un valor de Tokens (tint, stateLayer,
     // opacity): la unica forma de aplicar alfa a un color fuera de este archivo.

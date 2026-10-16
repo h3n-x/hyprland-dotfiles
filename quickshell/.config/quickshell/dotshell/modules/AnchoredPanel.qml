@@ -214,7 +214,7 @@ PopupWindow {
             y: popup.vertical ? (popup.resolvedSide === "above" ? card.implicitHeight - popup.ear : 0) : (first ? 0 : popup.ear + card.implicitHeight)
             v: popup.vertical ? (popup.resolvedSide === "above" ? "bottom" : "top") : (first ? "bottom" : "top")
             h: popup.vertical ? (first ? "right" : "left") : (popup.resolvedSide === "left" ? "right" : "left")
-            color: Colors.surfaceLow
+            color: Colors.frame
             opacity: presence.progress
         }
     }

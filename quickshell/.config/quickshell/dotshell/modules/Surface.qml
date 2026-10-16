@@ -29,7 +29,7 @@ Rectangle {
     readonly property int shadowMargin: root.shadowEnabled && !root.framed && root.shadowSpec ? root.shadowSpec.blur + root.shadowSpec.offsetY : 0
     readonly property color baseColor: root.level >= 3 ? Colors.surfaceHigh : Colors.surface
 
-    color: root.framed ? Colors.surfaceLow : root.translucent ? Colors.tint(root.baseColor, Tokens.opacity.surface) : root.baseColor
+    color: root.framed ? Colors.frame : root.translucent ? Colors.tint(root.baseColor, Tokens.opacity.surface) : root.baseColor
     border.color: Colors.divider
     border.width: root.framed ? 0 : 1
 

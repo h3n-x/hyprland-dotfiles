@@ -78,21 +78,23 @@ hl.window_rule({
 -- Paneles flotantes (centro de control, toasts, OSD, launcher):
 -- no_anim (D8): los paneles animan su contenido en QML (Presence), asi no hay
 -- doble animacion con el fade de capas de Hyprland.
-hl.layer_rule({ match = { namespace = "quickshell-panel" }, blur = true, ignore_alpha = 0.85, no_anim = true })
--- La barra ("quickshell") no lleva blur: cada Pill ya tiene su propio fondo
--- solido (ver Pill.qml), asi que el unico efecto visible del blur era detras
--- de los huecos transparentes entre pills -- a pedido del usuario, sin blur
--- ahi (E3). Sus desplegables son popups de esta capa: blur_popups los
--- difumina a ellos sin tocar la barra.
+-- ignore_alpha 0.5 (Fase 16 B2): con la transparencia Normal (0.85) el panel sigue difuminado;
+-- la sombra y el margen transparente quedan afuera.
+hl.layer_rule({ match = { namespace = "quickshell-panel" }, blur = true, ignore_alpha = 0.5, no_anim = true })
+-- Espacio de nombres por defecto de Quickshell: los popups (desplegables) se
+-- difuminan con blur_popups; la barra tiene el suyo (quickshell-host, abajo).
 hl.layer_rule({ match = { namespace = "quickshell" },       blur_popups = true, ignore_alpha = 0.85 })
 hl.layer_rule({ match = { namespace = "hyprpicker" },        no_anim = true })
 -- Wallpaper dibujado por Quickshell (Fase 3 B6): sin el fade de capas de
 -- Hyprland, que al recrear la ventana (recarga dura de la shell) dejaba ver
 -- el color de fondo ~0.3 s. El cambio de wallpaper ya es un fundido en QML.
 hl.layer_rule({ match = { namespace = "quickshell-wallpaper" }, no_anim = true })
--- Marco alrededor de la pantalla (Fase 13 B1): opaco como la barra solida, sin
--- blur; sin animacion de entrada (sus trozos aparecen juntos, sin deslizarse).
-hl.layer_rule({ match = { namespace = "quickshell-frame" }, no_anim = true })
+-- Marco alrededor de la pantalla (Fase 13 B1) y la barra (pills, barra solida, el lado
+-- grueso del marco): con la transparencia elegida (appearance.transparency, Fase 16 B2),
+-- difuminados detras. ignore_alpha 0.5 deja sin blur los huecos transparentes entre pills
+-- (pedido E3: los huecos se ven limpios); sin animacion de entrada.
+hl.layer_rule({ match = { namespace = "quickshell-frame" }, blur = true, ignore_alpha = 0.5, no_anim = true })
+hl.layer_rule({ match = { namespace = "quickshell-host" }, blur = true, ignore_alpha = 0.5 })
 hl.layer_rule({ match = { namespace = "quickshell-frame-zone" }, no_anim = true })
 
 -- Widgets/relojes que deben verse incluso arriba del bloqueo (ninguno por ahora)

@@ -115,6 +115,7 @@ SemanticPalette {
 
     // Alto contraste (accessibility.highContrast): lo aplica SemanticPalette.
     highContrast: SettingsState.value("accessibility.highContrast") === true
+    frameOpacity: Tokens.opacity.surface
 
     // Opacidad de las superficies translucidas (Tokens.opacity.surface): la
     // transparencia elegida, nunca por debajo de surfaceFloor; opaca con alto
@@ -125,7 +126,8 @@ SemanticPalette {
         value: {
             if (SettingsState.value("accessibility.highContrast") === true) return 1;
             const t = SettingsState.value("appearance.transparency");
-            return Math.max(Tokens.opacity.surfaceFloor, t === "off" ? 1 : t === "reduced" ? 0.97 : 0.92);
+            // Normal = el piso legible, Reducida un punto intermedio, Sin transparencia opaca (D-P16-2).
+            return Math.max(Tokens.opacity.surfaceFloor, t === "off" ? 1 : t === "reduced" ? 0.93 : 0.85);
         }
     }
 

@@ -42,7 +42,7 @@ Item {
             x: modelData[0]; y: modelData[1]
             width: ce.ear; height: ce.ear
             v: modelData[2]; h: modelData[3]
-            color: Colors.surfaceLow
+            color: Colors.frame
             opacity: ce.reveal
         }
     }

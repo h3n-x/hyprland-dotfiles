@@ -221,6 +221,7 @@ M3_TO_JSON = {"m3" + k.split("_")[0] + "".join(p.capitalize() for p in k.split("
     "on_error", "error_container", "on_error_container", "shadow", "scrim"]}
 M3_TO_JSON.update({"status" + "".join(p.capitalize() for p in k.split("_")): k for k in STATUS_ROLES})
 
+TINT_ALIAS_RE = re.compile(r"^\s*readonly property color (\w+): root\.tint\(root\.(\w+), root\.\w+\)\s*$")
 ALIAS_RE = re.compile(r"^\s*readonly property color (\w+): (?:root\.(highContrast|light) \? root\.(\w+) : )?root\.(\w+)\s*$")
 
 
@@ -235,6 +236,12 @@ def aliases():
             alt = M3_TO_JSON.get(m.group(3)) if m.group(3) else None
             normal = M3_TO_JSON[m.group(4)]
             out[m.group(1)] = (normal, alt or normal, m.group(2) or "highContrast")
+    # Un alias que es otro con transparencia (frame = tint(surfaceLow, frameOpacity), Fase 16 B2):
+    # para los contrastes cuenta como su base (el piso legible de la transparencia lo cubre).
+    for line in open(path):
+        m = TINT_ALIAS_RE.match(line)
+        if m and m.group(2) in out:
+            out[m.group(1)] = out[m.group(2)]
     return out
 
 

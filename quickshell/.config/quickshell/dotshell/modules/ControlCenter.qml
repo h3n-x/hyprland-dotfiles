@@ -100,7 +100,7 @@ PanelWindow {
             y: 0
             width: window.ear; height: window.ear
             v: "top"; h: index === 0 ? "right" : "left"
-            color: Colors.surfaceLow
+            color: Colors.frame
             opacity: presence.progress
         }
     }

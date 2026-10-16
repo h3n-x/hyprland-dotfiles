@@ -179,8 +179,11 @@ hl.bind(
 hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, desc = "Media · Mute" })
 -- Bloq Mayus y Bloq Num: el estado para el aviso del OSD (Fase 10 B4) y el modulo
 -- de la barra (Fase 11 B2); solo se lee si alguno lo usa. No consumen la tecla,
--- corren al soltarla.
-hl.bind("Caps_Lock", hl.dsp.exec_cmd("qs -c dotshell ipc call osd keys"), { non_consuming = true, release = true, desc = "System · Caps Lock state" })
+-- corren al soltarla (el estado ya es el final, al prender y al apagar). Al soltar
+-- Bloq Mayus su modificador sigue activo (xkb lo bloquea al apretar y lo suelta al
+-- soltar la segunda vez), por eso CAPS: sin el, el atajo nunca coincidia (Fase 16 B2,
+-- probado en vivo). Hyprland ignora el de Bloq Num (MOD2) al comparar.
+hl.bind("CAPS + Caps_Lock", hl.dsp.exec_cmd("qs -c dotshell ipc call osd keys"), { non_consuming = true, release = true, desc = "System · Caps Lock state" })
 hl.bind("Num_Lock", hl.dsp.exec_cmd("qs -c dotshell ipc call osd keys"), { non_consuming = true, release = true, desc = "System · Num Lock state" })
 -- Mostrar la barra mientras se mantiene Super (bar.peek, Fase 11 B3b): un atajo
 -- global al apretar y otro al soltar Super_L; no consumen la tecla ni tapan otros

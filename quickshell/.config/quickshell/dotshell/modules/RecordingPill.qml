@@ -21,7 +21,7 @@ Pill {
     readonly property bool shown: pill.recording || pill.result !== ""
     visible: shown
     // Resultado (P8.7): guardado = success, error = danger (fijos); grabando, neutro con el punto danger (N6).
-    color: pill.saved ? Colors.successContainer : pill.failed ? Colors.dangerContainer : Tokens.bar.style === "floating" ? Colors.surfaceLow : "transparent"
+    color: pill.saved ? Colors.successContainer : pill.failed ? Colors.dangerContainer : Tokens.bar.style === "floating" ? Colors.frame : "transparent"
     hovered: mouse.containsMouse && pill.recording
     pressed: mouse.pressed && pill.recording
 
