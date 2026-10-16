@@ -1,0 +1,75 @@
+# Escritorio (perfil minimal y full). Un paquete por linea; "#" comenta. Repos oficiales.
+# Compositor, sesion y portales
+hyprland
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk          # selector de archivos, ajustes GTK
+uwsm                            # sesion "Hyprland (uwsm)"
+hyprpolkitagent
+hypridle
+hyprlock                        # bloqueo de emergencia (P9)
+hyprpaper                       # backend de wallpaper alternativo
+hyprpicker                      # Super+Shift+C
+hyprsunset                      # luz nocturna
+hyprshutdown
+sddm                            # login: el greeter dotfiles-login (activarlo es un paso de sistema)
+# Shell, colores y scripts
+quickshell
+qt6-svg                         # iconos SVG de la shell
+qt6-imageformats                # wallpapers WebP/AVIF
+matugen
+python
+python-pillow
+python-gobject                  # pick-file (Gio)
+jq
+lua                             # luac: settings-apply valida los overrides de Hyprland
+stow
+pacman-contrib                  # checkupdates (vista de mantenimiento)
+lsof                            # nvidia-status, ports-manager
+lm_sensors                      # temperaturas
+libnotify                       # notify-send
+xdg-utils                       # xdg-open, xdg-mime
+fontconfig                      # fc-list (selector de fuentes)
+# Servicios que usa la shell (Quickshell: Networking, Bluetooth, UPower, Pipewire)
+networkmanager
+network-manager-applet
+bluez
+bluez-utils
+blueman
+upower
+power-profiles-daemon
+brightnessctl
+pipewire
+pipewire-pulse
+pipewire-alsa
+wireplumber
+pavucontrol
+sound-theme-freedesktop         # sonidos de notificaciones y temporizadores
+gnome-keyring
+# Capturas, portapapeles, emoji
+grim
+slurp
+satty
+wf-recorder
+ffmpeg                          # miniaturas de grabaciones
+imagemagick
+libvips                         # miniaturas de la galeria de wallpapers
+wl-clipboard
+cliphist
+wl-clip-persist
+wtype                           # el selector de emoji escribe el elegido
+# Terminal, editor, archivos, visores
+kitty
+zsh
+neovim
+thunar
+gvfs
+tumbler
+mpv
+loupe
+# Temas de toolkits
+qt5ct
+qt6ct
+nwg-look
+gnome-themes-extra
+adw-gtk-theme                   # GTK3 (Thunar...) con los colores de gtk.css; theme-apply elige adw-gtk3(-dark)
+papirus-icon-theme

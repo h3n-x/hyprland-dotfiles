@@ -18,9 +18,14 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$REPO_DIR"
 
-info()  { printf '\033[1;34m==>\033[0m %s\n' "$1"; }
-warn()  { printf '\033[1;33m!!\033[0m %s\n' "$1"; }
-ok()    { printf '\033[1;32m✓\033[0m %s\n' "$1"; }
+# Funciones del instalador modular (Fase 19): deteccion, config de Qt por usuario.
+DRY=false
+# shellcheck source=install/lib/ui.sh
+. "$REPO_DIR/install/lib/ui.sh"
+# shellcheck source=install/lib/detect.sh
+. "$REPO_DIR/install/lib/detect.sh"
+# shellcheck source=install/lib/qt.sh
+. "$REPO_DIR/install/lib/qt.sh"
 
 command -v pacman >/dev/null 2>&1 || {
   echo "Este instalador es para Arch/pacman. Segui el README a mano en otra distro." >&2
@@ -79,8 +84,18 @@ fi
 # la identidad (nombre/email) de quien armo este repo -- stowearlo sin
 # preguntar le pisaria la identidad de git a cualquier otra persona que
 # clone esto. Editalo primero, despues `stow git` a mano.
-stow hypr quickshell kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch
+# Toda carpeta de primer nivel salvo las que no se enlazan (git, sddm, grub, plymouth, install):
+# una carpeta borrada ya no rompe el stow (Fase 19).
+mapfile -t STOW_PKGS < <(stow_packages)
+stow "${STOW_PKGS[@]}"
 ok "Stow aplicado (excepto 'git', ver nota al final)."
+
+# qt5ct/qt6ct ya no se enlazan (las apps reescriben el archivo y la ruta de la paleta necesita
+# TU home): se crean desde install/templates/ o se corrige solo esa ruta (Fase 19).
+qt_config || true
+
+# Variables de la GPU de este equipo (hibrido, NVIDIA, o ninguna) -> hypr-gpu.lua (Fase 19).
+~/.config/hypr/scripts/gpu-setup --write
 
 # Apps por defecto de la vista previa de capturas (Fase 4 B8): Abrir y
 # Reproducir usan xdg-open -- imagenes en Loupe, videos en mpv.

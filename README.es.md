@@ -97,9 +97,12 @@ ni el screen sharing. Si ya tenias `pipewire-media-session`, desinstalalo (confl
 
 ## 2. GPU hibrida (AMD iGPU + NVIDIA)
 
-La config ya fija `AQ_DRM_DEVICES` a `/dev/dri/gpu-amd:/dev/dri/gpu-nvidia`,
-asi que Hyprland arranca siempre con la iGPU. Esos son alias sin `:` en el
-nombre creados por la regla udev `/etc/udev/rules.d/71-gpu-drm-aliases.rules`
+Las variables de la GPU no se versionan: `~/.config/hypr/scripts/gpu-setup --write` (lo corre el instalador)
+detecta tus GPUs y las deja en `~/.local/state/dotfiles/hypr-gpu.lua`, que `modules/env.lua` carga primero.
+En una laptop hibrida fija `AQ_DRM_DEVICES` a `/dev/dri/gpu-amd:/dev/dri/gpu-nvidia` (la iGPU primero, asi
+Hyprland arranca siempre con ella) solo si esos alias existen; solo NVIDIA recibe las variables de NVIDIA, AMD o
+Intel solas ninguna. Los alias no llevan `:` en el nombre y salen de la regla udev
+`/etc/udev/rules.d/71-gpu-drm-aliases.rules` (`gpu-setup --udev-rule` la imprime para tu equipo)
 (necesaria porque `AQ_DRM_DEVICES` separa la lista con `:`, y las rutas
 `/dev/dri/by-path/pci-0000:XX:00.0-card` ya traen `:` en el propio nombre,
 lo que rompe el parseo de Aquamarine y hace crashear a Hyprland con
@@ -157,7 +160,7 @@ reinstalar; para confirmar antes de reiniciar: `uname -r` (kernel corriendo) vs
 ```bash
 cd ~/Dotfiles
 mv ~/.config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua.bak  # backup del autogenerado
-stow hypr quickshell kitty gtk-3.0 gtk-4.0 qt5ct qt6ct zsh bat yazi nvim btop thunar matugen spicetify fastfetch git
+stow hypr quickshell kitty gtk-3.0 gtk-4.0 zsh bat yazi nvim btop thunar matugen spicetify fastfetch git
 ```
 
 Quickshell (ver seccion Quickshell abajo -- barra, notificaciones Y
@@ -1158,10 +1161,9 @@ Cerra sesion y volve a entrar (SDDM) para que las variables de entorno
 (cursor, Qt, GPU) se apliquen desde cero. `hyprctl reload` alcanza para
 cambios de binds/reglas/apariencia, pero no para `hl.env(...)`.
 
-`qt5ct.conf`/`qt6ct.conf` ya vienen configurados (paleta custom apuntando al
-esquema de matugen, iconos Papirus-Dark, estilo Fusion) -- no hace falta
-correr `qt5ct`/`qt6ct` a mano salvo que quieras retocar algo mas (fuente,
-efectos, etc.), en cuyo caso la GUI lee y guarda sobre el mismo archivo.
+`qt5ct.conf`/`qt6ct.conf` no se enlazan con stow: `install.sh` los crea desde `install/templates/` (paleta custom
+apuntando al esquema de matugen con la ruta absoluta de tu home, que qt*ct necesita, iconos Papirus-Dark, estilo
+Fusion). Desde ahi son archivos tuyos: la GUI de qt*ct guarda en ellos y el instalador solo corrige la ruta de la paleta.
 
 ## Atajos
 

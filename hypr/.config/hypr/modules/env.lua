@@ -4,29 +4,14 @@
 -- https://wiki.hypr.land/nvidia/
 -- ============================================================================
 
--- ---- GPU hibrida: iGPU AMD 760M siempre, NVIDIA RTX 3050 solo on-demand ----
--- Le decimos a Aquamarine (backend grafico de Hyprland) que use la iGPU AMD
--- como dispositivo DRM primario. AQ_DRM_DEVICES separa la lista con ':', asi
--- que NO se pueden usar directamente las rutas /dev/dri/by-path/pci-0000:XX:00.0-card
--- (el ':' dentro del propio nombre rompe el parseo -> "Found no gpus to use,
--- cannot continue" -> CBackend::create() failed). En vez de eso usamos los
--- alias /dev/dri/gpu-amd y /dev/dri/gpu-nvidia creados por la regla udev
--- /etc/udev/rules.d/71-gpu-drm-aliases.rules, que apuntan por direccion PCI
--- a pci-0000:06:00.0 (AMD 760M) y pci-0000:01:00.0 (NVIDIA RTX 3050) sin ':'
--- en el nombre. El primero de la lista es el que usa Hyprland para renderizar.
-hl.env("AQ_DRM_DEVICES", "/dev/dri/gpu-amd:/dev/dri/gpu-nvidia")
+-- ---- GPU: detectada, no versionada (Fase 19 B1) ----
+-- scripts/gpu-setup --write deja las variables de la GPU de ESTE equipo (hibrido AMD/Intel +
+-- NVIDIA: AQ_DRM_DEVICES con los alias de udev y las de NVIDIA; solo NVIDIA; o ninguna) en
+-- ~/.local/state/dotfiles/hypr-gpu.lua. Se carga primero porque AQ_DRM_DEVICES tiene que estar
+-- antes de que Aquamarine elija la GPU. Sin el archivo (instalacion nueva) Hyprland elige solo.
+pcall(dofile, (os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")) .. "/dotfiles/hypr-gpu.lua")
 
--- Evita problemas de compositing en buffers multi-GPU en combinaciones AMD+NVIDIA
-hl.env("AQ_FORCE_LINEAR_BLIT", "0")
-
--- Variables NVIDIA recomendadas por la wiki (para cuando SI se usa la NVIDIA,
--- ya sea por hyprctl systeminfo, apps con nvidia-offload, o si en el futuro
--- se decide invertir el orden de AQ_DRM_DEVICES)
-hl.env("LIBVA_DRIVER_NAME", "nvidia")
-hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
-hl.env("NVD_BACKEND", "direct")
-
--- Fix de flickering en apps Electron/CEF (Discord/Vesktop, VSCodium, Obsidian) en setups NVIDIA
+-- Fix de flickering en apps Electron/CEF (Discord/Vesktop, VSCodium, Obsidian); inocuo sin NVIDIA
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
 
 -- ---- Cursor ----

@@ -1,0 +1,6 @@
+# Fuentes y temas de los repos oficiales (perfil minimal y full).
+ttf-jetbrains-mono-nerd
+ttf-nerd-fonts-symbols-mono
+ttf-material-symbols-variable   # iconos de la shell
+noto-fonts
+noto-fonts-emoji

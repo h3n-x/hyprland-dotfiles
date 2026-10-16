@@ -1,0 +1,8 @@
+# Desarrollo para Neovim (perfil full o --with dev): LSP/formatters los instala mason.
+nodejs
+npm
+tree-sitter-cli
+lazygit
+gcc
+make
+unzip

@@ -1,0 +1,11 @@
+# Lo que stow NO enlaza en el home (Fase 19): el instalador propio de nvim y un archivo de
+# prueba viven en la raiz del paquete. Este archivo reemplaza la lista por defecto de stow, asi
+# que se repiten sus entradas (control de versiones, README, licencias).
+\.git
+\.gitignore
+\.gitmodules
+^/README.*
+^/LICENSE.*
+^/COPYING
+^/install\.sh
+^/test\.py

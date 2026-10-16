@@ -1,0 +1,5 @@
+# Apps personales (perfil full o --with apps).
+spotify-launcher
+netbeans
+jdk21-openjdk
+jdk25-openjdk

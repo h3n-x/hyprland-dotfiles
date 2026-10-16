@@ -3,7 +3,7 @@
 // Entry point de la barra. Quickshell.screens es reactivo (Variants la crea
 // o destruye sola si conectas/desconectas un monitor, ver doc "Reusable
 // components"). Gestionado con GNU Stow desde
-// /home/h3n/Dotfiles/quickshell -> ~/.config/quickshell. Se lanza con
+// ~/Dotfiles/quickshell -> ~/.config/quickshell. Se lanza con
 // `qs -c dotshell` (ver hypr/.config/hypr/modules/autostart.lua).
 import QtQuick
 import Quickshell

@@ -1,0 +1,22 @@
+# Herramientas de terminal que la config de zsh, yazi y la shell esperan (perfil minimal y full).
+fzf
+starship
+zoxide
+eza
+bat
+yazi
+fd
+ripgrep
+7zip                            # yazi: archivos comprimidos
+resvg                           # yazi: vista previa de SVG
+tdf                             # yazi: vista previa de PDF
+dust
+duf
+procs
+tealdeer
+glow
+xh
+zellij
+btop
+fastfetch
+cava                            # barras de audio del dashboard

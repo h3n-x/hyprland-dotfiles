@@ -22,7 +22,8 @@
 #
 # Pruebas: I18N_DIR (catalogos), I18N_QML (carpeta dotshell), I18N_LANG (idioma
 # sin consultar el almacen), SETTINGS (otro motor de opciones), I18N_BINDS (binds.lua),
-# I18N_SCRIPTS (carpeta de los scripts), I18N_SDDM (el tema del greeter, sddm/theme).
+# I18N_SCRIPTS (carpeta de los scripts), I18N_SDDM (el tema del greeter, sddm/theme), I18N_INSTALL
+# (el instalador del repo, install/).
 # Los scripts de shell traducen con `i18n tr [--ctx C] "texto"`: extract los lee igual.
 import json, os, re, subprocess, sys
 
@@ -32,6 +33,8 @@ CATS = os.environ.get("I18N_DIR") or os.path.join(QML, "data", "i18n")
 RULES = os.path.join(QML, "data", "i18n.rules.json")
 BINDS = os.environ.get("I18N_BINDS") or os.path.join(os.path.dirname(HERE), "modules", "binds.lua")
 SCRIPTS = os.environ.get("I18N_SCRIPTS") or HERE
+# El instalador del repo (Fase 19): install/*.sh y sus lib/ steps/ system/.
+INSTALL = os.environ.get("I18N_INSTALL") or os.path.normpath(os.path.join(HERE, "..", "..", "..", "..", "install"))
 SDDM = os.environ.get("I18N_SDDM") or os.path.normpath(os.path.join(HERE, "..", "..", "..", "..", "sddm", "theme"))
 SEP = "\u0004"
 
@@ -154,6 +157,8 @@ SCRIPT_MARK = re.compile(r"\bN_\(\s*" + STR + r"\s*,\s*" + STR + r"\s*\)")
 # Tambien la funcion corta i18n_tr que definen algunos scripts (i18n_tr "texto" args...).
 SHELL_TR = re.compile(r'(?:(?i:i18n)"?\s+tr|\bi18n_tr)\s+(?:--ctx\s+"?([\w ]+?)"?\s+)?' + STR)
 SHELL_TRN = re.compile(r'(?:(?i:i18n)"?\s+trn|\bi18n_trn)\s+' + STR)
+# En el instalador (Fase 19): info/ok/warn/err/problem/note/tr_ "texto" args...
+INSTALL_MSG = re.compile(r'(?<![\w-])(?:info|ok|warn|err|problem|note|tr_)\s+' + STR)
 # En los scripts en python: T("texto", args..., ctx="c") y Tn("singular", "plural", n, ...).
 PY_T = re.compile(r"\bT\(\s*" + STR)
 PY_CTX = re.compile(r'\bctx\s*=\s*' + STR)
@@ -266,6 +271,22 @@ def extract():
                     add((m.group(1) + SEP if m.group(1) else "") + unescape(m.group(2)), line(m))
             for m in SHELL_TRN.finditer(text):
                 add(unescape(m.group(1)), line(m), True)
+    # El instalador (Fase 19): los mensajes de info/ok/warn/err/problem/note/tr_.
+    for dp, _dn, fn in sorted(os.walk(INSTALL)) if os.path.isdir(INSTALL) else []:
+        for f in sorted(fn):
+            if not f.endswith(".sh"):
+                continue
+            p = os.path.join(dp, f)
+            try:
+                text = open(p, encoding="utf-8").read()
+            except (OSError, UnicodeDecodeError):
+                continue
+            rel = os.path.relpath(p, os.path.dirname(INSTALL))
+            text = re.sub(r"(?m)^[ \t]*#.*$", "", text)
+            for m in INSTALL_MSG.finditer(text):
+                if not m.group(1).startswith("$"):
+                    add(unescape(m.group(1)), f"{rel}:{text.count(chr(10), 0, m.start()) + 1}")
+
     # El esquema de opciones (en ingles, Fase 15 B3): todo lo que muestra el centro de
     # configuracion va con el contexto "settings" (SettingsModel.localized); las palabras
     # clave de cada opcion, juntas, con "settings keywords"; los nombres de los ajustes

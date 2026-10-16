@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+# Variables de entorno de la GPU para Hyprland (Fase 19 B1): se detectan, no se versionan.
+# Antes vivian en modules/env.lua con los valores de UNA laptop (AMD + NVIDIA y unos alias de
+# udev que solo existen ahi): en cualquier otro equipo Hyprland recibia rutas inexistentes.
+#
+#   gpu-setup [--write | --check | --udev-rule]
+#
+# Sin opciones imprime lo detectado y el archivo que escribiria. --write deja
+# ~/.local/state/dotfiles/hypr-gpu.lua (modules/env.lua lo carga primero, con pcall: sin el
+# archivo Hyprland elige la GPU por su cuenta, como en una instalacion nueva). --check: 0 al
+# dia, 1 distinto (doctor). --udev-rule imprime la regla de alias para un equipo hibrido (la
+# instala el paso de sistema del instalador, con sudo y confirmacion).
+#
+# Casos (GPUs de /sys/class/drm/card*/device, sin lspci):
+#   - hibrido (NVIDIA + AMD/Intel): Hyprland en la integrada. AQ_DRM_DEVICES solo si existen
+#     los alias /dev/dri/gpu-<fabricante> (AQ_DRM_DEVICES separa con ':' y las rutas by-path
+#     llevan ':'); variables de NVIDIA para lo que corra en ella (nvidia-offload).
+#   - solo NVIDIA: las variables de la wiki de Hyprland para NVIDIA.
+#   - AMD o Intel solas, o nada detectado: ninguna variable.
+# Pruebas: GPU_SETUP_SYSFS (otra raiz con class/drm), GPU_SETUP_DEV (otra /dev/dri),
+# GPU_SETUP_OUT (otro archivo).
+import glob
+import os
+import sys
+
+
+# Mensajes en el idioma del usuario (Fase 15 B4): scripts/i18n, texto fuente en ingles.
+def _i18n():
+    import importlib.machinery, importlib.util
+    sys.dont_write_bytecode = True  # sin __pycache__ junto a los scripts
+    loader = importlib.machinery.SourceFileLoader("i18n", os.path.join(os.path.dirname(os.path.realpath(__file__)), "i18n"))
+    mod = importlib.util.module_from_spec(importlib.util.spec_from_loader("i18n", loader))
+    loader.exec_module(mod)
+    return mod
+T, Tn = _i18n().translator()
+
+SYSFS = os.environ.get("GPU_SETUP_SYSFS") or "/sys"
+DEV = os.environ.get("GPU_SETUP_DEV") or "/dev/dri"
+OUT = os.environ.get("GPU_SETUP_OUT") or os.path.join(
+    os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state"), "dotfiles", "hypr-gpu.lua")
+VENDORS = {"0x1002": "amd", "0x10de": "nvidia", "0x8086": "intel"}
+
+
+def gpus():
+    """[{card, vendor, pci, boot}] de las tarjetas con salida (cardN, no los conectores)."""
+    out = []
+    for card in sorted(glob.glob(os.path.join(SYSFS, "class", "drm", "card[0-9]*"))):
+        name = os.path.basename(card)
+        if "-" in name:
+            continue
+        dev = os.path.join(card, "device")
+        try:
+            vendor = open(os.path.join(dev, "vendor")).read().strip()
+        except OSError:
+            continue
+        try:
+            boot = open(os.path.join(dev, "boot_vga")).read().strip() == "1"
+        except OSError:
+            boot = False
+        out.append({"card": name, "vendor": VENDORS.get(vendor, vendor), "pci": os.path.basename(os.path.realpath(dev)),
+                    "boot": boot})
+    return out
+
+
+def plan(found):
+    """(caso, [(variable, valor, motivo)])"""
+    kinds = {g["vendor"] for g in found}
+    nvidia = "nvidia" in kinds
+    igpu = next((g for g in found if g["vendor"] in ("amd", "intel")), None)
+    env = []
+    if nvidia and igpu:
+        case = "hybrid"
+        alias_i, alias_n = os.path.join(DEV, "gpu-" + igpu["vendor"]), os.path.join(DEV, "gpu-nvidia")
+        if os.path.exists(alias_i) and os.path.exists(alias_n):
+            env.append(("AQ_DRM_DEVICES", f"/dev/dri/gpu-{igpu['vendor']}:/dev/dri/gpu-nvidia",
+                        "Hyprland renderiza en la integrada; la NVIDIA solo a pedido (alias de udev)"))
+        env.append(("AQ_FORCE_LINEAR_BLIT", "0", "compositing entre buffers de dos GPUs"))
+    elif nvidia:
+        case = "nvidia"
+    elif igpu:
+        case = igpu["vendor"]
+    else:
+        case = "none"
+    if nvidia:
+        env += [("LIBVA_DRIVER_NAME", "nvidia", "VA-API en la NVIDIA (wiki de Hyprland)"),
+                ("__GLX_VENDOR_LIBRARY_NAME", "nvidia", "GLX de la NVIDIA"),
+                ("NVD_BACKEND", "direct", "nvidia-vaapi-driver")]
+    return case, env
+
+
+def render(found, case, env):
+    lines = ["-- Generado por scripts/gpu-setup -- no editar a mano (se rehace con: gpu-setup --write)",
+             "-- GPUs: " + (", ".join(f"{g['vendor']} {g['pci']}{' (arranque)' if g['boot'] else ''}" for g in found) or "ninguna"),
+             f"-- Caso: {case}"]
+    for k, v, why in env:
+        lines.append(f'hl.env("{k}", "{v}")   -- {why}')
+    return "\n".join(lines) + "\n"
+
+
+def udev_rule(found):
+    rules = [f'SUBSYSTEM=="drm", KERNEL=="card[0-9]*", ENV{{ID_PATH}}=="pci-{g["pci"]}", SYMLINK+="dri/gpu-{g["vendor"]}"'
+             for g in found if g["vendor"] in ("amd", "intel", "nvidia")]
+    head = ("# Generado por gpu-setup --udev-rule (dotfiles, Fase 19): alias sin ':' para AQ_DRM_DEVICES,\n"
+            "# que separa la lista con ':' (las rutas by-path ya lo llevan).\n")
+    return head + "\n".join(rules) + "\n"
+
+
+def main():
+    args = sys.argv[1:]
+    if args not in ([], ["--write"], ["--check"], ["--udev-rule"]):
+        print(T("usage: gpu-setup [--write | --check | --udev-rule]"), file=sys.stderr)
+        return 2
+    found = gpus()
+    case, env = plan(found)
+    text = render(found, case, env)
+    if args == ["--udev-rule"]:
+        if case != "hybrid":
+            print(T("not a hybrid graphics laptop: no alias rule needed"), file=sys.stderr)
+            return 1
+        sys.stdout.write(udev_rule(found))
+        return 0
+    try:
+        current = open(OUT).read()
+    except OSError:
+        current = None
+    if args == ["--check"]:
+        print(T("%1: up to date", OUT) if current == text else T("%1: pending", OUT))
+        return 0 if current == text else 1
+    if args == ["--write"]:
+        if current != text:
+            os.makedirs(os.path.dirname(OUT), exist_ok=True)
+            tmp = f"{OUT}.tmp-{os.getpid()}"
+            with open(tmp, "w") as f:
+                f.write(text)
+            os.replace(tmp, OUT)
+            print(T("written: %1 (takes effect at the next Hyprland start)", OUT))
+        return 0
+    sys.stdout.write(text)
+    return 0
+
+
+sys.exit(main())

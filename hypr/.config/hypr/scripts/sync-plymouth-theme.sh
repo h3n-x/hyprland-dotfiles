@@ -14,11 +14,15 @@ set -euo pipefail
 # Corre como root via sudo -n, asi que $HOME seria /root -- se resuelve el
 # home real del usuario que invoco sudo (SUDO_USER) via getent, en vez de
 # asumir /home/<usuario> a mano (portable a otros esquemas de home).
-REAL_USER="${SUDO_USER:-$USER}"
-USER_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
+REAL_USER="${SUDO_USER:-${USER:-$(id -un)}}"
+USER_HOME="${SYNC_PLYMOUTH_HOME:-$(getent passwd "$REAL_USER" | cut -d: -f6)}"
 STAGING="$USER_HOME/.cache/matugen/plymouth-theme"
 REPO_THEME="$USER_HOME/Dotfiles/plymouth/theme"
-DEST="/usr/share/plymouth/themes/dotfiles-matugen"
+# Pruebas: SYNC_PLYMOUTH_ROOT (otra raiz con boot/, etc/ y usr/), SYNC_PLYMOUTH_FAKE=1 (solo dice
+# que haria con los comandos del sistema), SYNC_PLYMOUTH_HOME (otro home).
+ROOT="${SYNC_PLYMOUTH_ROOT:-}"
+run() { if [ "${SYNC_PLYMOUTH_FAKE:-0}" = 1 ]; then echo "haria: $*"; else "$@"; fi; }
+DEST="$ROOT/usr/share/plymouth/themes/dotfiles-matugen"
 
 # matugen todavia no genero nada (primer stow, antes de `matugen image`) -- nada que sincronizar
 [ -d "$STAGING" ] || exit 0
@@ -36,33 +40,58 @@ cp "$STAGING/background.png" "$DEST/"
 cp "$STAGING/avatar.png" "$DEST/"
 cp "$STAGING/"frame*.png "$DEST/"
 
-chown -R root:root "$DEST"
+run chown -R root:root "$DEST"
 chmod -R a+rX "$DEST"
 
-# -R fija este theme como default Y reconstruye el initramfs (necesario:
-# Plymouth lee su theme desde dentro del initramfs, no en vivo desde disco
-# como SDDM/Quickshell/etc).
-plymouth-set-default-theme -R dotfiles-matugen
+# Las UKI de la ESP (rutas habituales: /boot, /efi, /boot/efi) y la copia generica de
+# arranque BOOTX64.EFI que usan los equipos sin entrada NVRAM propia. Antes de reconstruir se
+# anota de cual UKI es copia BOOTX64.EFI (por contenido), para volver a copiar esa misma.
+ukis=()
+for d in "$ROOT/boot/EFI/Linux" "$ROOT/efi/EFI/Linux" "$ROOT/boot/efi/EFI/Linux"; do
+    for f in "$d"/*.efi; do [ -f "$f" ] && ukis+=("$f"); done
+done
+bootx=""
+for d in "$ROOT/boot/EFI/BOOT" "$ROOT/efi/EFI/BOOT" "$ROOT/boot/efi/EFI/BOOT"; do
+    [ -f "$d/BOOTX64.EFI" ] && { bootx="$d/BOOTX64.EFI"; break; }
+done
+# Mismo contenido (sha256sum, de coreutils: cmp viene de diffutils, que no esta en base).
+same() { [ "$(sha256sum < "$1")" = "$(sha256sum < "$2")" ]; }
+copy_of=""
+if [ -n "$bootx" ]; then
+    for f in "${ukis[@]}"; do same "$f" "$bootx" && { copy_of="$f"; break; }; done
+    # Sin coincidencia exacta pero una sola UKI: es la que se arranca (un copiado anterior pudo fallar).
+    [ -z "$copy_of" ] && [ "${#ukis[@]}" -eq 1 ] && copy_of="${ukis[0]}"
+fi
 
-# Este equipo especifico no arranca por una entrada NVRAM con archivo
-# explicito (GRUB/Limine quedaron con sus binarios borrados) -- el firmware
-# cae al path de fallback UEFI generico, /boot/EFI/BOOT/BOOTX64.EFI, que es
-# una copia plana de esta UKI (ver README seccion Plymouth, "arranque real
-# de este equipo"). Si ese archivo existe, hay que mantenerlo sincronizado
-# con la UKI recien reconstruida o el theme actualizado nunca se ve en el
-# proximo arranque. Guardado en "si existe" para no tocar equipos que
-# arrancan por una entrada NVRAM normal (ahi este archivo no existe/no se usa).
-UKI="/boot/EFI/Linux/arch-linux-zen.efi"
-if [ -f /boot/EFI/BOOT/BOOTX64.EFI ] && [ -f "$UKI" ]; then
-    # Copia a un temporal en la MISMA particion + rename atomico: si la ESP
-    # se queda sin espacio a mitad de la copia (paso, ver README), el rename
-    # simplemente no pasa y BOOTX64.EFI queda intacto en vez de truncado.
-    # `mv` entre dos paths de la misma particion es atomico (rename(2)).
-    if cp "$UKI" /boot/EFI/BOOT/BOOTX64.EFI.new; then
-        mv /boot/EFI/BOOT/BOOTX64.EFI.new /boot/EFI/BOOT/BOOTX64.EFI
+# Theme por defecto sin -R: el -R del paquete de Arch llama siempre a `mkinitcpio -P`, que no
+# existe (o no se usa) en los sistemas con dracut (EndeavourOS, Garuda) o booster. El initramfs
+# se rehace con el generador que use este sistema (Plymouth lee el theme desde el initramfs).
+run plymouth-set-default-theme dotfiles-matugen
+if command -v mkinitcpio >/dev/null 2>&1 && ls "$ROOT"/etc/mkinitcpio.d/*.preset >/dev/null 2>&1; then
+    run mkinitcpio -P
+elif command -v dracut-rebuild >/dev/null 2>&1; then
+    run dracut-rebuild
+elif command -v dracut >/dev/null 2>&1; then
+    run dracut --regenerate-all --force
+elif [ -x /usr/lib/booster/regenerate_images ]; then
+    run /usr/lib/booster/regenerate_images
+else
+    echo "sync-plymouth-theme: no encontre generador de initramfs (mkinitcpio, dracut, booster): el theme queda instalado pero no entra al arranque hasta que se rehaga el initramfs" >&2
+    exit 1
+fi
+
+# BOOTX64.EFI sigue a la UKI de la que era copia. Copia a un temporal en la MISMA particion +
+# rename atomico: si la ESP se queda sin espacio a mitad (paso, ver README), BOOTX64.EFI queda
+# intacto en vez de truncado. Sin BOOTX64.EFI, o si no es copia de ninguna UKI (varias y
+# distintas), no se toca: el equipo arranca por otra entrada.
+if [ -n "$bootx" ] && [ -n "$copy_of" ]; then
+    if cp "$copy_of" "$bootx.new"; then
+        mv "$bootx.new" "$bootx"
     else
-        rm -f /boot/EFI/BOOT/BOOTX64.EFI.new
-        echo "sync-plymouth-theme: fallo la copia a BOOTX64.EFI.new (sin espacio?) -- BOOTX64.EFI actual quedo SIN TOCAR" >&2
+        rm -f "$bootx.new"
+        echo "sync-plymouth-theme: fallo la copia a $bootx.new (sin espacio?) -- $(basename "$bootx") actual quedo SIN TOCAR" >&2
         exit 1
     fi
+elif [ -n "$bootx" ]; then
+    echo "sync-plymouth-theme: $bootx no es copia de ninguna UKI (hay ${#ukis[@]}): no se toca" >&2
 fi
